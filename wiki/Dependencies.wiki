@@ -1,4 +1,4 @@
-#summary OBSearch's program dependencies
+#summary OBSearch's dependencies
 
 = Introduction =
 The following is a list of all open source dependencies used by OBSearch.
