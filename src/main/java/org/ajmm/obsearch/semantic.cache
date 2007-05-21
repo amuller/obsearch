@@ -1,0 +1,16 @@
+;; Object obsearch/
+;; SEMANTICDB Tags save file
+(semanticdb-project-database-file "obsearch/"
+  :tables (list 
+   (semanticdb-table "App.java"
+    :major-mode 'jde-mode
+    :tags '(("org.ajmm.obsearch" package nil nil [1 27]) ("App" type (:typemodifiers ("public") :members (("main" function (:typemodifiers ("public" "static") :arguments (("args" variable (:type "String[]") (reparse-symbol formal_parameters) [105 118])) :type "void") (reparse-symbol class_member_declaration) [80 178])) :type "class") nil [56 180]))
+    :file "App.java"
+    :pointmax 181
+    :unmatched-syntax 'nil
+    )
+   )
+  :file "semantic.cache"
+  :semantic-tag-version "2.0pre3"
+  :semanticdb-version "2.0pre3"
+  )
