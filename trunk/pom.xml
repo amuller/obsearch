@@ -9,14 +9,45 @@
 	<inceptionYear>2007</inceptionYear>
 	<description>  
 	
-	Synopsis: A distributed similarity search engine. This project is to
+	A distributed similarity search engine. This project is to
 	similarity search what 'bit-torrent' is to downloads. A p+tree is a
 	high dimension index structure. This project consists on
 	implementing a p+tree in a distributed environment. All the clients
 	will share the workload when performing queries. 
-
+	This project is being developed for Google Summer of Code (TM) 2007.
 	</description>
   <url>http://code.google.com/p/obsearch/</url>
+
+	<licenses>
+    <license>
+      <name>GNU GENERAL PUBLIC LICENSE</name>
+      <url>http://www.gnu.org/licenses/gpl.txt</url>
+    </license>
+  </licenses>
+
+	<mailingLists>
+    <mailingList>
+      <name>obsearch-users</name>
+      <subscribe/>
+      <unsubscribe/>
+      <post>http://groups.google.com/group/obsearch-users</post>
+      <archive>http://groups.google.com/group/obsearch-users</archive>
+    </mailingList>
+		 <mailingList>
+      <name>obsearch-developers</name>
+      <subscribe/>
+      <unsubscribe/>
+      <post>http://groups.google.com/group/obsearch-developers</post>
+      <archive>http://groups.google.com/group/obsearch-developers</archive>
+    </mailingList>
+  </mailingLists>
+
+	<issueManagement>
+    <system>Google's issue system</system>
+    <url>http://code.google.com/p/obsearch/issues/list</url>
+  </issueManagement>
+
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -131,16 +162,38 @@
     <developerConnection>scm:svn:https://obsearch.googlecode.com/svn/trunk/</developerConnection>
     <url>http://code.google.com/p/obsearch/source</url>
   </scm>
-
-
+	
+	<organization>
+		<name>Portland State University</name>
+		<url>http://summer.cs.pdx.edu</url>
+	</organization>
+	
 	 <developers>
-		 <developer>
+		 <developer timezone="+9">
 			 <id>amuller</id>
 			 <name>Arnoldo Jose Muller Molina</name>
-			 <email>arnoldoMuller::at::gmail.com</email>
+			 <email>arnoldoMuller::atoma-ku::jime-ru</email>
 			 <organization>Kyushu Institute of Technology</organization>
 			 <roles>
 				 <role>Developer</role>
+			 </roles>
+		 </developer>
+		 <developer timezone="-8">
+			 <id>cbrown</id>
+			 <name>Cynthia A. Brown</name>
+			 <email>???</email>
+			 <organization> Portland State University</organization>
+			 <roles>
+				 <role>Mentor</role>
+			 </roles>
+		 </developer>
+     <developer timezone="-8">
+			 <id>bmassey</id>
+			 <name>Barton C. Massey</name>
+			 <email>???</email>
+			 <organization> Portland State University</organization>
+			 <roles>
+				 <role>Mentor</role>
 			 </roles>
 		 </developer>
 	 </developers>
