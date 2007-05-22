@@ -11,3 +11,12 @@ Among these indexing techniques, the pyramid technique is of special interest. I
 This project could benefit different communities that require similarity matching services just as audio, source code, video, biology, weather forecasts, etc. 
 
 By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Monetary cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality. Also they could provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality.
+
+
+Using with Eclipse
+
+Do the following:
+mvn -Declipse.workspace=/home/<usr>/workspace eclipse:add-maven-repo
+mvn eclipse:eclipse 
+
+Maybe you should do a "mvn eclipse:clean" before commiting files
