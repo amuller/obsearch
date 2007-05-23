@@ -1,4 +1,4 @@
 #!/bin/sh
 
-svn add * --config-dir ./svn_config
+svn add * --config-dir ../svn_config
 
