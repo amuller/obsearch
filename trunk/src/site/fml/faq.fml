@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<faqs id="General FAQ">
+  <part id="General">
+		<faq id="when">
+      <question>When should I use OBSearch?</question>
+      <answer>
+        <p>
+       	When you need to approximately match objects and you have a distance
+				function that satisfies the triangular inequality.
+        </p>
+      </answer>			
+    </faq>  
+		
+    <faq id="reason">
+      <question>Why should I use OBSearch?</question>
+      <answer>
+        <p>
+        Because it is the only  distributed high-dimensional index	available
+				in the open source market right now. 
+        </p>
+      </answer>			
+    </faq>   
+
+		<faq id="meaning">
+      <question>Why OB?</question>
+      <answer>
+        <p>
+        OBSearch is about choice. Some people define OB as "OBject". Others as 
+	      "OBligatory". 								
+        </p>
+				<p>
+				For others, OB = Octopus-Bear. :)
+				</p>
+      </answer>			
+    </faq> 
+  </part>
+</faqs>
