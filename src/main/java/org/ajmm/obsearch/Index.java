@@ -90,5 +90,4 @@ public interface Index {
      */
     public byte delete(OB object);
     
-    
 }
