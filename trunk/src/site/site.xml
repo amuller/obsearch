@@ -6,7 +6,7 @@
     <href>http://maven.apache.org/</href>
   </bannerLeft>
   <bannerRight>
-    <src>http://maven.apache.org/images/maven-small.gif</src>
+    <h2>OBSearch</h2>
   </bannerRight>
   <body>
     <links>     
