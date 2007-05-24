@@ -2,6 +2,7 @@ package org.ajmm.obsearch;
 import org.ajmm.obsearch.dimension.Dim;
 import org.ajmm.obsearch.exceptions.IllegalIdException;
 import org.ajmm.obsearch.exceptions.IllegalKException;
+import org.ajmm.obsearch.exceptions.NotFrozenException;
 
 /*
     OBSearch: a distributed similarity search engine
@@ -27,6 +28,14 @@ import org.ajmm.obsearch.exceptions.IllegalKException;
  *
  * An Index stores objects based on a distance function in a hopefully
  * efficient way
+ * Our indexes first load a bunch of data, perform some calculations and then they 
+ * have to be frozen. We calculate different things such as pivots, extended pyramid technique values
+ * and p+tree clustering detection. An index can be frozen only once. Please make sure you add a bunch of
+ * data into it before freezing it. 
+ * Note that after freezing it, you can continue adding data. :)
+ * If a recalculation is required, it can be performed in background, you
+ * can still use the database until the database optimizes itself.
+ * 
  * @author      Arnoldo Jose Muller Molina
  * @version     %I%, %G%
  * @since       0.0
@@ -44,9 +53,10 @@ public interface Index {
      * @param r the range to be used
      * @param result An array of "Result". A null object terminates the list. Note that if the list contains objects they will be reused saving precious time. This list will contain at most k objects.
      * @throws IllegalKException if k != result.length
+     * @throws NotFrozenException if the index has not been frozen.
      * @since 0.0
      */
-    public void searchID(OB object, byte k, Dim r, Result[] result) throws IllegalKException;
+    void searchID(OB object, byte k, Dim r, Result[] result) throws IllegalKException, NotFrozenException;
     
     /**
      * Searches the Index and returns OBResult (ID, OB and distance) elements
@@ -60,9 +70,11 @@ public interface Index {
      * @param r the range to be used
      * @param result An array of "OBResult". A null object terminates the list. Note that if the list contains objects they will be reused saving precious time. This list will contain at most k objects.
      * @throws IllegalKException if k != result.length
+     * @throws NotFrozenException if the index has not been frozen.
      * @since 0.0
      */
-    public void searchOB(OB object, byte k, Dim r, OBResult[] result) throws IllegalKException;
+    // TODO: Evaluate if result should be a priority queue instead of an array
+    void searchOB(OB object, byte k, Dim r, OBResult[] result) throws IllegalKException, NotFrozenException;
     
     
     /**
@@ -79,15 +91,28 @@ public interface Index {
     //TODO: make sure that the community is ok with 
     //             storing 2,147,483,647 objects
     byte insert(OB object, int id) throws IllegalIdException;
+   
+    /**
+     * Returns true if the index is frozen
+     * @return true if the index is frozen, false otherwise
+     */
+    boolean isFrozen();
     
+    /**
+     * Freezes the index. From this point data can be inserted, searched and deleted
+     * The index might deteriorate at some point so every once in a while it is a good
+     * idea to rebuild de index
+     */
+    void freeze();
     
     /**
      * Deletes the given object form the database
      * @param object The object to be deleted
      * @return 0 if the object was not found in the database or 1 if it
+     * @throws NotFrozenException if the index has not been frozen.
      * was deleted successfully
      * @since 0.0
      */
-    public byte delete(OB object);
+    public byte delete(OB object) throws NotFrozenException;
     
 }
