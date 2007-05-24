@@ -15,6 +15,7 @@
 
     <menu name="OBSearch">
 			<item name="Overview" href="overview.html"/>
+			<item name="GSOC plan" href="plan.html"/>
 			<item name="Downloads" href="http://code.google.com/p/obsearch/downloads/list"/>
       <item name="FAQ" href="faq.html"/>
     </menu>
