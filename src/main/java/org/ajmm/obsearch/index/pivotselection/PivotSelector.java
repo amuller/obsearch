@@ -1,4 +1,6 @@
-package org.ajmm.obsearch;
+package org.ajmm.obsearch.index.pivotselection;
+
+import org.apache.log4j.Logger;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -17,24 +19,26 @@ package org.ajmm.obsearch;
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
- * @param < D > Dimension type to use.
+ * Implementations of this class have the task of selecting a subset of the
+ * objects before freezing to be used as pivots. How the pivot access the
+ * objects depends largely on theIndex implementation.
+ * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
- * @since 1.0
+ * @since 0.0
  */
-
-public class OBResult < D > extends Result < D > {
-    protected OB object;
-
-    public OB getObject() {
-        return object;
-    }
-
-    public void setObject(OB obj) {
-        this.object = obj;
-    }
-
+// TODO: This class needs to have a consistent access to all the elements. 
+// Figure this out later as the RandomPivot doesn't need this data.
+public interface PivotSelector {
+    /**
+     * Generates n (n = pivots) from the database
+     * The resulting array is a list of ids from the database
+     * @param pivots
+     * @param maxId the maximum id found in the database
+     * @return a list of ID's from the database
+     */
+    int[] generatePivots(short pivots, int maxId);
 }

@@ -1,4 +1,4 @@
-package org.ajmm.obsearch;
+package org.ajmm.obsearch.exception;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -20,21 +20,13 @@ package org.ajmm.obsearch;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * @param < D > Dimension type to use.
+ * When a freeze invocation is performed and the database was already frozen.
+ *
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 
-public class OBResult < D > extends Result < D > {
-    protected OB object;
-
-    public OB getObject() {
-        return object;
-    }
-
-    public void setObject(OB obj) {
-        this.object = obj;
-    }
+public class IndexAlreadyFrozenException extends Exception {
 
 }

@@ -24,22 +24,22 @@ import org.ajmm.obsearch.dimension.Dim;
 /**
  * Class: Result A class that holds results consisting of an object ID and the
  * respective distance
- * 
+ * @param < D > Dimension type to use.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 
-public class Result {
+public class Result < D > {
     protected int id;
 
-    protected Dim distance;
+    protected D distance;
 
-    public Dim getDistance() {
+    public D getDistance() {
         return distance;
     }
 
-    public void setDistance(Dim d) {
+    public void setDistance(D d) {
         this.distance = d;
     }
 

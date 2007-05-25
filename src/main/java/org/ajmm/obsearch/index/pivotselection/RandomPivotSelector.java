@@ -1,4 +1,6 @@
-package org.ajmm.obsearch;
+package org.ajmm.obsearch.index.pivotselection;
+
+import java.util.Random;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -20,21 +22,32 @@ package org.ajmm.obsearch;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * @param < D > Dimension type to use.
+ * This class receives the maximum ID available in the database (before freeze)
+ * and generates random pivot numbers that are inside this range
+ * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 
-public class OBResult < D > extends Result < D > {
-    protected OB object;
+public class RandomPivotSelector implements PivotSelector {
 
-    public OB getObject() {
-        return object;
-    }
-
-    public void setObject(OB obj) {
-        this.object = obj;
+    /**
+     * Selects a number of pivots from the database.
+     * @param pivots The number of pivots to be selected
+     * @return A list of object ids from the database
+     * @see org.ajmm.obsearch.index.pivotselection.PivotSelector#generatePivots(short)
+     */
+    public int[] generatePivots(short pivots, int maxIdAvailable) {
+        final int maxId = maxIdAvailable + 1;
+        int[] res = new int[pivots];
+        Random r = new Random();
+        int i = 0;
+        while(i < res.length){
+            res[i] = r.nextInt(maxId);
+            i++;
+        }
+        return res;
     }
 
 }
