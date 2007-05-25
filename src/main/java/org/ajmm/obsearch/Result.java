@@ -31,24 +31,24 @@ import org.ajmm.obsearch.dimension.Dim;
  */
 
 public class Result {
-	protected int id;
+    protected int id;
 
-	protected Dim distance;
+    protected Dim distance;
 
-	public Dim getDistance() {
-		return distance;
-	}
+    public Dim getDistance() {
+        return distance;
+    }
 
-	public void setDistance(Dim d) {
-		this.distance = d;
-	}
+    public void setDistance(Dim d) {
+        this.distance = d;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int identification) {
-		this.id = identification;
-	}
+    public void setId(int identification) {
+        this.id = identification;
+    }
 
 }

@@ -1,117 +1,136 @@
 package org.ajmm.obsearch;
+
 import org.ajmm.obsearch.dimension.Dim;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.IllegalKException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
- 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
- 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
- *
- * An Index stores objects based on a distance function in a hopefully
- * efficient way
- * Our indexes first load a bunch of data, perform some calculations and then they 
- * have to be frozen. We calculate different things such as pivots, extended pyramid technique values
- * and p+tree clustering detection. An index can be frozen only once. Please make sure you add a bunch of
- * data into it before freezing it. 
- * Note that after freezing it, you can continue adding data. :)
- * If a recalculation is required, it can be performed in background, you
- * can still use the database until the database optimizes itself.
- * 
- * @author      Arnoldo Jose Muller Molina
- * @version     %I%, %G%
- * @since       0.0
+ * An Index stores objects based on a distance function in a hopefully efficient
+ * way Our indexes first load a bunch of data, perform some calculations and
+ * then they have to be frozen. We calculate different things such as pivots,
+ * extended pyramid technique values and p+tree clustering detection. An index
+ * can be frozen only once. Please make sure you add a bunch of data into it
+ * before freezing it. Note that after freezing it, you can continue adding
+ * data. :) If a recalculation is required, it can be performed in background,
+ * you can still use the database until the database optimizes itself.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
  */
 public interface Index {
     /**
      * Searches the Index and returns Result elements (ID and distance only)
-     * that are closer to "object".
-     * The closest element is at the beginning of the list and the
-     * farthest elements is at the end of the list.
-     * This condition must hold result.length == k
+     * that are closer to "object". The closest element is at the beginning of
+     * the list and the farthest elements is at the end of the list. This
+     * condition must hold result.length == k
      *
-     * @param object The object that has to be searched
-     * @param k The maximum number of objects to be returned
-     * @param r the range to be used
-     * @param result An array of "Result". A null object terminates the list. Note that if the list contains objects they will be reused saving precious time. This list will contain at most k objects.
-     * @throws IllegalKException if k != result.length
-     * @throws NotFrozenException if the index has not been frozen.
+     * @param object
+     *            The object that has to be searched
+     * @param k
+     *            The maximum number of objects to be returned
+     * @param r
+     *            the range to be used
+     * @param result
+     *            An array of "Result". A null object terminates the list. Note
+     *            that if the list contains objects they will be reused saving
+     *            precious time. This list will contain at most k objects.
+     * @throws IllegalKException
+     *             if k != result.length
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
      * @since 0.0
      */
-    void searchID(OB object, byte k, Dim r, Result[] result) throws IllegalKException, NotFrozenException;
-    
+    void searchID(OB object, byte k, Dim r, Result[] result)
+            throws IllegalKException, NotFrozenException;
+
     /**
      * Searches the Index and returns OBResult (ID, OB and distance) elements
-     * that are closer to "object".
-     * The closest element is at the beginning of the list and
-     * the farthest elements is at the end of the list
-     * This condition must hold result.length == k
+     * that are closer to "object". The closest element is at the beginning of
+     * the list and the farthest elements is at the end of the list This
+     * condition must hold result.length == k
      *
-     * @param object The object that has to be searched
-     * @param k The maximum number of objects to be returned
-     * @param r the range to be used
-     * @param result An array of "OBResult". A null object terminates the list. Note that if the list contains objects they will be reused saving precious time. This list will contain at most k objects.
-     * @throws IllegalKException if k != result.length
-     * @throws NotFrozenException if the index has not been frozen.
+     * @param object
+     *            The object that has to be searched
+     * @param k
+     *            The maximum number of objects to be returned
+     * @param r
+     *            the range to be used
+     * @param result
+     *            An array of "OBResult". A null object terminates the list.
+     *            Note that if the list contains objects they will be reused
+     *            saving precious time. This list will contain at most k
+     *            objects.
+     * @throws IllegalKException
+     *             if k != result.length
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
      * @since 0.0
      */
-    // TODO: Evaluate if result should be a priority queue instead of an array
-    void searchOB(OB object, byte k, Dim r, OBResult[] result) throws IllegalKException, NotFrozenException;
-    
-    
+    //TODO: Evaluate if result should be a priority queue instead of an array
+    void searchOB(OB object, byte k, Dim r, OBResult[] result)
+            throws IllegalKException, NotFrozenException;
+
     /**
-     * Inserts the given object into the index with the given ID
-     * If the given ID already exists, the exception IllegalIDException
-     * is thrown.
-     * @param object The object to be added
-     * @param id Identification number of the given object.
-     * This number must be responsibly generated by someone
+     * Inserts the given object into the index with the given ID If the given ID
+     * already exists, the exception IllegalIDException is thrown.
+     * @param object
+     *            The object to be added
+     * @param id
+     *            Identification number of the given object. This number must be
+     *            responsibly generated by someone
      * @return 0 if the object already existed or 1 if the object was inserted
-     * @throws IllegalIdException if the given ID already exists
+     * @throws IllegalIdException
+     *             if the given ID already exists
      * @since 0.0
      */
-    //TODO: make sure that the community is ok with 
-    //             storing 2,147,483,647 objects
+    // TODO: make sure that the community is ok with
+    // storing 2,147,483,647 objects
     byte insert(OB object, int id) throws IllegalIdException;
-   
+
     /**
-     * Returns true if the index is frozen
+     * Returns true if the index is frozen.
+     *
      * @return true if the index is frozen, false otherwise
      */
     boolean isFrozen();
-    
+
     /**
-     * Freezes the index. From this point data can be inserted, searched and deleted
-     * The index might deteriorate at some point so every once in a while it is a good
-     * idea to rebuild de index
+     * Freezes the index. From this point data can be inserted, searched and
+     * deleted The index might deteriorate at some point so every once in a
+     * while it is a good idea to rebuild de index
      */
     void freeze();
-    
+
     /**
-     * Deletes the given object form the database
-     * @param object The object to be deleted
+     * Deletes the given object form the database.
+     *
+     * @param object
+     *            The object to be deleted
      * @return 0 if the object was not found in the database or 1 if it
-     * @throws NotFrozenException if the index has not been frozen.
-     * was deleted successfully
+     * @throws NotFrozenException
+     *             if the index has not been frozen. was deleted successfully
      * @since 0.0
      */
     public byte delete(OB object) throws NotFrozenException;
-    
+
 }
