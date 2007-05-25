@@ -1,0 +1,66 @@
+OBSearch's plan
+~~~~~~~~~~~~~~~
+
+	The following describes the planned schedule for OBSearch.
+
+* Before May 28:
+       
+       * Creating a registry using berkeley db to store pyramid meta data. [wip]
+       
+       * Repository creation (svn) and environment preparations. [done]
+
+				 Current static analyzers: PMD, findbugs, JDepend, Cobertura and lint4j (eclipse). 
+
+
+* May 28: Design (1 week) [all required]
+
+       * Distributed programming approach design and selection.
+
+       * Program design starts. [done]
+
+       * Protocol design. [wip]
+         Do we need versions of the data? to keep consistency? If an user inserts a record do we want to make sure that all the peers have the data until we make it visible?
+         Since we are a writing an approximate database I don't think it is necessary.  What do you think?
+	
+       * Database creation work-flow design.
+
+
+    Expected results: We are ready to start coding.
+
+* June 4: P+tree implementation (3 weeks) [all required]
+
+       * Implement a P+tree (one computer).
+
+       * Write a test-bed so that the query results are always verified against the sequential result. 
+    
+    Expected results: The p+tree works, and its output is correct. The test-bed is finished.
+
+* June 25: Distributed Module (4 weeks) [all required]
+
+       * Coding of the distributed module.
+
+       * Documentation.
+
+    Expected results: multiple clients can match correctly in a distributed environment. Documentation for the project.
+
+* July 16:(Mid-term evaluation)
+
+* July 23: Performance Tuning & Dissemination (4 weeks) [all required]
+    
+       * Write an automatic test-bed for performance tuning.
+
+       * The program works at this point.
+
+       * Create tuning tests.
+
+       * Create the website for the project [done].
+
+       * Register the project in www.freshmeat.net.
+    
+    Expected results: performance documentation, performance test-bed, project's website.
+
+* Aug 20: Code is Uploaded
+    
+       * Mentors begin evaluations.
+
+* Aug 31: Final evaluation day
