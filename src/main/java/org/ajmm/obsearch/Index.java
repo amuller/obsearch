@@ -1,8 +1,8 @@
 package org.ajmm.obsearch;
 import org.ajmm.obsearch.dimension.Dim;
-import org.ajmm.obsearch.exceptions.IllegalIdException;
-import org.ajmm.obsearch.exceptions.IllegalKException;
-import org.ajmm.obsearch.exceptions.NotFrozenException;
+import org.ajmm.obsearch.exception.IllegalIdException;
+import org.ajmm.obsearch.exception.IllegalKException;
+import org.ajmm.obsearch.exception.NotFrozenException;
 
 /*
     OBSearch: a distributed similarity search engine
@@ -24,7 +24,6 @@ import org.ajmm.obsearch.exceptions.NotFrozenException;
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
- * Class: Index
  *
  * An Index stores objects based on a distance function in a hopefully
  * efficient way

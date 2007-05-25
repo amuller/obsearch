@@ -1,6 +1,4 @@
-package org.ajmm.obsearch;
-
-
+package org.ajmm.obsearch.exception;
 /*
     OBSearch: a distributed similarity search engine
     This project is to similarity search what 'bit-torrent' is to downloads.
@@ -21,22 +19,13 @@ package org.ajmm.obsearch;
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
 */
 /** 
+	  Class: IllegalKException
 	  
     @author      Arnoldo Jose Muller Molina    
     @version     %I%, %G%
     @since       1.0
 */
 
+public class IllegalKException extends Exception {
 
-public class OBResult extends Result {
-	protected OB object;
-
-	public OB getObject() {
-		return object;
-	}
-
-	public void setObject(OB obj) {
-		this.object = obj;
-	}
-	
 }

@@ -24,8 +24,6 @@ import com.sleepycat.bind.tuple.TupleOutput;
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
- * Interface: OB
- *
  * An object to be stored in an Index must comply with this interface
  * A distance must be defined and also means of encoding and decoding
  * the object from a byte representation
