@@ -1,6 +1,9 @@
 package org.ajmm.obsearch;
 
+import java.io.IOException;
+
 import org.ajmm.obsearch.dimension.Dim;
+import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.IllegalKException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -41,13 +44,13 @@ import com.sleepycat.je.DatabaseException;
  * @version %I%, %G%
  * @since 0.0
  */
-public interface Index < O extends OB , D > {
+public interface Index<O extends OB, D> {
     /**
      * Searches the Index and returns Result elements (ID and distance only)
      * that are closer to "object". The closest element is at the beginning of
      * the list and the farthest elements is at the end of the list. This
      * condition must hold result.length == k
-     *
+     * 
      * @param object
      *            The object that has to be searched
      * @param k
@@ -129,8 +132,15 @@ public interface Index < O extends OB , D > {
      * 
      * @param pivotSelector
      *            The pivot selector to be used
+     * @throws IOException
+     *             if the serialization process fails
+     * @throws AlreadyFrozenException
+     *             If the index was already frozen and the user attempted to
+     *             freeze it again
      */
-    void freeze(PivotSelector pivotSelector);
+    void freeze(PivotSelector pivotSelector) throws IOException,
+            AlreadyFrozenException, IllegalIdException, IllegalAccessException,
+            InstantiationException, DatabaseException;
 
     /**
      * Deletes the given object form the database.

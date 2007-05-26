@@ -30,14 +30,16 @@ import org.apache.log4j.Logger;
  * @version %I%, %G%
  * @since 0.0
  */
-// TODO: This class needs to have a consistent access to all the elements. 
+// TODO: This class needs to have a consistent access to all the elements.
 // Figure this out later as the RandomPivot doesn't need this data.
 public interface PivotSelector {
     /**
-     * Generates n (n = pivots) from the database
-     * The resulting array is a list of ids from the database
+     * Generates n (n = pivots) from the database The resulting array is a list
+     * of ids from the database
+     * 
      * @param pivots
-     * @param maxId the maximum id found in the database
+     * @param maxId
+     *            the maximum id found in the database
      * @return a list of ID's from the database
      */
     int[] generatePivots(short pivots, int maxId);

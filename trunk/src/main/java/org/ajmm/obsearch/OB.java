@@ -25,8 +25,8 @@ import com.sleepycat.bind.tuple.TupleOutput;
 /**
  * An object to be stored in an Index must comply with this interface A distance
  * must be defined and also means of encoding and decoding the object from a
- * byte representation. Objects that implement this interface should be created
- * by the default constructor and initialized by using the load method.
+ * byte representation. Objects that implement this interface will be created by
+ * using the default constructor and initialized by the load method.
  * 
  * @param <DIM>
  *            The type of units returned by the distance function
@@ -36,33 +36,34 @@ import com.sleepycat.bind.tuple.TupleOutput;
  */
 
 public interface OB<DIM> {
-	/**
-	 * Stores this object in a byte array.
-	 * 
-	 * @param out
-	 *            A TupleOutput where values can be stored
-	 * @since 0.0
-	 */
-	void store(TupleOutput out);
+    /**
+     * Stores this object in a byte array.
+     * 
+     * @param out
+     *            A TupleOutput where values can be stored
+     * @since 0.0
+     */
+    void store(TupleOutput out);
 
-	/**
-	 * Populates the object's internal properties from the given byte stream.
-	 * 
-	 * @param byteInput
-	 *            A TupleInput object from where primitive types can be loaded.
-	 * @since 0.0
-	 */
-	void load(TupleInput byteInput);
+    /**
+     * Populates the object's internal properties from the given byte stream.
+     * 
+     * @param byteInput
+     *            A TupleInput object from where primitive types can be loaded.
+     * @since 0.0
+     */
+    void load(TupleInput byteInput);
 
-	/**
-	 * Calculates the similarity of "this" object and "object". The function
-	 * must satisfy the triangular inequality.
-	 * 
-	 * @param object
-	 *            The object to be compared
-	 * @param result
-	 *            The resulting distance
-	 * @since 0.0
-	 */
-	void distance(OB object, DIM result);
+    /**
+     * Calculates the similarity of "this" object and "object". The function
+     * must satisfy the triangular inequality.
+     * 
+     * @param object
+     *            The object to be compared
+     * @param result
+     *            The resulting distance
+     * @since 0.0
+     */
+    void distance(OB object, DIM result);
+    
 }
