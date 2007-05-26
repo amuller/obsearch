@@ -34,7 +34,9 @@ public class RandomPivotSelector implements PivotSelector {
 
     /**
      * Selects a number of pivots from the database.
-     * @param pivots The number of pivots to be selected
+     * 
+     * @param pivots
+     *            The number of pivots to be selected
      * @return A list of object ids from the database
      * @see org.ajmm.obsearch.index.pivotselection.PivotSelector#generatePivots(short)
      */
@@ -43,7 +45,7 @@ public class RandomPivotSelector implements PivotSelector {
         int[] res = new int[pivots];
         Random r = new Random();
         int i = 0;
-        while(i < res.length){
+        while (i < res.length) {
             res[i] = r.nextInt(maxId);
             i++;
         }
