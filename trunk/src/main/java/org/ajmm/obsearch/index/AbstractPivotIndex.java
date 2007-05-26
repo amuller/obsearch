@@ -122,10 +122,6 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
             Class<O> type) throws DatabaseException {
         this.dbDir = databaseDirectory;
         dbDir.mkdirs(); // create the directory
-        // TODO check if the index exists, then load the values from the
-        // database, or
-        // figure out how to do this from
-        // outside. Maybe we can just serialize this object once it is frozen.
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
@@ -285,7 +281,7 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
      *             if the id already exists
      * @return 1 if successful 0 otherwise
      */
-    protected abstract byte insertFrozen(O object, int id)
+    protected abstract byte insertFrozen(final O object, final int id)
             throws IllegalIdException;
 
     /**
@@ -309,13 +305,70 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
         }
 
         storePivots();
-
+        
+        calculateIndexParameters();    
+        
         XStream xstream = new XStream();
+        //TODO: make sure this "this" will print the subclass and not the current class
         String xml = xstream.toXML(this);
         FileWriter fout = new FileWriter(this.dbDir.getPath()
                 + getSerializedName());
         fout.write(xml);
         fout.close();
+    }
+    
+    /**
+     * Children of this class have to implement this method if
+     * they want to calculate extra parameters
+     */
+    protected abstract void calculateIndexParameters();
+    
+    
+    /** 
+     * This method calculates the pivots for each element in the database
+     * and stores them in database B.
+     * Later subclasses of this class can analyze the pivot tables and
+     * create additional parameters
+     */
+    protected void storeTuples() throws NotFrozenException, DatabaseException,
+    IllegalAccessException, InstantiationException{
+        Cursor cursor = null;
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        if (!isFrozen()) {
+            throw new NotFrozenException();
+        }
+        try {
+            int i = 0;
+
+            cursor = aDB.openCursor(null, null);
+            O obj = this.instantiateObject();
+            D[] tuple = this.instantiateDims(); // create a dimension array
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                assert i == IntegerBinding.entryToInt(foundKey);
+                TupleInput in = new TupleInput(foundData.getData());
+                
+                obj.load(in);
+                calculatePivotTuple(obj, tuple);
+                insertPivotTupleBDB(i, tuple); // store the tuple
+                this.pivots.add(i, obj);
+                i++;
+            }
+            assert this.maxId == i; // pivot count and read # of pivots
+            // should be the same
+        } finally {
+            cursor.close();
+        }
+    }
+    
+    /**
+     * Calculates the tuple vector for the given object
+     * @param obj
+     * @param tuple The resulting tuple will be stored here
+     */
+    protected void calculatePivotTuple(O obj, D[] tuple){
+        assert tuple.length == this.pivotsCount;
     }
 
     /**
@@ -358,10 +411,10 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
             int i = 0;
 
             cursor = pivotsDB.openCursor(null, null);
+            O obj = this.instantiateObject();
             while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
-                TupleInput in = new TupleInput(foundData.getData());
-                O obj = this.instantiateObject();
+                TupleInput in = new TupleInput(foundData.getData());                
                 obj.load(in);
                 this.pivots.add(i, obj);
                 i++;
@@ -417,6 +470,8 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
 
     public O instantiateObject() throws IllegalAccessException,
             InstantiationException {
+        // Find out if java can give us the type information directly from the
+        // template parameter. There should be a way...
         return type.newInstance();
     }
 
