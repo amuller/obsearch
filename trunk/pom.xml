@@ -18,6 +18,14 @@
 	</description>
   <url>http://code.google.com/p/obsearch/</url>
 
+
+	<properties>
+		<!-- additional unit test files to be downloaded -->
+    <my.test.data.url>http://obsearch.googlecode.com/files/</my.test.data.url>
+		<my.test.data.db>slices.bz2</my.test.data.db>
+		<my.test.data.query>slices-query.bz2</my.test.data.query>
+  </properties>
+
 	<licenses>
     <license>
       <name>GNU GENERAL PUBLIC LICENSE</name>
@@ -69,14 +77,14 @@
       <version>1.2.2</version>
       <scope>compile</scope>
     </dependency>
-
+<!--
 		<dependency>
       <groupId>xpp3</groupId>
       <artifactId>xpp3</artifactId>
       <version>1.1.3.4.O</version>
       <scope>compile</scope>
     </dependency>
-
+-->
 		
 		<dependency>
       <groupId>log4j</groupId>
@@ -152,6 +160,8 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
+					<fork>true</fork>
+					<compilerArgument>-verbose</compilerArgument>
 				</configuration>
 			</plugin>
 
@@ -169,13 +179,39 @@
         </configuration>
 			</plugin>
 
+			<plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <configuration>
+              <tasks>
+								<mkdir dir="${project.build.testOutputDirectory}"/>
+								<echo>Downloading test file data...</echo>
+								<get src="${my.test.data.url}${my.test.data.db}" dest="${project.build.testOutputDirectory}/${my.test.data.db}" usetimestamp="true" />
+								<get src="${my.test.data.url}${my.test.data.query}" dest="${project.build.testOutputDirectory}/${my.test.data.query}" usetimestamp="true" />
+								<echo>Uncompressing...</echo>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.db}"/>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}"/>
+								<echo>Done!</echo>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
 		 </plugins>
 	 </build>
+
+
 
    <scm>
     <connection>scm:svn:https://obsearch.googlecode.com/svn/trunk/</connection>
     <developerConnection>scm:svn:https://obsearch.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://code.google.com/p/obsearch/source</url>
+    <url>http://obsearch.googlecode.com/svn/</url>
   </scm>
 	
 	<organization>

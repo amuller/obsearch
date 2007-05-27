@@ -88,7 +88,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     // we should not have to control this property after freezing. This is just
     // used as a safeguard.
     // It allows RandomPivotSelector to be implemented easily
-    private transient int maxId;
+    private  int maxId;
 
     private transient PivotSelector pivotSelector;
 
@@ -148,7 +148,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
     /**
      * Initialization of all the databases involved
-     * 
+     * Subclasses should override  this method if they want to create 
+     * new databases
      * @throws DatabaseException
      */
     private void initDB() throws DatabaseException {
@@ -158,10 +159,10 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         initPivots();
     }
 
-    private Object readResolve() throws DatabaseException, NotFrozenException,
+    protected Object readResolve() throws DatabaseException, NotFrozenException,
             DatabaseException, IllegalAccessException, InstantiationException {
         if (logger.isDebugEnabled()) {
-            logger.debug("Initializing databases after being unserialized");
+            logger.debug("Initializing transient fields after de-serialization");
         }
         initDB();
         loadPivots();
@@ -171,7 +172,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     /**
      * Creates database A.
      * 
-     * @throws Exception
+     * @throws DatabaseException if something goes wrong
      */
     private void initA() throws DatabaseException {
         final boolean duplicates = dbConfig.getSortedDuplicates();
@@ -194,7 +195,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
     /**
      * This method makes sure that all the databases are created with the same
-     * settings TODO: Need to tweak these values
+     * settings.
+     *  TODO: Need to tweak these values
      * 
      * @throws DatabaseException
      *             Exception thrown by sleepycat
@@ -478,7 +480,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
             cursor = pivotsDB.openCursor(null, null);
             O obj = this.instantiateObject();
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) 
+                    == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
                 TupleInput in = new TupleInput(foundData.getData());
                 obj.load(in);
@@ -544,9 +547,21 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     public O[] getPivots() {
         return this.pivots;
     }
-
+    
+    /**
+     * Returns the current amount of pivots
+     * @return
+     */
     public byte getPivotsCount() {
         return this.pivotsCount;
+    }
+    
+    /**
+     * Returns true if the database has been frozen
+     * @return true if the database has been frozen
+     */
+    public boolean isFrozen() {
+        return this.frozen;
     }
 
 }

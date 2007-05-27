@@ -26,14 +26,14 @@ package org.ajmm.obsearch;
  * @since 1.0
  */
 
-public class OBResult < D > extends Result < D > {
-    protected OB object;
+public class OBResult < O, D > extends Result < D > {
+    protected O object;
 
-    public OB getObject() {
+    public O getObject() {
         return object;
     }
 
-    public void setObject(OB obj) {
+    public void setObject(O obj) {
         this.object = obj;
     }
 
