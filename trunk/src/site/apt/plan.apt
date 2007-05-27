@@ -7,12 +7,17 @@ OBSearch's plan
 
 * Before May 28:
        
-       * Creating a registry using berkeley db to store pyramid meta data. [wip]
+       * Creating a registry  to store pyramid meta data using Xstream. [done]
        
        * Repository creation (svn) and environment preparations. [done]
 
-				 Current static analyzers: PMD, findbugs, JDepend, Cobertura and lint4j (eclipse). 
+       * Current static analyzers: PMD, findbugs, JDepend, Cobertura and lint4j (eclipse). [done]
 
+       * Redesigning the pivotting abstraction (this is actually the main core of OBSearch). [done]
+			
+       * Designed the data workflow (pre-freezing) -> (freeze) -> (post-freezing). [done]
+
+       		* Once the data is frozen, pivots are selected, and data can be searched, after freezing it is possible to insert data). [done]
 
 * May 28: Design (1 week) [all required]
 
