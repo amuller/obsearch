@@ -2,7 +2,6 @@ package org.ajmm.obsearch;
 
 import java.io.IOException;
 
-import org.ajmm.obsearch.dimension.Dim;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.IllegalKException;
@@ -44,7 +43,7 @@ import com.sleepycat.je.DatabaseException;
  * @version %I%, %G%
  * @since 0.0
  */
-public interface Index<O extends OB, D> {
+public interface Index<O extends OB<D>, D extends Dim> {
     /**
      * Searches the Index and returns Result elements (ID and distance only)
      * that are closer to "object". The closest element is at the beginning of

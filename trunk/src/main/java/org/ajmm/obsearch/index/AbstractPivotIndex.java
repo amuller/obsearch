@@ -3,9 +3,12 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.ajmm.obsearch.Dim;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -70,8 +73,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @since 0.0
  */
 @XStreamAlias("AbstractPivotIndex")
-public abstract class AbstractPivotIndex<O extends OB, D> implements
-        Index<O, D> {
+public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
+        implements Index<O, D> {
 
     private static final Logger logger = Logger
             .getLogger(AbstractPivotIndex.class);
@@ -91,16 +94,22 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
 
     protected transient Environment databaseEnvironment;
 
+    // database with the objects
     protected transient Database aDB;
+    
+    // database with the temporary pivots
+    protected transient Database bDB;
 
     protected transient Database pivotsDB;
 
     protected transient DatabaseConfig dbConfig;
 
-    protected transient List<O> pivots;
+    protected transient O[] pivots;
 
     // we keep this in order to be able to create objects of type O
     protected Class<O> type;
+
+    protected Class<D> dimType;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -118,16 +127,23 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
      *            Do something like YourObj.class
      * @throws DatabaseException
      */
-    public AbstractPivotIndex(final File databaseDirectory, final byte pivots,
-            Class<O> type) throws DatabaseException {
+    public AbstractPivotIndex(final File databaseDirectory, final byte pivots)
+            throws DatabaseException {
         this.dbDir = databaseDirectory;
         dbDir.mkdirs(); // create the directory
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
-        this.type = type;
-        this.pivots = new ArrayList<O>(pivots);
+
         initDB();
+    }
+
+    /**
+     * Creates an array with the pivots It has to be created like this because
+     * we are using generics
+     */
+    protected void createPivotsArray() {
+        this.pivots = (O[]) Array.newInstance(type, pivotsCount);
     }
 
     /**
@@ -219,6 +235,10 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
         if (id != (maxId + 1)) {
             throw new IllegalIdException();
         }
+        if (type == null) { // a way of storing the class type for O
+            type = (Class<O>) object.getClass();
+            dimType = object.getDimensionType();
+        }
         maxId = id;
         insertA(object, id);
         return 1;
@@ -242,7 +262,7 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
      */
     protected void insertA(final O object, final int id)
             throws DatabaseException {
-        insertInDatabase(object, id, aDB);
+        insertObjectInDatabase(object, id, aDB);
     }
 
     /**
@@ -256,16 +276,23 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
      *            Database to be used
      * @throws DatabaseException
      */
-    protected void insertInDatabase(final O object, final int id, Database x)
-            throws DatabaseException {
+    protected void insertObjectInDatabase(final O object, final int id,
+            Database x) throws DatabaseException {
         final DatabaseEntry keyEntry = new DatabaseEntry();
-        final DatabaseEntry dataEntry = new DatabaseEntry();
+
         // store the object in bytes
         final TupleOutput out = new TupleOutput();
         object.store(out);
-        dataEntry.setData(out.getBufferBytes());
+
         // store the ID
         IntegerBinding.intToEntry(id, keyEntry);
+        insertInDatabase(out, keyEntry, x);
+    }
+
+    protected void insertInDatabase(final TupleOutput out,
+            DatabaseEntry keyEntry, Database x) throws DatabaseException {
+        final DatabaseEntry dataEntry = new DatabaseEntry();
+        dataEntry.setData(out.getBufferBytes());
         x.put(null, keyEntry, dataEntry);
     }
 
@@ -287,8 +314,9 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
     /**
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
-     * while it is a good idea to rebuild de index.
-     * After the method returns, searching is enabled.
+     * while it is a good idea to rebuild de index. After the method returns,
+     * searching is enabled.
+     * 
      * @param pivotSelector
      *            The pivot selector to be used
      * @throws IOException
@@ -303,56 +331,54 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
         if (isFrozen()) {
             throw new AlreadyFrozenException();
         }
-
+        createPivotsArray();
+        if(logger.isDebugEnabled()){
+            logger.debug("Storing Pivots in B");
+        }
         storePivots();
-        
-        calculateIndexParameters();    
-        
+
+        calculateIndexParameters(); // this must be done by the subclasses
+
         XStream xstream = new XStream();
-        //TODO: make sure this "this" will print the subclass and not the current class
+        // TODO: make sure this "this" will print the subclass and not the
+        // current class
         String xml = xstream.toXML(this);
         FileWriter fout = new FileWriter(this.dbDir.getPath()
                 + getSerializedName());
         fout.write(xml);
         fout.close();
     }
-    
+
     /**
-     * Children of this class have to implement this method if
-     * they want to calculate extra parameters
+     * Children of this class have to implement this method if they want to
+     * calculate extra parameters
      */
     protected abstract void calculateIndexParameters();
-    
-    
-    /** 
-     * This method calculates the pivots for each element in the database
-     * and stores them in database B.
-     * Later subclasses of this class can analyze the pivot tables and
-     * create additional parameters
+
+    /**
+     * This method calculates the pivots for each element in the database and
+     * stores them in database B. Later subclasses of this class can analyze the
+     * pivot tables and create additional parameters
      */
     protected void storeTuples() throws NotFrozenException, DatabaseException,
-    IllegalAccessException, InstantiationException{
+            IllegalAccessException, InstantiationException {
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-
         if (!isFrozen()) {
             throw new NotFrozenException();
         }
         try {
             int i = 0;
-
             cursor = aDB.openCursor(null, null);
             O obj = this.instantiateObject();
-            D[] tuple = this.instantiateDims(); // create a dimension array
+            D[] tuple = this.createEmptyTuple(); // create a dimension array
             while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
                 TupleInput in = new TupleInput(foundData.getData());
-                
                 obj.load(in);
                 calculatePivotTuple(obj, tuple);
-                insertPivotTupleBDB(i, tuple); // store the tuple
-                this.pivots.add(i, obj);
+                insertPivotTupleInBDB(i, tuple); // store the tuple
                 i++;
             }
             assert this.maxId == i; // pivot count and read # of pivots
@@ -361,14 +387,54 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
             cursor.close();
         }
     }
-    
+
+    /**
+     * Inserts the given tuple in the database B using the given id
+     * 
+     * @param id
+     *            the id to use for the insertion
+     * @param tuple
+     *            The tuple to be inserted
+     */
+    protected void insertPivotTupleInBDB(int id, D[] tuple) throws DatabaseException{
+        TupleOutput out = new TupleOutput();
+        int i = 0;
+        assert tuple.length == pivotsCount;
+        // first encode all the dimensions in an array
+        while (i < tuple.length) {            
+            tuple[i].store(out); // stores the given pivot
+            i++;
+        }
+        // now we can store it in the database
+        DatabaseEntry keyEntry = new DatabaseEntry();
+        IntegerBinding.intToEntry(id, keyEntry);
+        this.insertInDatabase(out, keyEntry, bDB);
+    }
+
+    /**
+     * Create an empty tuple with the pre-defined number of pivots
+     * 
+     * @return The new tuple with length = pivotsCount
+     */
+    protected D[] createEmptyTuple() {
+        return (D[]) Array.newInstance(this.dimType, this.pivotsCount);
+    }
+
     /**
      * Calculates the tuple vector for the given object
+     * 
      * @param obj
-     * @param tuple The resulting tuple will be stored here
+     *            object to be processed
+     * @param tuple
+     *            The resulting tuple will be stored here
      */
-    protected void calculatePivotTuple(O obj, D[] tuple){
+    protected void calculatePivotTuple(final O obj, D[] tuple) {
         assert tuple.length == this.pivotsCount;
+        int i = 0;
+        while (i < tuple.length) {
+            obj.distance(this.pivots[i], tuple[i]);
+            i++;
+        }
     }
 
     /**
@@ -381,13 +447,13 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
     protected void storePivots() throws IllegalIdException,
             IllegalAccessException, InstantiationException, DatabaseException {
         int[] ids = pivotSelector.generatePivots(pivotsCount, maxId);
-        assert ids.length == pivots.size() && pivots.size() == this.pivotsCount;
+        assert ids.length == pivots.length && pivots.length == this.pivotsCount;
 
         int i = 0;
         while (i < ids.length) {
             O obj = getObject(ids[i], aDB);
-            insertInDatabase(obj, i, pivotsDB); // store in the B-tree
-            pivots.set(i, obj); // store in the array for inmediate use
+            insertObjectInDatabase(obj, i, pivotsDB); // store in the B-tree
+            pivots[i] = obj;
             i++;
         }
     }
@@ -414,9 +480,9 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
             O obj = this.instantiateObject();
             while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
-                TupleInput in = new TupleInput(foundData.getData());                
+                TupleInput in = new TupleInput(foundData.getData());
                 obj.load(in);
-                this.pivots.add(i, obj);
+                pivots[i] = obj;
                 i++;
             }
             assert i == pivotsCount; // pivot count and read # of pivots
@@ -468,14 +534,14 @@ public abstract class AbstractPivotIndex<O extends OB, D> implements
         return object;
     }
 
-    public O instantiateObject() throws IllegalAccessException,
+    protected O instantiateObject() throws IllegalAccessException,
             InstantiationException {
         // Find out if java can give us the type information directly from the
         // template parameter. There should be a way...
         return type.newInstance();
     }
 
-    public List<O> getPivots() {
+    public O[] getPivots() {
         return this.pivots;
     }
 

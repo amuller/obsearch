@@ -28,31 +28,15 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * byte representation. Objects that implement this interface will be created by
  * using the default constructor and initialized by the load method.
  * 
- * @param <DIM>
+ * @param <D>
  *            The type of units returned by the distance function
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 0.0
  */
 
-public interface OB<DIM> {
-    /**
-     * Stores this object in a byte array.
-     * 
-     * @param out
-     *            A TupleOutput where values can be stored
-     * @since 0.0
-     */
-    void store(TupleOutput out);
-
-    /**
-     * Populates the object's internal properties from the given byte stream.
-     * 
-     * @param byteInput
-     *            A TupleInput object from where primitive types can be loaded.
-     * @since 0.0
-     */
-    void load(TupleInput byteInput);
+public interface OB<D extends Dim> extends Storable{
+    
 
     /**
      * Calculates the similarity of "this" object and "object". The function
@@ -64,6 +48,15 @@ public interface OB<DIM> {
      *            The resulting distance
      * @since 0.0
      */
-    void distance(OB object, DIM result);
+    void distance(OB object, D result);
+    
+    /**
+     * Returns the dimension type for this object.
+     * OB needs this method to instantiate objects of your desired dimension type
+     * You should do something like: "return Yourclass.class"
+     * TODO: try to find a way of removing this method
+     * @return A class object for D
+     */
+    Class<D> getDimensionType();
     
 }
