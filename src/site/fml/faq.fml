@@ -22,7 +22,7 @@
     </faq>   
 
 		<faq id="deps">
-      <question>What do I need to run OBSearch?</question>
+      <question>What do I need to compile OBSearch?</question>
       <answer>
         <p>
 				JDK 1.5 or greater and maven http://maven.apache.org/

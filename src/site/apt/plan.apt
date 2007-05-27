@@ -3,6 +3,8 @@ OBSearch's plan
 
 	The following describes the planned schedule for OBSearch.
 
+	Note: some items marked as "done" have to be approved by my mentor.
+
 * Before May 28:
        
        * Creating a registry using berkeley db to store pyramid meta data. [wip]
@@ -22,7 +24,7 @@ OBSearch's plan
          Do we need versions of the data? to keep consistency? If an user inserts a record do we want to make sure that all the peers have the data until we make it visible?
          Since we are a writing an approximate database I don't think it is necessary.  What do you think?
 	
-       * Database creation work-flow design.
+       * Database creation work-flow design[done].
 
 
     Expected results: We are ready to start coding.

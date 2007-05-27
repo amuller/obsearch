@@ -1,16 +1,25 @@
  -----
- The Site
+ OBSearch
  -----
- The Maven Team
+ The OBSearch Team
  -----
 
-Maven Site for your project
+Welcome!
+~~~~~~~~
 
- Congratulations! If you are looking at this page then you have successfully generated a
- template site employing the site archetype and you have run:
-  
-+-----+
+  OBSearch is a distributed index for high dimensional spaces.
+ Examples of things you can do with it once you have a similarity function that
+ satisfies the triangular inequality:
 
-m2 site:site
 
-+-----+
+  * Match programs and help to detect Open Source/libre license violations.
+
+  * Match Pandas or Xenarthras.
+
+  * Find music that sounds like Sisters of Mercy.
+
+  * Match huge vectors of randomly generated integers just for fun.
+ 
+ OBSearch is being developed for {{{http://code.google.com/soc/}Google Summer of Code 2007}}.
+  OBSearch is a work in progress. If you want to see the current status,
+ click on "GSOC Plan" on the left panel.

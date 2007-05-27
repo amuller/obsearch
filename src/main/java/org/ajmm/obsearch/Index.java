@@ -93,7 +93,7 @@ public interface Index<O extends OB<D>, D extends Dim> {
      * @since 0.0
      */
     // TODO: Evaluate if result should be a priority queue instead of an array
-    void searchOB(O object, byte k, D r, OBResult<D>[] result)
+    void searchOB(O object, byte k, D r, OBResult<O, D>[] result)
             throws IllegalKException, NotFrozenException;
 
     /**
