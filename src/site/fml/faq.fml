@@ -17,6 +17,16 @@
         <p>
         Because it is the only  distributed high-dimensional index	available
 				in the open source market right now. 
+				For non-distributed solutions please check other MAMs (Metric Access Methods):
+				</p>
+				<p>
+				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>
+				</p>
+				<p>
+				<a href="http://dbs.mathematik.uni-marburg.de/?search=Research_Projects_XXL">XXL</a>				
+				</p>
+				<p>
+				<a href="http://gbdi.icmc.usp.br/arboretum/">Arboretum</a>
         </p>
       </answer>			
     </faq>   
