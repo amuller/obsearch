@@ -13,10 +13,15 @@ This project could benefit different communities that require similarity matchin
 By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Monetary cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality. Also they could provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality.
 
 
+The first time it is run please execute 
+./install.sh
+
+Compiling
+mvn compile
+
 Using with Eclipse
 
 Do the following:
 mvn -Declipse.workspace=/home/<usr>/workspace eclipse:add-maven-repo
 mvn eclipse:eclipse 
-
 Maybe you should do a "mvn eclipse:clean" before commiting files
