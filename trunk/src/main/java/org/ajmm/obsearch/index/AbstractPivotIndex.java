@@ -76,12 +76,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         implements Index<O, D> {
 
-    private static final Logger logger = Logger
+    private static transient final Logger logger = Logger
             .getLogger(AbstractPivotIndex.class);
 
     private File dbDir;
 
-    private byte pivotsCount;
+    protected byte pivotsCount;
 
     private boolean frozen;
 
@@ -355,7 +355,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * Children of this class have to implement this method if they want to
      * calculate extra parameters
      */
-    protected abstract void calculateIndexParameters();
+    protected abstract void calculateIndexParameters() throws DatabaseException;
 
     /**
      * This method calculates the pivots for each element in the database and
@@ -375,7 +375,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
             cursor = aDB.openCursor(null, null);
             O obj = this.instantiateObject();
             D[] tuple = this.createEmptyTuple(); // create a dimension array
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) 
+                    == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
                 TupleInput in = new TupleInput(foundData.getData());
                 obj.load(in);
@@ -392,6 +393,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
     /**
      * Inserts the given tuple in the database B using the given id
+     * B database will hold tuples of floats (they have been normalized)
      * 
      * @param id
      *            the id to use for the insertion
@@ -404,7 +406,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         assert tuple.length == pivotsCount;
         // first encode all the dimensions in an array
         while (i < tuple.length) {            
-            tuple[i].store(out); // stores the given pivot
+            //tuple[i].store(out); // stores the given pivot
+            out.writeFloat(tuple[i].normalize()); // write the normalized versions in B
             i++;
         }
         // now we can store it in the database
