@@ -27,6 +27,6 @@ package org.ajmm.obsearch.exception;
     @since       1.0
 */
 
-public class AlreadyFrozenException extends Exception {
+public class AlreadyFrozenException extends OBException {
 
 }

@@ -6,6 +6,7 @@ import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.IllegalKException;
 import org.ajmm.obsearch.exception.NotFrozenException;
+import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.pivotselection.PivotSelector;
 
 import com.sleepycat.je.DatabaseException;
@@ -44,30 +45,7 @@ import com.sleepycat.je.DatabaseException;
  * @since 0.0
  */
 public interface Index<O extends OB<D>, D extends Dim> {
-    /**
-     * Searches the Index and returns Result elements (ID and distance only)
-     * that are closer to "object". The closest element is at the beginning of
-     * the list and the farthest elements is at the end of the list. This
-     * condition must hold result.length == k
-     * 
-     * @param object
-     *            The object that has to be searched
-     * @param k
-     *            The maximum number of objects to be returned
-     * @param r
-     *            the range to be used
-     * @param result
-     *            An array of "Result". A null object terminates the list. Note
-     *            that if the list contains objects they will be reused saving
-     *            precious time. This list will contain at most k objects.
-     * @throws IllegalKException
-     *             if k != result.length
-     * @throws NotFrozenException
-     *             if the index has not been frozen.
-     * @since 0.0
-     */
-    void searchID(O object, byte k, D r, Result<D>[] result)
-            throws IllegalKException, NotFrozenException;
+   
 
     /**
      * Searches the Index and returns OBResult (ID, OB and distance) elements
@@ -82,19 +60,15 @@ public interface Index<O extends OB<D>, D extends Dim> {
      * @param r
      *            The range to be used
      * @param result
-     *            An array of "OBResult". A null object terminates the list.
-     *            Note that if the list contains objects they will be reused
-     *            saving precious time. This list will contain at most k
-     *            objects.
-     * @throws IllegalKException
-     *             if k != result.length
+     *            A priority queue that will hold the result
      * @throws NotFrozenException
      *             if the index has not been frozen.
      * @since 0.0
      */
     // TODO: Evaluate if result should be a priority queue instead of an array
-    void searchOB(O object, byte k, D r, OBResult<O, D>[] result)
-            throws IllegalKException, NotFrozenException;
+    void searchOB(O object, D r, OBPriorityQueue<OBResult<O, D>, D> result)
+            throws IllegalKException, NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException;
 
     /**
      * Inserts the given object into the index with the given ID If the given ID
@@ -115,7 +89,8 @@ public interface Index<O extends OB<D>, D extends Dim> {
      */
     // TODO: make sure that the community is ok with
     // storing 2,147,483,647 objects
-    byte insert(O object, int id) throws IllegalIdException, DatabaseException;
+    byte insert(O object, int id) throws IllegalIdException, DatabaseException,
+            OBException;
 
     /**
      * Returns true if the index is frozen.
