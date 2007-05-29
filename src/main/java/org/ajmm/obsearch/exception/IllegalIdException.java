@@ -27,6 +27,6 @@ package org.ajmm.obsearch.exception;
  * @since 1.0
  */
 
-public class IllegalIdException extends Exception {
+public class IllegalIdException extends OBException {
 
 }

@@ -26,6 +26,6 @@ package org.ajmm.obsearch.exception;
     @since       1.0
 */
 
-public class IllegalKException extends Exception {
+public class IllegalKException extends OBException {
 
 }

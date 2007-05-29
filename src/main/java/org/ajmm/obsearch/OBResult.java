@@ -20,13 +20,14 @@ package org.ajmm.obsearch;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * @param < D > Dimension type to use.
+ * @param <
+ *            D > Dimension type to use.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 
-public class OBResult < O, D > extends Result < D > {
+public class OBResult<O extends OB, D extends Dim> extends Result<D> {
     protected O object;
 
     public O getObject() {
@@ -37,4 +38,21 @@ public class OBResult < O, D > extends Result < D > {
         this.object = obj;
     }
 
+    public int compareTo(Object o) {
+        assert o instanceof OBResult; // faster!
+        // if(! (o instanceof OBResult)){
+        // throw new ClassCastException();
+        // / }
+        return compareToAux((OBResult) o);
+    }
+    
+    /**
+     * Sets the values of this object to the values of r.
+     * @param r The values that will be copied into this object.
+     */
+    public void set(OBResult<O, D> r){
+        this.distance = r.distance;
+        this.id = r.id;
+        this.object = r.object;
+    }
 }

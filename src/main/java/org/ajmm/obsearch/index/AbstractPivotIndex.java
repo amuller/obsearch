@@ -14,6 +14,7 @@ import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
+import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.pivotselection.PivotSelector;
 import org.apache.log4j.Logger;
 
@@ -134,7 +135,6 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
-
         initDB();
     }
 
@@ -157,7 +157,14 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         // way of creating a database
         initA();
         initPivots();
+        initC();
     }
+    
+    /**
+     * This method will be called by the super class 
+     * Initializes the C database(s)
+     */
+    protected abstract void initC() throws DatabaseException;
 
     protected Object readResolve() throws DatabaseException, NotFrozenException,
             DatabaseException, IllegalAccessException, InstantiationException {
@@ -247,7 +254,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     }
 
     public byte insert(O object, int id) throws IllegalIdException,
-            DatabaseException {
+            DatabaseException, OBException {
         if (isFrozen()) {
             return insertUnFrozen(object, id);
         } else {
@@ -311,8 +318,17 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * @return 1 if successful 0 otherwise
      */
     protected abstract byte insertFrozen(final O object, final int id)
-            throws IllegalIdException;
+            throws IllegalIdException, OBException, DatabaseException;
 
+    /**
+     * If the database is frozen returns silently
+     * if it is not throws NotFrozenException
+     */
+    protected void assertFrozen() throws NotFrozenException{
+        if(! isFrozen()){
+            throw new NotFrozenException();
+        }
+    }
     /**
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
@@ -367,9 +383,9 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-        if (!isFrozen()) {
-            throw new NotFrozenException();
-        }
+        
+        assertFrozen();
+        
         try {
             int i = 0;
             cursor = aDB.openCursor(null, null);
@@ -423,6 +439,18 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      */
     protected D[] createEmptyTuple() {
         return (D[]) Array.newInstance(this.dimType, this.pivotsCount);
+    }
+    
+    
+    /**
+     * returns the given object from DB A
+     * @param id
+     * @return the object
+     */
+    // TODO: need to implement a cache here
+    protected O getObject(int id) throws DatabaseException,
+    IllegalIdException, IllegalAccessException, InstantiationException {
+        return getObject(id, aDB);
     }
 
     /**
