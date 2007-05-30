@@ -107,6 +107,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     protected transient DatabaseConfig dbConfig;
 
     protected transient O[] pivots;
+    
+    protected transient OBCache<O> cache;
 
     // we keep this in order to be able to create objects of type O
     protected Class<O> type;
@@ -176,7 +178,17 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         }
         initDB();
         loadPivots();
+        initCache();
         return this;
+    }
+    
+    protected void initCache() throws DatabaseException{
+        int size = databaseSize();
+        cache = new OBCache<O>(size);
+    }
+    
+    protected int databaseSize() throws DatabaseException{
+        return (int)aDB.count();
     }
 
     /**
@@ -378,7 +390,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
                 + getSerializedName());
         fout.write(xml);
         fout.close();
-
+        
+        initCache();
         // we could delete bDB from this point
     }
 
@@ -494,7 +507,12 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     // TODO: need to implement a cache here
     protected O getObject(int id) throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        return getObject(id, aDB);
+        O res = cache.get(id);
+        if(res == null){
+            res = getObject(id, aDB);
+            cache.put(id, res);
+        }
+        return res;
     }
 
     /**
@@ -589,7 +607,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * @throws IllegalIdException
      *             if the given id does not exist in the database
      */
-    public O getObject(int id, Database DB) throws DatabaseException,
+    private O getObject(int id, Database DB) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException {
         // TODO: put these two objects in the class so that they don't have to
         // be created over and over again
