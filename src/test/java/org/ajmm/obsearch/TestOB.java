@@ -37,7 +37,7 @@ import junit.framework.TestCase;
 */
 
 public class TestOB extends TestCase {
-    Properties testProperties; // properties required during the test
+    protected Properties testProperties; // properties required during the test
     
     public TestOB() {
         fail("Default constructor ha dame");
