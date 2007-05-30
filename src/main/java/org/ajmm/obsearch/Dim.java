@@ -1,5 +1,6 @@
 package org.ajmm.obsearch;
 
+import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.TupleInput;
@@ -59,58 +60,70 @@ public interface Dim extends Storable {
      *      For a list of normalization strategies A typical formula to
      *      normalize d is (d - min) / (max - min) where min is the minimum
      *      acceptable value and max is the maximum acceptable value
+     * @param min
+     *            Minimum value to be outputted by the distance function
+     * @param max
+     *            Maximum value to be outputted by the distance function
+     * @throws OutOfRangeException
+     *             if the current dimension is outside the interval [min, max]
      * @return A number between 1 and 0
      */
     // TODO try to remove this method. But for now it is ok as we only plan to
     // do pyramids. At some point it needs to be refactored.
-    float normalize();
-    
+    float normalize(Dim min, Dim max) throws OutOfRangeException;
+
     /**
      * Returns true if this Dimension's value is less than X
+     * 
      * @param x
      * @return
      */
     boolean lt(Dim x);
-    
+
     /**
      * Returns true if this Dimension's value is greater than X
+     * 
      * @param x
      * @return
      */
     boolean gt(Dim x);
-    
+
     /**
      * Returns true if this Dimension's value is greater or equal than x
+     * 
      * @param x
      * @return
      */
     boolean ge(Dim x);
-    
+
     /**
      * Returns true if this Dimension's value is lower or equal than x
+     * 
      * @param x
      * @return
      */
     boolean le(Dim x);
-    
+
     /**
-     * Sets this dimension to a value smaller even than 
-     * the value specified by the user.
-     * This is to perform some trick when executing l-infinite
+     * Sets this dimension to the smallest possible value
      */
     void setToAbsoluteSmall();
 
     /**
-     * Updates the contents of this object with the
-     * value  x - 1 (or the corresponding relevant operation for the given dimension)
-     * The idea is that this.lt(x) should be true at the end of the operation  
-     * @param x the value from where to update 
+     * Updates the contents of this object with the value x - 1 (or the
+     * corresponding relevant operation for the given dimension) The idea is
+     * that this.lt(x) should be true at the end of the operation
+     * 
+     * @param x
+     *            the value from where to update
      */
     void updateSmaller(Dim x);
-    
+
     /**
      * Assigns the value of x to this object
-     * @param x the value from where to update
+     * 
+     * @param x
+     *            the value from where to update
      */
     void update(Dim x);
 }

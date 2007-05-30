@@ -7,6 +7,7 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.IllegalKException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.pivotselection.PivotSelector;
 
 import com.sleepycat.je.DatabaseException;
@@ -68,7 +69,7 @@ public interface Index<O extends OB<D>, D extends Dim> {
     // TODO: Evaluate if result should be a priority queue instead of an array
     void searchOB(O object, D r, OBPriorityQueue<OBResult<O, D>, D> result)
             throws IllegalKException, NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException;
+            InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 
     /**
      * Inserts the given object into the index with the given ID If the given ID
@@ -114,7 +115,7 @@ public interface Index<O extends OB<D>, D extends Dim> {
      */
     void freeze(PivotSelector pivotSelector) throws IOException,
             AlreadyFrozenException, IllegalIdException, IllegalAccessException,
-            InstantiationException, DatabaseException;
+            InstantiationException, DatabaseException, OutOfRangeException, OBException;
 
     /**
      * Deletes the given object form the database.
