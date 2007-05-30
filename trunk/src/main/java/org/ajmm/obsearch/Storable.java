@@ -47,9 +47,9 @@ public interface Storable {
     /**
      * Populates the object's internal properties from the given byte stream.
      * 
-     * @param byteInput
+     * @param in
      *            A TupleInput object from where primitive types can be loaded.
      * @since 0.0
      */
-    void load(TupleInput byteInput);
+    void load(TupleInput in);
 }

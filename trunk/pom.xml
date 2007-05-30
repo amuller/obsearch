@@ -99,6 +99,13 @@
       <version>1.2.13</version>
       <scope>compile</scope>
     </dependency>
+
+		<dependency>
+			<groupId>antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>2.7.6</version>
+			<scope>compile</scope>
+		</dependency>
   </dependencies>
    
    <reporting>
@@ -210,7 +217,31 @@
         </executions>
       </plugin>
 
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antlr-plugin</artifactId>
+        <configuration>
+					<sourceDirectory>${basedir}/src/test/antlr/</sourceDirectory>
+            <grammars>Slice.g</grammars>
+        </configuration>
+				<executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
 		 </plugins>
+		 
+		 <testResources>
+ 			<testResource>
+        <directory>src/test/resources/</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
 	 </build>
 
 
