@@ -120,13 +120,18 @@ public class TestExtentedPyramidIndex extends TestCase {
         List<OBPriorityQueue<OBSlice, ShortDim>> result = 
             new LinkedList<OBPriorityQueue<OBSlice, ShortDim>>();
         re = r.readLine();
+        int i = 0;
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
                 OBPriorityQueue<OBSlice, ShortDim> x = new OBPriorityQueue<OBSlice, ShortDim>(
                         k);
+                if(i % 100 == 0){
+                    logger.info("Matching " + i + " of " + realIndex);
+                }
                 index.searchOB(new OBSlice(line), range, x);
                 result.add(x);
+                i++;
             }
             re = r.readLine();
         }
@@ -135,7 +140,7 @@ public class TestExtentedPyramidIndex extends TestCase {
         Iterator<OBPriorityQueue<OBSlice, ShortDim>> it = result.iterator();
         r = new BufferedReader(new FileReader(query));
         re = r.readLine();
-        int i = 0;
+        i = 0;
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
