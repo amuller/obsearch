@@ -447,7 +447,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
             cursor = aDB.openCursor(null, null);
             O obj = this.instantiateObject();
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) 
+                    == OperationStatus.SUCCESS) {
                 int id = IntegerBinding.entryToInt(foundKey);
                 assert i == id;
                 TupleInput in = new TupleInput(foundData.getData());
@@ -476,7 +477,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
             cursor = aDB.openCursor(null, null);
             O obj = this.instantiateObject();
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT)
+                    == OperationStatus.SUCCESS) {
                 int id = IntegerBinding.entryToInt(foundKey);
                 assert i == id;
                 TupleInput in = new TupleInput(foundData.getData());

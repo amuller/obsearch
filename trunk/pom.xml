@@ -206,7 +206,7 @@
 								<get src="${my.test.data.url}${my.test.data.query}.bz2" dest="${project.build.testOutputDirectory}/${my.test.data.query}.bz2" usetimestamp="true" />
 								<echo>Uncompressing...</echo>
 								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.db}.bz2"/>
-								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz2"/>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz211"/>
 								<echo>Done!</echo>
               </tasks>
             </configuration>
@@ -233,6 +233,14 @@
         </executions>
       </plugin>
 
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-ea -Xmx1300M</argLine>
+        </configuration>
+      </plugin>
+
 		 </plugins>
 		 
 		 <testResources>
@@ -242,6 +250,7 @@
       </testResource>
     </testResources>
 
+		
 	 </build>
 
 
