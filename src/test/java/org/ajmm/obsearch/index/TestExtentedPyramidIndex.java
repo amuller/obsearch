@@ -89,7 +89,7 @@ public class TestExtentedPyramidIndex extends TestCase {
         ExtendedPyramidIndex<OBSlice, ShortDim> index = new ExtendedPyramidIndex<OBSlice, ShortDim>(
                 dbFolder, (byte) 30, new ShortDim((short) 0),
                 new ShortDim((short) 10000));
-        // 
+        logger.info("Adding data");
         BufferedReader r = new BufferedReader(new FileReader(db));
         String re = r.readLine();
         int realIndex = 0;
@@ -106,6 +106,7 @@ public class TestExtentedPyramidIndex extends TestCase {
         // we select the pivots and put all the stuff
         // in the database
         // the pyramid values are created
+        logger.info("freezing");
         index.freeze(new RandomPivotSelector());
         
         assertEquals(index.aDB.count(), index.bDB.count());
@@ -122,7 +123,6 @@ public class TestExtentedPyramidIndex extends TestCase {
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
-                logger.info("hola");
                 OBPriorityQueue<OBSlice, ShortDim> x = new OBPriorityQueue<OBSlice, ShortDim>(
                         k);
                 index.searchOB(new OBSlice(line), range, x);
@@ -139,7 +139,9 @@ public class TestExtentedPyramidIndex extends TestCase {
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
-                logger.info("Matching " + i + " of " + realIndex);
+                if(i % 100 == 0){
+                    logger.info("Matching " + i + " of " + realIndex);
+                }
                 OBPriorityQueue<OBSlice, ShortDim> x2 = new OBPriorityQueue<OBSlice, ShortDim>(
                         k);
                 searchSequential(realIndex, new OBSlice(line), x2,  index, range);
@@ -150,6 +152,7 @@ public class TestExtentedPyramidIndex extends TestCase {
             
             re = r.readLine();
         }
+        logger.info("Finished pyramid matching...");
         assertFalse(it.hasNext());
         }finally{
             // we should delete the databases no matter what happens
