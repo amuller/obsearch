@@ -22,8 +22,8 @@
 	<properties>
 		<!-- additional unit test files to be downloaded -->
     <my.test.data.url>http://obsearch.googlecode.com/files/</my.test.data.url>
-		<my.test.data.db>slices.bz2</my.test.data.db>
-		<my.test.data.query>slices-query.bz2</my.test.data.query>
+		<my.test.data.db>slices</my.test.data.db>
+		<my.test.data.query>slices-query</my.test.data.query>
   </properties>
 
 	<licenses>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -202,11 +202,11 @@
               <tasks>
 								<mkdir dir="${project.build.testOutputDirectory}"/>
 								<echo>Downloading test file data...</echo>
-								<get src="${my.test.data.url}${my.test.data.db}" dest="${project.build.testOutputDirectory}/${my.test.data.db}" usetimestamp="true" />
-								<get src="${my.test.data.url}${my.test.data.query}" dest="${project.build.testOutputDirectory}/${my.test.data.query}" usetimestamp="true" />
+								<get src="${my.test.data.url}${my.test.data.db}.bz2" dest="${project.build.testOutputDirectory}/${my.test.data.db}.bz2" usetimestamp="true" />
+								<get src="${my.test.data.url}${my.test.data.query}.bz2" dest="${project.build.testOutputDirectory}/${my.test.data.query}.bz2" usetimestamp="true" />
 								<echo>Uncompressing...</echo>
-								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.db}"/>
-								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}"/>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.db}.bz2"/>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz2"/>
 								<echo>Done!</echo>
               </tasks>
             </configuration>

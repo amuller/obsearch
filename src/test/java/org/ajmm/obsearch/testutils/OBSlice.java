@@ -14,7 +14,6 @@ import antlr.RecognitionException;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 
-
 /*
  OBSearch: a distributed similarity search engine
  This project is to similarity search what 'bit-torrent' is to downloads.
@@ -49,6 +48,14 @@ public class OBSlice implements OB<ShortDim> {
     private SliceAST tree;
 
     /**
+     * Default constructor must be provided by OB's sons and daughters
+     * 
+     */
+    public OBSlice() {
+
+    }
+
+    /**
      * Creates an slice object
      * 
      * @param slice
@@ -58,54 +65,54 @@ public class OBSlice implements OB<ShortDim> {
     }
 
     /**
-     * Calculates the distance between two trees
-     * When the internal tree is null (first time is loaded or unloaded from memory)
-     * The tree is recreated from the string and the original string
-     * is deleted to preserve memory
+     * Calculates the distance between two trees When the internal tree is null
+     * (first time is loaded or unloaded from memory) The tree is recreated from
+     * the string and the original string is deleted to preserve memory
+     * 
      * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
      */
-    public void distance(OB object, ShortDim result) throws OBException{
+    public void distance(OB object, ShortDim result) throws OBException {
         // TODO Auto-generated method stub
-        OBSlice b =(OBSlice) object;
+        OBSlice b = (OBSlice) object;
         updateTree();
         b.updateTree();
-               
+
         List<SliceAST> aExpanded = this.tree.depthFirst();
         List<SliceAST> bExpanded = b.tree.depthFirst();
-        
+
         int Na = aExpanded.size();
         int Nb = bExpanded.size();
-        
+
         ListIterator<SliceAST> ait = aExpanded.listIterator();
         int res = 0;
-        while(ait.hasNext()){
+        while (ait.hasNext()) {
             SliceAST aTree = ait.next();
             ListIterator<SliceAST> bit = bExpanded.listIterator();
-            while(bit.hasNext()){
+            while (bit.hasNext()) {
                 SliceAST bTree = bit.next();
-                if(aTree.equalsTree(bTree)){
+                if (aTree.equalsTree(bTree)) {
                     res++;
-                    bit.remove();       
+                    bit.remove();
                     break;
                 }
             }
         }
-        //return Na - res + Nb - res;
-        //return (Na + Nb) - ( 2 * res);
-        result.update((short)(Math.max(Na, Nb) - res));
+        // return Na - res + Nb - res;
+        // return (Na + Nb) - ( 2 * res);
+        result.update((short) (Math.max(Na, Nb) - res));
 
     }
 
-    protected void updateTree() throws OBException{
+    protected void updateTree() throws OBException {
         if (tree == null) {
-            try{
-            SliceLexer lexer = new SliceLexer(new StringReader(slice));
-            SliceParser parser = new SliceParser(lexer);
-            parser.setASTNodeClass("org.ajmm.obsearch.testutils.SliceAST");
-            parser.slice();            
-            tree = (SliceAST) parser.getAST();
-            }catch(Exception e){
+            try {
+                SliceLexer lexer = new SliceLexer(new StringReader(slice));
+                SliceParser parser = new SliceParser(lexer);
+                parser.setASTNodeClass("org.ajmm.obsearch.testutils.SliceAST");
+                parser.slice();
+                tree = (SliceAST) parser.getAST();
+            } catch (Exception e) {
                 throw new SliceParseException();
             }
             slice = null;
@@ -130,6 +137,7 @@ public class OBSlice implements OB<ShortDim> {
     public void load(TupleInput in) {
         // TODO Auto-generated method stub
         slice = in.readString();
+        tree = null; //very important!
     }
 
     /*
@@ -140,6 +148,11 @@ public class OBSlice implements OB<ShortDim> {
     public void store(TupleOutput out) {
         // TODO Auto-generated method stub
         out.writeString(slice);
+    }
+
+    public boolean equals(Object obj) {
+        OBSlice o = (OBSlice) obj;
+        return this.tree.equals(o.tree);
     }
 
 }

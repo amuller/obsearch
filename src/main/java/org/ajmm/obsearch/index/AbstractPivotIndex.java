@@ -11,6 +11,8 @@ import java.util.List;
 import org.ajmm.obsearch.Dim;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.OBPriorityQueue;
+import org.ajmm.obsearch.OBResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -90,7 +92,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     // we should not have to control this property after freezing. This is just
     // used as a safeguard.
     // It allows RandomPivotSelector to be implemented easily
-    private int maxId;
+    private transient int maxId;
 
     private transient PivotSelector pivotSelector;
 
@@ -107,7 +109,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     protected transient DatabaseConfig dbConfig;
 
     protected transient O[] pivots;
-    
+
     protected transient OBCache<O> cache;
 
     // we keep this in order to be able to create objects of type O
@@ -159,8 +161,16 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         initBerkeleyDB();
         // way of creating a database
         initA();
+        initB();
         initPivots();
         initC();
+    }
+    
+    protected void initB() throws DatabaseException{
+        final boolean duplicates = dbConfig.getSortedDuplicates();
+        dbConfig.setSortedDuplicates(false);
+        bDB = databaseEnvironment.openDatabase(null, "B", dbConfig);
+        dbConfig.setSortedDuplicates(duplicates);
     }
 
     /**
@@ -181,14 +191,16 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         initCache();
         return this;
     }
-    
-    protected void initCache() throws DatabaseException{
+
+  
+
+    protected void initCache() throws DatabaseException {
         int size = databaseSize();
         cache = new OBCache<O>(size);
     }
-    
-    protected int databaseSize() throws DatabaseException{
-        return (int)aDB.count();
+
+    protected int databaseSize() throws DatabaseException {
+        return (int) aDB.count();
     }
 
     /**
@@ -256,25 +268,25 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      */
     protected byte insertUnFrozen(O object, int id) throws IllegalIdException,
             DatabaseException {
-        if (id != (maxId + 1)) {
+        if (id != maxId) {
             throw new IllegalIdException();
         }
         if (type == null) { // a way of storing the class type for O
             type = (Class<O>) object.getClass();
             dimType = object.getDimensionType();
         }
-        maxId = id;
+        maxId = id + 1;
         insertA(object, id);
         return 1;
     }
 
     public byte insert(O object, int id) throws IllegalIdException,
-            DatabaseException, OBException {
+            DatabaseException, OBException ,  IllegalAccessException, InstantiationException{
         if (isFrozen()) {
-            return insertUnFrozen(object, id);
-        } else {
             insertA(object, id);
             return insertFrozen(object, id);
+        } else {            
+            return insertUnFrozen(object, id);
         }
     }
 
@@ -313,6 +325,19 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         IntegerBinding.intToEntry(id, keyEntry);
         insertInDatabase(out, keyEntry, x);
     }
+    
+   protected void insertTupleInB(int id, D[] tuple) throws DatabaseException{
+       DatabaseEntry keyEntry = new DatabaseEntry();
+       DatabaseEntry dataEntry = new DatabaseEntry();
+       TupleOutput out = new TupleOutput();
+       // write the tuple
+       for (D d : tuple) {
+           d.store(out);
+       }
+       // store the ID
+       IntegerBinding.intToEntry(id, keyEntry);
+       insertInDatabase(out, keyEntry, bDB);
+   }
 
     protected void insertInDatabase(final TupleOutput out,
             DatabaseEntry keyEntry, Database x) throws DatabaseException {
@@ -323,8 +348,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
     /**
      * Utility method to insert data in C after freezing. Must be implemented by
-     * the subclasses
-     * It should not insert anything into A
+     * the subclasses It should not insert anything into A
+     * 
      * @param object
      *            The object to be inserted
      * @param id
@@ -335,7 +360,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      */
     protected abstract byte insertFrozen(final O object, final int id)
             throws IllegalIdException, OBException, DatabaseException,
-            OBException;
+            OBException,  IllegalAccessException, InstantiationException ;
 
     /**
      * If the database is frozen returns silently if it is not throws
@@ -351,7 +376,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild de index. After the method returns,
-     * searching is enabled.
+     * searching is enabled. 
      * 
      * @param pivotSelector
      *            The pivot selector to be used
@@ -368,20 +393,27 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         if (isFrozen()) {
             throw new AlreadyFrozenException();
         }
+        this.pivotSelector = pivotSelector; 
         createPivotsArray();
         if (logger.isDebugEnabled()) {
             logger.debug("Storing Pivots in B");
         }
         storePivots();
+        // we have to create database B        
+       insertFromAtoB();
 
         calculateIndexParameters(); // this must be done by the subclasses
-
-        // we have to insert the objects already inserted in the database A and
-        // B into
-        // C
-
-        freezeInsertFromAtoC();
-
+       
+        // we have to insert the objects already inserted in A into C
+        insertFromAtoC();
+        // cache is initialized as from the point we set frozen = true 
+        // queries can be achieved
+        initCache();
+        // we could delete bDB from this point
+        
+        this.frozen = true;
+        // queries can be executed from this point
+        
         XStream xstream = new XStream();
         // TODO: make sure this "this" will print the subclass and not the
         // current class
@@ -389,17 +421,52 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         FileWriter fout = new FileWriter(this.dbDir.getPath()
                 + getSerializedName());
         fout.write(xml);
-        fout.close();
+        fout.close();        
         
-        initCache();
-        // we could delete bDB from this point
+    }
+    
+    /**
+     * Must return "this"
+     * Used to serialize the current son
+     */
+    protected abstract Index serializeObject();
+    
+    /**
+     * Inserts all the values already inserted in A into B
+     * 
+     */
+    private void insertFromAtoB() throws IllegalAccessException,
+            InstantiationException, DatabaseException, OBException {
+        Cursor cursor = null;
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        D[] t = createEmptyTuple();
+        
+        try {
+            int i = 0;
+
+            cursor = aDB.openCursor(null, null);
+            O obj = this.instantiateObject();
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                int id = IntegerBinding.entryToInt(foundKey);
+                assert i == id;
+                TupleInput in = new TupleInput(foundData.getData());
+                obj.load(in);
+                calculatePivotTuple(obj, t); // calculate the tuple for the new
+                insertPivotTupleInBDB(id, t);
+                i++;
+            }
+            // should be the same
+        } finally {
+            cursor.close();
+        }
     }
 
     /**
      * Inserts all the values already inserted in A into C
      * 
      */
-    private void freezeInsertFromAtoC() throws IllegalAccessException,
+    private void insertFromAtoC() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -494,8 +561,15 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * 
      * @return The new tuple with length = pivotsCount
      */
-    protected D[] createEmptyTuple() {
-        return (D[]) Array.newInstance(this.dimType, this.pivotsCount);
+    protected D[] createEmptyTuple() throws IllegalAccessException, InstantiationException {
+        assert dimType != null;
+        D[] arr = (D[]) Array.newInstance(this.dimType, this.pivotsCount);
+        int i = 0;
+        while(i < arr.length){
+            arr[i] = dimType.newInstance();
+            i++;
+        }
+        return arr;
     }
 
     /**
@@ -508,7 +582,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     protected O getObject(int id) throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
         O res = cache.get(id);
-        if(res == null){
+        if (res == null) {
             res = getObject(id, aDB);
             cache.put(id, res);
         }

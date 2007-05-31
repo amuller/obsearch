@@ -28,5 +28,14 @@ package org.ajmm.obsearch.exception;
 */
 
 public class OutOfRangeException extends OBException {
-
+    private String message;
+    public OutOfRangeException(){
+        message = "N/A";
+    }
+    public OutOfRangeException(String min, String max, String obtained){
+        message = " min: " + min + " max: " + max + " obtained: " + obtained;
+    }
+    public String toString(){
+        return message;
+    }
 }

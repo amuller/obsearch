@@ -38,8 +38,9 @@ import com.sleepycat.je.DatabaseException;
  * extended pyramid technique values and p+tree clustering detection. An index
  * can be frozen only once. Please make sure you add a bunch of data into it
  * before freezing it. Note that after freezing it, you can continue adding
- * data. :) If a recalculation is required, it can be performed in background,
- * you can still use the database until the database optimizes itself.
+ * data. :) 
+ * In the future we will offer a "rebuild" method that optimizes the database
+ * in background. This is not yet a priority
  * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
@@ -47,7 +48,8 @@ import com.sleepycat.je.DatabaseException;
  */
 public interface Index<O extends OB<D>, D extends Dim> {
    
-
+    // TODO: Remove all the *newInstance() methods as they use reflection and this is very slow
+    //             
     /**
      * Searches the Index and returns OBResult (ID, OB and distance) elements
      * that are closer to "object". The closest element is at the beginning of
@@ -67,7 +69,7 @@ public interface Index<O extends OB<D>, D extends Dim> {
      * @since 0.0
      */
     // TODO: Evaluate if result should be a priority queue instead of an array
-    void searchOB(O object, D r, OBPriorityQueue<OBResult<O, D>, D> result)
+    void searchOB(O object, D r, OBPriorityQueue<O, D> result)
             throws IllegalKException, NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 
@@ -91,7 +93,7 @@ public interface Index<O extends OB<D>, D extends Dim> {
     // TODO: make sure that the community is ok with
     // storing 2,147,483,647 objects
     byte insert(O object, int id) throws IllegalIdException, DatabaseException,
-            OBException;
+            OBException ,  IllegalAccessException, InstantiationException;
 
     /**
      * Returns true if the index is frozen.

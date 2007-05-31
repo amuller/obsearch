@@ -39,6 +39,10 @@ public class ShortDim implements Dim {
     
     private short value;
     
+    public ShortDim(){
+        value = Short.MIN_VALUE;
+    }
+    
     public ShortDim(short x){
         value = x;
     }
@@ -95,7 +99,7 @@ public class ShortDim implements Dim {
         ShortDim min2 = (ShortDim)min;
         ShortDim max2 = (ShortDim)max;
         if ( value < min2.value || value > max2.value){
-            throw new OutOfRangeException();
+            throw new OutOfRangeException(min2.toString(), max2.toString(), "" + value);
         }
         return  ((float)(value - min2.value)) / ((float)(max2.value - min2.value));
     }
@@ -118,13 +122,7 @@ public class ShortDim implements Dim {
         value = x;
     }
 
-    /* (non-Javadoc)
-     * @see org.ajmm.obsearch.Dim#updateSmaller(org.ajmm.obsearch.Dim)
-     */
-    public void updateSmaller(Dim x) {
-        value = ((ShortDim)x).value ;        
-        value--;
-    }
+ 
 
     /* (non-Javadoc)
      * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
@@ -138,6 +136,14 @@ public class ShortDim implements Dim {
      */
     public void store(TupleOutput out) {
         out.writeShort(value);
+    }
+    
+    public boolean equals(ShortDim o){
+        return value == o.value;
+    }
+    
+    public String toString(){
+        return value + "";
     }
 
 }
