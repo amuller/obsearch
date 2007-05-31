@@ -30,6 +30,7 @@ import com.sleepycat.bind.tuple.TupleInput;
  * free to throw OutOfRangeException if the given input value is out of range.
  * Before freezing this exception is fatal. After freezing records are simply
  * ignored.
+ * Classes implementing this interface must provide the default constructor
  * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
@@ -38,6 +39,7 @@ import com.sleepycat.bind.tuple.TupleInput;
 
 public interface Dim extends Storable {
 
+    
     /**
      * This method should read one dimension a from in and do: t = Math.abs(this -
      * a) if (t > r) return false; if (t > max) { max = t; return true;
@@ -108,16 +110,6 @@ public interface Dim extends Storable {
      * Sets this dimension to the smallest possible value
      */
     void setToAbsoluteSmall();
-
-    /**
-     * Updates the contents of this object with the value x - 1 (or the
-     * corresponding relevant operation for the given dimension) The idea is
-     * that this.lt(x) should be true at the end of the operation
-     * 
-     * @param x
-     *            the value from where to update
-     */
-    void updateSmaller(Dim x);
 
     /**
      * Assigns the value of x to this object

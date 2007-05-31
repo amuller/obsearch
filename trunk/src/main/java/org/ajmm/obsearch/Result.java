@@ -34,14 +34,17 @@ package org.ajmm.obsearch;
 public class Result<D extends Dim> implements Comparable {
     protected int id;
 
-    protected D distance;
-
+    protected D distance;        
+    
     public D getDistance() {
         return distance;
     }
 
-    public void setDistance(D d) {
-        this.distance = d;
+    public void setDistance(D d) throws InstantiationException, IllegalAccessException{
+        if(distance == null){
+            distance = (D) d.getClass().newInstance();
+        }
+        this.distance.update(d);
     }
 
     public int getId() {
@@ -81,8 +84,20 @@ public class Result<D extends Dim> implements Comparable {
      * Sets the values of this object to the values of r.
      * @param r The values that will be copied into this object.
      */
-    public void set(Result<D> r){
-        this.distance = r.distance;
+    public void set(Result<D> r) throws InstantiationException, IllegalAccessException{
+        if(distance == null){
+            distance = (D) r.distance.getClass().newInstance();
+        }
+        this.distance.update(r.distance);
         this.id = r.id;
+    }
+    
+    public boolean equals(Object obj){
+        Result<D> o = (Result<D>) obj;
+        return this.id == o.id && distance.equals(o.distance);
+    }
+    
+    public String toString(){
+        return id + " " + distance;
     }
 }

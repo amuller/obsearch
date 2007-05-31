@@ -50,9 +50,13 @@ public class OBResult<O extends OB, D extends Dim> extends Result<D> {
      * Sets the values of this object to the values of r.
      * @param r The values that will be copied into this object.
      */
-    public void set(OBResult<O, D> r){
-        this.distance = r.distance;
-        this.id = r.id;
+    public void set(OBResult<O, D> r) throws InstantiationException, IllegalAccessException{
+        super.set(r);
         this.object = r.object;
+    }
+    
+    public boolean equals(Object obj){
+        OBResult<O, D> o = (OBResult<O, D>) obj;
+        return super.equals(o) && this.object.equals(o.object);        
     }
 }
