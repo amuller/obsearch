@@ -619,6 +619,9 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     protected void storePivots() throws IllegalIdException,
             IllegalAccessException, InstantiationException, DatabaseException {
         int[] ids = pivotSelector.generatePivots(pivotsCount, maxId);
+        if(logger.isDebugEnabled()){
+            logger.debug("Pivots selected " + Arrays.toString( ids));
+        }
         assert ids.length == pivots.length && pivots.length == this.pivotsCount;
 
         int i = 0;

@@ -145,5 +145,16 @@ public class ShortDim implements Dim {
     public String toString(){
         return value + "";
     }
+    
+    public Dim add(Dim x, Dim maxInput) {
+        return new ShortDim((short)Math.min((short) (this.value + ((ShortDim)x).value), ((ShortDim)maxInput).value));
+    }
+    
+    public Dim sub(Dim x, Dim minInput) {
+        short t = (short)Math.max((short) (this.value - ((ShortDim)x).value), ((ShortDim)minInput).value);
+        return new ShortDim(t);
+    }
+    
+    
 
 }
