@@ -24,6 +24,9 @@
     <my.test.data.url>http://obsearch.googlecode.com/files/</my.test.data.url>
 		<my.test.data.db>slices</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
+
+		<my.test.smalldata.db>slices-small</my.test.smalldata.db>
+		<my.test.smalldata.query>slices-query-small</my.test.smalldata.query>
   </properties>
 
 	<licenses>
@@ -197,7 +200,7 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <phase>test</phase>
+            <phase>generate-sources</phase>
             <configuration>
               <tasks>
 								<mkdir dir="${project.build.testOutputDirectory}"/>
@@ -206,7 +209,7 @@
 								<get src="${my.test.data.url}${my.test.data.query}.bz2" dest="${project.build.testOutputDirectory}/${my.test.data.query}.bz2" usetimestamp="true" />
 								<echo>Uncompressing...</echo>
 								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.db}.bz2"/>
-								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz211"/>
+								<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz2"/>
 								<echo>Done!</echo>
               </tasks>
             </configuration>

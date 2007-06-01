@@ -110,6 +110,21 @@ public interface Dim extends Storable {
      * Sets this dimension to the smallest possible value
      */
     void setToAbsoluteSmall();
+    
+    /**
+     * Adds the value of x into this. Will not go above maxInput
+     * @param x
+     * @return a new object with the new value
+     */
+    Dim add(Dim x, Dim maxInput);
+    
+    /**
+     * Substracts the value of x from this.  will not go below minInput
+     * @param x
+     * @return a new object the the new value
+     */
+    Dim sub(Dim x, Dim minInput);
+
 
     /**
      * Assigns the value of x to this object

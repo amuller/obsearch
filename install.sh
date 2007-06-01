@@ -9,3 +9,4 @@ mvn install:install-file -Dfile=./je-3.2.23/lib/je-3.2.23.jar -DgroupId=berkeley
 
 #cleanup
 rm -fdr je-3.2.23
+rm je-3.2.23.jar
