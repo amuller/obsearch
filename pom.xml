@@ -22,11 +22,14 @@
 	<properties>
 		<!-- additional unit test files to be downloaded -->
     <my.test.data.url>http://obsearch.googlecode.com/files/</my.test.data.url>
+		<!-- remove /add  -small to get a bigger/smaller test set -->
 		<my.test.data.db>slices</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
-
-		<my.test.smalldata.db>slices-small</my.test.smalldata.db>
-		<my.test.smalldata.query>slices-query-small</my.test.smalldata.query>
+		${sourceDirectory}
+		<!-- texen templates configuration -->
+		<my.templates.texen>/texen/</my.templates.texen>
+		<my.templates.index>org/ajmm/obsearch/index/</my.templates.index>
+		<my.templates.object>org/ajmm/obsearch/object/</my.templates.object>
   </properties>
 
 	<licenses>
@@ -87,15 +90,7 @@
       <version>1.2.2</version>
       <scope>compile</scope>
     </dependency>
-<!--
-		<dependency>
-      <groupId>xpp3</groupId>
-      <artifactId>xpp3</artifactId>
-      <version>1.1.3.4.O</version>
-      <scope>compile</scope>
-    </dependency>
--->
-		
+
 		<dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
@@ -109,6 +104,14 @@
 			<version>2.7.6</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>velocity</groupId>
+			<artifactId>texen</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+
   </dependencies>
    
    <reporting>
@@ -165,6 +168,14 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>jdepend-maven-plugin</artifactId>
        </plugin>
+
+<!--			  
+Would be cool to use this.
+<plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rat-maven-plugin</artifactId>
+            <version>0.1-SNAPSHOT</version>
+      </plugin>-->
 
 		</plugins>
 
@@ -310,6 +321,8 @@
 			 <id>xstreamrep</id>
 			 <url>http://repository.codehaus.org/com/thoughtworks/</url>
 		 </repository>
+
+		 
    </repositories>
 
 </project>
