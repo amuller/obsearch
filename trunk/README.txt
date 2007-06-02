@@ -25,3 +25,12 @@ Do the following:
 mvn -Declipse.workspace=/home/<usr>/workspace eclipse:add-maven-repo
 mvn eclipse:eclipse 
 Maybe you should do a "mvn eclipse:clean" before commiting files
+
+
+how to make a branch:
+
+svn copy https://obsearch.googlecode.com/svn/trunk/ \
+             https://obsearch.googlecode.com/svn/branches/obsearch-generics \
+             -m "This branch will keep a clean implementation with generics. I think a generated set of classes designed to work directly with primitive types should be faster"  --username <you>
+
+30 min

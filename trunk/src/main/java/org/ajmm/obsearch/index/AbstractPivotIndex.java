@@ -134,9 +134,11 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * @throws DatabaseException
      */
     public AbstractPivotIndex(final File databaseDirectory, final byte pivots)
-            throws DatabaseException {
+            throws DatabaseException, IOException {
         this.dbDir = databaseDirectory;
-        dbDir.mkdirs(); // create the directory
+        if(! dbDir.mkdirs()){
+            //throw new IOException("Directory already exists");
+        }
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
@@ -326,6 +328,12 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         insertInDatabase(out, keyEntry, x);
     }
     
+    /**
+     * Inserts the given OBJECT in B. 
+     * @param id
+     * @param tuple
+     * @throws DatabaseException
+     */
    protected void insertTupleInB(int id, D[] tuple) throws DatabaseException{
        DatabaseEntry keyEntry = new DatabaseEntry();
        DatabaseEntry dataEntry = new DatabaseEntry();

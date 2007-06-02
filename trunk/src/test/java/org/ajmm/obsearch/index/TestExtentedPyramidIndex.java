@@ -131,15 +131,16 @@ public class TestExtentedPyramidIndex extends TestCase {
                 if (line != null) {
                     OBPriorityQueue<OBSlice, ShortDim> x = new OBPriorityQueue<OBSlice, ShortDim>(
                             k);
-                    if (i % 100 == 0) {
+                    if (i % 300 == 0) {
                         logger.info("Matching " + i);
                     }
                     index.searchOB(new OBSlice(line), range, x);
                     result.add(x);
-                    i++;
-                    if( i == 300){
-                        break;
-                    }
+                    i++;                   
+                }
+                if(i == 1642){
+                    logger.warn("Finishing test at i : " + i);
+                    break;
                 }
                 re = r.readLine();
             }
@@ -153,23 +154,22 @@ public class TestExtentedPyramidIndex extends TestCase {
             while (re != null) {
                 String line = parseLine(re);
                 if (line != null) {
-                    if (i % 100 == 0) {
+                    if (i % 300 == 0) {
                         logger.info("Matching " + i + " of " + maxQuery);
                     }
                     OBPriorityQueue<OBSlice, ShortDim> x2 = new OBPriorityQueue<OBSlice, ShortDim>(
                             k);
                     searchSequential(realIndex, new OBSlice(line), x2, index,
                             range);
-                    OBPriorityQueue<OBSlice, ShortDim> x1 = it.next();
-                    logger.info(x2);
+                    OBPriorityQueue<OBSlice, ShortDim> x1 = it.next();                   
                     assertEquals("Error in query line: " + i, x2, x1);
                     i++;
                 }
-
-                re = r.readLine();
-                if( i == 300){
+                if(i == 1642){
+                    logger.warn("Finishing test at i : " + i);
                     break;
                 }
+                re = r.readLine();
             }
             logger.info("Finished pyramid matching...");
             assertFalse(it.hasNext());
