@@ -38,7 +38,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @since 0.0
  */
 
-public interface OB<D extends Dim> extends Storable{
+public interface OB extends Storable{
     
 
     /**
@@ -51,15 +51,7 @@ public interface OB<D extends Dim> extends Storable{
      *            The resulting distance
      * @since 0.0
      */
-    void distance(OB object, D result) throws OBException;
-    
-    /**
-     * Returns the dimension type for this object.
-     * OB needs this method to instantiate objects of your desired dimension type
-     * You should do something like: "return Yourclass.class"
-     * TODO: try to find a way of removing this method
-     * @return A class object for D
-     */
-    Class<D> getDimensionType();
+    //void distance(OB object, D result) throws OBException;
+      
     
 }

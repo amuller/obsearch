@@ -46,7 +46,7 @@ import com.sleepycat.je.DatabaseException;
  * @version %I%, %G%
  * @since 0.0
  */
-public interface Index<O extends OB<D>, D extends Dim> {
+public interface Index<O extends OB> {
    
     // TODO: Remove all the *newInstance() methods as they use reflection and this is very slow
     //             
@@ -69,9 +69,9 @@ public interface Index<O extends OB<D>, D extends Dim> {
      * @since 0.0
      */
     // TODO: Evaluate if result should be a priority queue instead of an array
-    void searchOB(O object, D r, OBPriorityQueue<O, D> result)
-            throws IllegalKException, NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
+  //  void searchOB(O object, D r, OBPriorityQueue<O, D> result)
+   //         throws IllegalKException, NotFrozenException, DatabaseException,
+   //         InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 
     /**
      * Inserts the given object into the index with the given ID If the given ID

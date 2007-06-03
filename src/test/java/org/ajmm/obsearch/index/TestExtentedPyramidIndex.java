@@ -91,7 +91,7 @@ public class TestExtentedPyramidIndex extends TestCase {
                     .getProperty("test.query.input"));
             File db = new File(testProperties.getProperty("test.db.input"));
 
-            ExtendedPyramidIndex<OBSlice, ShortDim> index = new ExtendedPyramidIndex<OBSlice, ShortDim>(
+            AbstractExtendedPyramidIndex<OBSlice, ShortDim> index = new AbstractExtendedPyramidIndex<OBSlice, ShortDim>(
                     dbFolder, (byte) 30, new ShortDim((short) 0), new ShortDim(
                             (short) 10000));
             logger.info("Adding data");
@@ -194,7 +194,7 @@ public class TestExtentedPyramidIndex extends TestCase {
      */
     public void searchSequential(int max, OBSlice o,
             OBPriorityQueue<OBSlice, ShortDim> result,
-            ExtendedPyramidIndex<OBSlice, ShortDim> index, ShortDim range)
+            AbstractExtendedPyramidIndex<OBSlice, ShortDim> index, ShortDim range)
             throws Exception {
         int i = 0;
         OBResult<OBSlice, ShortDim> partial = new OBResult<OBSlice, ShortDim>();
