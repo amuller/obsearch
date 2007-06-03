@@ -77,8 +77,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @since 0.0
  */
 @XStreamAlias("AbstractPivotIndex")
-public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
-        implements Index<O, D> {
+public abstract class AbstractPivotIndex<O extends OB>
+        implements Index<O> {
 
     private static transient final Logger logger = Logger
             .getLogger(AbstractPivotIndex.class);
@@ -114,8 +114,6 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
 
     // we keep this in order to be able to create objects of type O
     protected Class<O> type;
-
-    protected Class<D> dimType;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -159,7 +157,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * 
      * @throws DatabaseException
      */
-    private void initDB() throws DatabaseException {
+    private final void initDB() throws DatabaseException {
         initBerkeleyDB();
         // way of creating a database
         initA();
@@ -168,7 +166,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         initC();
     }
     
-    protected void initB() throws DatabaseException{
+    private void initB() throws DatabaseException{
         final boolean duplicates = dbConfig.getSortedDuplicates();
         dbConfig.setSortedDuplicates(false);
         bDB = databaseEnvironment.openDatabase(null, "B", dbConfig);
@@ -275,7 +273,6 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         }
         if (type == null) { // a way of storing the class type for O
             type = (Class<O>) object.getClass();
-            dimType = object.getDimensionType();
         }
         maxId = id + 1;
         insertA(object, id);
@@ -331,10 +328,11 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
     /**
      * Inserts the given OBJECT in B. 
      * @param id
-     * @param tuple
+     * @param object
      * @throws DatabaseException
      */
-   protected void insertTupleInB(int id, D[] tuple) throws DatabaseException{
+    protected abstract void insertInB(int id, O object);
+   /*protected void insertTupleInB(int id, D[] tuple) throws DatabaseException{
        DatabaseEntry keyEntry = new DatabaseEntry();
        DatabaseEntry dataEntry = new DatabaseEntry();
        TupleOutput out = new TupleOutput();
@@ -345,7 +343,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
        // store the ID
        IntegerBinding.intToEntry(id, keyEntry);
        insertInDatabase(out, keyEntry, bDB);
-   }
+   }*/
 
     protected void insertInDatabase(final TupleOutput out,
             DatabaseEntry keyEntry, Database x) throws DatabaseException {
@@ -413,7 +411,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         calculateIndexParameters(); // this must be done by the subclasses
        
         // we have to insert the objects already inserted in A into C
-        insertFromAtoC();
+        insertFromBtoC();
         // cache is initialized as from the point we set frozen = true 
         // queries can be achieved
         initCache();
@@ -448,7 +446,6 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-        D[] t = createEmptyTuple();
         
         try {
             int i = 0;
@@ -461,8 +458,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
                 assert i == id;
                 TupleInput in = new TupleInput(foundData.getData());
                 obj.load(in);
-                calculatePivotTuple(obj, t); // calculate the tuple for the new
-                insertPivotTupleInBDB(id, t);
+                insertInB(id, obj);
                 i++;
             }
             // should be the same
@@ -475,7 +471,8 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * Inserts all the values already inserted in A into C
      * 
      */
-    private void insertFromAtoC() throws IllegalAccessException,
+    protected abstract void insertFromBtoC();
+    /*private void insertFromBtoC() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -498,7 +495,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         } finally {
             cursor.close();
         }
-    }
+    }*/
 
     /**
      * Children of this class have to implement this method if they want to
@@ -508,38 +505,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
             throws DatabaseException, IllegalAccessException,
             InstantiationException, OutOfRangeException;
 
-    /**
-     * This method calculates the pivots for each element in the database and
-     * stores them in database B. Later subclasses of this class can analyze the
-     * pivot tables and create additional parameters
-     */
-    protected void storeTuples() throws NotFrozenException, DatabaseException,
-            IllegalAccessException, InstantiationException, OBException {
-        Cursor cursor = null;
-        DatabaseEntry foundKey = new DatabaseEntry();
-        DatabaseEntry foundData = new DatabaseEntry();
-
-        assertFrozen();
-
-        try {
-            int i = 0;
-            cursor = aDB.openCursor(null, null);
-            O obj = this.instantiateObject();
-            D[] tuple = this.createEmptyTuple(); // create a dimension array
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                assert i == IntegerBinding.entryToInt(foundKey);
-                TupleInput in = new TupleInput(foundData.getData());
-                obj.load(in);
-                calculatePivotTuple(obj, tuple);
-                insertPivotTupleInBDB(i, tuple); // store the tuple
-                i++;
-            }
-            assert this.maxId == i; // pivot count and read # of pivots
-            // should be the same
-        } finally {
-            cursor.close();
-        }
-    }
+    
 
     /**
      * Inserts the given tuple in the database B using the given id B database
@@ -550,7 +516,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * @param tuple
      *            The tuple to be inserted
      */
-    protected void insertPivotTupleInBDB(int id, D[] tuple)
+    /*protected void insertPivotTupleInBDB(int id, D[] tuple)
             throws DatabaseException {
         TupleOutput out = new TupleOutput();
         int i = 0;
@@ -564,23 +530,9 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
         DatabaseEntry keyEntry = new DatabaseEntry();
         IntegerBinding.intToEntry(id, keyEntry);
         this.insertInDatabase(out, keyEntry, bDB);
-    }
+    }*/
 
-    /**
-     * Create an empty tuple with the pre-defined number of pivots
-     * 
-     * @return The new tuple with length = pivotsCount
-     */
-    protected D[] createEmptyTuple() throws IllegalAccessException, InstantiationException {
-        assert dimType != null;
-        D[] arr = (D[]) Array.newInstance(this.dimType, this.pivotsCount);
-        int i = 0;
-        while(i < arr.length){
-            arr[i] = dimType.newInstance();
-            i++;
-        }
-        return arr;
-    }
+    
 
     /**
      * returns the given object from DB A
@@ -607,7 +559,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
      * @param tuple
      *            The resulting tuple will be stored here
      */
-    protected void calculatePivotTuple(final O obj, D[] tuple)
+    /*protected void calculatePivotTuple(final O obj, D[] tuple)
             throws OBException {
         assert tuple.length == this.pivotsCount;
         int i = 0;
@@ -615,7 +567,7 @@ public abstract class AbstractPivotIndex<O extends OB<D>, D extends Dim>
             obj.distance(this.pivots[i], tuple[i]);
             i++;
         }
-    }
+    }*/
 
     /**
      * Stores the pivots selected by the pivot selector in database Pivot. As a
