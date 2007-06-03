@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <project name="OBSearch">
-<taskdef name="texen" classname="org.apache.texen.ant.TexenTask"/>
 	<!-- download dependencies not available in maven's repository-->
 	<target name="install">
 
 	</target>
 
-
+	
 	<target name="testDataPrepare">
 		<mkdir dir="${project.build.testOutputDirectory}"/>
 		<get src="${my.test.data.url}${my.test.data.db}.bz2" dest="${project.build.testOutputDirectory}/${my.test.data.db}.bz2" usetimestamp="true" />
@@ -15,19 +14,20 @@
 		<bunzip2 src="${project.build.testOutputDirectory}/${my.test.data.query}.bz2"/>
 	</target>
 
+	
 	<!-- generate texen files -->
 	<target name="generateSources">
+		  <taskdef name="fmpp" classname="fmpp.tools.AntTask" /> 
 			<!-- now we generate code using texen -->							
 			<echo>In: ${in}</echo>
 			<echo>Out: ${out}</echo>
 			<property name="finalOut" value="${out}/generated-sources/texen/org/ajmm/obsearch/"/>
-			<texen
-					controlTemplate="OBControl.vm"
-					outputDirectory="${finalOut}/ob/"
-					templatePath="${in}/texen/"
-					outputFile="OBGeneration.report"/>
 
-			
+			<fmpp
+              sourceRoot="${in}" outputRoot="${out}"
+              data="types: csv(${in}/Types.csv)"
+				      excludes="Types.csv">
+     </fmpp>
 	</target>
 
 </project>
