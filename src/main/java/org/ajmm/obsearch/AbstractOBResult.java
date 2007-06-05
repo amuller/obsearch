@@ -27,9 +27,11 @@ package org.ajmm.obsearch;
  * @since 1.0
  */
 
-public class OBResult<O extends OB, D extends Dim> extends Result<D> {
+public abstract class AbstractOBResult<O extends OB> implements Comparable{
+	
     protected O object;
-
+    protected int id;
+    
     public O getObject() {
         return object;
     }
@@ -37,26 +39,12 @@ public class OBResult<O extends OB, D extends Dim> extends Result<D> {
     public void setObject(O obj) {
         this.object = obj;
     }
+    
+    public int getId() {
+        return id;
+    }
 
-    public int compareTo(Object o) {
-        assert o instanceof OBResult; // faster!
-        // if(! (o instanceof OBResult)){
-        // throw new ClassCastException();
-        // / }
-        return compareToAux((OBResult) o);
-    }
-    
-    /**
-     * Sets the values of this object to the values of r.
-     * @param r The values that will be copied into this object.
-     */
-    public void set(OBResult<O, D> r) throws InstantiationException, IllegalAccessException{
-        super.set(r);
-        this.object = r.object;
-    }
-    
-    public boolean equals(Object obj){
-        OBResult<O, D> o = (OBResult<O, D>) obj;
-        return super.equals(o) && this.object.equals(o.object);        
+    public void setId(int identification) {
+        this.id = identification;
     }
 }

@@ -1,16 +1,26 @@
 
 # this script loads the latest versions of some dependencies not 
 # available in maven repositories
+
 # get the latest version of je
 wget http://obsearch.googlecode.com/files/je-3.2.23.tar.gz
 tar -xzf je-3.2.23.tar.gz
 
 mvn install:install-file -Dfile=./je-3.2.23/lib/je-3.2.23.jar -DgroupId=berkeleydb -DartifactId=je -Dversion=3.2.23 -Dpackaging=jar -DgeneratePom=true
 
-
-# install fmpp (freemarker's ant frontend)
-mvn install:install-file -Dfile=./fmpp.jar -DgroupId=freemarker -DartifactId=fmpp -Dversion=0.9 -Dpackaging=jar -DgeneratePom=true
-
 #cleanup
 rm -fdr je-3.2.23
-rm je-3.2.23.jar
+rm je-3.2.23.tar.gz
+
+# get fmpp
+wget http://obsearch.googlecode.com/files/fmpp_0.9.12.tar.gz
+tar -xzf fmpp_0.9.12.tar.gz
+
+
+# install fmpp (freemarker's ant frontend)
+mvn install:install-file -Dfile=./fmpp_0.9.12/lib/fmpp.jar -DgroupId=freemarker -DartifactId=fmpp -Dversion=0.9 -Dpackaging=jar -DgeneratePom=true
+
+#cleanup
+rm -fdr fmpp_0.9.12
+rm fmpp_0.9.12.tar.gz
+

@@ -50,29 +50,7 @@ public interface Index<O extends OB> {
    
     // TODO: Remove all the *newInstance() methods as they use reflection and this is very slow
     //             
-    /**
-     * Searches the Index and returns OBResult (ID, OB and distance) elements
-     * that are closer to "object". The closest element is at the beginning of
-     * the list and the farthest elements is at the end of the list This
-     * condition must hold result.length == k
-     * 
-     * @param object
-     *            The object that has to be searched
-     * @param k
-     *            The maximum number of objects to be returned
-     * @param r
-     *            The range to be used
-     * @param result
-     *            A priority queue that will hold the result
-     * @throws NotFrozenException
-     *             if the index has not been frozen.
-     * @since 0.0
-     */
-    // TODO: Evaluate if result should be a priority queue instead of an array
-  //  void searchOB(O object, D r, OBPriorityQueue<O, D> result)
-   //         throws IllegalKException, NotFrozenException, DatabaseException,
-   //         InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
-
+    
     /**
      * Inserts the given object into the index with the given ID If the given ID
      * already exists, the exception IllegalIDException is thrown.
