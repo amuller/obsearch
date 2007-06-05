@@ -330,7 +330,7 @@ public abstract class AbstractPivotIndex<O extends OB>
      * @param object
      * @throws DatabaseException
      */
-    protected abstract void insertInB(int id, O object);
+    protected abstract void insertInB(int id, O object) throws OBException, DatabaseException;
    /*protected void insertTupleInB(int id, D[] tuple) throws DatabaseException{
        DatabaseEntry keyEntry = new DatabaseEntry();
        DatabaseEntry dataEntry = new DatabaseEntry();
@@ -432,9 +432,9 @@ public abstract class AbstractPivotIndex<O extends OB>
     
     /**
      * Must return "this"
-     * Used to serialize the current son
+     * Used to serialize the object
      */
-    protected abstract Index serializeObject();
+    protected abstract Index returnSelf();
     
     /**
      * Inserts all the values already inserted in A into B
@@ -470,7 +470,8 @@ public abstract class AbstractPivotIndex<O extends OB>
      * Inserts all the values already inserted in A into C
      * 
      */
-    protected abstract void insertFromBtoC();
+    protected abstract void insertFromBtoC() throws DatabaseException, OutOfRangeException;
+    
     /*private void insertFromBtoC() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
         Cursor cursor = null;
