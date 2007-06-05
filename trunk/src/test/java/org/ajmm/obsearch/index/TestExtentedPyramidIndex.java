@@ -13,8 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import org.ajmm.obsearch.OBPriorityQueue;
-import org.ajmm.obsearch.OBResult;
+import org.ajmm.obsearch.AbstractOBPriorityQueue;
+import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.dimension.ShortDim;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
@@ -121,15 +121,15 @@ public class TestExtentedPyramidIndex extends TestCase {
             // it is time to Search
             logger.info("Pyramid matching begins...");
             r = new BufferedReader(new FileReader(query));
-            List<OBPriorityQueue<OBSlice, ShortDim>> result = 
-				new LinkedList<OBPriorityQueue<OBSlice, ShortDim>>();
+            List<AbstractOBPriorityQueue<OBSlice, ShortDim>> result = 
+				new LinkedList<AbstractOBPriorityQueue<OBSlice, ShortDim>>();
             re = r.readLine();
             int i = 0;
             
 			while (re != null) {
                 String line = parseLine(re);
                 if (line != null) {
-                    OBPriorityQueue<OBSlice, ShortDim> x = new OBPriorityQueue<OBSlice, ShortDim>(
+                    AbstractOBPriorityQueue<OBSlice, ShortDim> x = new AbstractOBPriorityQueue<OBSlice, ShortDim>(
                             k);
                     if (i % 300 == 0) {
                         logger.info("Matching " + i);
@@ -147,7 +147,7 @@ public class TestExtentedPyramidIndex extends TestCase {
             int maxQuery = i;
             logger.info("Pyramid matching ends...");
             // now we compare the results we got with the real thing!
-            Iterator<OBPriorityQueue<OBSlice, ShortDim>> it = result.iterator();
+            Iterator<AbstractOBPriorityQueue<OBSlice, ShortDim>> it = result.iterator();
             r = new BufferedReader(new FileReader(query));
             re = r.readLine();
             i = 0;
@@ -157,11 +157,11 @@ public class TestExtentedPyramidIndex extends TestCase {
                     if (i % 300 == 0) {
                         logger.info("Matching " + i + " of " + maxQuery);
                     }
-                    OBPriorityQueue<OBSlice, ShortDim> x2 = new OBPriorityQueue<OBSlice, ShortDim>(
+                    AbstractOBPriorityQueue<OBSlice, ShortDim> x2 = new AbstractOBPriorityQueue<OBSlice, ShortDim>(
                             k);
                     searchSequential(realIndex, new OBSlice(line), x2, index,
                             range);
-                    OBPriorityQueue<OBSlice, ShortDim> x1 = it.next();                   
+                    AbstractOBPriorityQueue<OBSlice, ShortDim> x1 = it.next();                   
                     assertEquals("Error in query line: " + i, x2, x1);
                     i++;
                 }
@@ -193,11 +193,11 @@ public class TestExtentedPyramidIndex extends TestCase {
      * @throws Exception
      */
     public void searchSequential(int max, OBSlice o,
-            OBPriorityQueue<OBSlice, ShortDim> result,
+            AbstractOBPriorityQueue<OBSlice, ShortDim> result,
             AbstractExtendedPyramidIndex<OBSlice, ShortDim> index, ShortDim range)
             throws Exception {
         int i = 0;
-        OBResult<OBSlice, ShortDim> partial = new OBResult<OBSlice, ShortDim>();
+        AbstractOBResult<OBSlice, ShortDim> partial = new AbstractOBResult<OBSlice, ShortDim>();
         while (i < max) {
             OBSlice obj = index.getObject(i);
             ShortDim res = new ShortDim((short) -1);

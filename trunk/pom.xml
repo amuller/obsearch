@@ -21,10 +21,7 @@
 
 	<properties>
 		<!-- additional unit test files to be downloaded -->
-    <my.test.data.url>http://obsearch.googlecode.com/files/</my.test.data.url>
-		<!-- remove /add  -small to get a bigger/smaller test set -->
-		<my.test.data.db>slices-small</my.test.data.db>
-		<my.test.data.query>slices-query-small</my.test.data.query>
+   
 		<!-- texen templates configuration -->
 		<my.templates.texen>/texen/</my.templates.texen>
 		<my.templates.index>org/ajmm/obsearch/index/</my.templates.index>
@@ -211,11 +208,12 @@ Would be cool to use this.
 							
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"/>
-									<property name="in" value="${project.build.sourceDirectory}/../texen/"/>
-									<property name="out" value="${project.build.directory}/generated-sources/texen/"/>
+									<property name="in" value="${project.build.sourceDirectory}/../fm/"/>
+									<property name="out" value="${project.build.directory}/generated-sources/fm/"/>
 								</ant>
 
               </tasks>
+							<sourceRoot>${project.build.directory}/generated-sources/fm</sourceRoot>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -232,6 +230,7 @@ Would be cool to use this.
 								</propertyset>
 								<ant antfile="${basedir}/build.xml" inheritRefs="true">               
                   <target name="testDataPrepare"/>									
+									<property name="out" value="${project.build.testOutputDirectory}"/>
 								</ant>
               </tasks>
             </configuration>

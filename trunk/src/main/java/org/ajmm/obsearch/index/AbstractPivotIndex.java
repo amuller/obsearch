@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ajmm.obsearch.Dim;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.OBPriorityQueue;
-import org.ajmm.obsearch.OBResult;
+import org.ajmm.obsearch.AbstractOBPriorityQueue;
+import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;

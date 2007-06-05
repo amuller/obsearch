@@ -13,16 +13,16 @@ import org.apache.log4j.Logger;
  * @author amuller
  * 
  */
-public class OBPriorityQueue<O extends OB, D extends Dim> {
+public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult> {
     private static final Logger logger = Logger
-            .getLogger(OBPriorityQueue.class);
+            .getLogger(AbstractOBPriorityQueue.class);
 
-    protected PriorityQueue<OBResult<O,D>> queue;
+    protected PriorityQueue<O> queue;
 
     protected byte k;
 
-    public OBPriorityQueue(byte k) {
-        queue = new PriorityQueue<OBResult<O,D>>();
+    public AbstractOBPriorityQueue(byte k) {
+        queue = new PriorityQueue<O>();
         this.k = k;
     }
 
@@ -30,46 +30,37 @@ public class OBPriorityQueue<O extends OB, D extends Dim> {
         return queue.size();
     }
 
-    public D getBiggestDistance() {
+    /*public D getBiggestDistance() {
         return queue.peek().getDistance();
-    }
+    }*/
 
-    /**
-     * Receives the distance and returns true if we should skip a record with
-     * distance d
-     * 
-     * @param d
-     * @return
-     */
     /*
-     * public synchronized boolean shouldSkipRecord(final D d){ if (getSize() ==
-     * k){ return ! (getBiggestDistance().gt(d)); }else{ return false; } }
-     */
 
-    public void add(OBResult<O,D> d) throws InstantiationException, IllegalAccessException {
+    public void add(AbstractOBResult<O,D> d) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
             // otherwise we recycle objects!
             if (getBiggestDistance().gt(d.getDistance())) {// biggest object in
                                                             // the heap is
                                                             // bigger than d
-                OBResult<O,D> c = queue.poll();
+                AbstractOBResult<O,D> c = queue.poll();
                 c.set(d);
                 queue.offer(c);
             }
         } else { // if we are smaller than k we just create the object
-            OBResult<O,D> c = new OBResult<O,D>();
+            AbstractOBResult<O,D> c = new AbstractOBResult<O,D>();
             c.set(d);
             queue.offer(c);
         }
         assert queue.size() <= k;
     }
-
+	*/
+    
     /**
      * if queue.size() == k, then if the user's range is greater than the
      * greatest element of the queue, we can reduce the size of the range to
      * something smaller than the current biggest value of the queue
      */
-    public void updateRange(D r) {
+    /*public void updateRange(D r) {
         // TODO: update the pyramid technique range so that we reduce the searches in the
         // remaining pyramids. We could start actually matching random pyramids
         // and then hope we can get a very small r at the beginning
@@ -83,15 +74,15 @@ public class OBPriorityQueue<O extends OB, D extends Dim> {
                 r.update(d);
             }           
         }
-    }
+    }*/
 
     public boolean equals(Object obj) {
-        OBPriorityQueue<O, D> o = (OBPriorityQueue<O, D>)obj;
+        AbstractOBPriorityQueue<O> o = (AbstractOBPriorityQueue<O>)obj;
         if (this.getSize() != o.getSize()) {
             return false;
         }
         Object[] a = queue.toArray();
-        Object[] b = queue.toArray();
+        Object[] b = o.queue.toArray();
         Arrays.sort(a);
         Arrays.sort(b);
         return Arrays.equals(a, b);
