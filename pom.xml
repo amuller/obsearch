@@ -21,7 +21,10 @@
 
 	<properties>
 		<!-- additional unit test files to be downloaded -->
-   
+
+		<my.test.data.db>slices</my.test.data.db>
+		<my.test.data.query>slices-query</my.test.data.query>
+
 		<!-- texen templates configuration -->
 		<my.templates.texen>/texen/</my.templates.texen>
 		<my.templates.index>org/ajmm/obsearch/index/</my.templates.index>
@@ -231,6 +234,8 @@ Would be cool to use this.
 								<ant antfile="${basedir}/build.xml" inheritRefs="true">               
                   <target name="testDataPrepare"/>									
 									<property name="out" value="${project.build.testOutputDirectory}"/>
+									<property name="my.test.data.db" value="${my.test.data.db}"/>
+									<property name="my.test.data.query" value="${my.test.data.query}"/>
 								</ant>
               </tasks>
             </configuration>
@@ -285,7 +290,7 @@ Would be cool to use this.
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-ea -Xmx1300M</argLine>
+          <argLine>-ea -Xmx3000M</argLine>
         </configuration>
       </plugin>
 
