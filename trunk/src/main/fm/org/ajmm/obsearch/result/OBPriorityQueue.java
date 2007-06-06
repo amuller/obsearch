@@ -3,16 +3,46 @@
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="OBPriorityQueue"+Type+".java" />
-
 package org.ajmm.obsearch.result;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.ob.OB${Type};
+/*
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+ 
 public class OBPriorityQueue${Type}<O extends OB${Type}> extends AbstractOBPriorityQueue<OBResult${Type}<O>> {
+
+		public OBPriorityQueue${Type}(byte k){
+				super(k);
+		}
+		/**
+     * Add the given object, object id and distance of type ${type} to the
+     * queue.
+		 * @param id The id of the object to be used
+		 * @param obj The object to be added
+		 * @param distance The distance to be added
+		 */
 	public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
-            // otherwise we recycle objects!
+            // recycle objects.
             if (queue.peek().getDistance() >= distance) {// biggest object in
                                                             // the heap is
                                                             // bigger than d

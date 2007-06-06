@@ -16,9 +16,11 @@ import java.util.Properties;
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.TUtils;
-import org.ajmm.obsearch.dimension.ShortDim;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
+import org.ajmm.obsearch.ob.OBShort;
+import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.testutils.OBSlice;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -91,9 +93,8 @@ public class TestExtentedPyramidIndex extends TestCase {
                     .getProperty("test.query.input"));
             File db = new File(testProperties.getProperty("test.db.input"));
 
-            AbstractExtendedPyramidIndex<OBSlice, ShortDim> index = new AbstractExtendedPyramidIndex<OBSlice, ShortDim>(
-                    dbFolder, (byte) 30, new ShortDim((short) 0), new ShortDim(
-                            (short) 10000));
+            ExtendedPyramidIndexShort<OBSlice> index = new ExtendedPyramidIndexShort<OBSlice>(
+                    dbFolder, (byte) 15, (short)0, (short) 10000);
             logger.info("Adding data");
             BufferedReader r = new BufferedReader(new FileReader(db));
             String re = r.readLine();
@@ -101,42 +102,50 @@ public class TestExtentedPyramidIndex extends TestCase {
             while (re != null) {
                 String line = parseLine(re);
                 if (line != null) {
-                    index.insert(new OBSlice(line), realIndex);
+                	OBSlice s = new OBSlice(line);
+                	if(this.shouldProcessSlice(s)){
+                		index.insert(s, realIndex);
+                		realIndex++;
+                	}
                 }
                 re = r.readLine();
-                realIndex++;
+                
             }
 
-            // we select the pivots and put all the stuff
-            // in the database
+            // select the pivots
+            //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
+            RandomPivotSelector ps = new RandomPivotSelector();
+            ps.generatePivots(index);
             // the pyramid values are created
             logger.info("freezing");
-            index.freeze(new RandomPivotSelector());
+            index.freeze();
 
             assertEquals(index.aDB.count(), index.bDB.count());
             assertEquals(index.aDB.count(), index.bDB.count());
-
+            //index.stats();
             byte k = 3;
-            ShortDim range = new ShortDim((short) 3); // range
+            short range = 3; // range
             // it is time to Search
             logger.info("Pyramid matching begins...");
             r = new BufferedReader(new FileReader(query));
-            List<AbstractOBPriorityQueue<OBSlice, ShortDim>> result = 
-				new LinkedList<AbstractOBPriorityQueue<OBSlice, ShortDim>>();
+            List<OBPriorityQueueShort<OBSlice>> result = 
+				new LinkedList<OBPriorityQueueShort<OBSlice>>();
             re = r.readLine();
             int i = 0;
             
 			while (re != null) {
                 String line = parseLine(re);
                 if (line != null) {
-                    AbstractOBPriorityQueue<OBSlice, ShortDim> x = new AbstractOBPriorityQueue<OBSlice, ShortDim>(
-                            k);
+                	OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>(k);
                     if (i % 300 == 0) {
                         logger.info("Matching " + i);
                     }
-                    index.searchOB(new OBSlice(line), range, x);
-                    result.add(x);
-                    i++;                   
+                    OBSlice s = new OBSlice(line);
+                	if(this.shouldProcessSlice(s)){
+                		index.searchOB(s, range, x);
+                    	result.add(x);
+                    	i++;     
+                	}
                 }
                 if(i == 1642){
                     logger.warn("Finishing test at i : " + i);
@@ -145,9 +154,10 @@ public class TestExtentedPyramidIndex extends TestCase {
                 re = r.readLine();
             }
             int maxQuery = i;
-            logger.info("Pyramid matching ends...");
+            logger.info("Pyramid matching ends... Stats follow:");
+            //index.stats();
             // now we compare the results we got with the real thing!
-            Iterator<AbstractOBPriorityQueue<OBSlice, ShortDim>> it = result.iterator();
+            Iterator<OBPriorityQueueShort<OBSlice>> it = result.iterator();
             r = new BufferedReader(new FileReader(query));
             re = r.readLine();
             i = 0;
@@ -157,13 +167,15 @@ public class TestExtentedPyramidIndex extends TestCase {
                     if (i % 300 == 0) {
                         logger.info("Matching " + i + " of " + maxQuery);
                     }
-                    AbstractOBPriorityQueue<OBSlice, ShortDim> x2 = new AbstractOBPriorityQueue<OBSlice, ShortDim>(
-                            k);
-                    searchSequential(realIndex, new OBSlice(line), x2, index,
+                    OBSlice s = new OBSlice(line);
+                	if(this.shouldProcessSlice(s)){
+                		OBPriorityQueueShort<OBSlice> x2 = new OBPriorityQueueShort<OBSlice>(k);
+                    	searchSequential(realIndex, s, x2, index,
                             range);
-                    AbstractOBPriorityQueue<OBSlice, ShortDim> x1 = it.next();                   
-                    assertEquals("Error in query line: " + i, x2, x1);
-                    i++;
+                    	OBPriorityQueueShort<OBSlice> x1 = it.next();                   
+                    	assertEquals("Error in query line: " + i, x2, x1);
+                    	i++;
+                	}
                 }
                 if(i == 1642){
                     logger.warn("Finishing test at i : " + i);
@@ -182,6 +194,10 @@ public class TestExtentedPyramidIndex extends TestCase {
             assertTrue(dbFolder.delete());
         }
     }
+    
+    public boolean shouldProcessSlice(OBSlice x) throws Exception{
+    	return x.size()<= 100;
+    }
 
     /**
      * 
@@ -193,20 +209,15 @@ public class TestExtentedPyramidIndex extends TestCase {
      * @throws Exception
      */
     public void searchSequential(int max, OBSlice o,
-            AbstractOBPriorityQueue<OBSlice, ShortDim> result,
-            AbstractExtendedPyramidIndex<OBSlice, ShortDim> index, ShortDim range)
+    		OBPriorityQueueShort<OBSlice> result,
+            ExtendedPyramidIndexShort<OBSlice> index, short range)
             throws Exception {
         int i = 0;
-        AbstractOBResult<OBSlice, ShortDim> partial = new AbstractOBResult<OBSlice, ShortDim>();
         while (i < max) {
             OBSlice obj = index.getObject(i);
-            ShortDim res = new ShortDim((short) -1);
-            obj.distance(o, res);
-            if (res.le(range)) {
-                partial.setDistance(res);
-                partial.setId(i);
-                partial.setObject(obj);
-                result.add(partial);
+            short res = o.distance(obj);
+            if (res <= range) {
+                result.add(i, obj, res);
             }
             i++;
         }

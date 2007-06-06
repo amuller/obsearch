@@ -8,7 +8,7 @@ import org.ajmm.obsearch.exception.IllegalKException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.pivotselection.PivotSelector;
+import org.ajmm.obsearch.exception.UndefinedPivotsException;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -93,9 +93,10 @@ public interface Index<O extends OB> {
      *             If the index was already frozen and the user attempted to
      *             freeze it again
      */
-    void freeze(PivotSelector pivotSelector) throws IOException,
+    void freeze() throws IOException,
             AlreadyFrozenException, IllegalIdException, IllegalAccessException,
-            InstantiationException, DatabaseException, OutOfRangeException, OBException;
+            InstantiationException, DatabaseException, OutOfRangeException, OBException,
+            UndefinedPivotsException;
 
     /**
      * Deletes the given object form the database.

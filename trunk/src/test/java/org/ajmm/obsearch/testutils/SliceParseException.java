@@ -10,5 +10,15 @@ import org.ajmm.obsearch.exception.OBException;
  *
  */
 public class SliceParseException extends OBException {
+	
+	private String slice;
+	
+	SliceParseException(String x){
+		slice = x;
+	}
+	
+	public String toString(){
+		return slice;
+	}
 
 }

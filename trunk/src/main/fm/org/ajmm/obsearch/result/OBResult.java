@@ -60,7 +60,13 @@ public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
 
     public boolean equals(Object obj){        
 				OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
-				return this.id == comp.id && distance == comp.distance;
+				// a result object is the same if the distance is the same
+				// we do not care about the id.
+				return distance == comp.distance;
+		}
+
+		public String toString(){				
+				return "<" + id + " " + distance + ">";
 		}
 }
 

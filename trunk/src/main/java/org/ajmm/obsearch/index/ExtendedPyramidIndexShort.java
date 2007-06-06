@@ -11,6 +11,7 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
+import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
@@ -107,7 +108,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 				searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
 						+ lowHighResult[HHIGH], result);
 				short nr = result.updateRange(myr);
-				if(nr != myr){
+				if(nr < myr){
 					myr = nr;
 					// regenerate the query with a smaller range
 					generateRectangle(t, myr, q); 
@@ -181,7 +182,9 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 						int id = in.readInt();
 						O toCompare = super.getObject(id);
 						realDistance = object.distance(toCompare);
-						result.add(id, toCompare, realDistance);
+						if(realDistance <= r){
+							result.add(id, toCompare, realDistance);
+						}
 					}
 
 					// read the next record
@@ -240,13 +243,15 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		try {
 			int i = 0;
 			cursor = bDB.openCursor(null, null);
+			MyTupleInput in = new MyTupleInput();
 			while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 				assert i == IntegerBinding.entryToInt(foundKey);
 				// i contains the actual id of the tuple
-				TupleInput in = new TupleInput(foundData.getData());
+				in.setBuffer(foundData.getData());
 				int cx = 0;
 				while (cx < t.length) {
 					t[cx] = in.readShort();
+					cx++;
 				}
 				this.insertFrozenAux(t, i);
 				i++;

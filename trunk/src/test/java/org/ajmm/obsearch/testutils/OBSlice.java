@@ -4,10 +4,9 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.ajmm.obsearch.Dim;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.dimension.ShortDim;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.ob.OBShort;
 
 import antlr.RecognitionException;
 
@@ -41,7 +40,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @since 1.0
  */
 
-public class OBSlice implements OB<ShortDim> {
+public class OBSlice implements OBShort {
 
     private String slice;
 
@@ -61,6 +60,7 @@ public class OBSlice implements OB<ShortDim> {
      * @param slice
      */
     public OBSlice(String slice) {
+    	assert slice != null;
         this.slice = slice;
     }
 
@@ -72,7 +72,7 @@ public class OBSlice implements OB<ShortDim> {
      * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
      */
-    public void distance(OB object, ShortDim result) throws OBException {
+    public short distance(OB object) throws OBException {
         // TODO Auto-generated method stub
         OBSlice b = (OBSlice) object;
         updateTree();
@@ -100,34 +100,30 @@ public class OBSlice implements OB<ShortDim> {
         }
         // return Na - res + Nb - res;
         // return (Na + Nb) - ( 2 * res);
-        result.update((short) (Math.max(Na, Nb) - res));
-
+        return (short) (Math.max(Na, Nb) - res);
     }
 
     protected void updateTree() throws OBException {
         if (tree == null) {
             try {
+            	assert slice != null;
                 SliceLexer lexer = new SliceLexer(new StringReader(slice));
                 SliceParser parser = new SliceParser(lexer);
                 parser.setASTNodeClass("org.ajmm.obsearch.testutils.SliceAST");
                 parser.slice();
                 tree = (SliceAST) parser.getAST();
             } catch (Exception e) {
-                throw new SliceParseException();
+                throw new SliceParseException(slice);
             }
-            slice = null;
+            //slice = null;
         }
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.ajmm.obsearch.OB#getDimensionType()
-     */
-    public Class<ShortDim> getDimensionType() {
-        // TODO Auto-generated method stub
-        return ShortDim.class;
+    
+    public int size() throws OBException{
+    	updateTree();
+    	return tree.getSize();
     }
+
 
     /*
      * (non-Javadoc)
@@ -137,6 +133,7 @@ public class OBSlice implements OB<ShortDim> {
     public void load(TupleInput in) {
         // TODO Auto-generated method stub
         slice = in.readString();
+        assert slice !=null: "Slice was null!";
         tree = null; //very important!
     }
 

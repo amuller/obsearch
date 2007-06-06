@@ -4,6 +4,12 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.index.AbstractPivotIndex;
+import org.ajmm.obsearch.index.PivotSelector;
+
+import com.sleepycat.je.DatabaseException;
+
 /*
  OBSearch: a distributed similarity search engine
  This project is to similarity search what 'bit-torrent' is to downloads.
@@ -40,9 +46,11 @@ public class RandomPivotSelector implements PivotSelector {
      * @param pivots
      *            The number of pivots to be selected
      * @return A list of object ids from the database
-     * @see org.ajmm.obsearch.index.pivotselection.PivotSelector#generatePivots(short)
+     * @see org.ajmm.obsearch.index.PivotSelector#generatePivots(short)
      */
-    public int[] generatePivots(short pivots, int maxIdAvailable) {
+    public void generatePivots(AbstractPivotIndex index ) throws OBException, IllegalAccessException, InstantiationException, DatabaseException{
+    	byte pivots = index.getPivotsCount();
+    	int maxIdAvailable = index.getMaxId();
         final int maxId = maxIdAvailable + 1;
         int[] res = new int[pivots];
         Random r = new Random();
@@ -51,7 +59,9 @@ public class RandomPivotSelector implements PivotSelector {
             res[i] = r.nextInt(maxId);
             i++;
         }
-        return res;
+        index.storePivots(res);
     }
+    
+    
 
 }
