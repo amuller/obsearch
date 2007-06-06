@@ -9,8 +9,6 @@
 	<target name="testDataPrepare">
 		<property name="my.test.data.url" value="http://obsearch.googlecode.com/files/"/>
 		<!-- remove -small to get a bigger dataset -->
-		<property name="my.test.data.db" value="slices-small"/>
-		<property name="my.test.data.query" value="slices-query-small"/>
 		<mkdir dir="${out}"/>
 		<get src="${my.test.data.url}${my.test.data.db}.bz2" dest="${out}/${my.test.data.db}.bz2" usetimestamp="true" />
 		<get src="${my.test.data.url}${my.test.data.query}.bz2" dest="${out}/${my.test.data.query}.bz2" usetimestamp="true" />
