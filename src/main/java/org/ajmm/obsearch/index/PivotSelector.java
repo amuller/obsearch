@@ -1,6 +1,11 @@
-package org.ajmm.obsearch.index.pivotselection;
+package org.ajmm.obsearch.index;
 
+import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.apache.log4j.Logger;
+
+import com.sleepycat.je.DatabaseException;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -32,15 +37,12 @@ import org.apache.log4j.Logger;
  */
 // TODO: This class needs to have a consistent access to all the elements.
 // Figure this out later as the RandomPivot doesn't need this data.
-public interface PivotSelector {
+public interface PivotSelector<O extends OB> {
     /**
      * Generates n (n = pivots) from the database The resulting array is a list
      * of ids from the database
-     * 
-     * @param pivots
-     * @param maxId
-     *            the maximum id found in the database
-     * @return a list of ID's from the database
-     */
-    int[] generatePivots(short pivots, int maxId);
+     * The method will modify the pivot index and
+     * update the information of the selected new pivots
+     */ 
+    void generatePivots(AbstractPivotIndex<O> x) throws OBException, IllegalAccessException, InstantiationException, DatabaseException, PivotsUnavailableException;
 }

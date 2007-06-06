@@ -17,7 +17,7 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.pivotselection.PivotSelector;
+import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
@@ -32,6 +32,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.StatsConfig;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -147,7 +148,11 @@ public abstract class AbstractPivotIndex<O extends OB>
      * we are using generics
      */
     protected void createPivotsArray() {
-        this.pivots = (O[]) Array.newInstance(type, pivotsCount);
+        this.pivots = emptyPivotsArray();
+    }
+    
+    public O[] emptyPivotsArray(){
+    	return (O[]) Array.newInstance(type, pivotsCount);
     }
 
     /**
@@ -194,8 +199,10 @@ public abstract class AbstractPivotIndex<O extends OB>
   
 
     protected void initCache() throws DatabaseException {
-        int size = databaseSize();
-        cache = new OBCache<O>(size);
+    	if(cache == null){
+    		int size = databaseSize();
+    		cache = new OBCache<O>(size);
+    	}
     }
 
     protected int databaseSize() throws DatabaseException {
@@ -239,7 +246,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        // envConfig.setCacheSize(8000000);
+        envConfig.setCacheSize(80 * 1024 * 1024); // 80 MB
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // envConfig.setLocking(false);
@@ -250,6 +257,12 @@ public abstract class AbstractPivotIndex<O extends OB>
         dbConfig.setAllowCreate(true);
         dbConfig.setSortedDuplicates(true);
         // dbConfig.setExclusiveCreate(true);
+    }
+    
+    public void stats() throws DatabaseException{
+    	StatsConfig config = new StatsConfig();
+    	config.setClear(true);
+    	logger.info(databaseEnvironment.getStats(config));
     }
 
     /**
@@ -376,6 +389,15 @@ public abstract class AbstractPivotIndex<O extends OB>
             throw new NotFrozenException();
         }
     }
+    
+    /**
+     * Pivot selectors who use the cache (access the objects of the DB)
+     * should call this method before calling freeze.
+     * Users do not have to worry about this method
+     */
+    public void prepareFreeze() throws DatabaseException{
+    	initCache();
+    }
 
     /**
      * Freezes the index. From this point data can be inserted, searched and
@@ -391,25 +413,29 @@ public abstract class AbstractPivotIndex<O extends OB>
      *             If the index was already frozen and the user attempted to
      *             freeze it again
      */
-    public void freeze(PivotSelector pivotSelector) throws IOException,
+    public void freeze() throws IOException,
             AlreadyFrozenException, IllegalIdException, IllegalAccessException,
             InstantiationException, DatabaseException, OutOfRangeException,
-            OBException {
+            OBException, UndefinedPivotsException {
         if (isFrozen()) {
             throw new AlreadyFrozenException();
         }
-        this.pivotSelector = pivotSelector; 
-        createPivotsArray();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Storing Pivots in B");
+        
+        if(pivots == null){
+        	throw new  UndefinedPivotsException();
         }
-        storePivots();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Storing pivot tuples from A to B");
+        }
+        
         // we have to create database B        
        insertFromAtoB();
 
         calculateIndexParameters(); // this must be done by the subclasses
        
         // we have to insert the objects already inserted in A into C
+        logger.info("Copying data from B to C");
         insertFromBtoC();
         // cache is initialized as from the point we set frozen = true 
         // queries can be achieved
@@ -428,6 +454,16 @@ public abstract class AbstractPivotIndex<O extends OB>
         fout.write(xml);
         fout.close();        
         
+        
+        
+    }
+    
+    /**
+     * Returns the current maximum id
+     * @return
+     */
+    public int getMaxId(){
+    	return this.maxId;
     }
     
     /**
@@ -541,7 +577,7 @@ public abstract class AbstractPivotIndex<O extends OB>
      * @return the object
      */
     // TODO: need to implement a cache here
-    protected O getObject(int id) throws DatabaseException, IllegalIdException,
+    public O getObject(int id) throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
         O res = cache.get(id);
         if (res == null) {
@@ -570,20 +606,18 @@ public abstract class AbstractPivotIndex<O extends OB>
     }*/
 
     /**
-     * Stores the pivots selected by the pivot selector in database Pivot. As a
-     * side effect leaves the pivots cached in this.pivots
+     * Stores the given pivots
      * 
      * @throws IllegalIdException
      *             If the pivot selector generates invalid ids
      */
-    protected void storePivots() throws IllegalIdException,
+    public void storePivots(int[] ids) throws IllegalIdException,
             IllegalAccessException, InstantiationException, DatabaseException {
-        int[] ids = pivotSelector.generatePivots(pivotsCount, maxId);
         if(logger.isDebugEnabled()){
             logger.debug("Pivots selected " + Arrays.toString( ids));
         }
-        assert ids.length == pivots.length && pivots.length == this.pivotsCount;
-
+        createPivotsArray();
+        assert ids.length == pivots.length && pivots.length == this.pivotsCount;        
         int i = 0;
         while (i < ids.length) {
             O obj = getObject(ids[i], aDB);

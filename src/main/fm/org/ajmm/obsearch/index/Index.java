@@ -13,7 +13,6 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.pivotselection.PivotSelector;
 import com.sleepycat.je.DatabaseException;
 
 /*

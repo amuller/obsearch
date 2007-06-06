@@ -8,7 +8,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.apache.log4j.Logger;
 
 /**
- * A class that holds a list of FuriaChanCandidate in a priority queue
+ * A class that holds a list of results in an inverted
+ * priority queue (biggest element at the "peek" of the queue)
  * 
  * @author amuller
  * 
