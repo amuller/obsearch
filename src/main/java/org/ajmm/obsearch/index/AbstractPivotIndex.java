@@ -67,7 +67,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * objects will be of the same type You should not mix types as the distance
  * function and the objects must be consistent. Also, Inserts are first added to
  * A, and then to C. This guarantees that there will be always objects to match.
- * 
+ *
  * @param <O>
  *            The object type to be used
  * @param <D>
@@ -118,7 +118,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     /**
      * Creates a new pivot index. The maximum number of pivots has been
      * arbitrarily hardcoded to 256.
-     * 
+     *
      * @param databaseDirectory
      *            Where all the databases will be stored.
      * @param pivots
@@ -137,6 +137,8 @@ public abstract class AbstractPivotIndex<O extends OB>
         if(! dbDir.mkdirs()){
             //throw new IOException("Directory already exists");
         }
+        assert pivots <= Byte.MAX_VALUE;
+        assert pivots >= Byte.MIN_VALUE;
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
@@ -150,7 +152,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     protected void createPivotsArray() {
         this.pivots = emptyPivotsArray();
     }
-    
+
     public O[] emptyPivotsArray(){
     	return (O[]) Array.newInstance(type, pivotsCount);
     }
@@ -158,7 +160,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     /**
      * Initialization of all the databases involved Subclasses should override
      * this method if they want to create new databases
-     * 
+     *
      * @throws DatabaseException
      */
     private final void initDB() throws DatabaseException {
@@ -169,7 +171,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         initPivots();
         initC();
     }
-    
+
     private void initB() throws DatabaseException{
         final boolean duplicates = dbConfig.getSortedDuplicates();
         dbConfig.setSortedDuplicates(false);
@@ -196,7 +198,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         return this;
     }
 
-  
+
 
     protected void initCache() throws DatabaseException {
     	if(cache == null){
@@ -211,7 +213,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Creates database A.
-     * 
+     *
      * @throws DatabaseException
      *             if something goes wrong
      */
@@ -224,7 +226,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Creates database Pivots.
-     * 
+     *
      * @throws Exception
      */
     private void initPivots() throws DatabaseException {
@@ -237,7 +239,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     /**
      * This method makes sure that all the databases are created with the same
      * settings. TODO: Need to tweak these values
-     * 
+     *
      * @throws DatabaseException
      *             Exception thrown by sleepycat
      */
@@ -258,7 +260,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         dbConfig.setSortedDuplicates(true);
         // dbConfig.setExclusiveCreate(true);
     }
-    
+
     public void stats() throws DatabaseException{
     	StatsConfig config = new StatsConfig();
     	config.setClear(true);
@@ -267,7 +269,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Utility method to insert data before freezing takes place.
-     * 
+     *
      * @param object
      *            The object to be inserted
      * @param id
@@ -296,14 +298,14 @@ public abstract class AbstractPivotIndex<O extends OB>
         if (isFrozen()) {
             insertA(object, id);
             return insertFrozen(object, id);
-        } else {            
+        } else {
             return insertUnFrozen(object, id);
         }
     }
 
     /**
      * Inserts in database A the given Object.
-     * 
+     *
      * @param object
      * @param id
      * @throws DatabaseException
@@ -315,7 +317,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Inserts the given object with the given Id in the database x
-     * 
+     *
      * @param object
      *            object to be inserted
      * @param id
@@ -336,9 +338,9 @@ public abstract class AbstractPivotIndex<O extends OB>
         IntegerBinding.intToEntry(id, keyEntry);
         insertInDatabase(out, keyEntry, x);
     }
-    
+
     /**
-     * Inserts the given OBJECT in B. 
+     * Inserts the given OBJECT in B.
      * @param id
      * @param object
      * @throws DatabaseException
@@ -367,7 +369,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     /**
      * Utility method to insert data in C after freezing. Must be implemented by
      * the subclasses It should not insert anything into A
-     * 
+     *
      * @param object
      *            The object to be inserted
      * @param id
@@ -389,7 +391,7 @@ public abstract class AbstractPivotIndex<O extends OB>
             throw new NotFrozenException();
         }
     }
-    
+
     /**
      * Pivot selectors who use the cache (access the objects of the DB)
      * should call this method before calling freeze.
@@ -403,8 +405,8 @@ public abstract class AbstractPivotIndex<O extends OB>
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild de index. After the method returns,
-     * searching is enabled. 
-     * 
+     * searching is enabled.
+     *
      * @param pivotSelector
      *            The pivot selector to be used
      * @throws IOException
@@ -420,7 +422,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         if (isFrozen()) {
             throw new AlreadyFrozenException();
         }
-        
+
         if(pivots == null){
         	throw new  UndefinedPivotsException();
         }
@@ -428,23 +430,23 @@ public abstract class AbstractPivotIndex<O extends OB>
         if (logger.isDebugEnabled()) {
             logger.debug("Storing pivot tuples from A to B");
         }
-        
-        // we have to create database B        
-       insertFromAtoB();
+
+        // we have to create database B
+        insertFromAtoB();
 
         calculateIndexParameters(); // this must be done by the subclasses
-       
+
         // we have to insert the objects already inserted in A into C
         logger.info("Copying data from B to C");
         insertFromBtoC();
-        // cache is initialized as from the point we set frozen = true 
+        // cache is initialized as from the point we set frozen = true
         // queries can be achieved
         initCache();
         // we could delete bDB from this point
-        
+
         this.frozen = true;
         // queries can be executed from this point
-        
+
         XStream xstream = new XStream();
         // TODO: make sure this "this" will print the subclass and not the
         // current class
@@ -452,12 +454,12 @@ public abstract class AbstractPivotIndex<O extends OB>
         FileWriter fout = new FileWriter(this.dbDir.getPath()
                 + getSerializedName());
         fout.write(xml);
-        fout.close();        
-        
-        
-        
+        fout.close();
+
+
+
     }
-    
+
     /**
      * Returns the current maximum id
      * @return
@@ -465,29 +467,29 @@ public abstract class AbstractPivotIndex<O extends OB>
     public int getMaxId(){
     	return this.maxId;
     }
-    
+
     /**
      * Must return "this"
      * Used to serialize the object
      */
     protected abstract Index returnSelf();
-    
+
     /**
      * Inserts all the values already inserted in A into B
-     * 
+     *
      */
     private void insertFromAtoB() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-        
+
         try {
             int i = 0;
 
             cursor = aDB.openCursor(null, null);
             O obj = this.instantiateObject();
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) 
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT)
                     == OperationStatus.SUCCESS) {
                 int id = IntegerBinding.entryToInt(foundKey);
                 assert i == id;
@@ -504,10 +506,10 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Inserts all the values already inserted in A into C
-     * 
+     *
      */
     protected abstract void insertFromBtoC() throws DatabaseException, OutOfRangeException;
-    
+
     /*private void insertFromBtoC() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
         Cursor cursor = null;
@@ -539,14 +541,14 @@ public abstract class AbstractPivotIndex<O extends OB>
      */
     protected abstract void calculateIndexParameters()
             throws DatabaseException, IllegalAccessException,
-            InstantiationException, OutOfRangeException;
+            InstantiationException, OutOfRangeException, OBException;
 
-    
+
 
     /**
      * Inserts the given tuple in the database B using the given id B database
      * will hold tuples of floats (they have been normalized)
-     * 
+     *
      * @param id
      *            the id to use for the insertion
      * @param tuple
@@ -568,11 +570,11 @@ public abstract class AbstractPivotIndex<O extends OB>
         this.insertInDatabase(out, keyEntry, bDB);
     }*/
 
-    
+
 
     /**
      * returns the given object from DB A
-     * 
+     *
      * @param id
      * @return the object
      */
@@ -589,7 +591,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Calculates the tuple vector for the given object
-     * 
+     *
      * @param obj
      *            object to be processed
      * @param tuple
@@ -607,7 +609,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Stores the given pivots
-     * 
+     *
      * @throws IllegalIdException
      *             If the pivot selector generates invalid ids
      */
@@ -617,7 +619,7 @@ public abstract class AbstractPivotIndex<O extends OB>
             logger.debug("Pivots selected " + Arrays.toString( ids));
         }
         createPivotsArray();
-        assert ids.length == pivots.length && pivots.length == this.pivotsCount;        
+        assert ids.length == pivots.length && pivots.length == this.pivotsCount;
         int i = 0;
         while (i < ids.length) {
             O obj = getObject(ids[i], aDB);
@@ -629,7 +631,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Loads the pivots from the database
-     * 
+     *
      * @throws NotFrozenException
      *             if the freeze method has not been invoqued.
      */
@@ -663,14 +665,14 @@ public abstract class AbstractPivotIndex<O extends OB>
     /**
      * Generates the name of the file to be used to store the serialized version
      * of this Index.
-     * 
+     *
      * @return
      */
     public abstract String getSerializedName();
 
     /**
      * Gets the object with the given id from the database.
-     * 
+     *
      * @param id
      *            The id to be extracted
      * @param DB
@@ -715,7 +717,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Returns the current amount of pivots
-     * 
+     *
      * @return
      */
     public byte getPivotsCount() {
@@ -724,7 +726,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     /**
      * Returns true if the database has been frozen
-     * 
+     *
      * @return true if the database has been frozen
      */
     public boolean isFrozen() {

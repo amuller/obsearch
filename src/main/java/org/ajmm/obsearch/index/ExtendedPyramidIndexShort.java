@@ -36,7 +36,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	/**
 	 * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
 	 * will be between 0 and Short.MAX_VALUE
-	 * 
+	 *
 	 * @param databaseDirectory
 	 * @param pivots
 	 * @throws DatabaseException
@@ -52,7 +52,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
 	 * will be defined by the user. We recommend the use of this constructor. We
 	 * believe it will give better resolution to the float transformation.
-	 * 
+	 *
 	 * @param databaseDirectory
 	 * @param pivots
 	 * @param minInput
@@ -75,14 +75,14 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	}
 
 	@Override
-	protected void updateMedianHolder(TupleInput in,
-			QuantileBin1D[] medianHolder) throws OutOfRangeException {
+	protected float[] extractTuple(TupleInput in) throws OutOfRangeException {
 		int i = 0;
-		assert medianHolder.length == pivotsCount;
-		while (i < medianHolder.length) {
-			medianHolder[i].add(normalize(in.readShort()));
+		float [] res = new float[pivotsCount];
+		while( i < pivotsCount){
+			res[i] = normalize(in.readShort());
 			i++;
 		}
+		return res;
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -111,7 +111,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 				if(nr < myr){
 					myr = nr;
 					// regenerate the query with a smaller range
-					generateRectangle(t, myr, q); 
+					generateRectangle(t, myr, q);
 				}
 			}
 			i++;
@@ -123,7 +123,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * positives Calculates the real distance and updates the result priority
 	 * queue It is left public so that junit can perform validations on it
 	 * Performance-wise this is one of the most important methods
-	 * 
+	 *
 	 * @param object
 	 * @param tuple
 	 * @param r
@@ -204,7 +204,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * Generates min and max for the given tuple It is actually the query. If
 	 * you want non-rectangular queries you have to override this method and
 	 * make sure your modification works well with searchOB
-	 * 
+	 *
 	 * @param t
 	 *            the tuple to be processed
 	 * @param r
@@ -269,7 +269,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	/**
 	 * Transforms the given tuple into an extended pyramid technique normalized
 	 * value that considers the "center" of the dimension
-	 * 
+	 *
 	 * @param tuple
 	 *            The original tuple in the default dimension
 	 * @param result
@@ -291,7 +291,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 	/**
 	 * Normalize the given value
-	 * 
+	 *
 	 * @param x
 	 * @return the normalized value
 	 */
@@ -314,7 +314,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 	/**
 	 * Inserts the given tuple and id into C
-	 * 
+	 *
 	 * @param t
 	 * @param id
 	 * @return
@@ -367,7 +367,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 	/**
 	 * Calculates the tuple vector for the given object
-	 * 
+	 *
 	 * @param obj
 	 *            object to be processed
 	 * @param tuple

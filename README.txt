@@ -34,3 +34,8 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
              -m "This branch will keep a clean implementation with generics. I think a generated set of classes designed to work directly with primitive types should be faster"  --username <you>
 
 30 min
+
+
+
+Grid library:
+http://dsd.lbl.gov/firefish/

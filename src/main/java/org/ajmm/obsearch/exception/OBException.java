@@ -17,16 +17,30 @@ package org.ajmm.obsearch.exception;
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-/** 
+/**
 	  OBException, the mother of all Exceptions.
-	  
-    @author      Arnoldo Jose Muller Molina    
+
+    @author      Arnoldo Jose Muller Molina
     @version     %I%, %G%
     @since       1.0
 */
 
 public class OBException extends Exception {
+	protected Exception ex;
+	public OBException (){
+		ex = null;
+	}
+	public OBException(Exception e){
+		this.ex = e;
+	}
 
+	public String toString(){
+		if(ex != null){
+			return ex.toString();
+		}else{
+			return "N/A";
+		}
+	}
 }

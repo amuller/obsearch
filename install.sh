@@ -24,3 +24,13 @@ mvn install:install-file -Dfile=./fmpp_0.9.12/lib/fmpp.jar -DgroupId=freemarker 
 rm -fdr fmpp_0.9.12
 rm fmpp_0.9.12.tar.gz
 
+
+# install weka
+
+wget http://prdownloads.sourceforge.net/weka/weka-3-5-6.zip
+unzip weka-3-5-6.zip
+mvn install:install-file -Dfile=./weka-3-5-6/weka.jar -DgroupId=weka -DartifactId=weka -Dversion=3.5.6 -Dpackaging=jar -DgeneratePom=true
+
+#cleanup
+rm -fdr weka-3-5-6
+
