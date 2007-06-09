@@ -91,6 +91,13 @@
     </dependency>
 
 		<dependency>
+      <groupId>weka</groupId>
+      <artifactId>weka</artifactId>
+      <version>3.5.6</version>
+      <scope>compile</scope>
+    </dependency>
+
+		<dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.13</version>
