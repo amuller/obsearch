@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import hep.aida.bin.QuantileBin1D;
@@ -38,6 +39,8 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 	protected byte od;
 
+	protected SpaceTree spaceTree;
+
 	/**
 	 * AbstractPPTree Constructs a P+Tree
 	 *
@@ -56,17 +59,18 @@ public abstract class AbstractPPTree<O extends OB> extends
 		this.od = od;
 	}
 
-
-
-	/**,attrs
-	 * Calculates the space-tree
+	/**
+	 * ,attrs Calculates the space-tree
 	 */
 	// TODO: We could override freeze and remove the creation of database B
 	// P+Tree needs B so maybe this is not so relevant.
-	// recursive is prettier... this method should be recursive.
+	// recursive is prettier... this method should be recursive. But iterative
+	// might
+	// be the only way of completing this heavy task in most computers.
 	@Override
 	protected void calculateIndexParameters() throws DatabaseException,
-			IllegalAccessException, InstantiationException, OutOfRangeException, OBException{
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
 		long count = super.bDB.count();
 		// each median for each dimension will be stored in this array
 
@@ -106,27 +110,29 @@ public abstract class AbstractPPTree<O extends OB> extends
 			// now we can start building the space tree, all the data is in
 			// memory
 			// TODO: Make weka use secondary storage.
-			//  Extend the class Instances and in the constructor
+			// Extend the class Instances and in the constructor
 			// create a new type of fastvector
 			// that uses secondary storage and some kind of cache.
 
-			int totalSpaces = (int)Math.pow(2, od);
+			int totalSpaces = (int) Math.pow(2, od);
 			Instances[] spaces = new Instances[totalSpaces];
 			Instances[] spacesTemp = new Instances[totalSpaces];
 			SpaceTree[] treeNodes = new SpaceTree[totalSpaces];
-			SpaceTreeNode node = new SpaceTreeNode(); // this will hold the space tree
+			SpaceTreeNode node = new SpaceTreeNode(); // this will hold the
+			// space tree
 			treeNodes[0] = node;
 			// contains the bouding values for each of the spaces
-			float [][][] minMaxes = new float [totalSpaces][pivotsCount][2];
+			float[][][] minMaxes = new float[totalSpaces][pivotsCount][2];
 			// this will hold the centers for each of the final subspaces
 			Instance[] cs = new Instance[totalSpaces];
 			initMinMaxes(minMaxes);
 			spaces[0] = data; // we will process space 0 first
-			for(int cdt = 0; cdt < od; cdt++){
-				for(int n = 0; n < Math.pow(2, cdt); n++){
+			data = null; // hope that we will save some space
+			for (int cdt = 0; cdt < od; cdt++) {
+				for (int n = 0; n < Math.pow(2, cdt); n++) {
 					Instances centers = null;
 					Instances spaceN = spaces[n];
-					try{
+					try {
 
 						// initialize clustering algorithm
 						SimpleKMeans c = new SimpleKMeans();
@@ -135,10 +141,10 @@ public abstract class AbstractPPTree<O extends OB> extends
 						// execute the clustering algorithm
 						c.buildClusterer(spaceN);
 						// get the centers of the clusters
-						centers  = c.getClusterCentroids();
+						centers = c.getClusterCentroids();
 						assert centers.numInstances() == 2;
 
-					}catch(Exception e){
+					} catch (Exception e) {
 						// wrap weka's Exception so that we don't have to use
 						// Exception in our throws clause
 						throw new OBException(e);
@@ -148,13 +154,15 @@ public abstract class AbstractPPTree<O extends OB> extends
 					Instance CL = centers.instance(0);
 					Instance CR = centers.instance(1);
 					byte DD = dividingDimension(CL, CR);
-					float DV = (float)(CR.value(DD) + CL.value(DD)) / 2;
+					float DV = (float) (CR.value(DD) + CL.value(DD)) / 2;
 
 					// Create "children" spaces
 					int SNoSL = 2 * n;
 					int SNoSR = 2 * n + 1;
-					Instances SL = new Instances("" + SNoSL, attrs, this.databaseSize());
-					Instances SR = new Instances("" + SNoSR, attrs, this.databaseSize());
+					Instances SL = new Instances("" + SNoSL, attrs, this
+							.databaseSize());
+					Instances SR = new Instances("" + SNoSR, attrs, this
+							.databaseSize());
 					// update space boundaries
 					minMaxes[SNoSL][DD][MAX] = DV;
 					minMaxes[SNoSR][DD][MIN] = DV;
@@ -163,36 +171,39 @@ public abstract class AbstractPPTree<O extends OB> extends
 					spacesTemp[SNoSL] = SL;
 					spacesTemp[SNoSR] = SR;
 					// insert a nonleaf node
-					assert ! treeNodes[n].isLeafNode();
+					assert !treeNodes[n].isLeafNode();
 					SpaceTreeNode ntemp = (SpaceTreeNode) treeNodes[n];
 					SpaceTree leftNode = null;
 					SpaceTree rightNode = null;
-					if(cdt < (od - 1)){ // if we are before the last iteration (that is before adding the leaves)
-						leftNode  = new SpaceTreeNode();
+					if (cdt < (od - 1)) { // if we are before the last
+						// iteration (that is before adding
+						// the leaves)
+						leftNode = new SpaceTreeNode();
 						rightNode = new SpaceTreeNode();
-					}else{
-						leftNode  = new SpaceTreeLeaf();
+					} else {
+						leftNode = new SpaceTreeLeaf();
 						rightNode = new SpaceTreeLeaf();
 						// this is the last iteration...
 						// we have to store the cluster centers
+						cs[SNoSL] = CL;
+						cs[SNoSR] = CR;
 					}
 					ntemp.setDD(DD);
 					ntemp.setDV(DV);
 					ntemp.setLeft(leftNode);
 					ntemp.setRight(rightNode);
-					treeNodes[ SNoSL] = leftNode;
-					treeNodes[ SNoSR] = rightNode;
+					treeNodes[SNoSL] = leftNode;
+					treeNodes[SNoSR] = rightNode;
 
 				} // after cdt is updated SD8 in the paper
 
 				// copy the data in spacesTemp to spaces
-				for(int n = 0; n < Math.pow(2, cdt); n++){
-					if(spacesTemp[n] != null){
+				for (int n = 0; n < Math.pow(2, cdt); n++) {
+					if (spacesTemp[n] != null) {
 						spaces[n] = spacesTemp[n];
 						spacesTemp[n] = null;
 					}
 				}
-
 
 			}
 			// treeNodes should now all be leaves.
@@ -200,26 +211,149 @@ public abstract class AbstractPPTree<O extends OB> extends
 			// ith space
 			// we have to calculate the centers for each space
 			// and we have to calculate a[d] b[d] e[d]
-			for(int n = 0; n < Math.pow(2, od); n++){
-
+			for (int n = 0; n < totalSpaces; n++) {
+				assert treeNodes[n] instanceof SpaceTreeLeaf;
+				calculateLeaf((SpaceTreeLeaf) treeNodes[n], minMaxes[n], cs[n]);
 			}
-
+			// save the space tree
+			spaceTree = node;
 		} finally {
 			cursor.close();
 		}
+
 		logger.debug("Space Tree calculated");
 	}
 
 	/**
+	 * Calculates the parameters for the leaf based on minMax, and the center
+	 *
+	 * @param x
+	 * @param minMax
+	 * @param center
+	 */
+	protected void calculateLeaf(SpaceTreeLeaf x, float[][] minMax,
+			Instance center) {
+		int i = 0;
+		assert pivotsCount == minMax.length;
+		float[] a = new float[pivotsCount];
+		float[] b = new float[pivotsCount];
+		float[] e = new float[pivotsCount];
+		while (i < pivotsCount) {
+			a[i] = 1 / (minMax[i][MAX] - minMax[i][MIN]);
+			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
+			e[i] = (float) -(1 / (Math.log(a[i] * (float) center.value(i)
+					- b[i]) / Math.log(2)));
+		}
+		x.setA(a);
+		x.setB(b);
+		x.setA(e);
+	}
+
+	/**
+	 * A recursive version of the space division algorithm It will use much more
+	 * memory
+	 *
+	 * @param node
+	 *            Current node of the tree to be processed
+	 * @param currentLevel
+	 *            Current depth
+	 * @param minMax
+	 * @param data
+	 * @param SNo
+	 */
+	protected void spaceDivision(SpaceTree node, int currentLevel,
+			float[][] minMax, Instances data, int[] SNo, Random ran,
+			FastVector attrs, Instance center) throws OBException {
+		try {
+			if (currentLevel < od) { // nonleaf node processing
+			// initialize clustering algorithm
+			SimpleKMeans c = new SimpleKMeans();
+			c.setNumClusters(2);
+			c.setSeed(ran.nextInt());
+			// execute the clustering algorithm
+			c.buildClusterer(data);
+			// get the centers of the clusters
+			Instances centers = c.getClusterCentroids();
+			assert centers.numInstances() == 2;
+
+			Instance CL = centers.instance(0);
+			Instance CR = centers.instance(1);
+			byte DD = dividingDimension(CL, CR);
+			float DV = (float) (CR.value(DD) + CL.value(DD)) / 2;
+
+			// Create "children" spaces
+			Instances SL = new Instances("left", attrs, this.databaseSize());
+			Instances SR = new Instances("right", attrs, this.databaseSize());
+			// update space boundaries
+			float[][] minMaxLeft = cloneMinMax(minMax);
+			float[][] minMaxRight = cloneMinMax(minMax);
+			minMaxLeft[DD][MAX] = DV;
+			minMaxRight[DD][MIN] = DV;
+			// Divide the elements of the original space
+			divideSpace(data, SL, SR, DD, DV);
+
+			SpaceTree leftNode = null;
+			SpaceTree rightNode = null;
+
+				SpaceTreeNode ntemp = new SpaceTreeNode();
+				if (currentLevel < (od - 1)) { // if we are before the last
+					// iteration (that is before adding
+					// the leaves)
+					leftNode = new SpaceTreeNode();
+					rightNode = new SpaceTreeNode();
+				} else {
+					leftNode = new SpaceTreeLeaf();
+					rightNode = new SpaceTreeLeaf();
+				}
+				ntemp.setDD(DD);
+				ntemp.setDV(DV);
+				ntemp.setLeft(leftNode);
+				ntemp.setRight(rightNode);
+				if (currentLevel < (od - 1)) {
+					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL, SNo, ran, attrs, null);
+					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, null);
+				}else{
+					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL, SNo, ran, attrs, CL);
+					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, CR);
+				}
+			} else { // leaf node processing
+				assert node instanceof SpaceTreeLeaf;
+				SpaceTreeLeaf n  = (SpaceTreeLeaf)node;
+				calculateLeaf(n, minMax, center);
+				// increment the index
+				n.setSNo(SNo[0]);
+				SNo[0] = SNo[0] + 1;
+			}
+
+		} catch (Exception e) {
+			// wrap weka's Exception so that we don't have to use
+			// Exception in our throws clause
+			throw new OBException(e);
+		}
+	}
+
+	private float[][] cloneMinMax(float[][] minMax) {
+		float[][] res = new float[pivotsCount][2];
+		int i = 0;
+		while (i < minMax.length) {
+			res[i][MIN] = minMax[i][MIN];
+			res[i][MAX] = minMax[i][MAX];
+			i++;
+		}
+		return res;
+	}
+
+	/**
 	 * Initializes minMax bouding values
+	 *
 	 * @param data
 	 */
-	private void initMinMaxes(float[][][] data){
+	private void initMinMaxes(float[][][] data) {
 		int i = 0;
-		while(i < data.length){
+		while (i < data.length) {
 			int cx = 0;
 			assert data[i].length == pivotsCount;
-			while(cx < data[i].length){
+			while (cx < data[i].length) {
 				data[i][cx][MIN] = 0;
 				data[i][cx][MAX] = 1;
 				cx++;
@@ -227,22 +361,27 @@ public abstract class AbstractPPTree<O extends OB> extends
 			i++;
 		}
 	}
+
 	/**
-	 * Divides original space. For each v that belongs to "original" if v_DD < DV then
-	 * v belongs to "left". Otherwise v belongs to "right"
+	 * Divides original space. For each v that belongs to "original" if v_DD <
+	 * DV then v belongs to "left". Otherwise v belongs to "right"
+	 *
 	 * @param original
-	 * @param left (output argument)
-	 * @param right (output argument)
+	 * @param left
+	 *            (output argument)
+	 * @param right
+	 *            (output argument)
 	 * @param DD
 	 * @param DV
 	 */
-	protected void divideSpace(Instances original, Instances left, Instances right, int DD, double DV){
+	protected void divideSpace(Instances original, Instances left,
+			Instances right, int DD, double DV) {
 		int i = 0;
-		while(i < original.numInstances()){
+		while (i < original.numInstances()) {
 			Instance j = original.instance(i);
-			if(j.value(DD) < DV){
+			if (j.value(DD) < DV) {
 				left.add(j);
-			}else{
+			} else {
 				right.add(j);
 			}
 			i++;
@@ -253,37 +392,40 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 	/**
 	 * Calculate the dividing dimension for cl and cr
+	 *
 	 * @param cl
 	 * @param cr
 	 * @return the dimension that has the biggest gap between cl and cr
 	 */
-	public byte dividingDimension(Instance cl, Instance cr){
+	public byte dividingDimension(Instance cl, Instance cr) {
 		int res = 0;
-		int i  = 0;
+		int i = 0;
 		double max = Double.MIN_VALUE;
-		while(i < pivotsCount ){
+		while (i < pivotsCount) {
 			double current = Math.abs(cl.value(i) - cr.value(i));
-			if(current > max){
-				max  = current;
+			if (current > max) {
+				max = current;
 				res = i;
 			}
 			i++;
 		}
-		return (byte)res;
+		return (byte) res;
 	}
 
 	/**
 	 * Generates a weka instance object from the given inputtuple
 	 *
-	 * @param in tuple with the input values
-	 * @param attrs attribute definitions
+	 * @param in
+	 *            tuple with the input values
+	 * @param attrs
+	 *            attribute definitions
 	 * @return an instance generated from the given tuple
 	 */
-	protected Instance createInstance(TupleInput in) throws OutOfRangeException{
+	protected Instance createInstance(TupleInput in) throws OutOfRangeException {
 		float[] tuple = extractTuple(in);
 		int i = 0;
 		Instance res = new Instance(pivotsCount);
-		while(i < pivotsCount){
+		while (i < pivotsCount) {
 			res.setValue(i, tuple[i]);
 			i++;
 		}
