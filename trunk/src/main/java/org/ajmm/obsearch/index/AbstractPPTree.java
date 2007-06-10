@@ -67,8 +67,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	// recursive is prettier... this method should be recursive. But iterative
 	// might
 	// be the only way of completing this heavy task in most computers.
-	@Override
-	protected void calculateIndexParameters() throws DatabaseException,
+	/*protected void calculateIndexParameters() throws DatabaseException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		long count = super.bDB.count();
@@ -223,6 +222,79 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 		logger.debug("Space Tree calculated");
 	}
+*/
+
+//	 TODO: We could override freeze and remove the creation of database B
+	// P+Tree needs B so maybe this is not so relevant.
+	// recursive is prettier... this method should be recursive. But iterative
+	// might
+	// be the only way of completing this heavy task in most computers.
+	@Override
+	protected void calculateIndexParameters() throws DatabaseException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+
+		long count = super.bDB.count();
+		// each median for each dimension will be stored in this array
+
+		Cursor cursor = null;
+		DatabaseEntry foundKey = new DatabaseEntry();
+		DatabaseEntry foundData = new DatabaseEntry();
+		FastVector attrs = new FastVector(pivotsCount);
+		// create the attributes that weka will use to do clustering
+		// one attribute per each of the pivotsCount dimensions
+		logger.info("Calculating Space Tree");
+		int i = 0;
+		while (i < pivotsCount) {
+			Attribute x = new Attribute("p" + i); // numeric attribute
+			attrs.addElement(x);
+			i++;
+		}
+
+
+		// hope that memory will be enough, we have to re-implement instances
+		Instances data = new Instances("0", attrs, this.databaseSize());
+		Random ran = new Random();
+		try {
+			i = 0;
+			cursor = bDB.openCursor(null, null);
+			while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+				assert i == IntegerBinding.entryToInt(foundKey);
+				if(logger.isDebugEnabled()){
+					if(i % 10000 == 0){
+						logger.debug("Adding to weka: " + i);
+					}
+				}
+				TupleInput in = new TupleInput(foundData.getData());
+				Instance ins = createInstance(in);
+				data.add(ins);
+				i++;
+			}
+			// pivot count and read # of pivots
+			// should be the same
+			logger.debug("Finished adding data to weka");
+			assert i == count;
+			// compact the original data just in case
+			data.compactify();
+			SpaceTreeNode node = new SpaceTreeNode(); // this will hold the
+			// now we just have to create the space tree
+			float[][] minMax = new float[pivotsCount][2];
+			initMinMax(minMax);
+			int[] SNo = new int[1]; // this is a pointer
+			// divide the space
+			spaceDivision(node, 0, minMax, data, SNo, ran, attrs, null);
+			// now the space-tree has been built.
+			// save the space tree
+			this.spaceTree = node;
+		} finally {
+			cursor.close();
+		}
+
+		logger.debug("Space Tree calculated");
+
+	}
+
+
 
 	/**
 	 * Calculates the parameters for the leaf based on minMax, and the center
@@ -243,11 +315,32 @@ public abstract class AbstractPPTree<O extends OB> extends
 			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
 			e[i] = (float) -(1 / (Math.log(a[i] * (float) center.value(i)
 					- b[i]) / Math.log(2)));
+			i++;
 		}
 		x.setA(a);
 		x.setB(b);
-		x.setA(e);
+		x.setE(e);
 	}
+
+	/**
+	 * Converts a tuple that has been normalized from 1 to 0 into
+	 * one value that is n  * 2 * d pv(norm(tuple))
+	 * where: n is the space where the tuple is
+	 *             d is the # of pivots of this index
+	 *             pv is the pyramid value for a tuple
+	 *             norm() is the normalization applied in the given space
+	 * @param tuple
+	 * @return the P+Tree value
+	 */
+	protected float ppvalue(final float[] tuple){
+
+		SpaceTreeLeaf n = (SpaceTreeLeaf)this.spaceTree.search(tuple);
+		float[] result = new float[pivotsCount];
+		n.normalize(tuple, result);
+		return n.getSNo() * 2 * pivotsCount + super.pyramidValue(result);
+	}
+
+
 
 	/**
 	 * A recursive version of the space division algorithm It will use much more
@@ -264,6 +357,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 	protected void spaceDivision(SpaceTree node, int currentLevel,
 			float[][] minMax, Instances data, int[] SNo, Random ran,
 			FastVector attrs, Instance center) throws OBException {
+		if(logger.isDebugEnabled()){
+			logger.debug("Dividing space, level:" + currentLevel);
+		}
 		try {
 			if (currentLevel < od) { // nonleaf node processing
 			// initialize clustering algorithm
@@ -274,7 +370,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 			c.buildClusterer(data);
 			// get the centers of the clusters
 			Instances centers = c.getClusterCentroids();
-			assert centers.numInstances() == 2;
+			assert centers.numInstances() == 2 : "Centers found: "  + centers.numInstances();
 
 			Instance CL = centers.instance(0);
 			Instance CR = centers.instance(1);
@@ -295,7 +391,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 			SpaceTree leftNode = null;
 			SpaceTree rightNode = null;
 
-				SpaceTreeNode ntemp = new SpaceTreeNode();
+				SpaceTreeNode ntemp = (SpaceTreeNode)node;
 				if (currentLevel < (od - 1)) { // if we are before the last
 					// iteration (that is before adding
 					// the leaves)
@@ -317,12 +413,16 @@ public abstract class AbstractPPTree<O extends OB> extends
 					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, CR);
 				}
 			} else { // leaf node processing
+				if(logger.isDebugEnabled()){
+					logger.debug("Found Space:" + SNo[0]);
+				}
 				assert node instanceof SpaceTreeLeaf;
 				SpaceTreeLeaf n  = (SpaceTreeLeaf)node;
 				calculateLeaf(n, minMax, center);
 				// increment the index
 				n.setSNo(SNo[0]);
 				SNo[0] = SNo[0] + 1;
+				n.setMinMax(minMax);
 			}
 
 		} catch (Exception e) {
@@ -348,18 +448,14 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 *
 	 * @param data
 	 */
-	private void initMinMaxes(float[][][] data) {
-		int i = 0;
-		while (i < data.length) {
+	private void initMinMax(float[][] data) {
 			int cx = 0;
-			assert data[i].length == pivotsCount;
-			while (cx < data[i].length) {
-				data[i][cx][MIN] = 0;
-				data[i][cx][MAX] = 1;
+			assert data.length == pivotsCount;
+			while (cx < data.length) {
+				data[cx][MIN] = 0;
+				data[cx][MAX] = 1;
 				cx++;
 			}
-			i++;
-		}
 	}
 
 	/**
@@ -432,25 +528,5 @@ public abstract class AbstractPPTree<O extends OB> extends
 		return res;
 	}
 
-	@Override
-	protected void insertFromBtoC() throws DatabaseException,
-			OutOfRangeException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected byte insertFrozen(OB object, int id) throws IllegalIdException,
-			OBException, DatabaseException, OBException,
-			IllegalAccessException, InstantiationException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	protected void insertInB(int id, OB object) throws OBException,
-			DatabaseException {
-		// TODO Auto-generated method stub
-
-	}
 
 }
