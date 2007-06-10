@@ -22,8 +22,8 @@
 	<properties>
 		<!-- additional unit test files to be downloaded -->
 
-		<my.test.data.db>slices</my.test.data.db>
-		<my.test.data.query>slices-query</my.test.data.query>
+		<my.test.data.db>slices-small</my.test.data.db>
+		<my.test.data.query>slices-query-small</my.test.data.query>
 
 		<!-- texen templates configuration -->
 		<my.templates.texen>/texen/</my.templates.texen>
@@ -297,7 +297,7 @@ Would be cool to use this.
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-ea -Xmx3000M</argLine>
+          <argLine>-ea -Xmx1400M</argLine>
         </configuration>
       </plugin>
 

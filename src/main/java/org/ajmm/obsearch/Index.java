@@ -38,23 +38,23 @@ import com.sleepycat.je.DatabaseException;
  * extended pyramid technique values and p+tree clustering detection. An index
  * can be frozen only once. Please make sure you add a bunch of data into it
  * before freezing it. Note that after freezing it, you can continue adding
- * data. :) 
+ * data. :)
  * In the future we will offer a "rebuild" method that optimizes the database
  * in background. This is not yet a priority
- * 
+ *
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 0.0
  */
 public interface Index<O extends OB> {
-   
+
     // TODO: Remove all the *newInstance() methods as they use reflection and this is very slow
-    //             
-    
+    //
+
     /**
      * Inserts the given object into the index with the given ID If the given ID
      * already exists, the exception IllegalIDException is thrown.
-     * 
+     *
      * @param object
      *            The object to be added
      * @param id
@@ -75,7 +75,7 @@ public interface Index<O extends OB> {
 
     /**
      * Returns true if the index is frozen.
-     * 
+     *
      * @return true if the index is frozen, false otherwise
      */
     boolean isFrozen();
@@ -84,7 +84,7 @@ public interface Index<O extends OB> {
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild de index
-     * 
+     *
      * @param pivotSelector
      *            The pivot selector to be used
      * @throws IOException
@@ -100,7 +100,7 @@ public interface Index<O extends OB> {
 
     /**
      * Deletes the given object form the database.
-     * 
+     *
      * @param object
      *            The object to be deleted
      * @return 0 if the object was not found in the database or 1 if it
@@ -112,4 +112,6 @@ public interface Index<O extends OB> {
      */
     public byte delete(O object) throws NotFrozenException, DatabaseException;
 
+    public O getObject(int i)throws DatabaseException, IllegalIdException,
+    IllegalAccessException, InstantiationException;
 }

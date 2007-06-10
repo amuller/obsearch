@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index.pptree;
 
+import java.util.List;
+
 public class SpaceTreeNode implements SpaceTree {
 
 	private int DD;
@@ -45,5 +47,36 @@ public class SpaceTreeNode implements SpaceTree {
 	public void setRight(SpaceTree right) {
 		this.right = right;
 	}
+
+	public  SpaceTreeLeaf search(float[] value){
+		if(value[DD] < DV){
+			return left.search(value);
+		}else{
+			return right.search(value);
+		}
+	}
+
+	/**
+	 * Takes a query rectangle and returns all the spaces that
+	 * intersect with it.
+	 * @param query the query to be searched
+	 * @param result will hold all the spaces that intersect with the query
+	 */
+	public void searchRange(float[][] query, List<SpaceTreeLeaf> result){
+		// if the maximum value of the query in the given dimension is lower
+		// than the split value, then we can safely ignore the other branches
+		if(query[DD][MAX] < DV){
+			left.searchRange(query, result);
+		}else if (query[DD][MIN] > DV){
+			right.searchRange(query, result);
+		}else{
+			// our query has values that belong to both branches...
+			// nothing we can do here, we have to explore everything.
+			left.searchRange(query, result);
+			right.searchRange(query, result);
+		}
+	}
+
+
 
 }
