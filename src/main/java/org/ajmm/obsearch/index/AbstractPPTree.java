@@ -304,26 +304,38 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param center
 	 */
 	protected void calculateLeaf(SpaceTreeLeaf x, float[][] minMax,
-			Instance center) {
+			float[] center) {
 		int i = 0;
 		assert pivotsCount == minMax.length;
 		float[] a = new float[pivotsCount];
 		float[] b = new float[pivotsCount];
 		float[] e = new float[pivotsCount];
 		while (i < pivotsCount) {
+			assert minMax[i][MIN] <= center[i] && center[i] <= minMax[i][MAX] :
+					"MIN: " + minMax[i][MIN] + " CENTER: " + center[i] + " MAX: " + minMax[i][MAX]  ;
+			// divisors != 0
+			assert minMax[i][MAX] - minMax[i][MIN] != 0;
+			assert Math.log(a[i] * center[i]
+			          					- b[i]) / Math.log(2) != 0;
+
 			a[i] = 1 / (minMax[i][MAX] - minMax[i][MIN]);
 			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
-			e[i] = (float) -(1 / (Math.log(a[i] * (float) center.value(i)
+			e[i] = (float) -(1 / (Math.log(a[i] * center[i]
 					- b[i]) / Math.log(2)));
+
+			assert center[i] >= 0 && center[i] <= 1;
+			assert minMax[i][MIN] >= 0 && minMax[i][MAX] <=1;
+			assert minMax[i][MIN] <= center[i] && center[i] <= minMax[i][MAX] : " Center: " + center[i] + " min: " + minMax[i][MIN] + " max: " +  minMax[i][MAX] ;
 			i++;
 		}
 		x.setA(a);
 		x.setB(b);
 		x.setE(e);
+		x.setMinMax(minMax);
 	}
 
 	/**
-	 * Converts a tuple that has been normalized from 1 to 0 into
+	 * Converts a tuple that has been normalized from 1 to 0 (fist pass) into
 	 * one value that is n  * 2 * d pv(norm(tuple))
 	 * where: n is the space where the tuple is
 	 *             d is the # of pivots of this index
@@ -356,7 +368,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 */
 	protected void spaceDivision(SpaceTree node, int currentLevel,
 			float[][] minMax, Instances data, int[] SNo, Random ran,
-			FastVector attrs, Instance center) throws OBException {
+			FastVector attrs, float[] center) throws OBException {
 		if(logger.isDebugEnabled()){
 			logger.debug("Dividing space, level:" + currentLevel);
 		}
@@ -409,8 +421,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL, SNo, ran, attrs, null);
 					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, null);
 				}else{
-					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL, SNo, ran, attrs, CL);
-					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, CR);
+
+					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL, SNo, ran, attrs, calculateCenter(SL));
+					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR, SNo, ran, attrs, calculateCenter(SR));
 				}
 			} else { // leaf node processing
 				if(logger.isDebugEnabled()){
@@ -422,14 +435,71 @@ public abstract class AbstractPPTree<O extends OB> extends
 				// increment the index
 				n.setSNo(SNo[0]);
 				SNo[0] = SNo[0] + 1;
-				n.setMinMax(minMax);
+				assert n.pointInside(center): " center: " + Arrays.toString(center) + " minmax: " + Arrays.deepToString(minMax);
+				assert verifyData(data,n);
 			}
 
 		} catch (Exception e) {
 			// wrap weka's Exception so that we don't have to use
 			// Exception in our throws clause
+			if(logger.isDebugEnabled()){
+				e.printStackTrace();
+			}
 			throw new OBException(e);
 		}
+	}
+
+	/**
+	 * Verifies that all the data that is going to be inserted in this leaf
+	 * belongs to the given leaf
+	 * @param instances
+	 * @param n
+	 */
+	protected boolean verifyData(Instances instances, SpaceTreeLeaf n){
+		int i = 0;
+		boolean res = true;
+		while(i < instances.numInstances() && res){
+			res = n.pointInside(this.convertDoubleToFloat(instances.instance(i).toDoubleArray()));
+			i++;
+		}
+		return res;
+	}
+
+	/**
+	 * Calculates the center of the given data based
+	 * on medians (just like the extended pyramid technique)
+	 * @param data
+	 * @return the center of the given data
+	 */
+	protected float [] calculateCenter(Instances data){
+		  QuantileBin1D[] medianHolder = createMedianHolders(data.numInstances());
+		  int i = 0;
+		  while(i < data.numInstances()){
+			  Instance in = data.instance(i);
+			  super.updateMedianHolder(convertDoubleToFloat(in.toDoubleArray()), medianHolder);
+			  i++;
+		  }
+		  // now we just have to get the medians
+		 //int
+		 i = 0;
+		  float[] res = new float[pivotsCount];
+		  while(i < pivotsCount){
+			  res[i] = (float)medianHolder[i].median();
+			  i++;
+		  }
+		  return res;
+	}
+
+
+
+	private static float[] convertDoubleToFloat(double[] arr){
+		float[] res = new float[arr.length];
+		int i = 0;
+		while(i < arr.length){
+			res[i] = (float) arr[i];
+			i++;
+		}
+		return res;
 	}
 
 	private float[][] cloneMinMax(float[][] minMax) {

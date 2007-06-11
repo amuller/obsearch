@@ -5,9 +5,18 @@
 
 	</target>
 
+	<target name="testDataPrepareInit">
+		<property name="my.test.data.url" value="http://obsearch.googlecode.com/files/"/>		
+		<condition property="testDataReady">
+    <and>
+      <available file="${out}/${my.test.data.db}"/>
+      <available file="${out}/${my.test.data.query}"/>
+    </and>
+  </condition>
+	</target>
 	
-	<target name="testDataPrepare">
-		<property name="my.test.data.url" value="http://obsearch.googlecode.com/files/"/>
+	<target name="testDataPrepare" depends="testDataPrepareInit" unless="testDataReady">
+		
 		<!-- remove -small to get a bigger dataset -->
 		<mkdir dir="${out}"/>
 		<get src="${my.test.data.url}${my.test.data.db}.bz2" dest="${out}/${my.test.data.db}.bz2" usetimestamp="true" />
