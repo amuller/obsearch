@@ -14,6 +14,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.TUtils;
+import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.testutils.OBSlice;
@@ -41,6 +42,9 @@ public class IndexSmokeTUtil {
     protected void tIndex(IndexShort<OBSlice> index) throws Exception {
 
         try {
+
+        	int querySize = 500; // amount of elements to read from the query
+
             File query = new File(testProperties
                     .getProperty("test.query.input"));
             File db = new File(testProperties.getProperty("test.db.input"));
@@ -71,7 +75,8 @@ public class IndexSmokeTUtil {
 
             // select the pivots
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
-            RandomPivotSelector ps = new RandomPivotSelector();
+            //RandomPivotSelector ps = new RandomPivotSelector();
+            DummyPivotSelector ps = new DummyPivotSelector();
             ps.generatePivots((AbstractPivotIndex)index);
             // the pyramid values are created
             logger.info("freezing");
@@ -106,7 +111,7 @@ public class IndexSmokeTUtil {
                     	i++;
                 	}
                 }
-                if(i == 1642){
+                if(i == querySize){
                     logger.warn("Finishing test at i : " + i);
                     break;
                 }
@@ -136,7 +141,7 @@ public class IndexSmokeTUtil {
                     	i++;
                 	}
                 }
-                if(i == 1642){
+                if(i == querySize){
                     logger.warn("Finishing test at i : " + i);
                     break;
                 }

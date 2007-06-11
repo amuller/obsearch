@@ -126,7 +126,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			i++;
 		}
 		// put the query relative to the center
-		//normalizeQuery(q);
+		// normalizeQuery(q);
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -164,21 +164,21 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			int i = 0;
 			// update the current rectangle, we also have to center it
 			space.generateRectangle(qrect, q);
-			normalizeQuery(q);
+			normalizeQuery(q); // center the rectangle
 			while (i < pyramidCount) {
 				if (intersect(q, i, lowHighResult)) {
-					int ri = space.getSNo() * 2 * pivotsCount + i; // real index
+					int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
+																	// index
 					searchBTreeAndUpdate(object, t, myr, ri
 							+ lowHighResult[HLOW], ri + lowHighResult[HHIGH],
 							result);
 
-					/*short nr = result.updateRange(myr);
-					if (nr < myr) {
-						myr = nr;
-						// regenerate the query with a smaller range
-						generateRectangleFirstPass(t, myr, qrect);
-						space.generateRectangle(qrect, q);
-					}*/
+					/*
+					 * short nr = result.updateRange(myr); if (nr < myr) { myr =
+					 * nr; // regenerate the query with a smaller range
+					 * generateRectangleFirstPass(t, myr, qrect);
+					 * space.generateRectangle(qrect, q); }
+					 */
 				}
 				i++;
 			}
@@ -238,7 +238,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 							max = t;
 							if (t > r) {
 								break; // finish this loop this slice won't be
-										// matched
+								// matched
 								// after all!
 							}
 						}
@@ -249,7 +249,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						int id = in.readInt();
 						O toCompare = super.getObject(id);
 						realDistance = object.distance(toCompare);
-						if(realDistance <= r){
+						if (realDistance <= r) {
 							result.add(id, toCompare, realDistance);
 						}
 					}

@@ -29,6 +29,12 @@ package org.ajmm.obsearch.exception;
 
 public class OBException extends Exception {
 	protected Exception ex;
+	// sing it!
+	protected String str;
+
+	public OBException(String msg){
+		this.str = msg;
+	}
 	public OBException (){
 		ex = null;
 	}
@@ -39,8 +45,11 @@ public class OBException extends Exception {
 	public String toString(){
 		if(ex != null){
 			return ex.toString();
+		}
+		else if(ex != null){
+			return str;
 		}else{
-			return "N/A";
+			return "N/A, Sing this Corrosion!";
 		}
 	}
 }

@@ -82,6 +82,8 @@ public class SpaceTreeLeaf implements SpaceTree {
 		int i = 0;
 		while (i < value.length) {
 			result[i] = normalizeAux(value[i], i);
+			assert result[i] >= 0;
+			assert result[i] <= 1;
 			i++;
 		}
 	}
@@ -101,9 +103,9 @@ public class SpaceTreeLeaf implements SpaceTree {
 	 */
 	public void searchRange(float[][] query, List<SpaceTreeLeaf> result) {
 		assert intersects(query); // this has to be true
-		if (intersects(query)) {
-			result.add(this);
-		}
+		//if (intersects(query)) {
+		result.add(this);
+		//}
 	}
 
 	/**
@@ -174,13 +176,14 @@ public class SpaceTreeLeaf implements SpaceTree {
 	public void generateRectangle(float[][] firstPassQuery, float[][] result) {
 		int i = 0;
 		while (i < firstPassQuery.length) {
-			// borrowed from Zhang's P+Tree code
+			// borrowed from Zhang's code
 			float one = a[i] * firstPassQuery[i][MIN] - b[i];
 			if (one <= 0) {
 				result[i][MIN] = 0;
 			} else {
 				result[i][MIN] = (float) Math.pow(one, e[i]);
 			}
+
 			result[i][MAX] = normalizeAux(firstPassQuery[i][MAX], i);
 			if (result[i][MAX] > 1) {
 				result[i][MAX] = 1;
