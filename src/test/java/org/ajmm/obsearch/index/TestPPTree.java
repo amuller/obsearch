@@ -20,7 +20,7 @@ public class TestPPTree extends TestCase{
 	public void testPPTree() throws Exception{
     	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(
-                dbFolder, (byte) 15, (byte) 6, (short)0, (short) 10000);
+                dbFolder, (byte) 15, (byte) 2, (short)0, (short) 10000);
 
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
     	t.tIndex(index);

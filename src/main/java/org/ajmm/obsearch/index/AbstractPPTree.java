@@ -9,6 +9,7 @@ import hep.aida.bin.QuantileBin1D;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.exception.ClusteringFailedException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
@@ -311,12 +312,12 @@ public abstract class AbstractPPTree<O extends OB> extends
 		float[] b = new float[pivotsCount];
 		float[] e = new float[pivotsCount];
 		while (i < pivotsCount) {
-			assert minMax[i][MIN] <= center[i] && center[i] <= minMax[i][MAX] :
+			assert minMax[i][MIN] < center[i] && center[i] < minMax[i][MAX] :
 					"MIN: " + minMax[i][MIN] + " CENTER: " + center[i] + " MAX: " + minMax[i][MAX]  ;
 			// divisors != 0
-			assert minMax[i][MAX] - minMax[i][MIN] != 0;
-			assert Math.log(a[i] * center[i]
-			          					- b[i]) / Math.log(2) != 0;
+			assert (minMax[i][MAX] - minMax[i][MIN]) != 0;
+			assert (Math.log(a[i] * center[i]
+			          					- b[i]) / Math.log(2)) != 0;
 
 			a[i] = 1 / (minMax[i][MAX] - minMax[i][MIN]);
 			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
@@ -372,6 +373,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 		if(logger.isDebugEnabled()){
 			logger.debug("Dividing space, level:" + currentLevel);
 		}
+
 		try {
 			if (currentLevel < od) { // nonleaf node processing
 			// initialize clustering algorithm
@@ -382,7 +384,24 @@ public abstract class AbstractPPTree<O extends OB> extends
 			c.buildClusterer(data);
 			// get the centers of the clusters
 			Instances centers = c.getClusterCentroids();
-			assert centers.numInstances() == 2 : "Centers found: "  + centers.numInstances();
+			// TODO: develop a way of handling the case when only one
+			// cluster is found. Alternative, ask the user to give more data.
+			int repetitions = 10;
+
+			while(centers.numInstances() < 2 && repetitions != 0){
+				c = new SimpleKMeans();
+				c.setNumClusters(2);
+				c.setSeed(ran.nextInt());
+				c.buildClusterer(data);
+				centers = c.getClusterCentroids();
+				logger.info("Repeating because centers found:" + centers.numInstances() + " Total instances: " + data.numInstances());
+				repetitions--;
+			}
+
+			if(centers.numInstances() < 2){
+				throw new ClusteringFailedException("Did not find enough data for this cluster. You should add more data!");
+			}
+			//assert centers.numInstances() == 2 : "Centers found: "  + centers.numInstances();
 
 			Instance CL = centers.instance(0);
 			Instance CR = centers.instance(1);
@@ -439,7 +458,11 @@ public abstract class AbstractPPTree<O extends OB> extends
 				assert verifyData(data,n);
 			}
 
-		} catch (Exception e) {
+		}
+		 catch(OBException e1 ){
+			 throw e1;
+		 }
+		 catch (Exception e) {
 			// wrap weka's Exception so that we don't have to use
 			// Exception in our throws clause
 			if(logger.isDebugEnabled()){

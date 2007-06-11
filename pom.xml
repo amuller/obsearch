@@ -23,7 +23,7 @@
 		<!-- additional unit test files to be downloaded -->
 
 		<my.test.data.db>slices-small</my.test.data.db>
-		<my.test.data.query>slices-query-small</my.test.data.query>
+		<my.test.data.query>slices-query</my.test.data.query>
 
 		<!-- texen templates configuration -->
 		<my.templates.texen>/texen/</my.templates.texen>
