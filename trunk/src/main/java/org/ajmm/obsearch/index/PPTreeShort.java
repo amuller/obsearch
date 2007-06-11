@@ -126,7 +126,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			i++;
 		}
 		// put the query relative to the center
-		normalizeQuery(q);
+		//normalizeQuery(q);
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -152,31 +152,33 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 		float[] lowHighResult = new float[2];
 		// hypercubes that intersect with this query will be stored here
-		List<SpaceTreeLeaf> hyperCubes = new LinkedList<SpaceTreeLeaf>();
+		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
 		// obtain the hypercubes that have to be matched
-		spaceTree.searchRange(qrect, hyperCubes);
-		Iterator<SpaceTreeLeaf> it = hyperCubes.iterator();
+		spaceTree.searchRange(qrect, hyperRectangles);
+		Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
 		// this will hold the rectangle for the current hyperrectangle
 		float[][] q = new float[pivotsCount][2];
 		while (it.hasNext()) {
 			SpaceTreeLeaf space = it.next();
 			// for each space there are 2d pyramids that have to be browsed
 			int i = 0;
-			// update the current rectangle
+			// update the current rectangle, we also have to center it
 			space.generateRectangle(qrect, q);
+			normalizeQuery(q);
 			while (i < pyramidCount) {
 				if (intersect(q, i, lowHighResult)) {
 					int ri = space.getSNo() * 2 * pivotsCount + i; // real index
 					searchBTreeAndUpdate(object, t, myr, ri
 							+ lowHighResult[HLOW], ri + lowHighResult[HHIGH],
 							result);
-					short nr = result.updateRange(myr);
+
+					/*short nr = result.updateRange(myr);
 					if (nr < myr) {
 						myr = nr;
 						// regenerate the query with a smaller range
 						generateRectangleFirstPass(t, myr, qrect);
 						space.generateRectangle(qrect, q);
-					}
+					}*/
 				}
 				i++;
 			}
@@ -287,10 +289,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	protected byte insertFrozenAux(short[] t, int id)
 			throws OutOfRangeException, DatabaseException {
 		float[] first = normalizeFirstPass(t);
-		float[] nt = new float[pivotsCount];
-		SpaceTreeLeaf space = super.spaceTree.search(nt);
-		space.normalize(first, nt);
-		float ppTreeValue = super.ppvalue(nt);
+		float ppTreeValue = super.ppvalue(first);
 
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();

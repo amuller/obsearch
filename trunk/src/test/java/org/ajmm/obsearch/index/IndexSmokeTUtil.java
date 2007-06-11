@@ -94,12 +94,14 @@ public class IndexSmokeTUtil {
                 String line = parseLine(re);
                 if (line != null) {
                 	OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>(k);
-                    if (i % 300 == 0) {
+                    if (i % 100 == 0) {
                         logger.info("Matching " + i);
                     }
+
                     OBSlice s = new OBSlice(line);
                 	if(this.shouldProcessSlice(s)){
                 		index.searchOB(s, range, x);
+                		logger.info(x);
                     	result.add(x);
                     	i++;
                 	}
