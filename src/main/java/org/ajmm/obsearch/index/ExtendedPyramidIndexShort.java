@@ -224,7 +224,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 					.min(t[i] + r, maxInput)), i);
 			i++;
 		}
-		normalizeQuery(q);
+		centerQuery(q);
 	}
 
 	/**

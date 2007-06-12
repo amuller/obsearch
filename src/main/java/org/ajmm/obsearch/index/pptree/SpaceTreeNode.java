@@ -12,6 +12,10 @@ public class SpaceTreeNode implements SpaceTree {
 
 	private SpaceTree right;
 
+	public String toString(){
+		return "[DD: " + DD + " DV " + DV + "](" + left + "," + right +")";
+	}
+
 	public boolean isLeafNode() {
 		return false;
 	}
@@ -51,8 +55,12 @@ public class SpaceTreeNode implements SpaceTree {
 	public  SpaceTreeLeaf search(float[] value){
 		if(value[DD] < DV){
 			return left.search(value);
-		}else{
+		}
+		if(value[DD] >= DV){
 			return right.search(value);
+		}else{
+			assert false;
+			return null;
 		}
 	}
 
@@ -65,14 +73,21 @@ public class SpaceTreeNode implements SpaceTree {
 	public void searchRange(float[][] query, List<SpaceTreeLeaf> result){
 		// if the maximum value of the query in the given dimension is lower
 		// than the split value, then we can safely ignore the other branches
-		if(query[DD][MAX] < DV){
+		/*if(query[DD][MAX] < DV){
 			left.searchRange(query, result);
-		}else if (query[DD][MIN] > DV){
+		}else if (query[DD][MIN] >= DV){
 			right.searchRange(query, result);
 		}else{
 			// our query has values that belong to both branches...
 			// nothing we can do here, we have to explore everything.
 			left.searchRange(query, result);
+			right.searchRange(query, result);
+		}*/
+		if(query[DD][MIN] <= DV){
+			left.searchRange(query, result);
+		}
+
+		if(query[DD][MAX] >= DV){
 			right.searchRange(query, result);
 		}
 	}

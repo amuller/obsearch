@@ -13,10 +13,15 @@ public class SpaceTreeLeaf implements SpaceTree {
 
 	float[] e;
 
+	public String toString(){
+		return "leaf(" + SNo + " " + Arrays.deepToString(minMax)+ ")";
+	}
+
 	/**
 	 * This holds the real minimum and maximum values of this hyperrectangle.
 	 * Used to confirm a query belongs to this hyperrectangle. As queries might
 	 * get smaller during the course of a match, this functionality is necessary
+	 *
 	 */
 	float[][] minMax;
 
@@ -65,6 +70,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	}
 
 	public SpaceTreeLeaf search(float[] value) {
+		assert pointInside(value);
 		// we are in the leaf, we are done
 		return this;
 	}
@@ -88,7 +94,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 		}
 	}
 
-	protected float normalizeAux(float value, int i) {
+	public float normalizeAux(float value, int i) {
 		return (float) Math.pow(a[i] * value - b[i], e[i]);
 	}
 
@@ -104,7 +110,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	public void searchRange(float[][] query, List<SpaceTreeLeaf> result) {
 		assert intersects(query); // this has to be true
 		//if (intersects(query)) {
-		result.add(this);
+			result.add(this);
 		//}
 	}
 
@@ -174,6 +180,9 @@ public class SpaceTreeLeaf implements SpaceTree {
 	 */
 
 	public void generateRectangle(float[][] firstPassQuery, float[][] result) {
+
+		assert intersects(firstPassQuery);
+
 		int i = 0;
 		while (i < firstPassQuery.length) {
 			// borrowed from Zhang's code
@@ -203,5 +212,36 @@ public class SpaceTreeLeaf implements SpaceTree {
 			i++;
 		}
 	}
+
+	/*public void generateRectangle(float[][] firstPassQuery, float[][] result) {
+		int i = 0;
+		while (i < firstPassQuery.length) {
+
+			float min = firstPassQuery[i][MIN];
+			if(min < minMax[i][MIN]){
+				min = minMax[i][MIN];
+			}
+			result[i][MIN] = normalizeAux(min, i);
+
+			float max = firstPassQuery[i][MAX];
+			if(max > minMax[i][MAX]){
+				max = minMax[i][MAX];
+			}
+			result[i][MAX] = normalizeAux(max, i);
+
+			assert result[i][MAX] <= 1 : " Original: " + firstPassQuery[i][MAX]
+					+ " Generated: " + result[i][MAX] + " \n"
+					+ Arrays.deepToString(minMax);
+			assert result[i][MIN] >= 0 : " Original: " + firstPassQuery[i][MIN]
+					+ " Generated: " + result[i][MIN] + " \n"
+					+ Arrays.deepToString(minMax);
+			assert result[i][MIN] <= result[i][MAX] : "MIN: " + result[i][MIN]
+					+ " MAX: " + result[i][MAX] + " Originals: MIN: "
+					+ firstPassQuery[i][MIN] + " MAX: "
+					+ firstPassQuery[i][MAX] + " \n"
+					+ Arrays.deepToString(minMax);
+			i++;
+		}
+	}*/
 
 }
