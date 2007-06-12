@@ -16,6 +16,7 @@ import org.ajmm.obsearch.index.pptree.SpaceTreeLeaf;
 import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
+import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.SortedFloatBinding;
@@ -33,6 +34,9 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	private short minInput;
 
 	private short maxInput;
+
+	private static final transient Logger logger = Logger
+	.getLogger(PPTreeShort.class);
 
 	public PPTreeShort(File databaseDirectory, byte pivots, byte od)
 			throws DatabaseException, IOException {
@@ -53,7 +57,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		int i = 0;
 		float[] res = new float[pivotsCount];
 		while (i < pivotsCount) {
-			res[i] = normalize(in.readShort());
+			res[i] = normalizeFirstPassAux(in.readShort());
 			i++;
 		}
 		return res;
@@ -121,8 +125,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		// range
 		int i = 0;
 		while (i < q.length) { //
-			q[i][MIN] = normalize((short) Math.max(t[i] - r, minInput));
-			q[i][MAX] = normalize((short) Math.min(t[i] + r, maxInput));
+			q[i][MIN] = normalizeFirstPassAux((short) Math.max(t[i] - r, minInput));
+			q[i][MAX] = normalizeFirstPassAux((short) Math.min(t[i] + r, maxInput));
 			i++;
 		}
 		// put the query relative to the center
@@ -160,11 +164,16 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		float[][] q = new float[pivotsCount][2];
 		while (it.hasNext()) {
 			SpaceTreeLeaf space = it.next();
+
+			if(! space.intersects(qrect)){
+				continue;
+			}
+
 			// for each space there are 2d pyramids that have to be browsed
 			int i = 0;
 			// update the current rectangle, we also have to center it
 			space.generateRectangle(qrect, q);
-			normalizeQuery(q); // center the rectangle
+			centerQuery(q); // center the rectangle
 			while (i < pyramidCount) {
 				if (intersect(q, i, lowHighResult)) {
 					int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
@@ -250,6 +259,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						O toCompare = super.getObject(id);
 						realDistance = object.distance(toCompare);
 						if (realDistance <= r) {
+
 							result.add(id, toCompare, realDistance);
 						}
 					}
@@ -315,7 +325,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 		int i = 0;
 		while (i < t.length) {
-			res[i] = normalize(t[i]);
+			res[i] = normalizeFirstPassAux(t[i]);
 			i++;
 		}
 		return res;
@@ -344,7 +354,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	 * @param x
 	 * @return the normalized value
 	 */
-	protected float normalize(short x) throws OutOfRangeException {
+	protected float normalizeFirstPassAux(short x) throws OutOfRangeException {
 		if (x < minInput || x > maxInput) {
 			throw new OutOfRangeException(minInput + "", maxInput + "", "" + x);
 		}

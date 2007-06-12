@@ -106,7 +106,7 @@ public class IndexSmokeTUtil {
                     OBSlice s = new OBSlice(line);
                 	if(this.shouldProcessSlice(s)){
                 		index.searchOB(s, range, x);
-                		logger.info(x);
+                		//logger.info(x);
                     	result.add(x);
                     	i++;
                 	}
@@ -137,7 +137,7 @@ public class IndexSmokeTUtil {
                     	searchSequential(realIndex, s, x2, index,
                             range);
                     	OBPriorityQueueShort<OBSlice> x1 = it.next();
-                    	assertEquals("Error in query line: " + i, x2, x1);
+                    	assertEquals("Error in query line: " + i + " slice: " + line, x2, x1);
                     	i++;
                 	}
                 }
