@@ -233,9 +233,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 			float[] center) {
 		int i = 0;
 		assert pivotsCount == minMax.length;
-		float[] a = new float[pivotsCount];
-		float[] b = new float[pivotsCount];
-		float[] e = new float[pivotsCount];
+		double[] a = new double[pivotsCount];
+		double[] b = new double[pivotsCount];
+		double[] e = new double[pivotsCount];
 		while (i < pivotsCount) {
 			assert minMax[i][MIN] < center[i] && center[i] < minMax[i][MAX] : "MIN: "
 					+ minMax[i][MIN]
@@ -249,7 +249,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 			a[i] = 1 / (minMax[i][MAX] - minMax[i][MIN]);
 			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
-			e[i] = (float) -(Math.log(2) / Math.log(a[i] * center[i] - b[i]));
+			e[i] = -(Math.log(2) / Math.log(a[i] * center[i] - b[i]));
 
 			assert center[i] >= 0 && center[i] <= 1;
 			assert minMax[i][MIN] >= 0 && minMax[i][MAX] <= 1;

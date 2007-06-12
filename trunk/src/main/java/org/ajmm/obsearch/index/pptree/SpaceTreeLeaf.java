@@ -7,11 +7,11 @@ public class SpaceTreeLeaf implements SpaceTree {
 
 	int SNo;
 
-	float[] a;
+	double[] a;
 
-	float[] b;
+	double[] b;
 
-	float[] e;
+	double[] e;
 
 	public String toString(){
 		return "leaf(" + SNo + " " + Arrays.deepToString(minMax)+ ")";
@@ -33,27 +33,27 @@ public class SpaceTreeLeaf implements SpaceTree {
 		this.minMax = minMax;
 	}
 
-	public float[] getA() {
+	public double[] getA() {
 		return a;
 	}
 
-	public void setA(float[] a) {
+	public void setA(double[] a) {
 		this.a = a;
 	}
 
-	public float[] getB() {
+	public double[] getB() {
 		return b;
 	}
 
-	public void setB(float[] b) {
+	public void setB(double[] b) {
 		this.b = b;
 	}
 
-	public float[] getE() {
+	public double[] getE() {
 		return e;
 	}
 
-	public void setE(float[] e) {
+	public void setE(double[] e) {
 		this.e = e;
 	}
 
@@ -110,7 +110,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	public void searchRange(float[][] query, List<SpaceTreeLeaf> result) {
 		assert intersects(query); // this has to be true
 		//if (intersects(query)) {
-			result.add(this);
+		result.add(this);
 		//}
 	}
 
@@ -186,7 +186,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 		int i = 0;
 		while (i < firstPassQuery.length) {
 			// borrowed from Zhang's code
-			float one = a[i] * firstPassQuery[i][MIN] - b[i];
+			double one = a[i] * firstPassQuery[i][MIN] - b[i];
 			if (one <= 0) {
 				result[i][MIN] = 0;
 			} else {
