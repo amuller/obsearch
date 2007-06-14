@@ -43,7 +43,7 @@ public class IndexSmokeTUtil {
 
         try {
 
-        	int querySize = 500; // amount of elements to read from the query
+        	int querySize = 1642; // amount of elements to read from the query
 
             File query = new File(testProperties
                     .getProperty("test.query.input"));
@@ -75,8 +75,8 @@ public class IndexSmokeTUtil {
 
             // select the pivots
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
-            //RandomPivotSelector ps = new RandomPivotSelector();
-            DummyPivotSelector ps = new DummyPivotSelector();
+            RandomPivotSelector ps = new RandomPivotSelector();
+            //DummyPivotSelector ps = new DummyPivotSelector();
             ps.generatePivots((AbstractPivotIndex)index);
             // the pyramid values are created
             logger.info("freezing");
