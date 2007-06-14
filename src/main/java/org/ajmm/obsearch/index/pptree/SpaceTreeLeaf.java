@@ -7,11 +7,11 @@ public class SpaceTreeLeaf implements SpaceTree {
 
 	int SNo;
 
-	double[] a;
+	double[] min;
 
-	double[] b;
+	double[] width;
 
-	double[] e;
+	double[] exp;
 
 	public String toString(){
 		return "leaf(" + SNo + " " + Arrays.deepToString(minMax)+ ")";
@@ -34,27 +34,27 @@ public class SpaceTreeLeaf implements SpaceTree {
 	}
 
 	public double[] getA() {
-		return a;
+		return min;
 	}
 
 	public void setA(double[] a) {
-		this.a = a;
+		this.min = a;
 	}
 
 	public double[] getB() {
-		return b;
+		return width;
 	}
 
 	public void setB(double[] b) {
-		this.b = b;
+		this.width = b;
 	}
 
-	public double[] getE() {
-		return e;
+	public double[] getExp() {
+		return exp;
 	}
 
-	public void setE(double[] e) {
-		this.e = e;
+	public void setExp(double[] e) {
+		this.exp = e;
 	}
 
 	public int getSNo() {
@@ -95,7 +95,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	}
 
 	public float normalizeAux(float value, int i) {
-		return (float) Math.pow(a[i] * value - b[i], e[i]);
+		return (float) Math.pow((value - min[i]) /  width[i], exp[i]);
 	}
 
 	/**
@@ -179,6 +179,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	 * i++; } }
 	 */
 
+	/*
 	public void generateRectangle(float[][] firstPassQuery, float[][] result) {
 
 		assert intersects(firstPassQuery);
@@ -186,11 +187,11 @@ public class SpaceTreeLeaf implements SpaceTree {
 		int i = 0;
 		while (i < firstPassQuery.length) {
 			// borrowed from Zhang's code
-			double one = a[i] * firstPassQuery[i][MIN] - b[i];
+			double one = min[i] * firstPassQuery[i][MIN] - width[i];
 			if (one <= 0) {
 				result[i][MIN] = 0;
 			} else {
-				result[i][MIN] = (float) Math.pow(one, e[i]);
+				result[i][MIN] = (float) Math.pow(one, exp[i]);
 			}
 
 			result[i][MAX] = normalizeAux(firstPassQuery[i][MAX], i);
@@ -211,9 +212,9 @@ public class SpaceTreeLeaf implements SpaceTree {
 					+ Arrays.deepToString(minMax);
 			i++;
 		}
-	}
+	}*/
 
-	/*public void generateRectangle(float[][] firstPassQuery, float[][] result) {
+	public void generateRectangle(float[][] firstPassQuery, float[][] result) {
 		int i = 0;
 		while (i < firstPassQuery.length) {
 
@@ -242,6 +243,6 @@ public class SpaceTreeLeaf implements SpaceTree {
 					+ Arrays.deepToString(minMax);
 			i++;
 		}
-	}*/
+	}
 
 }

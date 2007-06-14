@@ -27,11 +27,11 @@ mvn eclipse:eclipse
 Maybe you should do a "mvn eclipse:clean" before commiting files
 
 
-how to make a branch:
+how to make a branch:1
 
 svn copy https://obsearch.googlecode.com/svn/trunk/ \
-             https://obsearch.googlecode.com/svn/branches/obsearch-generics \
-             -m "This branch will keep a clean implementation with generics. I think a generated set of classes designed to work directly with primitive types should be faster"  --username <you>
+             https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix \
+             -m "I will change the way values are mapped, to reduce precision loss... this may be the problem I have"  --username <you>
 
 30 min
 
@@ -39,3 +39,12 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
 
 Grid library:
 http://dsd.lbl.gov/firefish/
+
+
+merge:
+
+Take the stuff from the first location into the second, and use
+the working directory to evaluate the new changes
+You can do a revert if things don't work ok.
+ 
+svn merge https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix https://obsearch.googlecode.com/svn/trunk/

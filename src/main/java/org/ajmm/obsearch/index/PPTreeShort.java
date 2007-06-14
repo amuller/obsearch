@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -105,7 +106,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		} finally {
 			cursor.close();
 		}
-
+		assert cDB.count() == bDB.count();
 	}
 
 	/**
@@ -131,6 +132,20 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 		// put the query relative to the center
 		// normalizeQuery(q);
+	}
+
+	/**
+	 * Copies the contents of query src into dest
+	 * @param src source
+	 * @param dest destination
+	 */
+	protected void copyQuery(float[][] src, float[][] dest){
+		int i = 0;
+		while(i < src.length){
+			dest[i][MIN] = src[i][MIN];
+			dest[i][MAX] = src[i][MAX];
+			i++;
+		}
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -161,10 +176,10 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		spaceTree.searchRange(qrect, hyperRectangles);
 		Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
 		// this will hold the rectangle for the current hyperrectangle
+		float[][] qw = new float[pivotsCount][2];
 		float[][] q = new float[pivotsCount][2];
 		while (it.hasNext()) {
 			SpaceTreeLeaf space = it.next();
-
 			if(! space.intersects(qrect)){
 				continue;
 			}
@@ -172,9 +187,12 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			// for each space there are 2d pyramids that have to be browsed
 			int i = 0;
 			// update the current rectangle, we also have to center it
-			space.generateRectangle(qrect, q);
-			centerQuery(q); // center the rectangle
+			space.generateRectangle(qrect, qw);
+			centerQuery(qw); // center the rectangle
+
 			while (i < pyramidCount) {
+				// intersect destroys q, so we have to copy it
+				copyQuery(qw,q);
 				if (intersect(q, i, lowHighResult)) {
 					int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
 																	// index
@@ -182,12 +200,16 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 							+ lowHighResult[HLOW], ri + lowHighResult[HHIGH],
 							result);
 
-					/*
-					 * short nr = result.updateRange(myr); if (nr < myr) { myr =
-					 * nr; // regenerate the query with a smaller range
-					 * generateRectangleFirstPass(t, myr, qrect);
-					 * space.generateRectangle(qrect, q); }
-					 */
+
+					 short nr = result.updateRange(myr);
+					 // make the range shorter
+					 if (nr < myr) {
+						 myr = nr; // regenerate the query with a smaller range
+						 generateRectangleFirstPass(t, myr, qrect);
+						 space.generateRectangle(qrect, qw);
+						 centerQuery(qw); // center the rectangle
+					  }
+
 				}
 				i++;
 			}

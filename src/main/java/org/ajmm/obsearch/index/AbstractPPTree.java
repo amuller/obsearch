@@ -233,9 +233,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 			float[] center) {
 		int i = 0;
 		assert pivotsCount == minMax.length;
-		double[] a = new double[pivotsCount];
-		double[] b = new double[pivotsCount];
-		double[] e = new double[pivotsCount];
+		double[] min = new double[pivotsCount];
+		double[] width = new double[pivotsCount];
+		double[] exp = new double[pivotsCount];
 		while (i < pivotsCount) {
 			assert minMax[i][MIN] < center[i] && center[i] < minMax[i][MAX] : "MIN: "
 					+ minMax[i][MIN]
@@ -245,11 +245,13 @@ public abstract class AbstractPPTree<O extends OB> extends
 					+ minMax[i][MAX];
 			// divisors != 0
 			assert (minMax[i][MAX] - minMax[i][MIN]) != 0;
-			assert (Math.log(a[i] * center[i] - b[i]) / Math.log(2)) != 0;
+			assert (Math.log(min[i] * center[i] - width[i]) / Math.log(2)) != 0;
 
-			a[i] = 1 / (minMax[i][MAX] - minMax[i][MIN]);
-			b[i] = minMax[i][MIN] / (minMax[i][MAX] - minMax[i][MIN]);
-			e[i] = -(Math.log(2) / Math.log(a[i] * center[i] - b[i]));
+			min[i] = minMax[i][MIN];
+			//TODO: doing 1/width[i] might be cheaper as later only a multiplication
+			// has to be made... but the tests broke! so I guess we should play safe.
+			width[i] =  (minMax[i][MAX] - minMax[i][MIN]);
+			exp[i] = -( 1 / ( Math.log((center[i] - min[i]) / width[i])/ Math.log(2)));
 
 			assert center[i] >= 0 && center[i] <= 1;
 			assert minMax[i][MIN] >= 0 && minMax[i][MAX] <= 1;
@@ -261,9 +263,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 					+ minMax[i][MAX];
 			i++;
 		}
-		x.setA(a);
-		x.setB(b);
-		x.setE(e);
+		x.setA(min);
+		x.setB(width);
+		x.setExp(exp);
 		x.setMinMax(minMax);
 		assert validateT(x, center);
 	}
@@ -465,7 +467,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @return the center of the given data
 	 */
 	protected float[] calculateCenter(Instances data) {
-		/*
+		/* It seems that these medians break the system.
 		 * QuantileBin1D[] medianHolder =
 		 * createMedianHolders(data.numInstances()); int i = 0; while(i <
 		 * data.numInstances()){ Instance in = data.instance(i);
