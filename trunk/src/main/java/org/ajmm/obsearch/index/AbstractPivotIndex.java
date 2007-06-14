@@ -457,6 +457,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         fout.close();
 
 
+        assert aDB.count() == bDB.count();
 
     }
 
