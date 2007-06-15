@@ -52,7 +52,8 @@ public class IndexSmokeTUtil {
         	File dbFolder = new File(testProperties.getProperty("test.db.path"));
         	 logger.debug("query file: " + query);
         	 logger.debug("db file: " + db);
-        	 deleteDB();
+
+        	deleteDB();
             assertTrue(dbFolder.mkdirs());
 
 

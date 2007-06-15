@@ -2,10 +2,11 @@
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
-<@pp.changeOutputFile name="OBResult"+Type+".java" />
-package org.ajmm.obsearch.result;
-import org.ajmm.obsearch.AbstractOBResult;
+<@pp.changeOutputFile name="OBQuery"+Type+".java" />
+package org.ajmm.obsearch.query;
 import org.ajmm.obsearch.ob.OB${Type};
+import org.ajmm.obsearch.result.OBResult${Type};
+import org.ajmm.obsearch.result.OBPriorityQueue${Type};
 /*
     OBSearch: a distributed similarity search engine
     This project is to similarity search what 'bit-torrent' is to downloads.
@@ -33,52 +34,29 @@ import org.ajmm.obsearch.ob.OB${Type};
 */
 
 
-public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
+public class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
 		
 		
 		
-		protected ${type} distance;
+		protected OBPriorityQueue${Type}<O> result;
 
-		public OBResult${Type}(){
+		public OBQuery${Type}(){
 		}
 
-		public OBResult${Type}(O object, int id, ${type} distance){
+		public OBQuery${Type}(O object, ${type} distance, OBPriorityQueue${Type}<O> result){
 
-				super(object,id);
-				this.distance = distance;
-				
+				super(object,-1,distance);
+				this.result = result;
+		}
+
+		public OBPriorityQueue${Type}<O> getResult(){
+				return result;
+		}
+
+		public void setResult(OBPriorityQueue${Type}<O> result){
+				this.result = result;
 		}
 		
-		public ${type} getDistance(){
-				return distance;
-		}
-		
-		public void setDistance(${type} x){
-				this.distance = x;
-		}
-
-		public int compareTo(Object o) {
-				assert o instanceof OBResult${Type};
-				int res = 0;
-				OBResult${Type}<O> comp = (OBResult${Type}<O>) o;
-        if (distance < comp.distance) {
-            res = 1;
-        } else if (distance > comp.distance) {
-            res = -1;
-        }
-        return res;
-		}
-
-    public boolean equals(Object obj){        
-				OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
-				// a result object is the same if the distance is the same
-				// we do not care about the id.
-				return distance == comp.distance;
-		}
-
-		public String toString(){				
-				return "<" + id + " " + distance + ">";
-		}
 }
 
 </#list>

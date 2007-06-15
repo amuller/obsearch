@@ -24,26 +24,26 @@ import cern.colt.map.OpenIntObjectHashMap;
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-/** 
+/**
 	  By using soft references, an OB cache is implemented
 	  The garbage collector decides based on the access patterns of each
       reference, which elements are released and which are kept.
-    @author      Arnoldo Jose Muller Molina    
+    @author      Arnoldo Jose Muller Molina
     @version     %I%, %G%
     @since       1.0
 */
 
 public class OBCache < O > {
-    
+
     AbstractIntObjectMap map;
-    
+
     public OBCache(int currentDBSize){
         // using open addressing because it is cheaper
         map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
     }
-    
+
     /**
      * Stores the object in the cache
      * @param id
@@ -52,24 +52,24 @@ public class OBCache < O > {
     public void put(int id, O object){
         map.put(id, new SoftReference<O>(object));
     }
-    
+
     /**
      * Gets the given object, returns null if the object is not found
      * @param id
-     * @return
+     * @return null if no object is found
      */
     public O get(int id){
         SoftReference<O> ref = (SoftReference<O>)map.get(id);
         if(ref == null){
-            return null; // the object is not here.       
+            return null; // the object is not here.
          }
-        O result = ref.get(); 
-        if(result == null){
+        O result = ref.get();
+        /*if(result == null){
             map.removeKey(id); // do we really need to remove the object?
-        }
+        }*/
         return result;
     }
-    
-    
-    
+
+
+
 }

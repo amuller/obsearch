@@ -22,7 +22,7 @@
 	<properties>
 		<!-- additional unit test files to be downloaded -->
 
-		<my.test.data.db>slices</my.test.data.db>
+		<my.test.data.db>slices-small</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
 
 		<!-- texen templates configuration -->

@@ -114,4 +114,5 @@ public interface Index<O extends OB> {
 
     public O getObject(int i)throws DatabaseException, IllegalIdException,
     IllegalAccessException, InstantiationException;
-}
+
+   }
