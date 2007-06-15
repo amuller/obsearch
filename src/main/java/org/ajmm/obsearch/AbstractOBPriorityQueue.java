@@ -10,18 +10,18 @@ import org.apache.log4j.Logger;
 /**
  * A class that holds a list of results in an inverted
  * priority queue (biggest element at the "peek" of the queue)
- * 
+ *
  * @author amuller
- * 
+ *
  */
-public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult> {
+public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult>{
     private static final Logger logger = Logger
             .getLogger(AbstractOBPriorityQueue.class);
 
     protected PriorityQueue<O> queue;
 
     protected byte k;
-    
+
     /**
      * Creates a priority queue of k = 3
      *
@@ -43,9 +43,9 @@ public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult> {
         return queue.size();
     }
 
-    
-    
-    
+
+
+
 
     public boolean equals(Object obj) {
         AbstractOBPriorityQueue<O> o = (AbstractOBPriorityQueue<O>)obj;
@@ -60,7 +60,7 @@ public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult> {
         //return queue.containsAll(o.queue);
     }
 
-    public String toString() {        
+    public String toString() {
         return  queue.toString();//result.toString();
     }
 

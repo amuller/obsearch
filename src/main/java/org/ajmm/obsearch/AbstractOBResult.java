@@ -17,7 +17,7 @@ package org.ajmm.obsearch;
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
  * @param <
@@ -28,18 +28,30 @@ package org.ajmm.obsearch;
  */
 
 public abstract class AbstractOBResult<O extends OB> implements Comparable{
-	
+
     protected O object;
     protected int id;
-    
-    public O getObject() {
+
+
+    public AbstractOBResult(){
+
+    }
+
+    public AbstractOBResult(O object, int id) {
+		super();
+		this.object = object;
+		this.id = id;
+
+	}
+
+	public O getObject() {
         return object;
     }
 
     public void setObject(O obj) {
         this.object = obj;
     }
-    
+
     public int getId() {
         return id;
     }
