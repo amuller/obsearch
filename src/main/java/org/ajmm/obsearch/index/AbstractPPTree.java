@@ -79,22 +79,22 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * FastVector(pivotsCount); // create the attributes that weka will use to
 	 * do clustering // one attribute per each of the pivotsCount dimensions int
 	 * i = 0; while (i < pivotsCount) { Attribute x = new Attribute("p" + i); //
-	 * numeric attribute attrs.addElement(x); i++; }
-	 *  // hope that memory will be enough, we have to re-implement instances
-	 * Instances data = new Instances("0", attrs, this.databaseSize()); Random
-	 * ran = new Random(); try { i = 0; cursor = bDB.openCursor(null, null);
-	 * while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) ==
+	 * numeric attribute attrs.addElement(x); i++; } // hope that memory will be
+	 * enough, we have to re-implement instances Instances data = new
+	 * Instances("0", attrs, this.databaseSize()); Random ran = new Random();
+	 * try { i = 0; cursor = bDB.openCursor(null, null); while
+	 * (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) ==
 	 * OperationStatus.SUCCESS) { assert i ==
 	 * IntegerBinding.entryToInt(foundKey);
 	 *
 	 * TupleInput in = new TupleInput(foundData.getData()); Instance ins =
 	 * createInstance(in); data.add(ins); i++; } // pivot count and read # of
 	 * pivots // should be the same assert i == count; // compact the original
-	 * data just in case data.compactify();
-	 *  // now we can start building the space tree, all the data is in //
-	 * memory // TODO: Make weka use secondary storage. // Extend the class
-	 * Instances and in the constructor // create a new type of fastvector //
-	 * that uses secondary storage and some kind of cache.
+	 * data just in case data.compactify(); // now we can start building the
+	 * space tree, all the data is in // memory // TODO: Make weka use secondary
+	 * storage. // Extend the class Instances and in the constructor // create a
+	 * new type of fastvector // that uses secondary storage and some kind of
+	 * cache.
 	 *
 	 * int totalSpaces = (int) Math.pow(2, od); Instances[] spaces = new
 	 * Instances[totalSpaces]; Instances[] spacesTemp = new
@@ -107,25 +107,24 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * initMinMaxes(minMaxes); spaces[0] = data; // we will process space 0
 	 * first data = null; // hope that we will save some space for (int cdt = 0;
 	 * cdt < od; cdt++) { for (int n = 0; n < Math.pow(2, cdt); n++) { Instances
-	 * centers = null; Instances spaceN = spaces[n]; try {
-	 *  // initialize clustering algorithm SimpleKMeans c = new SimpleKMeans();
+	 * centers = null; Instances spaceN = spaces[n]; try { // initialize
+	 * clustering algorithm SimpleKMeans c = new SimpleKMeans();
 	 * c.setNumClusters(2); c.setSeed(ran.nextInt()); // execute the clustering
 	 * algorithm c.buildClusterer(spaceN); // get the centers of the clusters
-	 * centers = c.getClusterCentroids(); assert centers.numInstances() == 2;
-	 *  } catch (Exception e) { // wrap weka's Exception so that we don't have
-	 * to use // Exception in our throws clause throw new OBException(e); } //
+	 * centers = c.getClusterCentroids(); assert centers.numInstances() == 2; }
+	 * catch (Exception e) { // wrap weka's Exception so that we don't have to
+	 * use // Exception in our throws clause throw new OBException(e); } //
 	 * using upercase (breaking coding standards) // to be compatible with the
 	 * format of the original paper Instance CL = centers.instance(0); Instance
 	 * CR = centers.instance(1); byte DD = dividingDimension(CL, CR); float DV =
-	 * (float) (CR.value(DD) + CL.value(DD)) / 2;
-	 *  // Create "children" spaces int SNoSL = 2 * n; int SNoSR = 2 * n + 1;
-	 * Instances SL = new Instances("" + SNoSL, attrs, this .databaseSize());
-	 * Instances SR = new Instances("" + SNoSR, attrs, this .databaseSize()); //
-	 * update space boundaries minMaxes[SNoSL][DD][MAX] = DV;
-	 * minMaxes[SNoSR][DD][MIN] = DV; // Divide the elements of the original
-	 * space divideSpace(spaceN, SL, SR, DD, DV); spacesTemp[SNoSL] = SL;
-	 * spacesTemp[SNoSR] = SR; // insert a nonleaf node assert
-	 * !treeNodes[n].isLeafNode(); SpaceTreeNode ntemp = (SpaceTreeNode)
+	 * (float) (CR.value(DD) + CL.value(DD)) / 2; // Create "children" spaces
+	 * int SNoSL = 2 * n; int SNoSR = 2 * n + 1; Instances SL = new Instances("" +
+	 * SNoSL, attrs, this .databaseSize()); Instances SR = new Instances("" +
+	 * SNoSR, attrs, this .databaseSize()); // update space boundaries
+	 * minMaxes[SNoSL][DD][MAX] = DV; minMaxes[SNoSR][DD][MIN] = DV; // Divide
+	 * the elements of the original space divideSpace(spaceN, SL, SR, DD, DV);
+	 * spacesTemp[SNoSL] = SL; spacesTemp[SNoSR] = SR; // insert a nonleaf node
+	 * assert !treeNodes[n].isLeafNode(); SpaceTreeNode ntemp = (SpaceTreeNode)
 	 * treeNodes[n]; SpaceTree leftNode = null; SpaceTree rightNode = null; if
 	 * (cdt < (od - 1)) { // if we are before the last // iteration (that is
 	 * before adding // the leaves) leftNode = new SpaceTreeNode(); rightNode =
@@ -133,15 +132,14 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * new SpaceTreeLeaf(); // this is the last iteration... // we have to store
 	 * the cluster centers cs[SNoSL] = CL; cs[SNoSR] = CR; } ntemp.setDD(DD);
 	 * ntemp.setDV(DV); ntemp.setLeft(leftNode); ntemp.setRight(rightNode);
-	 * treeNodes[SNoSL] = leftNode; treeNodes[SNoSR] = rightNode;
-	 *  } // after cdt is updated SD8 in the paper
-	 *  // copy the data in spacesTemp to spaces for (int n = 0; n < Math.pow(2,
-	 * cdt); n++) { if (spacesTemp[n] != null) { spaces[n] = spacesTemp[n];
-	 * spacesTemp[n] = null; } }
-	 *  } // treeNodes should now all be leaves. // the ith element of the array
-	 * is the leaf for the // ith space // we have to calculate the centers for
-	 * each space // and we have to calculate a[d] b[d] e[d] for (int n = 0; n <
-	 * totalSpaces; n++) { assert treeNodes[n] instanceof SpaceTreeLeaf;
+	 * treeNodes[SNoSL] = leftNode; treeNodes[SNoSR] = rightNode; } // after cdt
+	 * is updated SD8 in the paper // copy the data in spacesTemp to spaces for
+	 * (int n = 0; n < Math.pow(2, cdt); n++) { if (spacesTemp[n] != null) {
+	 * spaces[n] = spacesTemp[n]; spacesTemp[n] = null; } } } // treeNodes
+	 * should now all be leaves. // the ith element of the array is the leaf for
+	 * the // ith space // we have to calculate the centers for each space //
+	 * and we have to calculate a[d] b[d] e[d] for (int n = 0; n < totalSpaces;
+	 * n++) { assert treeNodes[n] instanceof SpaceTreeLeaf;
 	 * calculateLeaf((SpaceTreeLeaf) treeNodes[n], minMaxes[n], cs[n]); } //
 	 * save the space tree spaceTree = node; } finally { cursor.close(); }
 	 *
@@ -206,12 +204,12 @@ public abstract class AbstractPPTree<O extends OB> extends
 			int[] SNo = new int[1]; // this is a pointer
 			// divide the space
 			spaceDivision(node, 0, minMax, data, SNo, ran, attrs, null);
-			//  we created all the spaces.
+			// we created all the spaces.
 			assert SNo[0] == Math.pow(2, od);
 			// now the space-tree has been built.
 			// save the space tree
 			this.spaceTree = node;
-			if(logger.isDebugEnabled()){
+			if (logger.isDebugEnabled()) {
 				logger.debug("Space tree: \n" + spaceTree);
 			}
 		} finally {
@@ -248,10 +246,13 @@ public abstract class AbstractPPTree<O extends OB> extends
 			assert (Math.log(min[i] * center[i] - width[i]) / Math.log(2)) != 0;
 
 			min[i] = minMax[i][MIN];
-			//TODO: doing 1/width[i] might be cheaper as later only a multiplication
-			// has to be made... but the tests broke! so I guess we should play safe.
-			width[i] =  (minMax[i][MAX] - minMax[i][MIN]);
-			exp[i] = -( 1 / ( Math.log((center[i] - min[i]) / width[i])/ Math.log(2)));
+			// TODO: doing 1/width[i] might be cheaper as later only a
+			// multiplication
+			// has to be made... but the tests broke! so I guess we should play
+			// safe.
+			width[i] = (minMax[i][MAX] - minMax[i][MIN]);
+			exp[i] = -(1 / (Math.log((center[i] - min[i]) / width[i]) / Math
+					.log(2)));
 
 			assert center[i] >= 0 && center[i] <= 1;
 			assert minMax[i][MIN] >= 0 && minMax[i][MAX] <= 1;
@@ -272,15 +273,18 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 	/**
 	 * validates that the properties of function T are preserved in x
-	 * @param x (initialized leaf)
+	 *
+	 * @param x
+	 *            (initialized leaf)
 	 * @param center
 	 * @return
 	 */
-	protected boolean validateT(SpaceTreeLeaf x, float[] center){
-		int i  = 0;
+	protected boolean validateT(SpaceTreeLeaf x, float[] center) {
+		int i = 0;
 		boolean res = true;
-		while(i < center.length&& res){
-			assert x.normalizeAux(center[i], i) == 0.5: " c[i]: " + center[i] + " i " + i + " T(c[i] " + x.normalizeAux(center[i], i);
+		while (i < center.length && res) {
+			assert x.normalizeAux(center[i], i) == 0.5 : " c[i]: " + center[i]
+					+ " i " + i + " T(c[i] " + x.normalizeAux(center[i], i);
 			res = x.normalizeAux(center[i], i) == 0.5;
 			i++;
 		}
@@ -317,10 +321,12 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param SNo
 	 */
 	protected void spaceDivision(SpaceTree node, final int currentLevel,
-			final float[][] minMax, final Instances data, int[] SNo, Random ran,
-			final FastVector attrs, final float[] center) throws OBException {
+			final float[][] minMax, final Instances data, int[] SNo,
+			Random ran, final FastVector attrs, final float[] center)
+			throws OBException {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Dividing space, level:" + currentLevel + " data size: " + data.numInstances()) ;
+			logger.debug("Dividing space, level:" + currentLevel
+					+ " data size: " + data.numInstances());
 		}
 
 		try {
@@ -363,7 +369,8 @@ public abstract class AbstractPPTree<O extends OB> extends
 				float DV = (float) (CR.value(DD) + CL.value(DD)) / 2;
 
 				if (logger.isDebugEnabled()) {
-					logger.debug("Details:" + currentLevel + " DD: " + DD + " DV " + DV) ;
+					logger.debug("Details:" + currentLevel + " DD: " + DD
+							+ " DV " + DV);
 				}
 
 				// Create "children" spaces
@@ -411,11 +418,11 @@ public abstract class AbstractPPTree<O extends OB> extends
 					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
 							SNo, ran, attrs, calculateCenter(SR));
 
-
 				}
 			} else { // leaf node processing
 				if (logger.isDebugEnabled()) {
-					logger.debug("Found Space:" + SNo[0] + " data size: " + data.numInstances());
+					logger.debug("Found Space:" + SNo[0] + " data size: "
+							+ data.numInstances());
 				}
 				assert node instanceof SpaceTreeLeaf;
 				SpaceTreeLeaf n = (SpaceTreeLeaf) node;
@@ -467,20 +474,23 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @return the center of the given data
 	 */
 	protected float[] calculateCenter(Instances data) {
-		/* It seems that these medians break the system.
-		 * QuantileBin1D[] medianHolder =
-		 * createMedianHolders(data.numInstances()); int i = 0; while(i <
-		 * data.numInstances()){ Instance in = data.instance(i);
-		 * super.updateMedianHolder(convertDoubleToFloat(in.toDoubleArray()),
-		 * medianHolder); i++; }
-		 */
+
+		QuantileBin1D[] medianHolder = createMedianHolders(data.numInstances());
+		int i = 0;
+		while (i < data.numInstances()) {
+			Instance in = data.instance(i);
+			super.updateMedianHolder(convertDoubleToFloat(in.toDoubleArray()),
+					medianHolder);
+			i++;
+		}
+
 		// now we just have to get the medians
 		// int
-		int i = 0;
+		i = 0;
 		float[] res = new float[pivotsCount];
 		while (i < pivotsCount) {
-			// res[i] = (float)medianHolder[i].median();
-			res[i] = (float) data.meanOrMode(i);
+			 res[i] = (float)medianHolder[i].median();
+			//res[i] = (float) data.meanOrMode(i);
 			i++;
 		}
 		return res;
