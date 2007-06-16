@@ -207,7 +207,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						 myr = nr; // regenerate the query with a smaller range
 						 generateRectangleFirstPass(t, myr, qrect);
 						 space.generateRectangle(qrect, qw);
-						 centerQuery(qw); // center the rectangle
+						 if(! space.intersects(qrect)){
+								break; // we have to skip the this space if suddenly we are out of range...
+											// otherwise we would end up searching all the space for the rest of the
+											// pyramids!
+						}
+						centerQuery(qw); // center the rectangle
+
 					  }
 
 				}
@@ -405,5 +411,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			i++;
 		}
 	}
+
+
 
 }

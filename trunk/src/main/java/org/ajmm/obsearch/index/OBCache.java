@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index;
 
 import java.lang.ref.SoftReference;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cern.colt.map.AbstractIntDoubleMap;
 import cern.colt.map.AbstractIntObjectMap;
@@ -37,11 +38,12 @@ import cern.colt.map.OpenIntObjectHashMap;
 
 public class OBCache < O > {
 
-    AbstractIntObjectMap map;
+    ConcurrentHashMap<Integer,SoftReference<O>> map;
 
     public OBCache(int currentDBSize){
         // using open addressing because it is cheaper
-        map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
+        //map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
+    	map = new ConcurrentHashMap<Integer,SoftReference<O>>(currentDBSize);
     }
 
     /**
@@ -49,8 +51,8 @@ public class OBCache < O > {
      * @param id
      * @param object
      */
-    public void put(int id, O object){
-        map.put(id, new SoftReference<O>(object));
+    public void  put(int id, O object){
+        map.put(Integer.valueOf(id), new SoftReference<O>(object));
     }
 
     /**
@@ -59,7 +61,7 @@ public class OBCache < O > {
      * @return null if no object is found
      */
     public O get(int id){
-        SoftReference<O> ref = (SoftReference<O>)map.get(id);
+        SoftReference<O> ref = map.get(id);
         if(ref == null){
             return null; // the object is not here.
          }
