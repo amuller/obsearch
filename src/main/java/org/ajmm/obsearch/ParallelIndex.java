@@ -33,12 +33,16 @@ import org.ajmm.obsearch.exception.OBException;
     @since       0.0
 */
 
-public interface ParallelIndex {
+public interface ParallelIndex<O extends OB> extends Runnable {
 
 	/**
 	 * Waits for all the current searches to complete.
 	 * @throws OBException
 	 */
 	void waitQueries() throws OBException;
+
+	Index<O> getIndex();
+
+
 
 }

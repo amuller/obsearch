@@ -48,3 +48,26 @@ the working directory to evaluate the new changes
 You can do a revert if things don't work ok.
  
 svn merge https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix https://obsearch.googlecode.com/svn/trunk/
+
+
+
+Screenshot:
+
+4 cpus (Intel quad core 64 bit, 4GB ram)
+
+Assert mode on:
+
+Sequential:
+
+25 min??? (maybe 200 was with 
+
+P+Tree:
+7.4 min () (od=6)
+
+30min (od=2)
+
+5 min (od=8)
+
+5.5min (od=10)
+
+Assert mode off:

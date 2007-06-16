@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.Index;
@@ -15,6 +16,7 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
+import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
 /*
@@ -45,11 +47,22 @@ import com.sleepycat.je.DatabaseException;
     @since       0.0
 */
 
-public abstract class AbstractParallelIndex<O extends OB> implements Index<O>, ParallelIndex, Runnable {
+public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, ParallelIndex<O>, Runnable {
 
+	// # of threads to be used
 	protected int cpus;
+	// object that executes threads
 	protected Executor executor;
+	// keep track of an exception if it occurs
 	protected Exception recordedException;
+
+	// variable that holds the # of unprocessed elements
+	// a search increments it by one
+	// a completed search decrements it by one
+	protected AtomicInteger counter;
+
+	private static transient final Logger logger = Logger
+    .getLogger(AbstractParallelIndex.class);
 
 	/**
 	 * Initializes this parallel index with an Index,
@@ -60,17 +73,26 @@ public abstract class AbstractParallelIndex<O extends OB> implements Index<O>, P
 		this.cpus = cpus;
 		recordedException = null;
 		executor  = Executors.newFixedThreadPool(cpus);
-		// now we execute the threads, and leave those threads
-		// active for the life of the object.
+		counter = new AtomicInteger();
+	}
+
+	/**
+	 * This method must be called by daughters of this class
+	 * when they are ready to start matching
+	 */
+	protected void initiateThreads(){
 		int i = 0;
 		while(i < cpus){
-			executor.execute(this);
+			executor.execute(getMe());
 			i++;
 		}
 	}
 
+	protected abstract ParallelIndex getMe();
+
 	protected void checkException() throws OBException{
 		if(recordedException != null){
+			logger.fatal("Exception caught in Parallel Index", recordedException);
 			throw new OBException(recordedException);
 		}
 	}
@@ -79,7 +101,7 @@ public abstract class AbstractParallelIndex<O extends OB> implements Index<O>, P
 	 * Returns the index that this class is parallelizing
 	 * @return Internal index
 	 */
-	protected abstract Index<O>getIndex();
+	public abstract Index<O>getIndex();
 
 
 
@@ -102,8 +124,8 @@ public abstract class AbstractParallelIndex<O extends OB> implements Index<O>, P
 	public byte insert(O object, int id) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
-
-		return this.insert(object, id);
+		byte res = getIndex().insert(object, id);
+		return res;
 	}
 
 	public boolean isFrozen() {
@@ -127,15 +149,20 @@ public abstract class AbstractParallelIndex<O extends OB> implements Index<O>, P
 	 *
 	 */
 	public void waitQueries()  throws OBException{
-		while(elementsInQueue() != 0){
+		while(counter.get() != 0){
 			try {
 				checkException();
-                wait();
+				synchronized(counter){
+					counter.wait();
+				}
+
             } catch (InterruptedException e) {}
 		}
 	}
 
-
+	public void close() throws DatabaseException{
+		getIndex().close();
+	}
 
 
 }

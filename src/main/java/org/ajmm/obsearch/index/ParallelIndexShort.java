@@ -4,6 +4,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.ajmm.obsearch.Index;
+import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -12,6 +13,7 @@ import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
+import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -22,6 +24,8 @@ public class ParallelIndexShort<O extends OBShort> extends
 
 	protected IndexShort<O> index;
 
+	private static transient final Logger logger = Logger
+    .getLogger(ParallelIndexShort.class);
 
 	/**
 	 * Initializes this parallel index with the given index
@@ -37,6 +41,7 @@ public class ParallelIndexShort<O extends OBShort> extends
 		super(cpus);
 		this.index = index;
 		queue = new ArrayBlockingQueue<OBQueryShort<O>>(queueSize);
+		super.initiateThreads();
 	}
 
 	@Override
@@ -45,8 +50,12 @@ public class ParallelIndexShort<O extends OBShort> extends
 	}
 
 	@Override
-	protected Index<O>getIndex(){
+	public Index<O>getIndex(){
 		return index;
+	}
+
+	protected ParallelIndex getMe(){
+		return this;
 	}
 
 	@Override
@@ -58,6 +67,14 @@ public class ParallelIndexShort<O extends OBShort> extends
 			try {
 				OBQueryShort<O> toMatch = queue.take();
 				index.searchOB(toMatch.getObject(), toMatch.getDistance(), toMatch.getResult());
+				if(counter.decrementAndGet() == 0){
+					// only one thread is waiting on this object
+					synchronized(counter){
+						if(counter.get() == 0){
+							counter.notifyAll();
+						}
+					}
+				}
 			} catch (InterruptedException e) {
 			} catch(Exception e){
 				// something went wrong. We won't recover at this point
@@ -68,6 +85,7 @@ public class ParallelIndexShort<O extends OBShort> extends
 
 	/**
 	 * This method enqueues the given object to be matched later
+	 * WARNING: never call this method after calling waitQueries()
 	 */
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
 			throws NotFrozenException, DatabaseException,
@@ -78,6 +96,7 @@ public class ParallelIndexShort<O extends OBShort> extends
 		while (interrupted) {
 			try {
 				queue.put(new OBQueryShort<O>(object, r, result));
+				counter.incrementAndGet();
 				interrupted = false;
 			} catch (InterruptedException e) {
 				interrupted = true;

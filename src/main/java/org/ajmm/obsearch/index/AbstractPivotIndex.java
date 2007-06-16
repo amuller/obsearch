@@ -248,7 +248,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        envConfig.setCacheSize(80 * 1024 * 1024); // 80 MB
+        envConfig.setCacheSize(100 * 1024 * 1024); // 80 MB
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // envConfig.setLocking(false);
@@ -734,4 +734,21 @@ public abstract class AbstractPivotIndex<O extends OB>
         return this.frozen;
     }
 
+    /**
+     * Closes database C
+     *
+     */
+    protected abstract void closeC() throws DatabaseException;
+
+    /**
+     * Closes all the databases and the database environment
+     */
+    public void close() throws DatabaseException{
+    	aDB.close();
+    	bDB.close();
+    	closeC();
+    	pivotsDB.close();
+    	databaseEnvironment.cleanLog();
+    	databaseEnvironment.close();
+    }
 }

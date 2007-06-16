@@ -13,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
@@ -54,7 +55,9 @@ public class IndexSmokeTUtil {
         	 logger.debug("db file: " + db);
 
         	deleteDB();
+        	 assertTrue(! dbFolder.exists());
             assertTrue(dbFolder.mkdirs());
+
 
 
             logger.info("Adding data");
@@ -78,7 +81,11 @@ public class IndexSmokeTUtil {
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
             RandomPivotSelector ps = new RandomPivotSelector();
             //DummyPivotSelector ps = new DummyPivotSelector();
-            ps.generatePivots((AbstractPivotIndex)index);
+            if(index instanceof ParallelIndex){
+            	ps.generatePivots((AbstractPivotIndex)((ParallelIndex)index).getIndex());
+            }else{
+            	ps.generatePivots((AbstractPivotIndex)index);
+            }
             // the pyramid values are created
             logger.info("freezing");
             index.freeze();
@@ -118,6 +125,10 @@ public class IndexSmokeTUtil {
                 }
                 re = r.readLine();
             }
+			if(index instanceof ParallelIndex){
+				logger.info("Waiting for Queries");
+				((ParallelIndex)index).waitQueries();
+			}
             int maxQuery = i;
             logger.info("Pyramid matching ends... Stats follow:");
             //index.stats();
@@ -151,6 +162,7 @@ public class IndexSmokeTUtil {
             logger.info("Finished pyramid matching...");
             assertFalse(it.hasNext());
         } finally {
+        	index.close();
         	deleteDB();
         }
     }
@@ -159,7 +171,7 @@ public class IndexSmokeTUtil {
     	File dbFolder = new File(testProperties.getProperty("test.db.path"));
     	 File[] files = dbFolder.listFiles();
          for (File f : files) {
-             f.delete();
+             assertTrue(f.delete());
          }
          dbFolder.delete();
 

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!-- This is a convenience script used to run OB's examples 
+     This allows the programmer to control exactly what parameters
+		 are being passed to OB. Using unit tests is not a good idea, as
+		 assertions are always enabled.
+-->
+
+<project name="OBSearchExample" xmlns:artifact="urn:maven-artifact-ant">
+
+<target name="init">
+	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
+	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
+	<property name="destlocation" value=".."/>
+</target>
+
+<!-- check if maven tasks have been downloaded -->
+<target name="checkprerequisites">
+<condition property="mavenanttaskavailable">
+      <available file="../${anttask}"/>
+</condition>
+</target>
+
+<!-- download maven tasks -->
+<target name="downloadprerequisites" unless="mavenanttaskavailable" depends="checkprerequisites, init">
+
+	<get src="${jardownloadlocation}/${anttask}" dest="${destlocation}/${anttask}"/>
+	
+</target>
+
+<!-- initialize maven tasks-->
+<target name="maven" depends="init, downloadprerequisites">
+	
+	<path id="maven-ant-tasks.classpath" path="${destlocation}/${anttask}" />
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+           classpathref="maven-ant-tasks.classpath" />
+	<!-- access maven project -->
+	<artifact:pom id="maven.project" file="pom.xml" />
+	<!-- define the classpath -->
+
+	<artifact:dependencies pathId="dependency.classpath">
+
+	</artifact:dependencies>
+</target>
+
+
+<target name="create" depends="maven">
+	
+</target>
+
+
+
+</project>
