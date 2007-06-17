@@ -97,13 +97,15 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		// object
 
 		int pyramidCount = 2 * pivotsCount;
+		float[][] qorig = new float[pivotsCount][2]; // rectangular query
 		float[][] q = new float[pivotsCount][2]; // rectangular query
 		short myr = r;
-		generateRectangle(t, myr, q);
+		generateRectangle(t, myr, qorig);
 		int i = 0;
 		float[] lowHighResult = new float[2];
 		//TODO: select the pyramids randomly just like quicksort
 		while (i < pyramidCount) {
+			copyQuery(qorig,q);
 			if (intersect(q, i, lowHighResult)) {
 				searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
 						+ lowHighResult[HHIGH], result);
@@ -111,7 +113,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 				if(nr < myr){
 					myr = nr;
 					// regenerate the query with a smaller range
-					generateRectangle(t, myr, q);
+					generateRectangle(t, myr, qorig);
 				}
 			}
 			i++;

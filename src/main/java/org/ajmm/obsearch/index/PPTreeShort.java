@@ -134,19 +134,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		// normalizeQuery(q);
 	}
 
-	/**
-	 * Copies the contents of query src into dest
-	 * @param src source
-	 * @param dest destination
-	 */
-	protected void copyQuery(float[][] src, float[][] dest){
-		int i = 0;
-		while(i < src.length){
-			dest[i][MIN] = src[i][MIN];
-			dest[i][MAX] = src[i][MAX];
-			i++;
-		}
-	}
+
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
 			throws NotFrozenException, DatabaseException,
