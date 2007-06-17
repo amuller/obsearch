@@ -17,8 +17,8 @@ public class TestParallelIndex {
 	public void testParallelIndexPPTree() throws Exception{
     	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(
-                dbFolder, (byte) 30, (byte) 8, (short)0, (short) 200);
-    	ParallelIndexShort pindex = new ParallelIndexShort(index,4,3000);
+                dbFolder, (byte) 30, (byte) 2, (short)0, (short) 200);
+    	ParallelIndexShort<OBSlice> pindex = new ParallelIndexShort<OBSlice>(index,2,3000);
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
     	t.tIndex(pindex);
     }
