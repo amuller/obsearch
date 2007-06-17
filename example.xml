@@ -34,12 +34,14 @@
 	<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
            classpathref="maven-ant-tasks.classpath" />
 	<!-- access maven project -->
-	<artifact:pom id="maven.project" file="pom.xml" />
+	<artifact:pom id="project" file="pom.xml" />
 	<!-- define the classpath -->
 
+	
+	<!-- generate the classpath -->
 	<artifact:dependencies pathId="dependency.classpath">
-
-	</artifact:dependencies>
+      <pom refid="project"/>
+  </artifact:dependencies>
 </target>
 
 
