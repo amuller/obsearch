@@ -18,12 +18,15 @@ public class TestPPTree extends TestCase{
 
 
 	public void testPPTree() throws Exception{
-    	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+		/*File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+    	IndexSmokeTUtil.deleteDB(dbFolder);
+   	 	assertTrue(! dbFolder.exists());
+   	 	assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(
                 dbFolder, (byte) 30, (byte) 2, (short)0, (short) 10000);
 
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
-    	t.tIndex(index);
+    	t.tIndex(index);*/
     }
 
 }

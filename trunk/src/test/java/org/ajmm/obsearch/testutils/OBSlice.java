@@ -112,6 +112,10 @@ public class OBSlice implements OBShort {
                 parser.setASTNodeClass("org.ajmm.obsearch.testutils.SliceAST");
                 parser.slice();
                 tree = (SliceAST) parser.getAST();
+                synchronized(tree){
+                	tree.getSize();
+                }
+                // TODO: maybe this method should be syncronized
             } catch (Exception e) {
                 throw new SliceParseException(slice);
             }

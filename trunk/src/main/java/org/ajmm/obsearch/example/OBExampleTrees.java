@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.examples;
+package org.ajmm.obsearch.example;
 
 public class OBExampleTrees {
 

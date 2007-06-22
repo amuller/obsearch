@@ -3,19 +3,26 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 
+import junit.framework.TestCase;
+
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.testutils.OBSlice;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestParallelIndex {
+
+public class TestParallelIndex extends TestCase{
 
 	@Before
 	public void setUp() throws Exception {
 	}
 	@Test
 	public void testParallelIndexPPTree() throws Exception{
-    	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+		File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+    	IndexSmokeTUtil.deleteDB(dbFolder);
+   	 	assertTrue(! dbFolder.exists());
+   	 	assertTrue(dbFolder.mkdirs());
+   	 	    	
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(
                 dbFolder, (byte) 30, (byte) 2, (short)0, (short) 200);
     	ParallelIndexShort<OBSlice> pindex = new ParallelIndexShort<OBSlice>(index,2,3000);

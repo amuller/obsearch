@@ -134,7 +134,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     public AbstractPivotIndex(final File databaseDirectory, final byte pivots)
             throws DatabaseException, IOException {
         this.dbDir = databaseDirectory;
-        if(! dbDir.mkdirs()){
+        if(! dbDir.exists()){
             //throw new IOException("Directory already exists");
         }
         assert pivots <= Byte.MAX_VALUE;
@@ -185,7 +185,7 @@ public abstract class AbstractPivotIndex<O extends OB>
      */
     protected abstract void initC() throws DatabaseException;
 
-    protected Object readResolve() throws DatabaseException,
+    protected AbstractPivotIndex readResolve() throws DatabaseException,
             NotFrozenException, DatabaseException, IllegalAccessException,
             InstantiationException {
         if (logger.isDebugEnabled()) {
@@ -248,7 +248,7 @@ public abstract class AbstractPivotIndex<O extends OB>
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        envConfig.setCacheSize(100 * 1024 * 1024); // 80 MB
+        envConfig.setCacheSize(300 * 1024 * 1024); // 80 MB
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // envConfig.setLocking(false);

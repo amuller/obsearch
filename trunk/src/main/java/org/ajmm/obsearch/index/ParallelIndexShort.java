@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.ParallelIndex;
@@ -40,7 +41,7 @@ public class ParallelIndexShort<O extends OBShort> extends
 	public ParallelIndexShort(IndexShort<O> index, int cpus, int queueSize) {
 		super(cpus);
 		this.index = index;
-		queue = new ArrayBlockingQueue<OBQueryShort<O>>(queueSize);
+		queue = new LinkedBlockingQueue<OBQueryShort<O>>(queueSize);
 		super.initiateThreads();
 	}
 
@@ -68,11 +69,9 @@ public class ParallelIndexShort<O extends OBShort> extends
 				OBQueryShort<O> toMatch = queue.take();
 				index.searchOB(toMatch.getObject(), toMatch.getDistance(), toMatch.getResult());
 				if(counter.decrementAndGet() == 0){
-					// only one thread is waiting on this object
+					// only one thread is waiting on this object					
 					synchronized(counter){
-						if(counter.get() == 0){
 							counter.notifyAll();
-						}
 					}
 				}
 			} catch (InterruptedException e) {
