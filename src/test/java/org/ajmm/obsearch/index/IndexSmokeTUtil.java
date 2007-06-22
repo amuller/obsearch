@@ -41,24 +41,16 @@ public class IndexSmokeTUtil {
      * compares the result with the sequential search.
      */
     protected void tIndex(IndexShort<OBSlice> index) throws Exception {
-
+    	  File query = new File(testProperties
+                  .getProperty("test.query.input"));
+          File db = new File(testProperties.getProperty("test.db.input"));
+          File dbFolder = new File(testProperties.getProperty("test.db.path"));
+     	 logger.debug("query file: " + query);
+     	 logger.debug("db file: " + db);
+     	 
         try {
 
         	int querySize = 1642; // amount of elements to read from the query
-
-            File query = new File(testProperties
-                    .getProperty("test.query.input"));
-            File db = new File(testProperties.getProperty("test.db.input"));
-
-        	File dbFolder = new File(testProperties.getProperty("test.db.path"));
-        	 logger.debug("query file: " + query);
-        	 logger.debug("db file: " + db);
-
-        	deleteDB();
-        	 assertTrue(! dbFolder.exists());
-            assertTrue(dbFolder.mkdirs());
-
-
 
             logger.info("Adding data");
             BufferedReader r = new BufferedReader(new FileReader(db));
@@ -79,8 +71,8 @@ public class IndexSmokeTUtil {
 
             // select the pivots
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
-            RandomPivotSelector ps = new RandomPivotSelector();
-            //DummyPivotSelector ps = new DummyPivotSelector();
+            //RandomPivotSelector ps = new RandomPivotSelector();
+            DummyPivotSelector ps = new DummyPivotSelector();
             if(index instanceof ParallelIndex){
             	ps.generatePivots((AbstractPivotIndex)((ParallelIndex)index).getIndex());
             }else{
@@ -163,12 +155,14 @@ public class IndexSmokeTUtil {
             assertFalse(it.hasNext());
         } finally {
         	index.close();
-        	deleteDB();
+        	deleteDB(dbFolder);
         }
     }
 
-    public void deleteDB(){
-    	File dbFolder = new File(testProperties.getProperty("test.db.path"));
+    public static  void deleteDB(File dbFolder){
+    	if(! dbFolder.exists()){
+    		return;
+    	}
     	 File[] files = dbFolder.listFiles();
          for (File f : files) {
              assertTrue(f.delete());
@@ -182,7 +176,7 @@ public class IndexSmokeTUtil {
     }
 
     public String parseLine(String line) {
-        if (line.startsWith("//") || line.trim().equals("")
+        if (line.startsWith("//") || "".equals(line.trim())
                 || (line.startsWith("#") && !line.startsWith("#("))) {
             return null;
         } else {

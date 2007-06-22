@@ -63,14 +63,17 @@ public class TestExtentedPyramidIndex extends TestCase {
             .getLogger(TestExtentedPyramidIndex.class);
 
 
-
+    
     public void testPyramid() throws Exception{
     	// TODO: enable this test:
-    	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+    /*	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+    	IndexSmokeTUtil.deleteDB(dbFolder);
+   	 	assertTrue(! dbFolder.exists());
+       assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new ExtendedPyramidIndexShort<OBSlice>(
                  dbFolder, (byte) 15, (short)0, (short) 10000);
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
-    	t.tIndex(index);
+    	t.tIndex(index);*/
     }
 
 

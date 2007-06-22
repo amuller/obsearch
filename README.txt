@@ -74,6 +74,21 @@ Assert mode off:
 
 
 
+Perf numbers:
+
+Sequential
+24 min
+
+Dummy pivot selection
+Extended pyramid
+12 min
+
+P+tree
+3.7 min
+
+P+Tree (2 cpus)
+7.42 min... WHY!
+
 
 command line: (GPL)
 http://getpot.sourceforge.net/

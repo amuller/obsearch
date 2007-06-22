@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ajmm.obsearch.AbstractOBResult;
@@ -46,7 +47,11 @@ import com.sleepycat.je.DatabaseException;
     @version     %I%, %G%
     @since       0.0
 */
-
+// TODO: There is a performance bottleneck in this class. CPU usage for a quad core machine gets 
+// only to 280% when using 4 threads. It should be 400%.
+// It might be berkeley db. It might be simply the fact that there is only one hard drive, and 4 cpus 
+// eating a lot of data. Another possibility is that the queue is too slow, that the bottleneck is the creation of slices...
+// I will work on this in the future.
 public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, ParallelIndex<O>, Runnable {
 
 	// # of threads to be used
@@ -60,6 +65,8 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 	// a search increments it by one
 	// a completed search decrements it by one
 	protected AtomicInteger counter;
+	
+	
 
 	private static transient final Logger logger = Logger
     .getLogger(AbstractParallelIndex.class);
@@ -151,13 +158,15 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 	public void waitQueries()  throws OBException{
 		while(counter.get() != 0){
 			try {
-				checkException();
+				checkException();				
+				//waiting.acquire();
 				synchronized(counter){
 					counter.wait();
 				}
 
             } catch (InterruptedException e) {}
 		}
+		
 	}
 
 	public void close() throws DatabaseException{
