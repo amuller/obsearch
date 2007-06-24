@@ -17,12 +17,12 @@ import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.TUtils;
+import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.testutils.OBSlice;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
@@ -66,14 +66,14 @@ public class TestExtentedPyramidIndex extends TestCase {
     
     public void testPyramid() throws Exception{
     	// TODO: enable this test:
-    /*	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+    	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
     	IndexSmokeTUtil.deleteDB(dbFolder);
    	 	assertTrue(! dbFolder.exists());
        assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new ExtendedPyramidIndexShort<OBSlice>(
                  dbFolder, (byte) 15, (short)0, (short) 10000);
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
-    	t.tIndex(index);*/
+    	t.tIndex(index);
     }
 
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ajmm.obsearch.testutils;
+package org.ajmm.obsearch.example;
 
 import org.ajmm.obsearch.exception.OBException;
 

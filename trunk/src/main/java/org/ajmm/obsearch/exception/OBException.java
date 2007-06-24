@@ -46,7 +46,7 @@ public class OBException extends Exception {
 		if(ex != null){
 			return ex.toString();
 		}
-		else if(ex != null){
+		else if(str != null){
 			return str;
 		}else{
 			return "N/A, Sing this Corrosion!";

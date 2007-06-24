@@ -135,7 +135,7 @@ public abstract class AbstractPivotIndex<O extends OB>
             throws DatabaseException, IOException {
         this.dbDir = databaseDirectory;
         if(! dbDir.exists()){
-            //throw new IOException("Directory already exists");
+            throw new IOException("Directory does not exist.");
         }
         assert pivots <= Byte.MAX_VALUE;
         assert pivots >= Byte.MIN_VALUE;
@@ -180,12 +180,21 @@ public abstract class AbstractPivotIndex<O extends OB>
     }
 
     /**
-     * This method will be called by the super class Initializes the C
+     * This method will be called by the super class Initializes the C     *
      * database(s)
      */
     protected abstract void initC() throws DatabaseException;
 
-    protected AbstractPivotIndex readResolve() throws DatabaseException,
+    /**
+     * This method is called by xstream when all the serialized fields have been populated
+     * @return
+     * @throws DatabaseException
+     * @throws NotFrozenException
+     * @throws DatabaseException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
+    protected Object readResolveAux() throws DatabaseException,
             NotFrozenException, DatabaseException, IllegalAccessException,
             InstantiationException {
         if (logger.isDebugEnabled()) {
@@ -195,10 +204,11 @@ public abstract class AbstractPivotIndex<O extends OB>
         initDB();
         loadPivots();
         initCache();
-        return this;
+        initC();
+        return this.returnSelf();
     }
 
-
+    //private abstract Object readResolve() throws DatabaseException;
 
     protected void initCache() throws DatabaseException {
     	if(cache == null){
@@ -207,7 +217,7 @@ public abstract class AbstractPivotIndex<O extends OB>
     	}
     }
 
-    protected int databaseSize() throws DatabaseException {
+    public int databaseSize() throws DatabaseException {
         return (int) aDB.count();
     }
 
@@ -450,8 +460,8 @@ public abstract class AbstractPivotIndex<O extends OB>
         XStream xstream = new XStream();
         // TODO: make sure this "this" will print the subclass and not the
         // current class
-        String xml = xstream.toXML(this);
-        FileWriter fout = new FileWriter(this.dbDir.getPath()
+        String xml = xstream.toXML(returnSelf());
+        FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator 
                 + getSerializedName());
         fout.write(xml);
         fout.close();
@@ -641,19 +651,23 @@ public abstract class AbstractPivotIndex<O extends OB>
         Cursor cursor = null;
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-
+        createPivotsArray();
         if (!isFrozen()) {
             throw new NotFrozenException();
         }
         try {
             int i = 0;
             cursor = pivotsDB.openCursor(null, null);
-            O obj = this.instantiateObject();
+            
             while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
                 TupleInput in = new TupleInput(foundData.getData());
+                O obj = this.instantiateObject();
                 obj.load(in);
                 pivots[i] = obj;
+                if(logger.isDebugEnabled()){
+                	logger.debug("Loaded pivot: " + obj);
+                }
                 i++;
             }
             assert i == pivotsCount; // pivot count and read # of pivots

@@ -15,10 +15,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.TUtils;
+import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.testutils.OBSlice;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -171,11 +171,11 @@ public class IndexSmokeTUtil {
 
     }
 
-    public boolean shouldProcessSlice(OBSlice x) throws Exception{
+    public static boolean shouldProcessSlice(OBSlice x) throws Exception{
     	return x.size()<= 100;
     }
 
-    public String parseLine(String line) {
+    public static String parseLine(String line) {
         if (line.startsWith("//") || "".equals(line.trim())
                 || (line.startsWith("#") && !line.startsWith("#("))) {
             return null;

@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.testutils;
+package org.ajmm.obsearch.example;
 
 import java.io.StringReader;
 import java.util.List;
@@ -109,7 +109,7 @@ public class OBSlice implements OBShort {
             	assert slice != null;
                 SliceLexer lexer = new SliceLexer(new StringReader(slice));
                 SliceParser parser = new SliceParser(lexer);
-                parser.setASTNodeClass("org.ajmm.obsearch.testutils.SliceAST");
+                parser.setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
                 parser.slice();
                 tree = (SliceAST) parser.getAST();
                 synchronized(tree){
@@ -128,6 +128,15 @@ public class OBSlice implements OBShort {
     	return tree.getSize();
     }
 
+    public String toString(){
+    	try{
+    	updateTree();
+    	return tree.toStringList();
+    	}catch(Exception e){
+    		
+    	}
+    	return ":)";
+    }
 
     /*
      * (non-Javadoc)
