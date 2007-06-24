@@ -94,3 +94,16 @@ command line: (GPL)
 http://getpot.sourceforge.net/
 
 http://jchassis.sourceforge.net/
+
+
+
+Example <<P+Tree>>:
+-----------------------
+
+OD=8 
+Tentacle
+448 sec  7 min (100 mb cache)
+454 sec 7 min (300mb cache)
+
+OD=6
+533 minutes: 8(300mb cache)

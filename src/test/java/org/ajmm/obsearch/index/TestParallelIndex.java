@@ -6,7 +6,7 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.ajmm.obsearch.TUtils;
-import org.ajmm.obsearch.testutils.OBSlice;
+import org.ajmm.obsearch.example.OBSlice;
 import org.junit.Before;
 import org.junit.Test;
 

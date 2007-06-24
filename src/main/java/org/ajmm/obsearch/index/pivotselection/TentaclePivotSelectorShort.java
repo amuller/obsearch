@@ -18,8 +18,9 @@ public class TentaclePivotSelectorShort<O extends OBShort> extends AbstractTenta
 	private short minD;
 
 	/**
-	 * Min d to be accepted
-	 * @param d
+	 * Creates a new tentacle selector that will select pivots
+	 * with at least minD units
+	 * @param minD (minimun accepted number of units)
 	 */
 	public TentaclePivotSelectorShort(short minD){
 		this.minD = minD;

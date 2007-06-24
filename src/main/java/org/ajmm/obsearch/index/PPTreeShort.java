@@ -401,5 +401,10 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	}
 
 
+	private Object readResolve() throws DatabaseException,
+    NotFrozenException, DatabaseException, IllegalAccessException,
+    InstantiationException {
+		return super.readResolveAux();
+	}
 
 }

@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.testutils;
+package org.ajmm.obsearch.example;
 
 import java.util.BitSet;
 import java.util.HashSet;

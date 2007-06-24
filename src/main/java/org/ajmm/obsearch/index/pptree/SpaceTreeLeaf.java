@@ -5,13 +5,13 @@ import java.util.List;
 
 public class SpaceTreeLeaf implements SpaceTree {
 
-	int SNo;
+	private int SNo;
 
-	double[] min;
+	private double[] min;
 
-	double[] width;
+	private double[] width;
 
-	double[] exp;
+	private double[] exp;
 
 	public String toString(){
 		return "leaf(" + SNo + " " + Arrays.deepToString(minMax)+ ")";
@@ -23,7 +23,7 @@ public class SpaceTreeLeaf implements SpaceTree {
 	 * get smaller during the course of a match, this functionality is necessary
 	 *
 	 */
-	float[][] minMax;
+	private float[][] minMax;
 
 	public float[][] getMinMax() {
 		return minMax;
