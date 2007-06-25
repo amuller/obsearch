@@ -21,6 +21,10 @@ public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult>{
     protected PriorityQueue<O> queue;
 
     protected byte k;
+    
+    public Iterator<O> iterator(){
+    	return queue.iterator();
+    }
 
     /**
      * Creates a priority queue of k = 3

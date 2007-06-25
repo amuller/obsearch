@@ -24,6 +24,8 @@ public class ParallelIndexShort<O extends OBShort> extends
 	protected BlockingQueue<OBQueryShort<O>> queue;
 
 	protected IndexShort<O> index;
+	
+	
 
 	private static transient final Logger logger = Logger
     .getLogger(ParallelIndexShort.class);

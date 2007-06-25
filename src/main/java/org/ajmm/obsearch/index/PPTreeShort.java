@@ -3,6 +3,7 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +17,9 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.pptree.SpaceTreeLeaf;
 import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
+import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
+import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
@@ -38,6 +41,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 	private static final transient Logger logger = Logger
 	.getLogger(PPTreeShort.class);
+	
+	protected transient HashMap<O, OBQueryShort<O>> resultCache;
 
 	public PPTreeShort(File databaseDirectory, byte pivots, byte od)
 			throws DatabaseException, IOException {
@@ -51,6 +56,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		assert minInput < maxInput;
 		this.minInput = minInput;
 		this.maxInput = maxInput;
+		resultCache = new HashMap<O, OBQueryShort<O>>(3000);
 	}
 
 	@Override
@@ -142,6 +148,18 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			OutOfRangeException, OBException {
 		// check if we are frozen
 		assertFrozen();
+		
+		// check if the result has been processed
+		OBQueryShort cachedResult = this.resultCache.get(object);
+		if(cachedResult != null && cachedResult.getDistance() == r){
+			
+			Iterator<OBResultShort<O>> it  =cachedResult.getResult().iterator();
+			while(it.hasNext()){
+				OBResultShort<O> element = it.next();
+				result.add(element.getId(), element.getObject(), element.getDistance());				
+			}			
+			return;
+		}
 
 		short[] t = new short[pivotsCount];
 		calculatePivotTuple(object, t); // calculate the pivot for the given
@@ -208,6 +226,9 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 				i++;
 			}
 		}
+		
+		// store the result in the cache
+		this.resultCache.put(object, new OBQueryShort<O>(object,r,  result));
 	}
 
 	/**
@@ -404,6 +425,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	private Object readResolve() throws DatabaseException,
     NotFrozenException, DatabaseException, IllegalAccessException,
     InstantiationException {
+		resultCache = new HashMap<O, OBQueryShort<O>>(3000);
 		return super.readResolveAux();
 	}
 
