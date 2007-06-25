@@ -99,7 +99,7 @@ public class OBExampleTrees {
 		       
 		        
 		        index = (PPTreeShort<OBSlice>)xstream.fromXML(readString(indexFile));
-		        
+		      
 				logger.info("Done! DB size: " + index.databaseSize());
 				 byte k = Byte.parseByte(cline.getOptionValue("k"));
 		         short range = Short.parseShort(cline.getOptionValue("r")); // range
@@ -132,6 +132,7 @@ public class OBExampleTrees {
 	                }
 	                re = r.readLine();
 	            }
+				//pindex.waitQueries();
 				long time = System.currentTimeMillis() - start;
 				logger.info("Running time: seconds: " + time / 1000 +  " minutes: " + time / 1000 / 60);
 				

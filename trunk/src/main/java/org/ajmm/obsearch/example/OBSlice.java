@@ -164,5 +164,11 @@ public class OBSlice implements OBShort {
         OBSlice o = (OBSlice) obj;
         return this.tree.equals(o.tree);
     }
+    
+    public int hashCode(){
+    	assert slice != null;
+    	return this.slice.hashCode();
+    }
+    
 
 }
