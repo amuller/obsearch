@@ -91,7 +91,7 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 	 * @throws DatabaseException
 	 */
 	public AbstractExtendedPyramidIndex(final File databaseDirectory,
-			final byte pivots) throws DatabaseException, IOException {
+			final short pivots) throws DatabaseException, IOException {
 		super(databaseDirectory, pivots); // initializes the databases
 		mp = new float[super.pivotsCount];
 	}

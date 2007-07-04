@@ -3,6 +3,7 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Random;
 
 import hep.aida.bin.QuantileBin1D;
@@ -23,6 +24,8 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
+
+import cern.colt.bitvector.BitVector;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.TupleInput;
@@ -54,7 +57,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 *            divisions will be performed.
 	 * @throws DatabaseException
 	 */
-	public AbstractPPTree(final File databaseDirectory, final byte pivots,
+	public AbstractPPTree(final File databaseDirectory, final short pivots,
 			final byte od) throws DatabaseException, IOException {
 		super(databaseDirectory, pivots);
 		this.od = od;
@@ -279,7 +282,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 				Instance CL = centers.instance(0);
 				Instance CR = centers.instance(1);
-				byte DD = dividingDimension(CL, CR);
+				short DD = dividingDimension(CL, CR);
 				float DV = (float) (CR.value(DD) + CL.value(DD)) / 2;
 
 				if (logger.isDebugEnabled()) {
@@ -361,7 +364,167 @@ public abstract class AbstractPPTree<O extends OB> extends
 			throw new OBException(e);
 		}
 	}
+	
+	
+	/**
+	 * Performs k-means on the given cluster.
+	 * @param cluster Each turned bit of the given cluster is an object ID in B
+	 * @param k the number of clusters to generate
+	 * @return The centroids of the clusters
+	 */
+	private float[][] kMeans(BitSet cluster, byte k)throws DatabaseException, OutOfRangeException{
+		float[][] centroids = new float[k][pivotsCount];
+		
+		initializeKMeans(cluster, k, centroids); // here we could use k-means++ !!!
+        BitSet selection[] = initSubClusters(cluster, k);
+        
+		assert centroids.length == k;
+		boolean modified = true;
+		float [] tempTuple = new float[pivotsCount];
+		while(modified){ // while there have been modifications
+			int card = 0;
+			int bitIndex = 0;
+			modified = false;
+			// we will put here all the averages used to calculate the new cluster
+			float[][] averages = new float[k][pivotsCount];
+			while(card < cluster.cardinality()){
+				// find the closest point
+				bitIndex = cluster.nextSetBit(bitIndex);
+				// get the tuple
+				readFromB(bitIndex, tempTuple);
+				// find the closest spot
+				byte closest = closest(tempTuple, centroids);
+				// check if the closest cluster is still the same
+				if(! selection[closest].get(bitIndex)){
+					modified = true;
+					// set the correct cluster where our item belongs
+					updateClusterInfo(closest, selection, bitIndex);
+				}
+				updateAveragesInfo(closest, tempTuple, averages);
+				card++;
+			}
+			// after finishing recalculating the pivots, we just have to 
+			// center the clusters
+			if(modified){
+				centerClusters(centroids, averages, selection );
+			}
+		}
+		return centroids;
+	}
+	
+	private void centerClusters(float[][] centroids, float[][] averages, BitSet selection[]) {
+		byte i = 0;
+		assert centroids.length == averages.length && centroids.length == selection.length;
+		while(i < averages.length){
+			int cx = 0;
+			while(cx < pivotsCount){
+				centroids[i][cx] = averages[i][cx] / selection[i].cardinality();
+				cx++;
+			}
+			i++;
+		}
+	}
+	
+	/**
+	 * Adds the contents of tuple to averages[cluster]
+	 * @param cluster
+	 * @param tuple
+	 * @param averages
+	 */
+	private void updateAveragesInfo(byte cluster, float[] tuple, float[][]averages){
+		int i = 0;
+		while(i < pivotsCount){
+			averages[cluster][i] += tuple[i];
+			i++;
+		}
+	}
+	
+	/**
+	 * Sets the ith element in selection[cluster] and set the ith bit in
+	 * the other clusters to 0. 
+	 * @param cluster
+	 * @param element
+	 * @param selection
+	 */
+	private void updateClusterInfo(byte cluster, BitSet[] selection, int element){
+		byte i = 0;
+		while(i < selection.length){
+			if(i == cluster){
+				selection[i].set(element);
+			}else{
+				selection[i].clear(element);
+			}
+			i++;
+		}
+	}
+	
+	private byte closest(float [] tuple, float[][] centroids){
+		byte i = 0;
+		byte res = 0;
+		float value = Float.MAX_VALUE;
+		while(i < centroids.length){
+			float temp = euclideanDistance(tuple, centroids[i]);
+			if(temp < value){
+				value = temp;
+				res = i;
+			}
+			i++;
+		}
+		return res;
+	}
+	
+	/** 
+	 * Computes the euclidean distance for the given tuples
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	private float euclideanDistance(float[] a, float[] b){
+		int i = 0;
+		float res = 0;
+		while(i < pivotsCount){
+			res += Math.pow(a[i] - b[i], 2);
+			i++;
+		}
+		return (float)Math.sqrt(res);
+	}
+	
+	private BitSet [] initSubClusters(BitSet cluster, byte k){
+		BitSet [] res = new BitSet[k];
+		byte i = 0;
+		while(i < k){
+			res[i] = new BitSet(cluster.size());
+			i++;
+		}
+		return res;
+	}
 
+	/**
+	 * Initializes k centroids 
+	 * @param cluster
+	 * @param k
+	 * @param centroids
+	 */
+	private void initializeKMeans(BitSet cluster, byte k, float[][] centroids) throws DatabaseException, OutOfRangeException{
+		int total = cluster.size();
+		Random r = new Random(System.currentTimeMillis());
+		byte i = 0;
+		while(i < k){
+			r.nextInt(total);
+			int id = cluster.nextSetBit(total);
+			readFromB(id, centroids[i]);
+			i++;
+		}
+	}
+	
+	/**
+	 * Read the given tuple from B database and load it into the given tuple
+	 * @param id
+	 * @param tuple
+	 */
+	protected abstract void readFromB(int id, float[] tuple) throws DatabaseException, OutOfRangeException;
+
+	
 	/**
 	 * Verifies that all the data that is going to be inserted in this leaf
 	 * belongs to the given leaf
@@ -481,7 +644,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param cr
 	 * @return the dimension that has the biggest gap between cl and cr
 	 */
-	protected final byte dividingDimension(Instance cl, Instance cr) {
+	protected final short dividingDimension(Instance cl, Instance cr) {
 		int res = 0;
 		int i = 0;
 		double max = Double.MIN_VALUE;
@@ -493,7 +656,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 			}
 			i++;
 		}
-		return (byte) res;
+		return (short) res;
 	}
 
 	/**

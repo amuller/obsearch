@@ -158,3 +158,7 @@ Tentacle
 
 OD=6
 533 minutes: 8(300mb cache)
+
+
+125 minutes for 88 pivots!
+Very fast actually.

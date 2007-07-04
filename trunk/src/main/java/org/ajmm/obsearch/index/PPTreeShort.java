@@ -38,18 +38,23 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	private short minInput;
 
 	private short maxInput;
+	
+	private transient long accumExecutionTimeD;
+	private transient long totalExecutedTimesD;
+	private transient long accumExecutionTimeSMAP;
+	private transient long totalExecutedTimesSMAP;
 
 	private static final transient Logger logger = Logger
 	.getLogger(PPTreeShort.class);
 	
 	protected transient HashMap<O, OBQueryShort<O>> resultCache;
 
-	public PPTreeShort(File databaseDirectory, byte pivots, byte od)
+	public PPTreeShort(File databaseDirectory, short pivots, byte od)
 			throws DatabaseException, IOException {
 		this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE);
 	}
 
-	public PPTreeShort(File databaseDirectory, byte pivots, byte od,
+	public PPTreeShort(File databaseDirectory, short pivots, byte od,
 			short minInput, short maxInput) throws DatabaseException,
 			IOException {
 		super(databaseDirectory, pivots, od);
@@ -118,7 +123,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	/**
 	 * Generates a query rectangle based on the given range and the given tuple.
 	 * It normalizes the query first level only
-	 *
+	 * 
 	 * @param t
 	 *            the tuple to be processed
 	 * @param r
@@ -150,7 +155,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		assertFrozen();
 		
 		// check if the result has been processed
-		OBQueryShort cachedResult = this.resultCache.get(object);
+	/*	OBQueryShort cachedResult = this.resultCache.get(object);
 		if(cachedResult != null && cachedResult.getDistance() == r){
 			
 			Iterator<OBResultShort<O>> it  =cachedResult.getResult().iterator();
@@ -159,7 +164,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 				result.add(element.getId(), element.getObject(), element.getDistance());				
 			}			
 			return;
-		}
+		}*/
 
 		short[] t = new short[pivotsCount];
 		calculatePivotTuple(object, t); // calculate the pivot for the given
@@ -214,8 +219,11 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						 generateRectangleFirstPass(t, myr, qrect);
 						 space.generateRectangle(qrect, qw);
 						 if(! space.intersects(qrect)){
-								break; // we have to skip the this space if suddenly we are out of range...
-											// otherwise we would end up searching all the space for the rest of the
+								break; // we have to skip the this space if
+										// suddenly we are out of range...
+											// otherwise we would end up
+											// searching all the space for the
+											// rest of the
 											// pyramids!
 						}
 						centerQuery(qw); // center the rectangle
@@ -228,7 +236,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 		
 		// store the result in the cache
-		this.resultCache.put(object, new OBQueryShort<O>(object,r,  result));
+		//this.resultCache.put(object, new OBQueryShort<O>(object,r,  result));
 	}
 
 	/**
@@ -236,7 +244,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	 * positives Calculates the real distance and updates the result priority
 	 * queue It is left public so that junit can perform validations on it
 	 * Performance-wise this is one of the most important methods
-	 *
+	 * 
 	 * @param object
 	 * @param tuple
 	 * @param r
@@ -278,6 +286,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 					int i = 0;
 					short t;
 					max = Short.MIN_VALUE;
+					// STATS
+					long start = System.currentTimeMillis();
 					while (i < tuple.length) {
 						t = (short) Math.abs(tuple[i] - in.readShort());
 						if (t > max) {
@@ -290,11 +300,19 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						}
 						i++;
 					}
+					this.accumExecutionTimeSMAP += System.currentTimeMillis() - start;
+					this.totalExecutedTimesSMAP ++;
 					if (max <= r && result.isCandidate(max)) {
 						// there is a chance it is a possible match
 						int id = in.readInt();
 						O toCompare = super.getObject(id);
+						// STATS
+						start = System.currentTimeMillis();
 						realDistance = object.distance(toCompare);
+						// STATS
+						this.accumExecutionTimeD += System.currentTimeMillis() - start;
+						// STATS
+						this.totalExecutedTimesD++;
 						if (realDistance <= r) {
 
 							result.add(id, toCompare, realDistance);
@@ -313,6 +331,12 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			cursor.close();
 		}
 	}
+	
+	public String toString(){
+		return " STATS: SMAP # " + this.totalExecutedTimesSMAP + " Avg time: " + ((double)this.accumExecutionTimeSMAP / (double)this.totalExecutedTimesSMAP)
+			+ "\n STATS: D # " + this.totalExecutedTimesD + " Avg time: " + ((double)this.accumExecutionTimeD / (double)this.totalExecutedTimesD);
+		
+	}
 
 	@Override
 	protected byte insertFrozen(O object, int id) throws IllegalIdException,
@@ -326,7 +350,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 	/**
 	 * Inserts the given tuple and id into C
-	 *
+	 * 
 	 * @param t
 	 * @param id
 	 * @return
@@ -383,11 +407,46 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		IntegerBinding.intToEntry(id, keyEntry);
 		insertInDatabase(out, keyEntry, bDB);
 	}
+	
+	/**
+	 * Read the given tuple from B database and load it into the given tuple
+	 * in a normalized form
+	 * @param id
+	 * @param tuple
+	 */
+	protected void readFromB(int id, float[] tuple) throws DatabaseException, OutOfRangeException{
+		Cursor cursor = null;
+		try{
+			DatabaseEntry keyEntry = new DatabaseEntry();
+			DatabaseEntry dataEntry = new DatabaseEntry();
+			cursor = bDB.openCursor(null, null);
+			IntegerBinding.intToEntry(id, keyEntry);
+			OperationStatus retVal = cursor.getSearchKey (keyEntry,
+					dataEntry, null);
+	
+			if (retVal == OperationStatus.NOTFOUND) {
+				assert false;
+				return;
+			}
+						
+			assert cursor.count() == 1;
+	
+			TupleInput in = new TupleInput(dataEntry.getData() );
+			int i = 0;
+			assert tuple.length == pivotsCount;
+			while(i < pivotsCount){
+				tuple[i] = normalizeFirstPassAux(in.readShort());
+				i++;
+			}
+		}finally{
+			cursor.close();
+		}
+	}
 
 	/**
 	 * Normalize the given value This is a first pass normalization, any value
 	 * to [0,1]
-	 *
+	 * 
 	 * @param x
 	 * @return the normalized value
 	 */
@@ -405,7 +464,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 	/**
 	 * Calculates the tuple vector for the given object
-	 *
+	 * 
 	 * @param obj
 	 *            object to be processed
 	 * @param tuple
