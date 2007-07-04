@@ -43,7 +43,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * @throws IOException
 	 */
 	public ExtendedPyramidIndexShort(final File databaseDirectory,
-			final byte pivots) throws DatabaseException, IOException {
+			final short pivots) throws DatabaseException, IOException {
 
 		this(databaseDirectory, pivots, (short) 0, Short.MAX_VALUE);
 	}
@@ -61,7 +61,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * @throws IOException
 	 */
 	public ExtendedPyramidIndexShort(final File databaseDirectory,
-			final byte pivots, short minInput, short maxInput)
+			final short pivots, short minInput, short maxInput)
 			throws DatabaseException, IOException {
 		super(databaseDirectory, pivots);
 		this.minInput = minInput;

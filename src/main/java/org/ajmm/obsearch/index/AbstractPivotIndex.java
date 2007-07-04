@@ -85,7 +85,7 @@ public abstract class AbstractPivotIndex<O extends OB>
 
     private File dbDir;
 
-    protected byte pivotsCount;
+    protected short pivotsCount;
 
     private boolean frozen;
 
@@ -131,14 +131,14 @@ public abstract class AbstractPivotIndex<O extends OB>
      *            Do something like YourObj.class
      * @throws DatabaseException
      */
-    public AbstractPivotIndex(final File databaseDirectory, final byte pivots)
+    public AbstractPivotIndex(final File databaseDirectory, final short pivots)
             throws DatabaseException, IOException {
         this.dbDir = databaseDirectory;
         if(! dbDir.exists()){
             throw new IOException("Directory does not exist.");
         }
-        assert pivots <= Byte.MAX_VALUE;
-        assert pivots >= Byte.MIN_VALUE;
+        assert pivots <= Short.MAX_VALUE;
+        assert pivots >= Short.MIN_VALUE;
         this.pivotsCount = pivots;
         frozen = false;
         maxId = 0;
@@ -665,13 +665,16 @@ public abstract class AbstractPivotIndex<O extends OB>
                 O obj = this.instantiateObject();
                 obj.load(in);
                 pivots[i] = obj;
-                if(logger.isDebugEnabled()){
-                	logger.debug("Loaded pivot: " + obj);
-                }
+               // if(logger.isDebugEnabled()){
+               // 	logger.debug("Loaded pivot: " + obj);
+                //}
                 i++;
             }
             assert i == pivotsCount; // pivot count and read # of pivots
             // should be the same
+            if(logger.isDebugEnabled()){
+            logger.debug("Loaded " + i + " pivots, pivotsCount:" + pivotsCount);            
+            }
         } finally {
             cursor.close();
         }
@@ -735,7 +738,7 @@ public abstract class AbstractPivotIndex<O extends OB>
      *
      * @return
      */
-    public byte getPivotsCount() {
+    public short getPivotsCount() {
         return this.pivotsCount;
     }
 

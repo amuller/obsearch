@@ -54,7 +54,7 @@ public class OBExampleTrees {
 		        File dbFolder = new File(cline.getOptionValue("db"));
 				byte od = Byte.parseByte(cline.getOptionValue("od"));
 		        index = new PPTreeShort<OBSlice>(
-		                dbFolder, (byte) 30, (byte) od, (short)0, (short) 200);
+		                dbFolder, (short) 300, (byte) od, (short)0, (short) 1000);
 		    	
 		    	
 		        logger.info("Adding data");
@@ -135,6 +135,7 @@ public class OBExampleTrees {
 				//pindex.waitQueries();
 				long time = System.currentTimeMillis() - start;
 				logger.info("Running time: seconds: " + time / 1000 +  " minutes: " + time / 1000 / 60);
+				logger.info(index);
 				
 			}else{
 				throw new OBException("You have to set the mode: 'create' or 'search'");
@@ -227,7 +228,7 @@ public class OBExampleTrees {
 	}
 	
 	public static boolean shouldProcessSlice(OBSlice x) throws Exception{
-    	return x.size()<= 100;
+    	return x.size()<= 500;
     }
 
     public static String parseLine(String line) {

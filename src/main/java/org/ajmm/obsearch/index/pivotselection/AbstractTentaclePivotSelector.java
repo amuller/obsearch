@@ -56,7 +56,7 @@ public abstract class AbstractTentaclePivotSelector<O extends OB> implements
 		x.prepareFreeze();
 		O prev = obtainD(x);
 		int m = x.getMaxId();
-		byte pivotsCount = x.getPivotsCount();
+		short pivotsCount = x.getPivotsCount();
 		int[] res = new int[pivotsCount];
 		// ugly but welcome to java generics
 		O[] obs = x.emptyPivotsArray();

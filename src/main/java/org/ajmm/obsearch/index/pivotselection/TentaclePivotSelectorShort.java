@@ -13,7 +13,8 @@ import org.apache.log4j.Logger;
 import com.sleepycat.je.DatabaseException;
 
 public class TentaclePivotSelectorShort<O extends OBShort> extends AbstractTentaclePivotSelector<O> {
-
+// TODO: fix a bug in which not all the pivots are being selected.
+	// from 600 only 88 were selected.
 	private short d = Short.MIN_VALUE;
 	private short minD;
 

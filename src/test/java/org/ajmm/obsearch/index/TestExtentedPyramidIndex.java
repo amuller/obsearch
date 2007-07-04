@@ -71,7 +71,7 @@ public class TestExtentedPyramidIndex extends TestCase {
    	 	assertTrue(! dbFolder.exists());
        assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new ExtendedPyramidIndexShort<OBSlice>(
-                 dbFolder, (byte) 15, (short)0, (short) 10000);
+                 dbFolder, (byte) 15, (short)0, (short) 200);
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
     	t.tIndex(index);
     }

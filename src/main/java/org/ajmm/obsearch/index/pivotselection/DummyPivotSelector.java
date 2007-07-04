@@ -19,7 +19,7 @@ public class DummyPivotSelector implements PivotSelector {
      * @see org.ajmm.obsearch.index.PivotSelector#generatePivots(short)
      */
     public void generatePivots(AbstractPivotIndex index) throws OBException, IllegalAccessException, InstantiationException, DatabaseException{
-    	byte pivots = index.getPivotsCount();
+    	short pivots = index.getPivotsCount();
     	int maxIdAvailable = index.getMaxId();
         assert pivots <= maxIdAvailable;
         int[] res = new int[pivots];
