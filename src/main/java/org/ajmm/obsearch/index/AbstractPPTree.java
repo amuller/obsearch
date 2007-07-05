@@ -372,7 +372,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param k the number of clusters to generate
 	 * @return The centroids of the clusters
 	 */
-	private float[][] kMeans(BitSet cluster, byte k)throws DatabaseException, OutOfRangeException{
+	private float[][] kMeans(final BitSet cluster, byte k)throws DatabaseException, OutOfRangeException{
 		float[][] centroids = new float[k][pivotsCount];
 		
 		initializeKMeans(cluster, k, centroids); // here we could use k-means++ !!!
@@ -403,6 +403,10 @@ public abstract class AbstractPPTree<O extends OB> extends
 				updateAveragesInfo(closest, tempTuple, averages);
 				card++;
 			}
+			// we need to make sure that every centroid has elements, otherwise we have to execute the algorithm again
+			if(someoneEmpty(selection)){
+				return kMeans(cluster, k);
+			}
 			// after finishing recalculating the pivots, we just have to 
 			// center the clusters
 			if(modified){
@@ -410,6 +414,22 @@ public abstract class AbstractPPTree<O extends OB> extends
 			}
 		}
 		return centroids;
+	}
+	
+	/**
+	 * Returns true if any of the given clusters is empty
+	 * @param selection
+	 */
+	private boolean someoneEmpty(BitSet[] selection){
+		byte i = 0;
+		boolean res = false;
+		while(i < selection.length && ! res){
+			if(selection[i].cardinality() == 0){
+				res = true;
+			}
+			i++;
+		}
+		return res;
 	}
 	
 	private void centerClusters(float[][] centroids, float[][] averages, BitSet selection[]) {
