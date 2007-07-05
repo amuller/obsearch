@@ -47,7 +47,9 @@ public class IndexSmokeTUtil {
           File dbFolder = new File(testProperties.getProperty("test.db.path"));
      	 logger.debug("query file: " + query);
      	 logger.debug("db file: " + db);
-     	 
+     	 // delete the database 
+     	deleteDB(dbFolder);
+     	assertTrue(dbFolder.mkdirs());
         try {
 
         	int querySize = 1642; // amount of elements to read from the query
