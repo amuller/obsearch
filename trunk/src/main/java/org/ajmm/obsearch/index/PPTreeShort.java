@@ -44,6 +44,12 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	
 	protected transient HashMap<O, OBQueryShort<O>> resultCache;
 
+	/*
+	 * Cache used for getting objects from B.
+	 * Only used before freezing
+	 */
+	private transient OBCache<float[]> bCache;
+	
 	public PPTreeShort(File databaseDirectory, short pivots, byte od)
 			throws DatabaseException, IOException {
 		this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE);
@@ -57,6 +63,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		this.minInput = minInput;
 		this.maxInput = maxInput;
 		resultCache = new HashMap<O, OBQueryShort<O>>(3000);
+		bCache = new OBCache<float[]>(this.databaseSize());
 	}
 
 	@Override
@@ -404,6 +411,17 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	 */
 	protected void readFromB(int id, float[] tuple) throws DatabaseException, OutOfRangeException{
 		Cursor cursor = null;
+		// check if the tuple is in cache
+		float[] temp = this.bCache.get(id);
+		if(temp != null){
+			int i = 0;
+			// copy the contents to the result.
+			while(i < tuple.length){
+				tuple[i] = temp[i];
+				i++;
+			}
+			return;
+		}
 		try{
 			DatabaseEntry keyEntry = new DatabaseEntry();
 			DatabaseEntry dataEntry = new DatabaseEntry();
@@ -413,7 +431,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 					dataEntry, null);
 	
 			if (retVal == OperationStatus.NOTFOUND) {
-				assert false;
+				assert false : "Trying to read : " + id + " but the database is: " + this.databaseSize();
 				return;
 			}
 						
@@ -422,10 +440,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			TupleInput in = new TupleInput(dataEntry.getData() );
 			int i = 0;
 			assert tuple.length == pivotsCount;
+			float [] tempTuple = new float[pivotsCount];
 			while(i < pivotsCount){
 				tuple[i] = normalizeFirstPassAux(in.readShort());
+				tempTuple[i] = tuple[i];
 				i++;
 			}
+			bCache.put(id, tempTuple);
 		}finally{
 			cursor.close();
 		}
