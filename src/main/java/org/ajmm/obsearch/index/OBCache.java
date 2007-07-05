@@ -39,7 +39,7 @@ import cern.colt.map.OpenIntObjectHashMap;
 public class OBCache < O > {
 
     ConcurrentHashMap<Integer,SoftReference<O>> map;
-
+    
     public OBCache(int currentDBSize){
         // using open addressing because it is cheaper
         //map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
