@@ -169,7 +169,7 @@ public class IndexSmokeTUtil {
          for (File f : files) {
              assertTrue(f.delete());
          }
-         dbFolder.delete();
+         assertTrue(dbFolder.delete());
 
     }
 

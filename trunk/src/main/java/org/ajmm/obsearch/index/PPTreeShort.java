@@ -37,12 +37,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 	private short minInput;
 
-	private short maxInput;
-	
-	private transient long accumExecutionTimeD;
-	private transient long totalExecutedTimesD;
-	private transient long accumExecutionTimeSMAP;
-	private transient long totalExecutedTimesSMAP;
+	private short maxInput;	
 
 	private static final transient Logger logger = Logger
 	.getLogger(PPTreeShort.class);
@@ -287,7 +282,6 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 					short t;
 					max = Short.MIN_VALUE;
 					// STATS
-					long start = System.currentTimeMillis();
 					while (i < tuple.length) {
 						t = (short) Math.abs(tuple[i] - in.readShort());
 						if (t > max) {
@@ -300,19 +294,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 						}
 						i++;
 					}
-					this.accumExecutionTimeSMAP += System.currentTimeMillis() - start;
-					this.totalExecutedTimesSMAP ++;
+
 					if (max <= r && result.isCandidate(max)) {
 						// there is a chance it is a possible match
 						int id = in.readInt();
 						O toCompare = super.getObject(id);
-						// STATS
-						start = System.currentTimeMillis();
 						realDistance = object.distance(toCompare);
-						// STATS
-						this.accumExecutionTimeD += System.currentTimeMillis() - start;
-						// STATS
-						this.totalExecutedTimesD++;
+
 						if (realDistance <= r) {
 
 							result.add(id, toCompare, realDistance);
@@ -332,11 +320,11 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 	}
 	
-	public String toString(){
+	/*public String toString(){
 		return " STATS: SMAP # " + this.totalExecutedTimesSMAP + " Avg time: " + ((double)this.accumExecutionTimeSMAP / (double)this.totalExecutedTimesSMAP)
 			+ "\n STATS: D # " + this.totalExecutedTimesD + " Avg time: " + ((double)this.accumExecutionTimeD / (double)this.totalExecutedTimesD);
 		
-	}
+	}*/
 
 	@Override
 	protected byte insertFrozen(O object, int id) throws IllegalIdException,
