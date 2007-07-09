@@ -19,11 +19,7 @@ import org.ajmm.obsearch.index.pptree.SpaceTreeLeaf;
 import org.ajmm.obsearch.index.pptree.SpaceTreeNode;
 import org.apache.log4j.Logger;
 
-import weka.clusterers.SimpleKMeans;
-import weka.core.Attribute;
-import weka.core.FastVector;
-import weka.core.Instance;
-import weka.core.Instances;
+
 
 import cern.colt.bitvector.BitVector;
 
@@ -77,19 +73,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 		// each median for each dimension will be stored in this array
 		DatabaseEntry foundKey = new DatabaseEntry();
 		DatabaseEntry foundData = new DatabaseEntry();
-		FastVector attrs = new FastVector(pivotsCount);
-		// create the attributes that weka will use to do clustering
-		// one attribute per each of the pivotsCount dimensions
-		logger.info("Calculating Space Tree");
-		int i = 0;
-		while (i < pivotsCount) {
-			Attribute x = new Attribute("p" + i); // numeric attribute
-			attrs.addElement(x);
-			i++;
-		}
 
 		
-		Random ran = new Random();
+		Random ran = new Random(System.currentTimeMillis());
 
 			BitSet data = new BitSet(this.databaseSize());
 			data.set(0, this.databaseSize());
@@ -99,7 +85,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 			initMinMax(minMax);
 			int[] SNo = new int[1]; // this is a pointer
 			// divide the space
-			spaceDivision(node, 0, minMax, data, SNo, ran, attrs, null);
+			spaceDivision(node, 0, minMax, data, SNo, ran, null);
 			// we created all the spaces.
 			assert SNo[0] == Math.pow(2, od);
 			// now the space-tree has been built.
@@ -215,7 +201,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 */
 	protected void spaceDivision(SpaceTree node, final int currentLevel,
 			final float[][] minMax, final BitSet data, int[] SNo,
-			Random ran, final FastVector attrs, final float[] center)
+			Random ran, final float[] center)
 			throws OBException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Dividing space, level:" + currentLevel
@@ -225,7 +211,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 		try {
 			if (currentLevel < od) { // nonleaf node processing
 				// initialize clustering algorithm
-				float[][] centers = kMeans(data, (byte)2);
+				float[][] centers = kMeans(data, (byte)2, ran);
 				
 				// assert centers.numInstances() == 2 : "Centers found: " +
 				// centers.numInstances();
@@ -275,15 +261,15 @@ public abstract class AbstractPPTree<O extends OB> extends
 
 				if (currentLevel < (od - 1)) {
 					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
-							SNo, ran, attrs, null);
+							SNo, ran, null);
 					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
-							SNo, ran, attrs, null);
+							SNo, ran, null);
 				} else {
 
 					spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
-							SNo, ran, attrs, calculateCenter(SL));
+							SNo, ran, calculateCenter(SL));
 					spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
-							SNo, ran, attrs, calculateCenter(SR));
+							SNo, ran, calculateCenter(SR));
 
 				}
 			} else { // leaf node processing
@@ -322,10 +308,10 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param k the number of clusters to generate
 	 * @return The centroids of the clusters
 	 */
-	private float[][] kMeans(final BitSet cluster, byte k)throws DatabaseException, OutOfRangeException{
+	private float[][] kMeans(final BitSet cluster, byte k, Random ran)throws DatabaseException, OutOfRangeException{
 		float[][] centroids = new float[k][pivotsCount];
 		
-		initializeKMeans(cluster, k, centroids); // here we could use k-means++ !!!		
+		initializeKMeansPP(cluster, k, centroids, ran); // here we could use k-means++ !!!		
         BitSet selection[] = initSubClusters(cluster, k);
         
 		assert centroids.length == k;
@@ -359,9 +345,9 @@ public abstract class AbstractPPTree<O extends OB> extends
 			// we need to make sure that every centroid has elements, otherwise we have to execute the algorithm again
 			if(someoneEmpty(selection)){
 				if(logger.isDebugEnabled()){
-					logger.debug("Repeating k-means");
+					logger.debug("Repeating k-means: " + cluster.cardinality());
 				}
-				return kMeans(cluster, k);
+				return kMeans(cluster, k,ran);
 			}
 			// after finishing recalculating the pivots, we just have to 
 			// center the clusters
@@ -458,7 +444,8 @@ public abstract class AbstractPPTree<O extends OB> extends
 		int i = 0;
 		float res = 0;
 		while(i < pivotsCount){
-			res += Math.pow(a[i] - b[i], 2);
+			float t = a[i] - b[i];
+			res += t * t;
 			i++;
 		}
 		return (float)Math.sqrt(res);
@@ -475,14 +462,13 @@ public abstract class AbstractPPTree<O extends OB> extends
 	}
 
 	/**
-	 * Initializes k centroids 
+	 * Initializes k centroids (Default method)
 	 * @param cluster
 	 * @param k
 	 * @param centroids
 	 */
-	private void initializeKMeans(BitSet cluster, byte k, float[][] centroids) throws DatabaseException, OutOfRangeException{
+	private void initializeKMeans(BitSet cluster, byte k, float[][] centroids, Random r) throws DatabaseException, OutOfRangeException{
 		int total = cluster.cardinality();
-		Random r = new Random(System.currentTimeMillis());
 		byte i = 0;
 		int centroidIds[] = new int[k];
 		while(i < k){
@@ -498,6 +484,111 @@ public abstract class AbstractPPTree<O extends OB> extends
 			centroidIds[i] = id;	
 			readFromB(id, centroids[i]);
 			i++;
+		}
+	}
+	
+	
+	float kMeansPPDistance(float [] a, float [] b){
+		assert a.length == b.length;
+		float res = 0;
+		int i = 0;
+		while(i < a.length){
+			float x = a[i] - b[i];
+			res += x * x;
+			i++;
+		}
+		return res;
+	}
+	
+	/**
+	 * Initializes k centroids by using k-means++ 
+	 * leaves the result in "centroids"
+	 * The original paper is here:
+	 * David Arthur and Sergei Vassilvitskii, "k-means++: The Advantages of Careful Seeding" SODA 2007.	
+	 * This method was inspired from the source code provided by the authors
+	 * This paper 
+	 * @param cluster
+	 * @param k
+	 * @param centroids
+	 */
+	private void initializeKMeansPP(BitSet cluster, byte k, float[][] centroids, Random r) throws DatabaseException, OutOfRangeException{
+		
+	    float potential = 0;
+	    int retries = 1;
+	    int centroidIds[] = new int[k]; // keep track of the selected centroids
+		float[] closestDistances = new float[cluster.cardinality()];
+		float[] tempA = new float[pivotsCount];
+		float[] tempB = new float[pivotsCount];
+
+		// Randomly select one center
+		int t = r.nextInt(cluster.cardinality());			
+		int index = returnIth(cluster, t);
+		int currentCenter = 0;
+		centroidIds[currentCenter] = index;
+		readFromB(index, centroids[currentCenter]);
+		int i = 0;
+		t = 0;
+		Random ran0 = new Random(r.nextInt());
+	    while(i < cluster.cardinality()) {
+	    	t = cluster.nextSetBit(t);
+	    	readFromB(t,tempA);
+	    	closestDistances[i] = kMeansPPDistance(tempA, centroids[currentCenter]);
+	        potential += closestDistances[i];
+	        i++;
+	        t++;
+	    }
+
+		// Choose the remaining k-1 centers
+	    int centerCount = 1;
+		while ( centerCount < k) {
+
+	        // Repeat several times
+	        float bestPotential = -1;
+	        int bestIndex = -1;
+	        for (int retry = 0; retry < retries; retry++) {
+			
+	        	// choose the new center
+			    float probability = ran0.nextFloat()  * potential;
+	            for (index = 0; index < cluster.cardinality(); index++) {
+	            	if(contains(index, centroidIds, centerCount)){continue;}
+	                if(probability <= closestDistances[index])
+	                    break;
+	                else
+	                    probability -= closestDistances[index];
+	            }
+
+	    		// Compute the new potential
+	            float newPotential = 0;
+	            t = 0;
+	            readFromB(index, tempB);
+			    for (i = 0; i < cluster.cardinality(); i++){
+			    	t = cluster.nextSetBit(t);
+			    	readFromB(t, tempA);
+	                newPotential += Math.min( kMeansPPDistance(tempA, tempB), closestDistances[i] );
+	                t++;
+			    }
+
+	            // Store the best result
+	            if (bestPotential < 0 || newPotential < bestPotential) {
+	                bestPotential = newPotential;
+	                bestIndex = index;
+	            }
+			}
+
+	        // Add the appropriate center
+	        readFromB(bestIndex, centroids[centerCount]);  
+	        potential = bestPotential;
+	        t = 0;
+	        readFromB(bestIndex, tempB);
+	        for (i = 0; i < cluster.cardinality(); i++){
+	        	t = cluster.nextSetBit(t);
+	        	readFromB(t, tempA);
+	            closestDistances[i] = Math.min( kMeansPPDistance(tempA, tempB), closestDistances[i] );
+	            t++;
+	        }
+	        // make sure that the same center is not found
+	        assert ! contains(bestIndex, centroidIds, centerCount) ;
+	        centerCount++;	        
 		}
 	}
 	
@@ -702,24 +793,6 @@ public abstract class AbstractPPTree<O extends OB> extends
 		return (short) res;
 	}
 
-	/**
-	 * Generates a weka instance object from the given inputtuple
-	 *
-	 * @param in
-	 *            tuple with the input values
-	 * @param attrs
-	 *            attribute definitions
-	 * @return an instance generated from the given tuple
-	 */
-	protected final Instance createInstance(TupleInput in) throws OutOfRangeException {
-		float[] tuple = extractTuple(in);
-		int i = 0;
-		Instance res = new Instance(pivotsCount);
-		while (i < pivotsCount) {
-			res.setValue(i, tuple[i]);
-			i++;
-		}
-		return res;
-	}
+	
 
 }
