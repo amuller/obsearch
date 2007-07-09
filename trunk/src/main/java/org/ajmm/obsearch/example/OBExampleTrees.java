@@ -54,7 +54,7 @@ public class OBExampleTrees {
 		        File dbFolder = new File(cline.getOptionValue("db"));
 				byte od = Byte.parseByte(cline.getOptionValue("od"));
 		        index = new PPTreeShort<OBSlice>(
-		                dbFolder, (short) 300, (byte) od, (short)0, (short) 1000);
+		                dbFolder, (short) 30, (byte) od, (short)0, (short) 1000);
 		    	
 		    	
 		        logger.info("Adding data");

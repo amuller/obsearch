@@ -37,6 +37,12 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
 
 
 
+--------------------- End of Readme ----------
+
+
+---------------- Scratchpad ------------------
+
+
 Grid library:
 http://dsd.lbl.gov/firefish/
 
@@ -162,3 +168,66 @@ OD=6
 
 125 minutes for 88 pivots!
 Very fast actually.
+
+
+
+Using k-means++ improves the results by 50%...
+2.3 min (no cache, dummy pivots) (asserts=on)
+
+But the clustering process many times has
+centers without any element surrounding them! weird.
+
+
+TODO:
+
+use a center and a variance used to select first p+tree nodes
+that are more likely to contain the final result.
+
+
+
+Behavior for P2P OB:
+
+SYNC (data)
+SYNC (tree) (and then do a full sync of data)
+(box array) sync
+
+connect to more peers if few are available.
+
+
+Who has dates:?
+Those who have access to NTP servers will sync by themselves...
+And create a pipe with dates. People may sync from there?
+They can use their current time, and based on the time delivered by
+their peers, they can calculate the current real time. From time to time
+we sync with the ntp server. If the time is not properly kept by some "e"
+then we consider the peer "tsick" and we shut down all his pipes.
+That peer can only perform searches. When we get inserts and deletes
+we get the elements added or deleted from (now - e).
+e is the time it took to get the last ntp.
+
+getting time:
+mytime : time of the system when we requested the current time
+ntptime : time returned by our server.
+e : time it took to get this time / 2.
+a: (ntptime - e  - mytime)
+
+OB time: now + a
+
+When necessary we add or substract some constant  X to be safe. 
+
+Resources:
+
+When someone wants a resource  (box, time) and it is not available, we go to the next available resource... 
+We always have several pipes that have the same service
+If there are no providers, we call the service provider.
+If some provider is down, we call the service provider.
+
+Resource provider:
+
+Makes sure our stock of pipes for each type of service is complete.
+
+1) Obtain the advertisement
+2) Use the advertisement to connect to the pipes.
+
+
+
