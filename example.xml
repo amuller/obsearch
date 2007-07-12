@@ -92,6 +92,12 @@
 			</java>
 </target>
 
+<target name="dummy" depends="maven">
+	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.grid.OBGrid"  failonerror="true">
+				<jvmarg value="-server" />
+			</java>
+</target>
+
 
 
 </project>

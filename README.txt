@@ -231,3 +231,16 @@ Makes sure our stock of pipes for each type of service is complete.
 
 
 
+TODO:
+
+- Change inserts to use an internally generated id.
+- Change interface index to allow usage of timestamps.
+- Change interface index to obtain the latest inserted time
+- Change interface index to obtain all the items greater than some time
+- Implement deletion (P+Tree)
+- we will have an index for deletions too...
+  It is just a timestamp->object index.
+  Very easy to implement, and the distance function is not used.
+- The p2pindex interface will keep track of deleted items :)
+
+
