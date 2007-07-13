@@ -186,12 +186,12 @@ public class IndexSmokeTUtil {
         	logger.fatal(e);
         	assertTrue(false);
         }
-        finally {
+        //finally {
         	logger.info("CX: " + cx);
         	index.close();
         	deleteDB(dbFolder);
         	
-        }
+        //}
     }
 
     public static  void deleteDB(File dbFolder){
