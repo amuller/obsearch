@@ -68,7 +68,7 @@ public interface Index<O extends OB> {
      *             If something goes wrong with the DB
      * @since 0.0
      */
-    byte insert(O object, int id) throws IllegalIdException, DatabaseException,
+    byte insert(O object) throws IllegalIdException, DatabaseException,
             OBException ,  IllegalAccessException, InstantiationException;
 
     /**
@@ -110,8 +110,20 @@ public interface Index<O extends OB> {
      */
     public byte delete(O object) throws NotFrozenException, DatabaseException;
 
+    /**
+     * This method returns the object with id "i".
+     * Mainly used for internal validation purposes, users should not have
+     * to use this method directly
+     * @param i
+     * @return
+     * @throws DatabaseException
+     * @throws IllegalIdException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
     public O getObject(int i)throws DatabaseException, IllegalIdException,
     IllegalAccessException, InstantiationException;
+
 
     /**
      * Closes the database

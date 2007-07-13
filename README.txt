@@ -233,10 +233,10 @@ Makes sure our stock of pipes for each type of service is complete.
 
 TODO:
 
-- Change inserts to use an internally generated id.
-- Change interface index to allow usage of timestamps.
-  - Change interface index to obtain the latest inserted time
-  - Change interface index to obtain all the items greater than some time
+- Change inserts to use an internally generated id. OK
+- Change interface index to allow usage of timestamps. OK
+  - Change interface index to obtain the latest inserted time OK
+  - Change interface index to obtain all the items greater than some time OK
 - Implement deletion (P+Tree)
 - we will have an index for deletions too...
   It is just a timestamp->object index.

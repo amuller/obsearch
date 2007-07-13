@@ -15,10 +15,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.TUtils;
+import org.ajmm.obsearch.TimeStampIndex;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
+import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -63,14 +65,13 @@ public class IndexSmokeTUtil {
                 if (line != null) {
                 	OBSlice s = new OBSlice(line);
                 	if(this.shouldProcessSlice(s)){
-                		index.insert(s, realIndex);
+                		index.insert(s);
                 		realIndex++;
                 	}
                 }
                 re = r.readLine();
 
             }
-
             // select the pivots
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
             //RandomPivotSelector ps = new RandomPivotSelector();
@@ -153,8 +154,33 @@ public class IndexSmokeTUtil {
                 }
                 re = r.readLine();
             }
-            logger.info("Finished pyramid matching...");
+            logger.info("Finished  matching...");
             assertFalse(it.hasNext());
+            // now check that times make sense.
+            int cx = 0;
+            if(index instanceof TimeStampIndex){
+            	logger.info("Testing timestamp index");
+            	TimeStampIndex<OBSlice> index2 = (TimeStampIndex<OBSlice>) index;
+            	Iterator<OBSlice> it2 = index2.elementsNewerThan(0);
+            	while(it2.hasNext()){
+            		OBSlice o = it2.next();
+            		OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>((byte)1);
+            		index.searchOB(o, (short)0, x);
+            		Iterator<OBResultShort<OBSlice>> it3 = x.iterator();
+            		assertTrue(x.getSize() == 1);
+            		while(it3.hasNext()){
+            			OBResultShort<OBSlice> j = it3.next();
+            			assertTrue(j.getObject().equals(o));
+            			assertTrue(j.getObject().distance(o) == 0);
+            		}
+            		cx++;
+            		if(! it2.hasNext()){
+            			logger.info("Macarena!");
+            		}
+            	}
+            	assertEquals(i,cx);
+            	logger.info("Testing completed");
+            }
         } finally {
         	index.close();
         	deleteDB(dbFolder);
