@@ -274,7 +274,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	private class TimeStampCreator implements SecondaryKeyCreator {
 		public boolean createSecondaryKey(SecondaryDatabase secondary,
 				DatabaseEntry key, DatabaseEntry data, DatabaseEntry result) {
-			LongBinding.longToEntry(System.currentTimeMillis(), result);
+			TupleInput in = new TupleInput(data.getData());
+			LongBinding.longToEntry(in.readLong(), result);
 			return true;
 		}
 	}
@@ -383,14 +384,21 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 
 	/**
 	 * Inserts in database A the given Object.
-	 * 
+	 * The timestamp of the object is stored too.
 	 * @param object
 	 * @param id
 	 * @throws DatabaseException
 	 */
 	protected void insertA(final O object, final int id)
 			throws DatabaseException {
-		insertObjectInDatabase(object, id, aDB);
+		final DatabaseEntry keyEntry = new DatabaseEntry();
+		// store the object in bytes
+		final TupleOutput out = new TupleOutput();
+		out.writeLong(System.currentTimeMillis());
+		object.store(out);
+		// store the ID
+		IntegerBinding.intToEntry(id, keyEntry);
+		insertInDatabase(out, keyEntry, aDB);
 	}
 
 	/**
@@ -507,7 +515,10 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		if (logger.isDebugEnabled()) {
 			logger.debug("Storing pivot tuples from A to B");
 		}
-
+		//		 cache is initialized as from the point we set frozen = true
+		// queries can be achieved
+		initCache();
+		
 		// we have to create database B
 		insertFromAtoB();
 
@@ -516,9 +527,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// we have to insert the objects already inserted in A into C
 		logger.info("Copying data from B to C");
 		insertFromBtoC();
-		// cache is initialized as from the point we set frozen = true
-		// queries can be achieved
-		initCache();
+		
 		// we could delete bDB from this point
 
 		this.frozen = true;
@@ -534,7 +543,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		fout.close();
 
 		assert aDB.count() == bDB.count();
-				
+		assert aDB.count() == timeDB.count();
 		
 	}
 
@@ -558,27 +567,16 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	private void insertFromAtoB() throws IllegalAccessException,
 			InstantiationException, DatabaseException, OBException {
-		Cursor cursor = null;
-		DatabaseEntry foundKey = new DatabaseEntry();
-		DatabaseEntry foundData = new DatabaseEntry();
-
-		try {
+	
 			int i = 0;
-
-			cursor = aDB.openCursor(null, null);
-			O obj = this.instantiateObject();
-			while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-				int id = IntegerBinding.entryToInt(foundKey);
-				assert i == id;
-				TupleInput in = new TupleInput(foundData.getData());
-				obj.load(in);
-				insertInB(id, obj);
+			O obj;
+			int count = this.databaseSize();
+			while (i < count) {
+				obj = this.getObject(i);
+				insertInB(i, obj);
 				i++;
 			}
-			// should be the same
-		} finally {
-			cursor.close();
-		}
+
 	}
 
 	/**
@@ -752,13 +750,13 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		DatabaseEntry dataEntry = new DatabaseEntry();
 		IntegerBinding.intToEntry(id, keyEntry);
 
-		O object = instantiateObject();
+		O object;
 
 		if (DB.get(null, keyEntry, dataEntry, null) == OperationStatus.SUCCESS) {
 			// TODO: Extend TupleInput so that we don't have to create the
 			// object over and over again
 			TupleInput in = new TupleInput(dataEntry.getData());
-			object.load(in); // load the bytes into the object
+			object  = this.readObject(in);
 		} else {
 			throw new IllegalIdException();
 		}
@@ -835,6 +833,18 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	public Iterator<O> elementsNewerThan(long x) throws DatabaseException {
 		return new TimeStampIterator(x);
 	}
+	
+	/**
+	 * Reads an object from the given tupleinput
+	 * @param in
+	 * @return
+	 */
+	protected O readObject(TupleInput in) throws InstantiationException, IllegalAccessException{
+		O result = this.instantiateObject();
+		in.readLong();
+		result.load(in);
+		return result;
+	}
 
 	protected class TimeStampIterator implements Iterator {
 		SecondaryCursor cursor = null;
@@ -881,19 +891,18 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		public O next() {
 			try {
 				if (hasNext()) {
-					in.setBuffer(dataEntry.getData());
-
-					O obj = instantiateObject();
-					obj.load(in);
+					//in.setBuffer(dataEntry.getData());
+					TupleInput in = new TupleInput(dataEntry.getData());
+					O obj = readObject(in);
 					goNext();
+
 					return obj;
 
 				} else {
-					cursor.close();
 					return null;
 				}
 			} catch (Exception e) {
-				logger.fatal(e);
+				assert false : " Error: " + e;
 				return null;
 			}
 		}

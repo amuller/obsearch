@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.example;
 
 import java.io.StringReader;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -80,9 +81,10 @@ public class OBSlice implements OBShort {
 
         List<SliceAST> aExpanded = this.tree.depthFirst();
         List<SliceAST> bExpanded = b.tree.depthFirst();
-
-        int Na = aExpanded.size();
-        int Nb = bExpanded.size();
+        List<SliceAST> bExpanded2 = new LinkedList();
+        bExpanded2.addAll(bExpanded);
+        int Na = aExpanded.size() * 2;
+        int Nb = bExpanded.size() * 2;
 
         ListIterator<SliceAST> ait = aExpanded.listIterator();
         int res = 0;
@@ -97,10 +99,20 @@ public class OBSlice implements OBShort {
                     break;
                 }
             }
+            //  do the same for the nodes without children
+            bit = bExpanded2.listIterator();
+            while (bit.hasNext()) {
+                SliceAST bTree = bit.next();
+                if (aTree.getText().equals(bTree.getText())) {
+                    res++;
+                    bit.remove();
+                    break;
+                }
+            }
         }
         // return Na - res + Nb - res;
         // return (Na + Nb) - ( 2 * res);
-        return (short) (Math.max(Na, Nb) - res);
+        return (short) (((Na + Nb) - (2 * res)) / 2);
     }
 
     protected void updateTree() throws OBException {

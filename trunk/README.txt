@@ -239,18 +239,17 @@ TODO:
   - Change interface index to obtain all the items greater than some time OK
 - Implement deletion (P+Tree)
 - we will have an index for deletions too...
-  It is just a timestamp->object index.
-  Very easy to implement, and the distance function is not used.
+  - It is just a timestamp->object index.
+  - Very easy to implement, and the distance function is not used.
 - The p2pindex interface will keep track of deleted items :)
 
 - Write the Index that binds everything.
   - Write something that loads a new index when it is the first time we log in.
   - When the peers have a newer index, we drop the index, and reload everything again.
-  - 
 
 
-- 1046 out of 1642 are being returned. Something is weird with the
-getNext.
 
-- PPTree is broken somewhere... fix that too.
+
+
+
 

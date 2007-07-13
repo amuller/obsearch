@@ -52,8 +52,9 @@ public class IndexSmokeTUtil {
      	 // delete the database 
      	deleteDB(dbFolder);
      	assertTrue(dbFolder.mkdirs());
+     	long currentTime = System.currentTimeMillis();
      	int cx = 0;
-        try {
+ 
 
         	int querySize = 1642; // amount of elements to read from the query
 
@@ -73,6 +74,7 @@ public class IndexSmokeTUtil {
                 re = r.readLine();
 
             }
+           // logger.info("Inserted elements: " + realIndex);
             // select the pivots
             //TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)5);
             //RandomPivotSelector ps = new RandomPivotSelector();
@@ -162,10 +164,12 @@ public class IndexSmokeTUtil {
             if(index instanceof TimeStampIndex){
             	logger.info("Testing timestamp index");
             	TimeStampIndex<OBSlice> index2 = (TimeStampIndex<OBSlice>) index;
-            	Iterator<OBSlice> it2 = index2.elementsNewerThan(0);
+            	Iterator<OBSlice> it2 = index2.elementsNewerThan(currentTime);
             	while(it2.hasNext()){
             		OBSlice o = it2.next();
+            		assert o != null;
             		OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>((byte)1);
+            		//TODO: p+tree is failing here but pyramid is not. why? 
             		index.searchOB(o, (short)0, x);
             		Iterator<OBResultShort<OBSlice>> it3 = x.iterator();
             		assertTrue( " Size found:" + x.getSize() + " item # " + cx + " : " + o, x.getSize() == 1);
@@ -175,23 +179,14 @@ public class IndexSmokeTUtil {
             			assertTrue(j.getObject().distance(o) == 0);
             		}
             		cx++;
-            		if(! it2.hasNext()){
-            			logger.info("Macarena! : cx: " + cx);
-            		}
             	}
-            	assertEquals(i,cx);
+            	assertEquals(realIndex,cx);
             	logger.info("Testing completed");
             }
-        } catch(Exception e){
-        	logger.fatal(e);
-        	assertTrue(false);
-        }
-        //finally {
+        
         	logger.info("CX: " + cx);
         	index.close();
         	deleteDB(dbFolder);
-        	
-        //}
     }
 
     public static  void deleteDB(File dbFolder){
