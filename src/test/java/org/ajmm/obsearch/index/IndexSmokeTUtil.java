@@ -181,7 +181,11 @@ public class IndexSmokeTUtil {
             	assertEquals(i,cx);
             	logger.info("Testing completed");
             }
-        } finally {
+        } catch(Exception e){
+        	logger.fatal(e);
+        	assertTrue(false);
+        }
+        finally {
         	index.close();
         	deleteDB(dbFolder);
         }
