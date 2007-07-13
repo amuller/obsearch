@@ -38,6 +38,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.SecondaryConfig;
+import com.sleepycat.je.SecondaryCursor;
 import com.sleepycat.je.SecondaryDatabase;
 import com.sleepycat.je.SecondaryKeyCreator;
 import com.sleepycat.je.StatsConfig;
@@ -257,6 +258,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// add the view for the timestamp database
 		SecondaryConfig mySecConfig = new SecondaryConfig();
 		mySecConfig.setAllowCreate(true);
+		mySecConfig.setAllowPopulate(true);
+		mySecConfig.setImmutableSecondaryKey(true);
 		// Duplicates are frequently required for secondary databases.
 		mySecConfig.setSortedDuplicates(true);
 		mySecConfig.setKeyCreator(new TimeStampCreator());
@@ -531,7 +534,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		fout.close();
 
 		assert aDB.count() == bDB.count();
-
+				
+		
 	}
 
 	/**
@@ -833,7 +837,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	}
 
 	protected class TimeStampIterator implements Iterator {
-		Cursor cursor = null;
+		SecondaryCursor cursor = null;
 
 		DatabaseEntry keyEntry = new DatabaseEntry();
 
@@ -846,7 +850,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		long previous = Long.MIN_VALUE;
 
 		public TimeStampIterator(long from) throws DatabaseException {
-			cursor = timeDB.openCursor(null, null);
+			cursor = timeDB.openSecondaryCursor(null, null);
 			previous = from;
 			LongBinding.longToEntry(previous, keyEntry);
 			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
@@ -854,7 +858,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		}
 
 		private void goNext() throws DatabaseException {
-			LongBinding.longToEntry(previous, keyEntry);
+			//LongBinding.longToEntry(previous, keyEntry);
+			
 			retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
 			long recent = LongBinding.entryToLong(keyEntry);
 			assert previous <= recent;

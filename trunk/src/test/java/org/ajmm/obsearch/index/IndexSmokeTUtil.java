@@ -52,6 +52,7 @@ public class IndexSmokeTUtil {
      	 // delete the database 
      	deleteDB(dbFolder);
      	assertTrue(dbFolder.mkdirs());
+     	int cx = 0;
         try {
 
         	int querySize = 1642; // amount of elements to read from the query
@@ -157,7 +158,7 @@ public class IndexSmokeTUtil {
             logger.info("Finished  matching...");
             assertFalse(it.hasNext());
             // now check that times make sense.
-            int cx = 0;
+            
             if(index instanceof TimeStampIndex){
             	logger.info("Testing timestamp index");
             	TimeStampIndex<OBSlice> index2 = (TimeStampIndex<OBSlice>) index;
@@ -186,8 +187,10 @@ public class IndexSmokeTUtil {
         	assertTrue(false);
         }
         finally {
+        	logger.info("CX: " + cx);
         	index.close();
         	deleteDB(dbFolder);
+        	
         }
     }
 
