@@ -23,7 +23,7 @@ public class TestPPTree extends TestCase{
    	 	assertTrue(! dbFolder.exists());
    	 	assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(
-                dbFolder, (byte) 30, (byte) 8, (short)0, (short) 200);
+                dbFolder, (byte) 30, (byte) 2, (short)0, (short) 200);
 
     	IndexSmokeTUtil t = new IndexSmokeTUtil();
     	t.tIndex(index);

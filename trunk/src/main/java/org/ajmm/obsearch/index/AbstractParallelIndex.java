@@ -127,11 +127,13 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 			IllegalAccessException, InstantiationException {
 		return getIndex().getObject(i);
 	}
+	
 
-	public byte insert(O object, int id) throws IllegalIdException,
+
+	public byte insert(O object) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
-		byte res = getIndex().insert(object, id);
+		byte res = getIndex().insert(object);
 		return res;
 	}
 

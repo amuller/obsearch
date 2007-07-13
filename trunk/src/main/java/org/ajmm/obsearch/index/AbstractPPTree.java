@@ -12,6 +12,7 @@ import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.ClusteringFailedException;
 import org.ajmm.obsearch.exception.IllegalIdException;
+import org.ajmm.obsearch.exception.KMeansException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.pptree.SpaceTree;
@@ -40,6 +41,11 @@ public abstract class AbstractPPTree<O extends OB> extends
 	protected byte od;
 
 	protected SpaceTree spaceTree;
+	
+	/**
+	 * Hack to catch when k-meanspp is not able to generate centers that converge.
+	 */
+	protected static final int  kMeansPPIterations = 3;  
 
 	/**
 	 * AbstractPPTree Constructs a P+Tree
@@ -308,10 +314,25 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * @param k the number of clusters to generate
 	 * @return The centroids of the clusters
 	 */
-	private float[][] kMeans(final BitSet cluster, byte k, Random ran)throws DatabaseException, OutOfRangeException{
-		float[][] centroids = new float[k][pivotsCount];
+	private float[][] kMeans(final BitSet cluster, byte k, Random ran)throws DatabaseException, OutOfRangeException, KMeansException{
+		return kMeansAux(cluster,k,ran,0);
+	}
+	
+	/**
+	 * Executes k-means, keeps a count of the number of iterations performed...
+	 * if clustering cannot converge properly, then we execute the randomized initialization procedure
+	 */
+	private float[][]kMeansAux(final BitSet cluster, byte k, Random ran, int iteration)throws DatabaseException, OutOfRangeException, KMeansException{
 		
-		initializeKMeansPP(cluster, k, centroids, ran); // here we could use k-means++ !!!		
+		if(cluster.cardinality() <= 1){
+			throw new KMeansException("Cannot cluster spaces with one or less elements. Found elements: " + cluster);
+		}
+		float[][] centroids = new float[k][pivotsCount];
+		if(iteration < this.kMeansPPIterations){
+			initializeKMeansPP(cluster, k, centroids, ran); 
+		}else{
+			initializeKMeans(cluster, k, centroids, ran);
+		}
         BitSet selection[] = initSubClusters(cluster, k);
         
 		assert centroids.length == k;
@@ -347,7 +368,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 				if(logger.isDebugEnabled()){
 					logger.debug("Repeating k-means: " + cluster.cardinality());
 				}
-				return kMeans(cluster, k,ran);
+				return kMeansAux(cluster, k,ran, iteration + 1);
 			}
 			// after finishing recalculating the pivots, we just have to 
 			// center the clusters
@@ -528,7 +549,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 		readFromB(index, centroids[currentCenter]);
 		int i = 0;
 		t = 0;
-		Random ran0 = new Random(r.nextInt());
+		//Random ran0 = new Random(r.nextInt());
 	    while(i < cluster.cardinality()) {
 	    	t = cluster.nextSetBit(t);
 	    	readFromB(t,tempA);
@@ -548,7 +569,7 @@ public abstract class AbstractPPTree<O extends OB> extends
 	        for (int retry = 0; retry < retries; retry++) {
 			
 	        	// choose the new center
-			    float probability = ran0.nextFloat()  * potential;
+			    float probability = r.nextFloat()  * potential;
 	            for (index = 0; index < cluster.cardinality(); index++) {
 	            	if(contains(index, centroidIds, centerCount)){continue;}
 	                if(probability <= closestDistances[index])

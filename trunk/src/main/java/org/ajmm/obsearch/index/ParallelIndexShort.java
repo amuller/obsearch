@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.ParallelIndex;
+import org.ajmm.obsearch.TimeStampIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -17,9 +18,14 @@ import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
-
+/**
+ * This class has to be improved, please do not use it.
+ * @author amuller
+ *
+ * @param <O>
+ */
 public class ParallelIndexShort<O extends OBShort> extends
-		AbstractParallelIndex<O> implements IndexShort<O> {
+		AbstractParallelIndex<O> implements IndexShort<O>{
 
 	protected BlockingQueue<OBQueryShort<O>> queue;
 
