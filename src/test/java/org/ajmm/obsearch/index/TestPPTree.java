@@ -18,7 +18,7 @@ public class TestPPTree extends TestCase{
 
 
 	public void testPPTree() throws Exception{
-		File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
+		File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path") );
     	IndexSmokeTUtil.deleteDB(dbFolder);
    	 	assertTrue(! dbFolder.exists());
    	 	assertTrue(dbFolder.mkdirs());

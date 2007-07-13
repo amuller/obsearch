@@ -168,7 +168,7 @@ public class IndexSmokeTUtil {
             		OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>((byte)1);
             		index.searchOB(o, (short)0, x);
             		Iterator<OBResultShort<OBSlice>> it3 = x.iterator();
-            		assertTrue(x.getSize() == 1);
+            		assertTrue( " Size found:" + x.getSize() + " item # " + cx + " : " + o, x.getSize() == 1);
             		while(it3.hasNext()){
             			OBResultShort<OBSlice> j = it3.next();
             			assertTrue(j.getObject().equals(o));
@@ -176,7 +176,7 @@ public class IndexSmokeTUtil {
             		}
             		cx++;
             		if(! it2.hasNext()){
-            			logger.info("Macarena!");
+            			logger.info("Macarena! : cx: " + cx);
             		}
             	}
             	assertEquals(i,cx);
@@ -200,7 +200,7 @@ public class IndexSmokeTUtil {
     	}
     	 File[] files = dbFolder.listFiles();
          for (File f : files) {
-             assertTrue(f.delete());
+             assertTrue("Could not delete: "  + f, f.delete());
          }
          assertTrue(dbFolder.delete());
 
