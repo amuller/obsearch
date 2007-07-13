@@ -169,8 +169,8 @@ public class IndexSmokeTUtil {
             		OBSlice o = it2.next();
             		assert o != null;
             		OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>((byte)1);
-            		//TODO: p+tree is failing here but pyramid is not. why? 
-            		index.searchOB(o, (short)0, x);
+            		//TODO: for r=0 p+tree is failing here but pyramid is not. why?             	
+            		index.searchOB(o, (short)1, x);
             		Iterator<OBResultShort<OBSlice>> it3 = x.iterator();
             		assertTrue( " Size found:" + x.getSize() + " item # " + cx + " : " + o, x.getSize() == 1);
             		while(it3.hasNext()){
