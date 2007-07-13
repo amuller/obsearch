@@ -68,8 +68,6 @@ public interface Index<O extends OB> {
      *             If something goes wrong with the DB
      * @since 0.0
      */
-    // TODO: make sure that the community is ok with
-    // storing 2,147,483,647 objects
     byte insert(O object, int id) throws IllegalIdException, DatabaseException,
             OBException ,  IllegalAccessException, InstantiationException;
 
