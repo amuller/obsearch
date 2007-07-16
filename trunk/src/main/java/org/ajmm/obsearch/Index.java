@@ -66,9 +66,10 @@ public interface Index<O extends OB> {
      *             the ID's did not come in sequential order
      * @throws DatabaseException
      *             If something goes wrong with the DB
+     * @return The internal id of the object
      * @since 0.0
      */
-    byte insert(O object) throws IllegalIdException, DatabaseException,
+    int insert(O object) throws IllegalIdException, DatabaseException,
             OBException ,  IllegalAccessException, InstantiationException;
 
     /**
@@ -106,9 +107,10 @@ public interface Index<O extends OB> {
      *             if the index has not been frozen. was deleted successfully
      * @throws DatabaseException
      *             If something goes wrong with the DB
+     *  @return The former id of the given object
      * @since 0.0
      */
-    public byte delete(O object) throws NotFrozenException, DatabaseException;
+    public int delete(O object) throws NotFrozenException, DatabaseException;
 
     /**
      * This method returns the object with id "i".
@@ -130,5 +132,20 @@ public interface Index<O extends OB> {
      *
      */
     public void close() throws DatabaseException;
+    
+    /**
+	 * Returns the total number of boxes this index can hold
+	 * @return
+	 */
+	int totalBoxes();
+	
+	/**
+	 * Returns the box where the given object has to be stored
+	 * @param object
+	 * @return The box that corresponds to object
+	 */
+	int getBox(O object)throws OBException ;
+	
+	int databaseSize() throws DatabaseException;
 
    }

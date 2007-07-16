@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import hep.aida.bin.QuantileBin1D;
 
+import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.IllegalIdException;
@@ -27,8 +28,9 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
 public class ExtendedPyramidIndexShort<O extends OBShort> extends
-		AbstractExtendedPyramidIndex<O> implements IndexShort<O> {
-
+		AbstractExtendedPyramidIndex<O> 
+		implements IndexShort<O> {
+	    
 	private short minInput;
 
 	private short maxInput;
@@ -313,6 +315,14 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 		return insertFrozenAux(t, id);
 	}
+	
+	
+	public int getBox(O object) throws OBException{
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t); // calculate the tuple for the new //
+		float[] et = extendedPyramidTransform(t);
+		return super.pyramidOfPoint(et);
+    }
 
 	/**
 	 * Inserts the given tuple and id into C
@@ -340,9 +350,13 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		// create the key
 		SortedFloatBinding.floatToEntry(pyramidValue, keyEntry);
 		dataEntry.setData(out.getBufferBytes());
+		
+		
 
 		// TODO: check the status result of all the operations
-		cDB.put(null, keyEntry, dataEntry);
+		if( cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS){
+			throw new DatabaseException();
+		}		
 		return 1;
 	}
 

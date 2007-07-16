@@ -192,7 +192,13 @@ public abstract class AbstractPPTree<O extends OB> extends
 		n.normalize(tuple, result);
 		return n.getSNo() * 2 * pivotsCount + super.pyramidValue(result);
 	}
-
+	
+	protected int spaceNumber(final float[] tuple){
+		SpaceTreeLeaf n = (SpaceTreeLeaf) this.spaceTree.search(tuple);
+		return n.getSNo();
+	}
+	
+	
 	/**
 	 * A recursive version of the space division algorithm It will use much more
 	 * memory
@@ -480,6 +486,10 @@ public abstract class AbstractPPTree<O extends OB> extends
 			i++;
 		}
 		return res;
+	}
+	
+	public int totalBoxes(){
+		return (int)Math.pow(2,  this.od);
 	}
 
 	/**

@@ -112,7 +112,7 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 
 
 
-	public byte delete(O object) throws NotFrozenException, DatabaseException {
+	public int delete(O object) throws NotFrozenException, DatabaseException {
 		return getIndex().delete(object);
 	}
 
@@ -128,12 +128,18 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 		return getIndex().getObject(i);
 	}
 	
+	public int totalBoxes(){
+		return getIndex().totalBoxes();
+	}
+	
+	public int getBox(O object) throws OBException{
+		return getIndex().getBox(object);
+	}
 
-
-	public byte insert(O object) throws IllegalIdException,
+	public int insert(O object) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
-		byte res = getIndex().insert(object);
+		int res = getIndex().insert(object);
 		return res;
 	}
 

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.TUtils;
-import org.ajmm.obsearch.TimeStampIndex;
+import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
@@ -81,6 +81,9 @@ public class IndexSmokeTUtil {
             DummyPivotSelector ps = new DummyPivotSelector();
             if(index instanceof ParallelIndex){
             	ps.generatePivots((AbstractPivotIndex)((ParallelIndex)index).getIndex());
+            }else
+            if(index instanceof SynchronizableIndex){
+            	ps.generatePivots((AbstractPivotIndex)((SynchronizableIndex)index).getIndex());
             }else{
             	ps.generatePivots((AbstractPivotIndex)index);
             }
@@ -161,10 +164,13 @@ public class IndexSmokeTUtil {
             assertFalse(it.hasNext());
             // now check that times make sense.
             
-            if(index instanceof TimeStampIndex){
+            if(index instanceof SynchronizableIndex){
             	logger.info("Testing timestamp index");
-            	TimeStampIndex<OBSlice> index2 = (TimeStampIndex<OBSlice>) index;
-            	Iterator<OBSlice> it2 = index2.elementsNewerThan(currentTime);
+            	SynchronizableIndex<OBSlice> index2 = (SynchronizableIndex<OBSlice>) index;
+            	i = 0;
+            	logger.info("Total Boxes: " +  index2.totalBoxes());
+            	while(i < index2.totalBoxes()){
+            	Iterator<OBSlice> it2 = index2.elementsNewerThan(i,currentTime);
             	while(it2.hasNext()){
             		OBSlice o = it2.next();
             		assert o != null;
@@ -179,6 +185,8 @@ public class IndexSmokeTUtil {
             			assertTrue(j.getObject().distance(o) == 0);
             		}
             		cx++;
+            	}
+            	i++;
             	}
             	assertEquals(realIndex,cx);
             	logger.info("Testing completed");

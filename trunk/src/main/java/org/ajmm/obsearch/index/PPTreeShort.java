@@ -82,6 +82,10 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		// TODO Auto-generated method stub
 		return "PPTreeShort";
 	}
+	
+	protected  int distanceValueSizeInBytes(){
+		return Short.SIZE / 8;
+	}
 
 	/**
 	 * Method that takes the values already calculated in B and puts them into C
@@ -120,6 +124,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			cursor.close();
 		}
 		assert cDB.count() == bDB.count();
+		
 	}
 
 	/**
@@ -136,15 +141,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 	protected void generateRectangleFirstPass(short[] t, short r, float[][] q)
 			throws OutOfRangeException {
-		// range
+		// create a rectangle query
 		int i = 0;
 		while (i < q.length) { //
 			q[i][MIN] = normalizeFirstPassAux((short) Math.max(t[i] - r, minInput));
 			q[i][MAX] = normalizeFirstPassAux((short) Math.min(t[i] + r, maxInput));
 			i++;
 		}
-		// put the query relative to the center
-		// normalizeQuery(q);
 	}
 
 
@@ -342,6 +345,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 
 		return insertFrozenAux(t, id);
 	}
+	
+	public int getBox(O object) throws OBException{
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t); // calculate the tuple for the new //
+		float[] et = normalizeFirstPass(t);
+		return super.spaceNumber(et);
+    }
 
 	/**
 	 * Inserts the given tuple and id into C
@@ -366,12 +376,18 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 		// write the object's id
 		out.writeInt(id);
+		// write the timestamp
+		out.writeLong(System.currentTimeMillis());
 		// create the key
 		SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
 		dataEntry.setData(out.getBufferBytes());
 
 		// TODO: check the status result of all the operations
-		cDB.put(null, keyEntry, dataEntry);
+		if(cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS){
+			throw new DatabaseException();
+		}
+		//add the time entry 
+		int spaceNumber = super.spaceNumber(first);
 		return 1;
 	}
 
