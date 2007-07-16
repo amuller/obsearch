@@ -10,11 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.AbstractOBResult;
-import org.ajmm.obsearch.TimeStampIndex;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -77,6 +77,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * function and the objects must be consistent. Also, Inserts are first added to
  * A, and then to C. This guarantees that there will be always objects to match.
  * 
+ * Subclasses must populate correctly the timestamp B-tree.
+ * This B-tree contains this information:
+ * key: <box><timestamp>  value: <id>
+ * And the subclass has to fill this in.
  * @param <O>
  *            The object type to be used
  * @param <D>
@@ -87,7 +91,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("AbstractPivotIndex")
 public abstract class AbstractPivotIndex<O extends OB> implements
-		TimeStampIndex<O> {
+		Index<O> {
 
 	private static transient final Logger logger = Logger
 			.getLogger(AbstractPivotIndex.class);
@@ -110,8 +114,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	// database with the objects
 	protected transient Database aDB;
 
-	// this database holds a view of aDB based on timestamps
-	protected transient SecondaryDatabase timeDB;
+	
 
 	// database with the temporary pivots
 	protected transient Database bDB;
@@ -119,6 +122,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	protected transient Database pivotsDB;
 
 	protected transient DatabaseConfig dbConfig;
+	
+	
 
 	protected transient O[] pivots;
 
@@ -131,6 +136,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 
 	// we keep this in order to be able to create objects of type O
 	protected Class<O> type;
+	
+	
 
 	/**
 	 * Creates a new pivot index. The maximum number of pivots has been
@@ -188,7 +195,10 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		initB();
 		initPivots();
 		initC();
+		
 	}
+	
+	
 
 	private void initB() throws DatabaseException {
 		final boolean duplicates = dbConfig.getSortedDuplicates();
@@ -254,17 +264,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		dbConfig.setSortedDuplicates(false);
 		aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
 		dbConfig.setSortedDuplicates(duplicates);
-
-		// add the view for the timestamp database
-		SecondaryConfig mySecConfig = new SecondaryConfig();
-		mySecConfig.setAllowCreate(true);
-		mySecConfig.setAllowPopulate(true);
-		mySecConfig.setImmutableSecondaryKey(true);
-		// Duplicates are frequently required for secondary databases.
-		mySecConfig.setSortedDuplicates(true);
-		mySecConfig.setKeyCreator(new TimeStampCreator());
-		timeDB = databaseEnvironment.openSecondaryDatabase(null, "timestamp",
-				aDB, mySecConfig);
+	
 	}
 
 	/**
@@ -366,20 +366,21 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             If something goes wrong with the DB
 	 * @since 0.0
 	 */
-	public byte insert(O object) throws IllegalIdException, DatabaseException,
+	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
 		return insert(object, id.getAndIncrement());
 	}
 
-	public byte insert(O object, int id) throws IllegalIdException,
+	public int  insert(O object, int id) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
 		if (isFrozen()) {
 			insertA(object, id);
-			return insertFrozen(object, id);
+			insertFrozen(object, id);
 		} else {
-			return insertUnFrozen(object, id);
+			insertUnFrozen(object, id);
 		}
+		return id;
 	}
 
 	/**
@@ -394,7 +395,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		final DatabaseEntry keyEntry = new DatabaseEntry();
 		// store the object in bytes
 		final TupleOutput out = new TupleOutput();
-		out.writeLong(System.currentTimeMillis());
 		object.store(out);
 		// store the ID
 		IntegerBinding.intToEntry(id, keyEntry);
@@ -543,7 +543,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		fout.close();
 
 		assert aDB.count() == bDB.count();
-		assert aDB.count() == timeDB.count();
 		
 	}
 
@@ -802,7 +801,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * Closes all the databases and the database environment
 	 */
 	public void close() throws DatabaseException {
-		timeDB.close();
 		aDB.close();
 		bDB.close();
 		closeC();
@@ -810,30 +808,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		databaseEnvironment.cleanLog();
 		databaseEnvironment.close();
 	}
-
-	public long latestInsertedItem() throws DatabaseException, OBException {
-		Cursor cursor = null;
-		DatabaseEntry foundKey = new DatabaseEntry();
-		DatabaseEntry foundData = new DatabaseEntry();
-		long res;
-		try {
-			int i = 0;
-			cursor = timeDB.openCursor(null, null);
-			if (cursor.getPrev(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-				res = LongBinding.entryToLong(foundKey);
-			} else {
-				throw new OBException("Latest timestamp was not found");
-			}
-		} finally {
-			cursor.close();
-		}
-		return res;
-	}
-
-	public Iterator<O> elementsNewerThan(long x) throws DatabaseException {
-		return new TimeStampIterator(x);
-	}
 	
+		
 	/**
 	 * Reads an object from the given tupleinput
 	 * @param in
@@ -841,78 +817,10 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	protected O readObject(TupleInput in) throws InstantiationException, IllegalAccessException{
 		O result = this.instantiateObject();
-		in.readLong();
 		result.load(in);
 		return result;
 	}
-
-	protected class TimeStampIterator implements Iterator {
-		SecondaryCursor cursor = null;
-
-		DatabaseEntry keyEntry = new DatabaseEntry();
-
-		DatabaseEntry dataEntry = new DatabaseEntry();
-
-		OperationStatus retVal;
-
-		MyTupleInput in;
-
-		long previous = Long.MIN_VALUE;
-
-		public TimeStampIterator(long from) throws DatabaseException {
-			cursor = timeDB.openSecondaryCursor(null, null);
-			previous = from;
-			LongBinding.longToEntry(previous, keyEntry);
-			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
-			in = new MyTupleInput();
-		}
-
-		private void goNext() throws DatabaseException {
-			//LongBinding.longToEntry(previous, keyEntry);
-			
-			retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
-			long recent = LongBinding.entryToLong(keyEntry);
-			assert previous <= recent;
-			previous = recent;
-		}
-
-		public boolean hasNext() {
-			boolean res = (retVal == OperationStatus.SUCCESS);
-			if (!res) {
-				try {
-					cursor.close();
-				} catch (Exception e) {
-					logger.fatal(e);
-				}
-			}
-			return res;
-		}
-
-		public O next() {
-			try {
-				if (hasNext()) {
-					//in.setBuffer(dataEntry.getData());
-					TupleInput in = new TupleInput(dataEntry.getData());
-					O obj = readObject(in);
-					goNext();
-
-					return obj;
-
-				} else {
-					return null;
-				}
-			} catch (Exception e) {
-				assert false : " Error: " + e;
-				return null;
-			}
-		}
-
-		/**
-		 * The remove method is not implemented. Please do not use it.
-		 */
-		public void remove() {
-		}
-
-	}
+	
+	
 
 }

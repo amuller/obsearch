@@ -5,6 +5,7 @@ import hep.aida.bin.QuantileBin1D;
 import java.io.File;
 import java.io.IOException;
 
+import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
@@ -19,6 +20,7 @@ import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.FloatBinding;
 import com.sleepycat.bind.tuple.IntegerBinding;
+import com.sleepycat.bind.tuple.LongBinding;
 import com.sleepycat.bind.tuple.SortedFloatBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -28,6 +30,9 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.SecondaryConfig;
+import com.sleepycat.je.SecondaryDatabase;
+import com.sleepycat.je.SecondaryKeyCreator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /*
@@ -62,7 +67,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("ExtendedPyramidIndex")
 public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
-		AbstractPivotIndex<O> {
+		AbstractPivotIndex<O>  {
 
 	protected static final int MIN = 0;
 
@@ -80,6 +85,8 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 
 	// the database where the pyramid values are stored
 	protected transient Database cDB;
+	
+
 
 	/**
 	 * Constructs an extended pyramid index
@@ -100,12 +107,15 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 	 * This method will be called by the super class Initializes the C
 	 * database(s)
 	 */
-	protected final void initC() throws DatabaseException {
+	protected void initC() throws DatabaseException {
 		final boolean duplicates = dbConfig.getSortedDuplicates();
 		dbConfig.setSortedDuplicates(true);
 		cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
-		dbConfig.setSortedDuplicates(duplicates);
+		dbConfig.setSortedDuplicates(duplicates);		
+		
 	}
+	
+
 
 	/**
 	 * Calculates the pyramid's median values We basically have to get the
@@ -301,12 +311,12 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 	 * @see org.ajmm.obsearch.Index#delete(org.ajmm.obsearch.OB)
 	 */
 	// TODO: implement Delete operation for the pyramid technique
-	public final byte delete(final O object) throws NotFrozenException,
+	public final int delete(final O object) throws NotFrozenException,
 			DatabaseException {
 		// TODO Auto-generated method stub
 		assertFrozen();
 		assert false;
-		return 0;
+		return -1;
 	}
 
 
@@ -361,6 +371,12 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
         determineRanges(i, q, lowHighResult);
         return true;
     }
+    
+    public int totalBoxes(){
+    	return pivotsCount * 2;
+    }
+    
+    
 
     /**
      * Determines the ranges that have to be searched in the b-tree

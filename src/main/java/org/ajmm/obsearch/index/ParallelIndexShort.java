@@ -6,7 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.ParallelIndex;
-import org.ajmm.obsearch.TimeStampIndex;
+import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -66,6 +66,8 @@ public class ParallelIndexShort<O extends OBShort> extends
 	protected ParallelIndex getMe(){
 		return this;
 	}
+	
+	
 
 	@Override
 	public void run() {
