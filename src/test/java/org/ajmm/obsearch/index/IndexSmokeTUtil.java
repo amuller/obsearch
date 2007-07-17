@@ -114,7 +114,6 @@ public class IndexSmokeTUtil {
 				OBSlice s = new OBSlice(line);
 				if (shouldProcessSlice(s)) {
 					index.searchOB(s, range, x);
-					// logger.info(x);
 					result.add(x);
 					i++;
 				}
@@ -191,15 +190,18 @@ public class IndexSmokeTUtil {
 						assertTrue(j.getObject().distance(o) == 0);
 					}
 					cx2++;
+					
 				}
+				logger.info("Result: box: " + i + " Cx"   + cx2);
 				totalCx += cx2;
 				i++;
 			}
 			assertEquals(realIndex, totalCx);
+			logger.info("CX: " + totalCx);
 			logger.info("Testing completed");
 		}
 
-		logger.info("CX: " + cx);
+	
 		index.close();
 		deleteDB(dbFolder);
 	}

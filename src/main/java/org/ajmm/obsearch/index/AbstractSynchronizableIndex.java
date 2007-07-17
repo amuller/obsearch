@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,8 +109,6 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		insertTimeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
 	}
 	
-	
-
 	public int totalBoxes() {
 		return getIndex().totalBoxes();
 	}
@@ -131,12 +130,17 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		// after we freeze, we have to insert our data
 		int i =0;
 		int max = getIndex().databaseSize();
+		int [] boxes = new int[this.totalBoxes()];
 		while(i < max){
 			O object = getIndex().getObject(i);
 			assert object != null;
 			int box = getIndex().getBox(object);
+			boxes[box] += 1;
 			insertTimeEntry(box, System.currentTimeMillis(),  i);
 			i++;
+		}
+		if(logger.isDebugEnabled()){
+			logger.debug("Boxes distribution:" + Arrays.toString(boxes));
 		}
 		assert i == this.getIndex().databaseSize();
 		assert this.insertTimeDB.count() == this.getIndex().databaseSize() : "time: " + insertTimeDB.count() + " the rest: " + getIndex().databaseSize();
@@ -144,9 +148,9 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
 			IllegalAccessException, InstantiationException {
-		// TODO Auto-generated method stub
 		return getIndex().getObject(i);
 	}
+	
     // problem with the freezing. we don't know which box they belong too.
 	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
@@ -276,11 +280,13 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		private int count = 0;
 
 		public TimeStampIterator(int box, long from) throws DatabaseException {
+			this.box = box;
 			cursor = insertTimeDB.openCursor(null, null);
 			previous = from;
 			keyEntry.setData(boxTimeToByteArray(box,from));
 			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);			
 			in = new MyTupleInput();
+		  
 			goNextAux();
 		}
 		
