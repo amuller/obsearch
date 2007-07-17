@@ -20,6 +20,10 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 		super(source,dbDir);
 		this.source = source;
 	}
+	
+	public int databaseSize() throws DatabaseException{
+		return this.getIndex().databaseSize();
+	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort result)
 			throws NotFrozenException, DatabaseException,
