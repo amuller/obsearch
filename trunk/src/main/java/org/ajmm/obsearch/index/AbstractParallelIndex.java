@@ -52,6 +52,7 @@ import com.sleepycat.je.DatabaseException;
 // It might be berkeley db. It might be simply the fact that there is only one hard drive, and 4 cpus 
 // eating a lot of data. Another possibility is that the queue is too slow, that the bottleneck is the creation of slices...
 // I will work on this in the future.
+// This class is officially suspended. I don't need it right now.
 public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, ParallelIndex<O>, Runnable {
 
 	// # of threads to be used
