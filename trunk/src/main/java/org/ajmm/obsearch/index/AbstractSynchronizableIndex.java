@@ -15,11 +15,11 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
+import org.ajmm.obsearch.index.sync.IntLongComparator;
 import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
-import com.sleepycat.bind.tuple.LongBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Cursor;
@@ -85,7 +85,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		EnvironmentConfig envConfig = new EnvironmentConfig();
 		envConfig.setAllowCreate(true);
 		envConfig.setTransactional(false);
-		envConfig.setCacheSize(20 * 1024 * 1024); // 80 MB
+		envConfig.setCacheSize(20 * 1024 * 1024); // 20 MB
 		// envConfig.setTxnNoSync(true);
 		// envConfig.setTxnWriteNoSync(true);
 		// envConfig.setLocking(false);
@@ -95,6 +95,8 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		dbConfig.setTransactional(false);
 		dbConfig.setAllowCreate(true);
 		dbConfig.setSortedDuplicates(true);
+		dbConfig.setBtreeComparator(IntLongComparator.class);
+		//dbConfig.setDuplicateComparator(IntLongComparator.class);
 		// dbConfig.setExclusiveCreate(true);
 	}
 	
@@ -103,10 +105,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	 * @throws DatabaseException
 	 */
 	private void initInsertTime() throws DatabaseException{
-		final boolean duplicates = dbConfig.getSortedDuplicates();
-		dbConfig.setSortedDuplicates(false);
-		insertTimeDB = databaseEnvironment.openDatabase(null, "time", dbConfig);
-		dbConfig.setSortedDuplicates(duplicates);
+		insertTimeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
 	}
 	
 	
@@ -136,9 +135,10 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			O object = getIndex().getObject(i);
 			assert object != null;
 			int box = getIndex().getBox(object);
-			insertTimeEntry(box, System.currentTimeMillis(), i);
+			insertTimeEntry(box, System.currentTimeMillis(),  i);
 			i++;
 		}
+		assert i == this.getIndex().databaseSize();
 		assert this.insertTimeDB.count() == this.getIndex().databaseSize() : "time: " + insertTimeDB.count() + " the rest: " + getIndex().databaseSize();
 	}
 
@@ -175,16 +175,16 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	protected void insertTimeEntry(int box, long time, int id) throws DatabaseException{
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();
-		TupleOutput out = new TupleOutput();
-		out.writeInt(box);
-		out.writeLong(time);
-		keyEntry.setData(out.getBufferBytes());
+
+		keyEntry.setData(boxTimeToByteArray(box,time));
 		IntegerBinding.intToEntry(id, dataEntry);
 		OperationStatus ret = insertTimeDB.put(null, keyEntry, dataEntry);
 		if(ret != OperationStatus.SUCCESS){
 			throw new DatabaseException();
 		}		
 	}
+	
+	
 	
 	public long latestModification(int box) throws DatabaseException, OBException{
 		if(timeByBox[box] == 0){ // 0 is the unitialized value.
@@ -256,6 +256,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	}
 
 	protected class TimeStampIterator implements Iterator {
+		
 		private Cursor cursor = null;
 
 		private DatabaseEntry keyEntry = new DatabaseEntry();
@@ -267,33 +268,57 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		private MyTupleInput in;
 		
 		private int box;
+		
+		private int cbox = -1;
 
 		private long previous = Long.MIN_VALUE;
+		
+		private int count = 0;
 
 		public TimeStampIterator(int box, long from) throws DatabaseException {
 			cursor = insertTimeDB.openCursor(null, null);
 			previous = from;
-			LongBinding.longToEntry(previous, keyEntry);
 			keyEntry.setData(boxTimeToByteArray(box,from));
-			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
+			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);			
 			in = new MyTupleInput();
+			goNextAux();
+		}
+		
+		// update the data from keyEntry and dataEntry
+		private void goNextAux() {
+			if(OperationStatus.SUCCESS == retVal){
+				in.setBuffer(keyEntry.getData());
+				cbox = in.readInt();
+				long recent = in.readLong();
+				count++;
+				assert validate(recent) : "Previous: " + previous + " recent" + recent + "returned: " + count;
+				previous = recent;
+			}else{
+				cbox = -1;
+			}			
+		}
+		
+		// validates some general conditions in the data
+		private boolean validate(long recent){
+			if(box == cbox){
+				return  previous <= recent ;		
+			}else{
+				return true;
+			}				
 		}
 
-		private void goNext() throws DatabaseException {
-			//LongBinding.longToEntry(previous, keyEntry);
-			
+		private void goNext() throws DatabaseException {		
 			retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
-			long recent = LongBinding.entryToLong(keyEntry);
-			assert previous <= recent;
-			previous = recent;
+			goNextAux();
 		}
-
+		
 		public boolean hasNext() {
-			boolean res = (retVal == OperationStatus.SUCCESS);
+			boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
 			if (!res) {
 				try {
 					cursor.close();
 				} catch (Exception e) {
+					assert false;
 					logger.fatal(e);
 				}
 			}
@@ -303,12 +328,14 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		public O next() {
 			try {
 				if (hasNext()) {
-					TupleInput in = new TupleInput(dataEntry.getData());
-					int id = in.readInt();
+					TupleInput inl = new TupleInput(dataEntry.getData());
+					
+					int id = inl.readInt();
 					O obj = getObject(id);
 					goNext();
 					return obj;
 				} else {
+					assert false : "You should be calling hasNext before calling next.";
 					return null;
 				}
 			} catch (Exception e) {

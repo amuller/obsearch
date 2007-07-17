@@ -62,6 +62,10 @@ public class ParallelIndexShort<O extends OBShort> extends
 	public Index<O>getIndex(){
 		return index;
 	}
+	
+	public int databaseSize() throws DatabaseException{
+		return this.getIndex().databaseSize();
+	}
 
 	protected ParallelIndex getMe(){
 		return this;
