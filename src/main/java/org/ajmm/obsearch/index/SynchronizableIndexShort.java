@@ -50,7 +50,7 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 		return this.getIndex().databaseSize();
 	}
 
-	public void searchOB(O object, short r, OBPriorityQueueShort result)
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
