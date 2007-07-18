@@ -64,7 +64,7 @@ public  class OBGrid implements Index {
 
 	}
 
-	public byte delete(OB object) throws NotFrozenException, DatabaseException {
+	public int delete(OB object) throws NotFrozenException, DatabaseException {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -83,7 +83,7 @@ public  class OBGrid implements Index {
 		return null;
 	}
 
-	public byte insert(OB object) throws IllegalIdException,
+	public int insert(OB object) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
 		// TODO Auto-generated method stub
