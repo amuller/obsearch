@@ -45,7 +45,7 @@ import com.sleepycat.je.DatabaseException;
     @since       1.0
 */
 
-public  class OBGrid implements Index {
+public  class OBGrid<O extends OB> implements Index<O> {
 
 	/**
 	 * Maximum amount of time difference that will be tolerated
@@ -63,8 +63,20 @@ public  class OBGrid implements Index {
 		// TODO Auto-generated method stub
 
 	}
+	
+	public  int databaseSize(){
+		return -1;
+	}
+	
+	public int getBox(O obj){
+		return -1;
+	}
+	
+	public int totalBoxes(){
+		return -1;
+	}
 
-	public int delete(OB object) throws NotFrozenException, DatabaseException {
+	public int delete(O object) throws NotFrozenException, DatabaseException {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -77,7 +89,7 @@ public  class OBGrid implements Index {
 
 	}
 
-	public OB getObject(int i) throws DatabaseException, IllegalIdException,
+	public O getObject(int i) throws DatabaseException, IllegalIdException,
 			IllegalAccessException, InstantiationException {
 		// TODO Auto-generated method stub
 		return null;
