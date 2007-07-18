@@ -13,39 +13,31 @@ import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import com.sleepycat.je.DatabaseException;
 
 /*
- OBSearch: a distributed similarity search engine
- This project is to similarity search what 'bit-torrent' is to downloads.
- Copyright (C)  2007 Arnoldo Jose Muller Molina
+    OBSearch: a distributed similarity search engine
+    This project is to similarity search what 'bit-torrent' is to downloads.
+    Copyright (C)  2007 Arnoldo Jose Muller Molina
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
+  	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License along
- with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-/**
- * An Index stores objects based on a distance function in a hopefully efficient
- * way Our indexes first load a bunch of data, perform some calculations and
- * then they have to be frozen. We calculate different things such as pivots,
- * extended pyramid technique values and p+tree clustering detection. An index
- * can be frozen only once. Please make sure you add a bunch of data into it
- * before freezing it. Note that after freezing it, you can continue adding
- * data. :)
- * In the future we will offer a "rebuild" method that optimizes the database
- * in background. This is not yet a priority
- *
- * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
- */
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/** 
+	  Class: Index
+	  
+    @author      Arnoldo Jose Muller Molina    
+    @version     %I%, %G%
+    @since       1.0
+*/
+
 public interface Index<O extends OB> {
 
     // TODO: Remove all the *newInstance() methods as they use reflection and this is very slow

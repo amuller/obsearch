@@ -57,9 +57,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 /**
  * This Index uses the extended pyramid technique and SMAP to store arbitrary
  * objects TODO: what if we create one b-tree per pyramid? Would that make
- * things faster? TODO: use colt's int hash table for the object cache... if it
- * allows phantom refs TODO: big pyramids should be partitioned and matched in
- * different clients! :)
+ * things faster? 
  *
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
