@@ -119,14 +119,12 @@ public class OBExampleTrees {
 
 	                    OBSlice s = new OBSlice(l);
 	                	if(shouldProcessSlice(s)){
-	                		//logger.info("Range: " + range + " k: " + k + " slice: " + l);
 	                		index.searchOB(s, range, x);
-	                		//logger.info(x);
 	                    	result.add(x);
 	                    	i++;
 	                	}
 	                }
-	                if(i == 1642){ // TODO rebuild the query file
+	                if(i == 1642){
 	                    logger.warn("Finishing test at i : " + i);
 	                    break;
 	                }
