@@ -223,7 +223,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 */
-	protected Object readResolveAux() throws DatabaseException,
+	protected Object initializeAfterSerialization() throws DatabaseException,
 			NotFrozenException, DatabaseException, IllegalAccessException,
 			InstantiationException {
 		if (logger.isDebugEnabled()) {
@@ -237,6 +237,15 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// restore the ids
 		id = new AtomicInteger(this.databaseSize());
 		return this.returnSelf();
+	}
+	
+	public void relocateInitialize(File dbPath) throws DatabaseException,
+	NotFrozenException, DatabaseException, IllegalAccessException,
+	InstantiationException{
+		if(dbPath != null){
+			this.dbDir = dbPath;
+		}
+		initializeAfterSerialization();
 	}
 
 	// private abstract Object readResolve() throws DatabaseException;
@@ -532,10 +541,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		this.frozen = true;
 		// queries can be executed from this point
 
-		XStream xstream = new XStream();
-		// TODO: make sure this "this" will print the subclass and not the
-		// current class
-		String xml = xstream.toXML(returnSelf());
+		String xml = toXML();
 		FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator
 				+ getSerializedName());
 		fout.write(xml);
@@ -575,6 +581,12 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 				i++;
 			}
 
+	}
+	
+	public String toXML(){
+		XStream xstream = new XStream();		
+		String xml = xstream.toXML(returnSelf());
+		return xml;
 	}
 
 	/**

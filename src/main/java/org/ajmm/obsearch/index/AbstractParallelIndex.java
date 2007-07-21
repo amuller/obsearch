@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.index;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -183,5 +184,18 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 		getIndex().close();
 	}
 
+	/**
+	 * Returns the xml of the index embedded in this 
+	 * ParallelIndex
+	 */
+	public String toXML(){
+		return getIndex().toXML();
+	}
 
+
+	public void relocateInitialize(File dbPath) throws DatabaseException,
+	NotFrozenException, DatabaseException, IllegalAccessException,
+	InstantiationException{
+		getIndex().relocateInitialize(dbPath);
+	}
 }

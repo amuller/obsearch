@@ -137,8 +137,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	
 	// time when the index was created
 	protected long indexTime;
-	// the index we are wrapping
-	private SynchronizableIndex<O> index;
+	
 	
 	// holds the boxes that this index is currently supporting
 	private BitSet availableBoxes;
@@ -156,10 +155,13 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	private long [] globalBoxLastUpdated;
 	
 	
+	protected abstract SynchronizableIndex<O> getIndex();
 	
 	protected AbstractP2PIndex(SynchronizableIndex<O> index) throws IOException,
-			PeerGroupException {
-		this.index = index;
+			PeerGroupException, NotFrozenException {
+		if(! index.isFrozen()){
+			throw new NotFrozenException();
+		}
 		pipes =  new ConcurrentHashMap<URI, JxtaBiDiPipe>();
 		searchPipes = new Queue[index.totalBoxes()];
 		availableBoxes = new BitSet(index.totalBoxes());
@@ -215,8 +217,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 					heartBeat1();
 					heartBeat3(count);
 					heartBeat100(count);
-					
-					this.wait(heartBeatInterval);
+					synchronized (this){
+						this.wait(heartBeatInterval);
+					}
 				}catch(InterruptedException i){
 					if(logger.isDebugEnabled()){
 						logger.debug("HeartBeat interrupted");
@@ -581,45 +584,59 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 
 	public void close() throws DatabaseException {
 		manager.stopNetwork();
-		index.close();
+		getIndex().close();
 	}
 
 	public int databaseSize() throws DatabaseException {
-		return index.databaseSize();
+		return getIndex().databaseSize();
 	}
 
 	public int delete(O object) throws NotFrozenException, DatabaseException {
-		return index.delete(object);
+		return getIndex().delete(object);
 	}
 
 	public void freeze() throws IOException, AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			DatabaseException, OutOfRangeException, OBException,
 			UndefinedPivotsException {
-		index.freeze();
+		getIndex().freeze();
 
 	}
 
 	public int getBox(O object) throws OBException {
-		return index.getBox(object);
+		return getIndex().getBox(object);
 	}
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
 			IllegalAccessException, InstantiationException {
-		return index.getObject(i);
+		return getIndex().getObject(i);
 	}
 
 	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
-		return index.insert(object);
+		return getIndex().insert(object);
 	}
 
 	public boolean isFrozen() {
-		return index.isFrozen();
+		return getIndex().isFrozen();
 	}
 
 	public int totalBoxes() {
-		return index.totalBoxes();
+		return getIndex().totalBoxes();
+	}
+	
+	public void relocateInitialize(File dbPath) throws DatabaseException,
+	NotFrozenException, DatabaseException, IllegalAccessException,
+	InstantiationException{
+		getIndex().relocateInitialize(dbPath);
+	}
+	
+	/**
+	 * Returns the xml of the index embedded in this 
+	 * P2PIndex
+	 */
+	public String toXML(){
+		return getIndex().toXML();
 	}
 
 }

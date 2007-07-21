@@ -377,4 +377,9 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	}
 
 
+	public void relocateInitialize(File dbPath) throws DatabaseException,
+	NotFrozenException, DatabaseException, IllegalAccessException,
+	InstantiationException{
+		getIndex().relocateInitialize(dbPath);
+	}
 }
