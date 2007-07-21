@@ -60,5 +60,15 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 	public Index<O> getIndex(){
 		return source;
 	}
+	
+	/**
+	 * Returns the xml of the index embedded in this 
+	 * SynchronizedIndex.
+	 */
+	public String toXML(){
+		return getIndex().toXML();
+	}
+	
+	
 
 }

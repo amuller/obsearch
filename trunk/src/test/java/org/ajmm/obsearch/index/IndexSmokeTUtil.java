@@ -34,25 +34,15 @@ public class IndexSmokeTUtil {
 	public IndexSmokeTUtil() throws IOException {
 		testProperties = TUtils.getTestProperties();
 	}
-
-	/**
-	 * Test method for
-	 * {@link org.ajmm.obsearch.index.AbstractPivotIndex#insertObjectInDatabase(org.ajmm.obsearch.OB, int, com.sleepycat.je.Database)}.
-	 * Creates a database, fills it with a bunch of rows performs a query and
-	 * compares the result with the sequential search.
-	 */
-	protected void tIndex(IndexShort<OBSlice> index) throws Exception {
+	
+	public void initIndex(IndexShort<OBSlice> index) throws Exception{
 		File query = new File(testProperties.getProperty("test.query.input"));
 		File db = new File(testProperties.getProperty("test.db.input"));
 		File dbFolder = new File(testProperties.getProperty("test.db.path"));
 		logger.debug("query file: " + query);
 		logger.debug("db file: " + db);
-		// delete the database
-		deleteDB(dbFolder);
-		assertTrue(dbFolder.mkdirs());
-		long currentTime = System.currentTimeMillis();
-		int cx = 0;
-		int querySize = 1642; // amount of elements to read from the query
+		
+		
 
 		logger.info("Adding data");
 		BufferedReader r = new BufferedReader(new FileReader(db));
@@ -89,7 +79,24 @@ public class IndexSmokeTUtil {
 		// the pyramid values are created
 		logger.info("freezing");
 		index.freeze();
+	}
 
+	/**
+	 * Test method for
+	 * {@link org.ajmm.obsearch.index.AbstractPivotIndex#insertObjectInDatabase(org.ajmm.obsearch.OB, int, com.sleepycat.je.Database)}.
+	 * Creates a database, fills it with a bunch of rows performs a query and
+	 * compares the result with the sequential search.
+	 */
+	protected void tIndex(IndexShort<OBSlice> index) throws Exception {
+		
+		File query = new File(testProperties.getProperty("test.query.input"));
+		File db = new File(testProperties.getProperty("test.db.input"));
+		File dbFolder = new File(testProperties.getProperty("test.db.path"));
+		long currentTime = System.currentTimeMillis();
+		int cx = 0;
+		int querySize = 1642; // amount of elements to read from the query
+		String re = null;
+		initIndex(index);
 		// assertEquals(index.aDB.count(), index.bDB.count());
 		// assertEquals(index.aDB.count(), index.bDB.count());
 		// index.stats();
@@ -97,10 +104,11 @@ public class IndexSmokeTUtil {
 		short range = 3; // range
 		// it is time to Search
 		logger.info("Matching begins...");
-		r = new BufferedReader(new FileReader(query));
+		BufferedReader r = new BufferedReader(new FileReader(query));
 		List<OBPriorityQueueShort<OBSlice>> result = new LinkedList<OBPriorityQueueShort<OBSlice>>();
 		re = r.readLine();
 		int i = 0;
+		int realIndex = index.databaseSize();
 
 		while (re != null) {
 			String line = parseLine(re);
@@ -212,10 +220,14 @@ public class IndexSmokeTUtil {
 		}
 		File[] files = dbFolder.listFiles();
 		for (File f : files) {
-			assertTrue("Could not delete: " + f, f.delete());
+			if(f.isDirectory()){
+				deleteDB(f);
+			}else{
+				assertTrue("Could not delete: " + f, f.delete());
+			}
 		}
 		assertTrue(dbFolder.delete());
-
+		assertTrue(! dbFolder.exists());
 	}
 
 	public static boolean shouldProcessSlice(OBSlice x) throws Exception {

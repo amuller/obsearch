@@ -536,8 +536,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	private Object readResolve() throws DatabaseException,
     NotFrozenException, DatabaseException, IllegalAccessException,
     InstantiationException {
-		resultCache = new HashMap<O, OBQueryShort<O>>(3000);
-		return super.readResolveAux();
+			resultCache = new HashMap<O, OBQueryShort<O>>(3000);
+			return this;
 	}
 
 }

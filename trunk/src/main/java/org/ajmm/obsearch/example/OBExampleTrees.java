@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
+import org.ajmm.obsearch.index.IndexFactory;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.ParallelIndexShort;
@@ -88,7 +89,6 @@ public class OBExampleTrees {
 				
 				File dbFolder = new File(cline.getOptionValue("db"));
 
-		        XStream xstream = new XStream();
 		        // TODO: clean the way we obtain the index file name
 		        // maybe just using one name is fine
 		        File indexFile = new File(dbFolder + "/PPTreeShort");
@@ -98,8 +98,10 @@ public class OBExampleTrees {
 		        logger.info("Loading metadata and opening databases... file: " + indexFile.getAbsoluteFile());
 		       
 		        
-		        index = (PPTreeShort<OBSlice>)xstream.fromXML(readString(indexFile));
-		      
+		        index = (PPTreeShort<OBSlice>)IndexFactory.createFromXML(readString(indexFile));
+		        // required step to init databases
+		        index.relocateInitialize(null);
+		        
 				logger.info("Done! DB size: " + index.databaseSize());
 				 byte k = Byte.parseByte(cline.getOptionValue("k"));
 		         short range = Short.parseShort(cline.getOptionValue("r")); // range

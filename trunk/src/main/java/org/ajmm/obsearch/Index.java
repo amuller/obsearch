@@ -1,5 +1,6 @@
 package org.ajmm.obsearch;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -138,6 +139,34 @@ public interface Index<O extends OB> {
 	 */
 	int getBox(O object)throws OBException ;
 	
+	/**
+	 * Returns the database size
+	 * @return Number of elements in the database
+	 * @throws DatabaseException
+	 */
 	int databaseSize() throws DatabaseException;
+	
+	/**
+	 * This method *must* be called after de-serializing the
+	 * database object.
+	 * Index implementations should store internally the location of
+	 * the database, but this method allows you to override this.
+	 * If the given value is null, the internally stored path will 
+	 * be used.
+	 * @param dbPath New database path, or null if the default is to be used
+	 */
+	void relocateInitialize(File dbPath) throws DatabaseException,
+	NotFrozenException, DatabaseException, IllegalAccessException,
+	InstantiationException;
+	
+	/**
+     * Generates an XML representation of this index  suitable for 
+     * serialization. The data itself is not serialized, only the metadata
+     * necessary to allow this index to be frozen. 
+     * @return
+     */
+	String toXML();
 
    }
+
+    
