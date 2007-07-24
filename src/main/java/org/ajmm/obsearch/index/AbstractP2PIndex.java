@@ -505,7 +505,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 			assert false;
 		}
 
-	}
+	}	
 	
 	/**
 	 * Adds the given pipe. This is called either when an accept is made by the server,
