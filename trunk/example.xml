@@ -125,23 +125,22 @@
 
 <target name="p2psearchremote" depends="p2pinit">
 	  <!--TODO: remove this -->
-
-			<!-- TODO: remove this -->
-					
-	    <exec executable="rsync">
+    <exec executable="rsync">
 				<arg value="-az"/>
 				<arg value="."/>
 				<arg value="192.168.1.86:~/gsoc/obsearch/"/>
-			</exec>
-		
+		</exec>		
+
     <exec executable="scp">
 				<arg value="${spore}"/>
 				<arg value="192.168.1.86:${spore}"/>
-			</exec>
+		</exec>
+
 		<exec executable="ssh">
 			  <arg value="192.168.1.86"/>
 			  <arg value="cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch"/>
 		</exec>
+
 </target>
 
 <target name="p2psearch" depends="p2pinit">
