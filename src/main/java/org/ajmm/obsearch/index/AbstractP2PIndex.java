@@ -203,19 +203,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 		configurator.setUseOnlyRelaySeeds(true);
 	    configurator.setUseOnlyRendezvousSeeds(true);
 	    configurator.setHttpEnabled(false);
-	    
-	   /* if(isClient){
-	    	configurator.setTcpIncoming(false);
-	    }else{
-	    	
-	    }*/
 	    configurator.setTcpIncoming(true);
 	    configurator.setTcpEnabled(true);
 	    configurator.setTcpOutgoing(true);
 	    configurator.setUseMulticast(false);
-	   /* if(isClient){
-	    	configurator.setTcpPort(9702);
-	    }*/
 		
 		manager.startNetwork();
 		// Get the NetPeerGroup
@@ -238,9 +229,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 			manager.waitForRendezvousConnection(0);
 			logger.debug("Rendevouz connection found");
 		}
-		// find other pipes as soon as we start
-
-		//findPipes();
 	}
 	
 	/**
@@ -285,12 +273,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 		}
 		
 		// executed once per heart beat
-		public void heartBeat1() throws PeerGroupException, IOException {
-			    
-				
+		public void heartBeat1() throws PeerGroupException, IOException {			    				
 				timeBeat();	
 		}
-		
+		// executed once every 3 heart beats
 		public void heartBeat3(long count) throws PeerGroupException, IOException{
 			if(count % 3 == 0){
 				// send my time to everybody, telling them what is my current time
@@ -507,7 +493,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	private synchronized  void addPipe(PipeAdvertisement p) {
 
 		try {
-			if (pipes.size() <= maxNumberOfPeers) {
 				// only if we don't have already the connection
 				if(! this.pipes.containsKey(p.getPipeID().toURI())){
 					JxtaBiDiPipe pipe = new JxtaBiDiPipe();
@@ -515,7 +500,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 						this);
 					addPipeAux(pipe);
 				}
-			}
 		} catch (IOException e) {
 			logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
 			assert false;
@@ -532,22 +516,25 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	private synchronized void addPipeAux(JxtaBiDiPipe bidipipe) throws IOException {
 		URI pipeId = bidipipe.getPipeAdvertisement().getPipeID().toURI();
 		if(pipes.containsKey(pipeId)){
-			try{
-				// a duplicated pipe, we should close the new one and leave the old connection open
-				if(! pipes.get(pipeId).equals(bidipipe)){
-					bidipipe.close();
-				}				
+			try{				
+					bidipipe.close();							
 			}catch(IOException e){
 				logger.fatal("Error while trying to close a duplicated pipe" + e);
 				assert false;
 			}
-		}else{
-			
+		}else if (pipes.size() <= maxNumberOfPeers) {			
 			logger.debug("Adding pipe: " + pipeId);
 			this.pipes.put(pipeId , bidipipe);
 			// send initial sync data to make sure that everybody is
 			// syncrhonized enough to be meaningful.
 			sendMessagesAfterFirstEncounter(bidipipe);
+		}else{			
+			try{
+				bidipipe.close();
+			}catch(IOException e){				
+				logger.fatal("Error while closing pipe" + e);
+				assert false;
+			}
 		}
 	}
 	
@@ -558,16 +545,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	 * @param bidipipe
 	 */
 	private synchronized void addPipe(JxtaBiDiPipe bidipipe) throws IOException{
-		if (pipes.size() <= maxNumberOfPeers) {
-			addPipeAux(bidipipe);
-		}else{
-			try{
-				bidipipe.close();
-			}catch(IOException e){				
-				logger.fatal("Error while closing pipe" + e);
-				assert false;
-			}
-		}
+		addPipeAux(bidipipe);
 	}
 
 	/**
