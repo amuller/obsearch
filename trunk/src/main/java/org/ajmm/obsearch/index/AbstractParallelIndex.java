@@ -127,7 +127,7 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 	}
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
-			IllegalAccessException, InstantiationException {
+			IllegalAccessException, InstantiationException, OBException {
 		return getIndex().getObject(i);
 	}
 	
@@ -195,7 +195,7 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 
 	public void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException{
+	InstantiationException, OBException, IOException{
 		getIndex().relocateInitialize(dbPath);
 	}
 }

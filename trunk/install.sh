@@ -29,6 +29,8 @@ rm fmpp_0.9.12.tar.gz
 # install jxta
 
 wget http://download.java.net/jxta/jxta-jxse/2.5_rc1/jxta.jar
+
 mvn install:install-file -Dfile=jxta.jar -DgroupId=jxta -DartifactId=jxta -Dversion=2.5rc1 -Dpackaging=jar -DgeneratePom=true
+
 
 rm jxta.jar

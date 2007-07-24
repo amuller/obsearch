@@ -19,6 +19,7 @@ import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
+import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
@@ -211,24 +212,10 @@ public class IndexSmokeTUtil {
 
 	
 		index.close();
-		deleteDB(dbFolder);
+		Directory.deleteDirectory(dbFolder);
 	}
 
-	public static void deleteDB(File dbFolder) {
-		if (!dbFolder.exists()) {
-			return;
-		}
-		File[] files = dbFolder.listFiles();
-		for (File f : files) {
-			if(f.isDirectory()){
-				deleteDB(f);
-			}else{
-				assertTrue("Could not delete: " + f, f.delete());
-			}
-		}
-		assertTrue(dbFolder.delete());
-		assertTrue(! dbFolder.exists());
-	}
+	
 
 	public static boolean shouldProcessSlice(OBSlice x) throws Exception {
 		return x.size() <= 100;

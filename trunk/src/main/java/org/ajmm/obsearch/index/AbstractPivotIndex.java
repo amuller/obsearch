@@ -118,13 +118,12 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	// database with the temporary pivots
 	protected transient Database bDB;
 
-	protected transient Database pivotsDB;
-
 	protected transient DatabaseConfig dbConfig;
 	
 	
 
 	protected transient O[] pivots;
+	protected byte[][] pivotsBytes;
 
 	protected transient OBCache<O> cache;
 
@@ -166,6 +165,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		frozen = false;
 		maxId = 0;
 		id = new AtomicInteger(0);
+		this.pivotsBytes = new byte[pivotsCount][];
 		initDB();
 	}
 
@@ -174,7 +174,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * we are using generics
 	 */
 	protected void createPivotsArray() {
-		this.pivots = emptyPivotsArray();
+		this.pivots = emptyPivotsArray();		
 	}
 
 	public O[] emptyPivotsArray() {
@@ -192,9 +192,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// way of creating a database
 		initA();
 		initB();
-		initPivots();
-		initC();
-		
+		initC();		
 	}
 	
 	
@@ -225,7 +223,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	protected Object initializeAfterSerialization() throws DatabaseException,
 			NotFrozenException, DatabaseException, IllegalAccessException,
-			InstantiationException {
+			InstantiationException, OBException {
 		if (logger.isDebugEnabled()) {
 			logger
 					.debug("Initializing transient fields after de-serialization");
@@ -241,9 +239,12 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	
 	public void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException{
+	InstantiationException, OBException, IOException{
 		if(dbPath != null){
 			this.dbDir = dbPath;
+		}
+		if(!dbPath.exists()){
+			throw new IOException(dbPath + " does not exist.");
 		}
 		initializeAfterSerialization();
 	}
@@ -288,17 +289,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		}
 	}
 
-	/**
-	 * Creates database Pivots.
-	 * 
-	 * @throws Exception
-	 */
-	private void initPivots() throws DatabaseException {
-		final boolean duplicates = dbConfig.getSortedDuplicates();
-		dbConfig.setSortedDuplicates(false);
-		pivotsDB = databaseEnvironment.openDatabase(null, "Pivots", dbConfig);
-		dbConfig.setSortedDuplicates(duplicates);
-	}
+	
 
 	/**
 	 * This method makes sure that all the databases are created with the same
@@ -379,7 +370,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		return insert(object, id.getAndIncrement());
 	}
 
-	public int  insert(O object, int id) throws IllegalIdException,
+	protected int  insert(O object, int id) throws IllegalIdException,
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
 		if (isFrozen()) {
@@ -645,7 +636,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	// TODO: need to implement a cache here
 	public O getObject(int id) throws DatabaseException, IllegalIdException,
-			IllegalAccessException, InstantiationException {
+			IllegalAccessException, InstantiationException, OBException {
 		O res = cache.get(id);
 		if (res == null) {
 			res = getObject(id, aDB);
@@ -675,7 +666,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             If the pivot selector generates invalid ids
 	 */
 	public void storePivots(int[] ids) throws IllegalIdException,
-			IllegalAccessException, InstantiationException, DatabaseException {
+			IllegalAccessException, InstantiationException, DatabaseException, OBException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Pivots selected " + Arrays.toString(ids));
 		}
@@ -684,7 +675,9 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		int i = 0;
 		while (i < ids.length) {
 			O obj = getObject(ids[i], aDB);
-			insertObjectInDatabase(obj, i, pivotsDB); // store in the B-tree
+			TupleOutput out = new TupleOutput();
+			obj.store(out);
+			this.pivotsBytes[i] = out.getBufferBytes(); 			
 			pivots[i] = obj;
 			i++;
 		}
@@ -697,38 +690,28 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             if the freeze method has not been invoqued.
 	 */
 	protected void loadPivots() throws NotFrozenException, DatabaseException,
-			IllegalAccessException, InstantiationException {
-		Cursor cursor = null;
-		DatabaseEntry foundKey = new DatabaseEntry();
-		DatabaseEntry foundData = new DatabaseEntry();
+			IllegalAccessException, InstantiationException, OBException {
+		
 		createPivotsArray();
 		if (!isFrozen()) {
 			throw new NotFrozenException();
 		}
-		try {
-			int i = 0;
-			cursor = pivotsDB.openCursor(null, null);
-
-			while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-				assert i == IntegerBinding.entryToInt(foundKey);
-				TupleInput in = new TupleInput(foundData.getData());
+		
+		int i = 0;			
+		while (i < pivotsCount) {				
+				TupleInput in = new TupleInput(this.pivotsBytes[i]);
 				O obj = this.instantiateObject();
 				obj.load(in);
 				pivots[i] = obj;
-				// if(logger.isDebugEnabled()){
-				// logger.debug("Loaded pivot: " + obj);
-				// }
 				i++;
-			}
-			assert i == pivotsCount; // pivot count and read # of pivots
+		}
+		assert i == pivotsCount; // pivot count and read # of pivots
 			// should be the same
-			if (logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + i + " pivots, pivotsCount:"
 						+ pivotsCount);
-			}
-		} finally {
-			cursor.close();
 		}
+		
 	}
 
 	/**
@@ -752,7 +735,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             if the given id does not exist in the database
 	 */
 	private O getObject(int id, Database DB) throws DatabaseException,
-			IllegalIdException, IllegalAccessException, InstantiationException {
+			IllegalIdException, IllegalAccessException, InstantiationException, OBException {
 		// TODO: put these two objects in the class so that they don't have to
 		// be created over and over again
 		// TODO: add an OB cache
@@ -815,7 +798,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		aDB.close();
 		bDB.close();
 		closeC();
-		pivotsDB.close();
 		databaseEnvironment.cleanLog();
 		databaseEnvironment.close();
 	}
@@ -826,7 +808,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * @param in
 	 * @return
 	 */
-	protected O readObject(TupleInput in) throws InstantiationException, IllegalAccessException{
+	protected O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
 		O result = this.instantiateObject();
 		result.load(in);
 		return result;

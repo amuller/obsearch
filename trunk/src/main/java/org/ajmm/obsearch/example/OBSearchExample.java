@@ -4,17 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
 import org.ajmm.obsearch.index.IndexFactory;
-import org.ajmm.obsearch.index.IndexShort;
+import org.ajmm.obsearch.index.P2PIndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
-import org.ajmm.obsearch.index.ParallelIndexShort;
-import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
+import org.ajmm.obsearch.index.SynchronizableIndexShort;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.commons.cli.CommandLine;
@@ -29,45 +27,72 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.thoughtworks.xstream.XStream;
-
-public class OBExampleTrees {
-	private static final Logger logger = Logger.getLogger(OBExampleTrees.class);
+/**
+ * This class shows how OBSearch can be used.  
+ * The example is a P2P application. 
+ * The index consists of trees and some distance function.
+ * The initial data input is provided by a plain text file with string
+ * representations of the trees separated by newlines.
+ * Some definitions:
+ * Pollination: Transfers data from one node A to a node B. (data sync).
+ * Spore: An xml file used to create an index. This file does not contain data. It contains
+ *           all the data necessary to store objects into an Index.
+ */
+public class OBSearchExample {
 	
-	public static void main(String[] args){
+	private static final Logger logger = Logger.getLogger(OBSearchExample.class);
+	private static final File seeds = new File("seeds.txt");
+	public static void main(String args[]){
 		int returnValue = 0;
 		// initialize log4j
 		try{
-			PropertyConfigurator.configure("obexample.log4j");
+				PropertyConfigurator.configure("obexample.log4j");
 		}catch(Exception e){
 				System.err.print("Make sure log4j is configured properly" + e.getMessage()); // NOPMD by amuller on 11/18/06 7:32 PM
 				e.printStackTrace();
 				System.exit(48);
-		}
+		}		
 		try{
-		
-			CommandLine cline = getCommandLine(initCommandLine(), OBExampleTrees.class, args);
-			PPTreeShort<OBSlice> index;
+			// main code of the application goes here 
+			CommandLine cline = OBExampleTrees.getCommandLine(initCommandLine(), OBSearchExample.class, args);	
+			
+			
 			File data = new File(cline.getOptionValue("data"));
+			File dbFolder = new File(cline.getOptionValue("db"));
+			File stdFolder = new File(dbFolder, "std");
+			File syncFolder = new File(dbFolder, "sync");
+			File jxtaFolder = new File(dbFolder, "jxta");
+			
+			if(! stdFolder.mkdirs()){
+				throw new IOException();
+			}
+			
+			if(! syncFolder.mkdirs()){
+				throw new IOException();
+			}
+			
+			if(! jxtaFolder.mkdirs()){
+				throw new IOException();
+			}
+			
 			if(cline.hasOption("create")){
 				
 				//create the database
-				
-		        File dbFolder = new File(cline.getOptionValue("db"));
 				byte od = Byte.parseByte(cline.getOptionValue("od"));
-		        index = new PPTreeShort<OBSlice>(
-		                dbFolder, (short) 30, (byte) od, (short)0, (short) 1000);
-		    	
+				PPTreeShort<OBSlice> pp;				
+		        pp = new PPTreeShort<OBSlice>(
+		                stdFolder, (short) 30, (byte) od, (short)0, (short)1000);
+		        SynchronizableIndexShort<OBSlice> index = new  SynchronizableIndexShort<OBSlice>(pp, syncFolder);
 		    	
 		        logger.info("Adding data");
 	            BufferedReader r = new BufferedReader(new FileReader(data));
 	            String re = r.readLine();
 	            int realIndex = 0;
 	            while (re != null) {
-	                String l = parseLine(re);
+	                String l = OBExampleTrees.parseLine(re);
 	                if (l != null) {
 	                	OBSlice s = new OBSlice(l);
-	                	if(shouldProcessSlice(s)){
+	                	if(OBExampleTrees.shouldProcessSlice(s)){
 	                		index.insert(s);
 	                		realIndex++;
 	                	}
@@ -77,33 +102,48 @@ public class OBExampleTrees {
 	            // generate pivots
 	            //DummyPivotSelector ps = new DummyPivotSelector();
 	            TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)10);
-	            ps.generatePivots((AbstractPivotIndex<OBSlice>)index);
+	            ps.generatePivots((AbstractPivotIndex<OBSlice>)index.getIndex());
 	            // the pyramid values are created
 	            logger.info("freezing");
 	            index.freeze();
-		        index.close();
-		        logger.info("Finished Index Creation");
+	            
+	            P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, "Seeder");
+	            logger.info("Opening Seeder");
+	            p2p.open(false, true, seeds);
+		        // index.close();
+	            while(true){ // wait undefinitely
+	            	synchronized(dbFolder){
+	            		dbFolder.wait(10000);
+	            	}
+	            }
 			}else if(cline.hasOption("search")){
 				
 				
-				// LOAD DB
-				
-				File dbFolder = new File(cline.getOptionValue("db"));
 
 		        // TODO: clean the way we obtain the index file name
 		        // maybe just using one name is fine
-		        File indexFile = new File(dbFolder + "/PPTreeShort");
-		        if(! indexFile.exists()){
-		        	throw new OBException("Index file:" + indexFile + " does not exist.");
+		        File spore = new File(cline.getOptionValue("spore"));
+		        if(! spore.exists()){
+		        	throw new OBException("Index file:" + spore + " does not exist.");
 		        }
-		        logger.info("Loading metadata and opening databases... file: " + indexFile.getAbsoluteFile());
+		        logger.info("Loading metadata and opening databases... file: " + spore.getAbsoluteFile());
 		       
 		        
-		        index = (PPTreeShort<OBSlice>)IndexFactory.createFromXML(readString(indexFile));
+		        PPTreeShort<OBSlice> pp = (PPTreeShort<OBSlice>)IndexFactory.createFromXML(OBExampleTrees.readString(spore));
 		        // required step to init databases
-		        index.relocateInitialize(null);
+		        pp.relocateInitialize(stdFolder);
+		        SynchronizableIndexShort<OBSlice> index = new  SynchronizableIndexShort<OBSlice>(pp, syncFolder);
+		        P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, "Leecher");
+		        logger.info("Opening Leecher");
+		        p2p.open(true, true, seeds);
 		        
-				logger.info("Done! DB size: " + index.databaseSize());
+		        while(true){ // wait undefinitely
+	            	synchronized(dbFolder){
+	            		dbFolder.wait(10000);
+	            	}
+	            }
+		        /*
+				logger.info("Done! DB size: " + pp.databaseSize());
 				 byte k = Byte.parseByte(cline.getOptionValue("k"));
 		         short range = Short.parseShort(cline.getOptionValue("r")); // range
 		         BufferedReader r = new BufferedReader(new FileReader(data));
@@ -113,7 +153,7 @@ public class OBExampleTrees {
 	            int i = 0;
 	            long start = System.currentTimeMillis();
 				while (re != null) {
-	                String l = parseLine(re);
+	                String l = OBExampleTrees.parseLine(re);
 	                if (l != null) {
 	                	OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>(k);
 	                    if (i % 100 == 0) {
@@ -121,7 +161,7 @@ public class OBExampleTrees {
 	                    }
 
 	                    OBSlice s = new OBSlice(l);
-	                	if(shouldProcessSlice(s)){
+	                	if(OBExampleTrees.shouldProcessSlice(s)){
 	                		index.searchOB(s, range, x);
 	                    	result.add(x);
 	                    	i++;
@@ -137,6 +177,7 @@ public class OBExampleTrees {
 				long time = System.currentTimeMillis() - start;
 				logger.info("Running time: seconds: " + time / 1000 +  " minutes: " + time / 1000 / 60);
 				logger.info(index);
+				*/
 				
 			}else{
 				throw new OBException("You have to set the mode: 'create' or 'search'");
@@ -158,38 +199,17 @@ public class OBExampleTrees {
 	    }
 	}
 	
-	public static String readString(File file) throws IOException{
-		 StringBuilder res = new StringBuilder();
-		 BufferedReader metadata = new BufferedReader(new FileReader(file));
-		 String r = metadata.readLine();
-		 while(r != null){
-			 res.append(r);
-			 r = metadata.readLine();
-		 }
-		 return res.toString();
-	}
-	
-	
-	public static CommandLine getCommandLine(final Options options, final Class c, final String[] args) throws ParseException, HelpException {
-		final CommandLineParser parser = new GnuParser();
-		Option help = new Option( "help", "print this message" );
-        options.addOption(help);
-        final CommandLine line = parser.parse(options , args );
-        // add the "help option to the help" :)
-        if(line.hasOption("help")){
-        	final HelpFormatter formatter = new HelpFormatter();
-        	formatter.printHelp(c.getName(), options, true );
-        	throw new HelpException();
-        }
-        return line;
-	}
 	public static Options initCommandLine(){
-		final Option create = new Option("create", "Create mode");
+		final Option create = new Option("create", "Create mode: Creates an Index and leaves the connections open for Pollination");
 		create.setRequired(false);
 		
-		final Option search = new Option("search", "Search mode");
+		final Option search = new Option("search", "Search mode: By taking a spore, the index syncs with the network and then performs a search on the given data");
 		create.setRequired(false);
 		
+		final Option spore   = OptionBuilder.withArgName( "filename" )
+        .hasArg()
+        .withDescription(  "Spore to be fed into the system" )
+        .create( "spore");
 		
 		final Option in   = OptionBuilder.withArgName( "dir" )
         .hasArg()
@@ -226,28 +246,9 @@ public class OBExampleTrees {
 		options.addOption(k);
 		options.addOption(search);
 		options.addOption(od);
+		options.addOption(spore);
 		return options;
 	}
 	
-	public static boolean shouldProcessSlice(OBSlice x) throws Exception{
-    	return x.size()<= 500;
-    }
-
-    public static String parseLine(String line) {
-        if (line.startsWith("//") || "".equals(line.trim())
-                || (line.startsWith("#") && !line.startsWith("#("))) {
-            return null;
-        } else {
-            String arr[] = line.split("[:]");
-            if (arr.length == 2) {
-                return arr[1];
-            } else if (arr.length == 1) {
-                return arr[0];
-            } else {
-                assert false : "Received line: " + line;
-                return null;
-            }
-        }
-    }
-
+	
 }

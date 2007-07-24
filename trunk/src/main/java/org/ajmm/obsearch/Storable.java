@@ -3,6 +3,8 @@
  */
 package org.ajmm.obsearch;
 
+import org.ajmm.obsearch.exception.OBException;
+
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 
@@ -48,7 +50,8 @@ public interface Storable {
      * 
      * @param in
      *            A TupleInput object from where primitive types can be loaded.
+     * @throws OBException if the data cannot be loaded.        
      * @since 0.0
      */
-    void load(TupleInput in);
+    void load(TupleInput in) throws OBException;
 }

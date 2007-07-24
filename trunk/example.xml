@@ -52,7 +52,7 @@
 
 	<!-- DB and QUERY datafiles -->
 
-	<property name="dbdata" value="${project.build.outputDirectory}/slices"/>
+	<property name="dbdata" value="${project.build.outputDirectory}/slices-small"/>
 	<property name="querydata" value="${project.build.outputDirectory}/slices-query"/>
 </target>
 
@@ -92,12 +92,102 @@
 			</java>
 </target>
 
-<target name="dummy" depends="maven">
-	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.grid.OBGrid"  failonerror="true">
+
+<target name="p2pinit" depends="maven">
+	    <property name="seederFolder" value="${dbfolder}/seeder/"/>
+			<property name="leecherFolder" value="${dbfolder}/leecher/"/>
+	    <property name="spore" value="${seederFolder}/std/PPTreeShort"/>
+			
+		
+
+			
+</target>
+
+<target name="p2pcreate" depends="p2pinit">
+
+	<delete dir="${seederFolder}"/>
+	<mkdir dir="${seederFolder}"/>	
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+				<jvmarg value="-ea" />
 				<jvmarg value="-server" />
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-create"/>
+				<arg value="-db"/>
+				<arg value="${seederFolder}"/>
+				<arg value="-data"/>
+				<arg value="${dbdata}"/>
+				<arg value="-od"/>
+				<arg value="2"/>
+			</java>
+
+</target>
+
+<target name="p2psearchremote" depends="p2pinit">
+	  <!--TODO: remove this -->
+
+			<!-- TODO: remove this -->
+					
+	    <exec executable="rsync">
+				<arg value="-az"/>
+				<arg value="."/>
+				<arg value="192.168.1.86:~/gsoc/obsearch/"/>
+			</exec>
+		
+    <exec executable="scp">
+				<arg value="${spore}"/>
+				<arg value="192.168.1.86:${spore}"/>
+			</exec>
+		<exec executable="ssh">
+			  <arg value="192.168.1.86"/>
+			  <arg value="cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch"/>
+		</exec>
+</target>
+
+<target name="p2psearch" depends="p2pinit">
+
+<delete dir="${leecherFolder}"/>
+ <mkdir dir="${leecherFolder}"/>
+
+
+
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+				<jvmarg value="-ea" />
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-search"/>
+				<arg value="-r"/>
+				<arg value="3"/>
+				<arg value="-k"/>
+				<arg value="2"/>
+				<arg value="-db"/>
+				<arg value="${leecherFolder}"/>
+				<arg value="-data"/>
+				<arg value="${querydata}"/>
 			</java>
 </target>
 
-
+<target name="p2p" depends="p2pinit">
+			<parallel>
+			<!-- Parallel task #1 -->
+	    <antcall target="p2pcreate"/>
+			<!-- Parallel task #2 -->
+			<sequential>
+			<!-- Wait for the spore -->
+		  <waitfor maxwait="1" maxwaitunit="day">
+        <available file="${spore}"/>
+			</waitfor>
+			<waitfor maxwait="1" maxwaitunit="day">
+				 <socket server="127.0.0.1" port="9701"/>
+			</waitfor>
+			<echo>Spore file found!</echo>			
+			<antcall target="p2psearchremote"/>
+	
+			</sequential>
+			</parallel>
+</target>
 
 </project>

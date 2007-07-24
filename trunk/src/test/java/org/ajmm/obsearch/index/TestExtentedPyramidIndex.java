@@ -21,6 +21,7 @@ import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
+import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.log4j.Logger;
@@ -67,7 +68,7 @@ public class TestExtentedPyramidIndex extends TestCase {
     public void testPyramid() throws Exception{
     	// TODO: enable this test:
     	File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path") );
-    	IndexSmokeTUtil.deleteDB(dbFolder);
+    	Directory.deleteDirectory(dbFolder);
    	 	assertTrue(! dbFolder.exists());
        assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new ExtendedPyramidIndexShort<OBSlice>(
