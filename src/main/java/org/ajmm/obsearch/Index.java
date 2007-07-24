@@ -117,7 +117,7 @@ public interface Index<O extends OB> {
      * @throws InstantiationException
      */
     public O getObject(int i)throws DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException;
+    IllegalAccessException, InstantiationException, OBException;
 
 
     /**
@@ -157,7 +157,7 @@ public interface Index<O extends OB> {
 	 */
 	void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException;
+	InstantiationException, OBException, IOException;
 	
 	/**
      * Generates an XML representation of this index  suitable for 

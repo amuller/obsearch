@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.index;
 
+import java.io.File;
 import java.io.IOException;
 
 import net.jxta.exception.PeerGroupException;
@@ -29,9 +30,9 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws PeerGroupException
 	 * @throws OBException 
 	 */
-	protected P2PIndexShort(SynchronizableIndex<O> index) throws IOException,
-	PeerGroupException, OBException, NotFrozenException {
-		super(index);
+	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName) throws IOException,
+	PeerGroupException, OBException, NotFrozenException, IOException {
+		super(index, dbPath, clientName);
 		if(!  (index instanceof IndexShort)){
 			throw new OBException("Expecting an IndexShort");
 		}
@@ -60,7 +61,7 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws OutOfRangeException
 	 * @throws OBException
 	 */
-	public void searchOB(O object, short r, OBPriorityQueueShort result)
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {

@@ -107,7 +107,6 @@ This project is being developed as part of Google Summer of Code 2007
 			<scope>compile</scope>
 		</dependency>
 		
-		
 		<dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
@@ -136,6 +135,7 @@ This project is being developed as part of Google Summer of Code 2007
 			<scope>compile</scope>
 		</dependency>
 
+		
 
   </dependencies>
    

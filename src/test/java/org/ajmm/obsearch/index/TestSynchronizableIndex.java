@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.index.utils.Directory;
 import org.junit.Before;
 
 public class TestSynchronizableIndex extends TestCase{
@@ -17,7 +18,7 @@ public class TestSynchronizableIndex extends TestCase{
 	
 	public void testSyncTree() throws Exception{
 		File dbFolder = new File(TUtils.getTestProperties().getProperty("test.db.path"));
-    	IndexSmokeTUtil.deleteDB(dbFolder);
+		Directory.deleteDirectory(dbFolder);
    	 	assertTrue(! dbFolder.exists());
    	 	assertTrue(dbFolder.mkdirs());
     	IndexShort<OBSlice> index = new PPTreeShort<OBSlice>(

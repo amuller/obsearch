@@ -165,7 +165,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	}
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
-			IllegalAccessException, InstantiationException {
+			IllegalAccessException, InstantiationException, OBException {
 		return getIndex().getObject(i);
 	}
 	
@@ -379,7 +379,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 
 	public void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException{
+	InstantiationException, OBException, IOException{
 		getIndex().relocateInitialize(dbPath);
 	}
 }

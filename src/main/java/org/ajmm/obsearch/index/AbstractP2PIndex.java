@@ -28,6 +28,7 @@ import net.jxta.pipe.PipeID;
 import net.jxta.pipe.PipeMsgEvent;
 import net.jxta.pipe.PipeMsgListener;
 import net.jxta.pipe.PipeService;
+import net.jxta.platform.NetworkConfigurator;
 import net.jxta.platform.NetworkManager;
 import net.jxta.protocol.DiscoveryResponseMsg;
 import net.jxta.protocol.PipeAdvertisement;
@@ -43,6 +44,7 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
+import org.ajmm.obsearch.index.utils.Directory;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.TupleInput;
@@ -90,8 +92,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
          SR // search response
 	};
 
-	private static transient final Logger logger = Logger
-			.getLogger(AbstractP2PIndex.class);
+	private  transient final Logger logger ;
 
 	// the string that holds the original index xml
 	protected String indexXml;
@@ -106,26 +107,21 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 
 	private transient DiscoveryService discovery;
 
-	private final static String clientName = "OBSearchClient";
+	private  String clientName;
 
 	private final static String pipeName = "OBSearchPipe";
 	
 	private final static int maxAdvertisementsToFind = 5;
-
-	private final static NetworkManager.ConfigMode ConfigMode = NetworkManager.ConfigMode.ADHOC;
-
+	
 	private final static int maxNumberOfPeers = 100;
 	
 	// Interval for each heartbeat (in miliseconds)
 	// heartbeats check for missing resources and make sure we are all well connected all the time
-	private final static int heartBeatInterval = 30000;
+	private final static int heartBeatInterval = 10000;
 
 	// general timeout used for most p2p operations
 	private final static int globalTimeout = 60000;
-	
-	// if on initialization, we should wait for a rendevouz connection
-	private final static boolean waitForRendevouzConnection = true;
-	
+		
 	// maximum time difference between the peers.
 	// peers that have bigger time differences will be dropped.
 	private final static int maxTimeDifference = 3600000;
@@ -154,45 +150,97 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	private int [] globalBoxCount;
 	private long [] globalBoxLastUpdated;
 	
+	private PeerGroup netPeerGroup;
+	
+	private File dbPath;
+	
 	
 	protected abstract SynchronizableIndex<O> getIndex();
 	
-	protected AbstractP2PIndex(SynchronizableIndex<O> index) throws IOException,
+	/**
+	 * Initialize the abstract class
+	 * @param index the index that will be distributed
+	 * @param dbPath the path where we will store information related to this index 
+	 * @throws IOException
+	 * @throws PeerGroupException
+	 * @throws NotFrozenException
+	 */
+	protected AbstractP2PIndex(SynchronizableIndex<O> index, File dbPath, String clientName) throws IOException,
 			PeerGroupException, NotFrozenException {
 		if(! index.isFrozen()){
 			throw new NotFrozenException();
 		}
+		if(! dbPath.exists()){
+			throw new IOException(dbPath + " does not exist");
+		}
 		pipes =  new ConcurrentHashMap<URI, JxtaBiDiPipe>();
 		searchPipes = new Queue[index.totalBoxes()];
 		availableBoxes = new BitSet(index.totalBoxes());
+		this.dbPath = dbPath;
+		this.clientName = clientName;
+		
+		logger = Logger
+		.getLogger(clientName);
 	}
 	
 
 	/**
 	 * Initializes the p2p network
+	 * @param 
 	 * @throws IOException
 	 * @throws PeerGroupException
 	 */
-	private void init() throws IOException, PeerGroupException {
-		manager = new NetworkManager(ConfigMode, clientName, new File(new File(
-				".cache"), clientName).toURI());
+	private void init(boolean isClient, NetworkManager.ConfigMode c, boolean clearCache, URI seedURI) throws IOException, PeerGroupException {
+		File cache = new File(new File(dbPath,
+			".cache"), clientName);
+		if(clearCache){
+			Directory.deleteDirectory(cache);
+		}
+		manager = new NetworkManager(c, clientName, cache.toURI());
+		NetworkConfigurator configurator = manager.getConfigurator();
+		configurator.addRdvSeedingURI(seedURI);
+		configurator.addRelaySeedingURI(seedURI);
+		configurator.setUseOnlyRelaySeeds(true);
+	    configurator.setUseOnlyRendezvousSeeds(true);
+	    configurator.setHttpEnabled(false);
+	    
+	   /* if(isClient){
+	    	configurator.setTcpIncoming(false);
+	    }else{
+	    	
+	    }*/
+	    configurator.setTcpIncoming(true);
+	    configurator.setTcpEnabled(true);
+	    configurator.setTcpOutgoing(true);
+	    configurator.setUseMulticast(false);
+	   /* if(isClient){
+	    	configurator.setTcpPort(9702);
+	    }*/
+		
 		manager.startNetwork();
 		// Get the NetPeerGroup
-		PeerGroup netPeerGroup = manager.getNetPeerGroup();
+		netPeerGroup = manager.getNetPeerGroup();
 
 		// get the discovery service
 		discovery = netPeerGroup.getDiscoveryService();
 		discovery.addDiscoveryListener(this);
-
+		PipeAdvertisement adv = getPipeAdvertisement();
 		// init the incoming connection listener
-		serverPipe = new JxtaServerPipe(manager.getNetPeerGroup(),
-				getPipeAdvertisement());
-
+		serverPipe = new JxtaServerPipe(netPeerGroup,
+				adv);
+		serverPipe.setPipeTimeout(0);
+		
+		this.netPeerGroup.getDiscoveryService().publish(adv);
+		
 		// wait for rendevouz connection
-		if(this.waitForRendevouzConnection){
-			logger.info("Waiting for rendevouz connection");
+		if(isClient){
+			logger.debug("Waiting for rendevouz connection");
 			manager.waitForRendezvousConnection(0);
+			logger.debug("Rendevouz connection found");
 		}
+		// find other pipes as soon as we start
+
+		//findPipes();
 	}
 	
 	/**
@@ -212,8 +260,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 			long count = 0;
 			while(! error){
 				
-				try{
-					
+				try{					
 					heartBeat1();
 					heartBeat3(count);
 					heartBeat100(count);
@@ -239,22 +286,24 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 		
 		// executed once per heart beat
 		public void heartBeat1() throws PeerGroupException, IOException {
-			    // advertisements should be proactively searched for if we are running out
-			    // of connections
-				findPipes();							
+			    
+				
+				timeBeat();	
 		}
 		
 		public void heartBeat3(long count) throws PeerGroupException, IOException{
 			if(count % 3 == 0){
-				
+				// send my time to everybody, telling them what is my current time
+				// if someone doesn't like my time, they will desconnect from me.
+				findPipes();	
 			}
 		}
 		// executed once every 100 heartbeats
 		public void heartBeat100(long count) throws PeerGroupException, IOException{
 			if(count % 100 == 0) {
-				// send my time to everybody, telling them what is my current time
-				// if someone doesn't like my time, they will desconnect from me.
-				timeBeat();				
+				//				 advertisements should be proactively searched for if we are running out
+			    // of connections
+				
 			}
 		}
 	}
@@ -296,7 +345,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	 * @return The ByteArrayMessageElement associated to the only MessageElement in this Message
 	 */
 	protected final ByteArrayMessageElement getMessageElement(Message msg, MessageType namespace){
-		assert msg.getMessageNumber() == 1;
 		return (ByteArrayMessageElement) msg.getMessageElement(namespace.toString(), "");
 	}
 	
@@ -308,9 +356,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	 * @param b
 	 * @throws IOException
 	 */
-	private final void addMessageElement(Message msg, MessageType namespace, byte[] b) throws IOException{		
+	private final void addMessageElement(Message msg, MessageType namespace, byte[] b) throws IOException{
 		msg.addMessageElement(namespace.toString(), new ByteArrayMessageElement ("", MimeMediaType.AOS, b, null));
-		assert msg.getMessageNumber() == 1;
 	}
 	
 	/**
@@ -338,12 +385,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	 */
 	protected void syncGlobalBoxesInformation() {
 		
-		
-		
 	}
-	
-	
-	
+
 	protected boolean minimumNumberOfPeers() {
 		return this.pipes.size() >= this.minNumberOfPeers;
 	}
@@ -352,11 +395,29 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	 * This method must be called by all users once 
 	 * It starts the network, and creates some background threads like the 
 	 * hearbeat and the incoming connection handler
+	 * @param client If true, the index will be created in client mode (from the p2p network perspective)
+	 *                       If false, the index will be a "server". 
+	 * @param clearPeerCache If we should clear network related cache information
+	 * @param seedFile The seed file to be used for this index. Only the given seeds will be used                       
 	 */
-	public void open() throws IOException, PeerGroupException {
-		init();
+	public void open(boolean client, boolean clearPeerCache, File seedFile) throws IOException, PeerGroupException {
+		NetworkManager.ConfigMode c = null;
+		if(! seedFile.exists()){
+			throw new IOException("File does not exist: " + seedFile);
+		}
+		if(client){
+			c = NetworkManager.ConfigMode.EDGE;
+		}else{
+			c = NetworkManager.ConfigMode.RENDEZVOUS_RELAY;
+		}		
+		URI seedURI = seedFile.toURI();
+		// initialize JXTA
+		init(client, c, clearPeerCache, seedURI);
+		
+		logger.debug("Starting heart...");
 		Thread thread = new Thread(new HeartBeat(), "Heart Beat Thread");
 		thread.start();
+		logger.debug("Starting incoming connections server...");
 		Thread thread2 = new Thread(new IncomingConnectionHandler(), "Incoming connection Thread");
 		thread2.start();
 	}
@@ -377,7 +438,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	}
 
 	private URI generatePipeID() {
-		return IDFactory.newPipeID(manager.getNetPeerGroup().getPeerGroupID()).toURI(); 		
+		return IDFactory.newPipeID(netPeerGroup.getPeerGroupID()).toURI(); 		
 	}
 
 	private boolean readyToAcceptConnections() {
@@ -387,7 +448,30 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 
 	// query the discovery service for OBSearch pipes
 	protected void findPipes() throws IOException, PeerGroupException {
+		
+		/*discovery.getRemoteAdvertisements(
+                // no specific peer (propagate)
+                null,
+                //Adv type
+                DiscoveryService.ADV,
+                //Attribute = any
+                null,
+                //Value = any
+                null,
+                // one advertisement response is all we are looking for
+                1,
+                // no query specific listener. we are using a global listener
+                null);
+		synchronized(discovery){
+			try{
+				discovery.wait(5000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+		}*/
+		
 		if(! minimumNumberOfPeers()){
+			//logger.debug("Getting advertisements");
 			discovery.getRemoteAdvertisements(null, DiscoveryService.ADV, "Name",
 				pipeName, maxAdvertisementsToFind, null);
 		}
@@ -401,10 +485,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 		DiscoveryResponseMsg res = ev.getResponse();
 		Advertisement adv;
 		Enumeration en = res.getAdvertisements();
-
+		//logger.debug("Discovery event" + ev);
 		if (en != null) {
 			while (en.hasMoreElements()) {
 				adv = (Advertisement) en.nextElement();
+				//logger.info("Discovery event: " + adv);
 				if (adv instanceof PipeAdvertisement) {
 					PipeAdvertisement p = (PipeAdvertisement) adv;
 					addPipe(p);					
@@ -426,14 +511,13 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 				// only if we don't have already the connection
 				if(! this.pipes.containsKey(p.getPipeID().toURI())){
 					JxtaBiDiPipe pipe = new JxtaBiDiPipe();
-					pipe.connect(manager.getNetPeerGroup(), null, p, globalTimeout,
+					pipe.connect(netPeerGroup, null, p, globalTimeout,
 						this);
-					// 
 					addPipeAux(pipe);
 				}
 			}
 		} catch (IOException e) {
-			logger.fatal("Error while trying to add Pipe:" + p + " \n " + e);
+			logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
 			assert false;
 		}
 
@@ -458,7 +542,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 				assert false;
 			}
 		}else{
-			this.pipes.put(bidipipe.getPipeAdvertisement().getPipeID().toURI() , bidipipe);
+			
+			logger.debug("Adding pipe: " + pipeId);
+			this.pipes.put(pipeId , bidipipe);
 			// send initial sync data to make sure that everybody is
 			// syncrhonized enough to be meaningful.
 			sendMessagesAfterFirstEncounter(bidipipe);
@@ -500,11 +586,15 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 			Iterator<String> it = msg.getMessageNamespaces();
 			while(it.hasNext()){
 				String namespace = it.next();
-				MessageType messageType = MessageType.valueOf(namespace);
+				try{
+					MessageType messageType = MessageType.valueOf(namespace);
 				
 				switch (messageType) {
 					case TIME: processTime(msg, pipeId); break;
 				    default: assert false;
+				}
+				}catch(IllegalArgumentException i){
+					// we got a message that is not ours
 				}
 				
 			}
@@ -522,11 +612,12 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 		long time = parseTimeMessage(msg);
 		long ourtime = System.currentTimeMillis();
 		if(logger.isDebugEnabled()){
-			logger.debug("Received time " + time + " from pipe: " + pipeId);
+			logger.debug("Received time " + time + " from pipe: " + pipeId + " diff: " + ( time - ourtime));
 		}
 		// time must be within +- k units away from our current time.
 		// otherwise we drop the connection with the given pipe id
 		if(Math.abs(time - ourtime) > maxTimeDifference){
+			logger.debug("Rejected " + time + " from pipe: " + pipeId);
 			closePipe(pipeId);
 		}
 	}
@@ -548,18 +639,16 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 
 		public void run() {
 
-			System.out
-					.println("Waiting for JxtaBidiPipe connections on JxtaServerPipe");
+			logger.debug("Waiting for connections");
 			while (true) {
 				try {
-					JxtaBiDiPipe bidipipe = serverPipe.accept();
+					JxtaBiDiPipe bidipipe = serverPipe.accept();					
 					// add the pipe to our list of pipes, if we can hold more people.
-					addPipe(bidipipe);
-					
-					 
+					addPipe(bidipipe);										 
 				} catch (IOException e) {
-					assert false;
 					logger.fatal("Error while listening to a connection:" + e);
+					assert false;
+					
 				}
 			}
 		}
@@ -608,7 +697,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	}
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
-			IllegalAccessException, InstantiationException {
+			IllegalAccessException, InstantiationException, OBException {
 		return getIndex().getObject(i);
 	}
 
@@ -627,7 +716,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>, Discov
 	
 	public void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException{
+	InstantiationException, OBException, IOException{
 		getIndex().relocateInitialize(dbPath);
 	}
 	
