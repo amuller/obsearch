@@ -107,7 +107,7 @@ public class OBSearchExample {
 	            logger.info("freezing");
 	            index.freeze();
 	            
-	            P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, "Seeder");
+	            P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"));
 	            logger.info("Opening Seeder");
 	            p2p.open(false, true, seeds);
 		        // index.close();
@@ -133,7 +133,7 @@ public class OBSearchExample {
 		        // required step to init databases
 		        pp.relocateInitialize(stdFolder);
 		        SynchronizableIndexShort<OBSlice> index = new  SynchronizableIndexShort<OBSlice>(pp, syncFolder);
-		        P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, "Leecher");
+		        P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"));
 		        logger.info("Opening Leecher");
 		        p2p.open(true, true, seeds);
 		        
@@ -228,6 +228,11 @@ public class OBSearchExample {
         .withDescription(  "The range to be used" )
         .create( "r" );
 		
+		final Option name  = OptionBuilder.withArgName( "str" )
+        .hasArg()
+        .withDescription(  "The of the peer" )
+        .create( "name" );
+		
 		final Option k = OptionBuilder.withArgName( "dir" )
         .hasArg()
         .withDescription( "K to be used" )
@@ -247,6 +252,7 @@ public class OBSearchExample {
 		options.addOption(search);
 		options.addOption(od);
 		options.addOption(spore);
+		options.addOption(name);
 		return options;
 	}
 	

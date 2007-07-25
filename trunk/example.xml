@@ -14,6 +14,7 @@
 
 	<property name="dbfolder" value="${user.home}/temp/obexampleTentacleOTHER/"/>
 
+	<property name="name" value="seeder"/>
 
 </target>
 
@@ -119,26 +120,33 @@
 				<arg value="${dbdata}"/>
 				<arg value="-od"/>
 				<arg value="2"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
 			</java>
 
 </target>
 
 <target name="p2psearchremote" depends="p2pinit">
 	  <!--TODO: remove this -->
-    <exec executable="rsync">
+    <exec failonerror="true" executable="rsync">
 				<arg value="-az"/>
 				<arg value="."/>
-				<arg value="192.168.1.86:~/gsoc/obsearch/"/>
+				<arg value="${ip}:~/gsoc/obsearch/"/>
 		</exec>		
 
-    <exec executable="scp">
+    <exec executable="scp" failonerror="true">
 				<arg value="${spore}"/>
-				<arg value="192.168.1.86:${spore}"/>
+				<arg value="${ip}:${spore}"/>
 		</exec>
 
 		<exec executable="ssh">
-			  <arg value="192.168.1.86"/>
-			  <arg value="cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch"/>
+			  <arg value="${ip}"/>
+			  <arg value="killall java"/>
+		</exec>
+
+		<exec executable="ssh" failonerror="true">
+			  <arg value="${ip}"/>
+			  <arg value="/bin/bash -i  -c 'cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch -Dname=${ip}'"/>
 		</exec>
 
 </target>
@@ -166,6 +174,8 @@
 				<arg value="${leecherFolder}"/>
 				<arg value="-data"/>
 				<arg value="${querydata}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
 			</java>
 </target>
 
@@ -182,9 +192,15 @@
 			<waitfor maxwait="1" maxwaitunit="day">
 				 <socket server="127.0.0.1" port="9701"/>
 			</waitfor>
-			<echo>Spore file found!</echo>			
-			<antcall target="p2psearchremote"/>
-	
+			<echo>Spore file found!</echo>	
+			<parallel>
+			<antcall target="p2psearchremote">
+			  <param name="ip" value="192.168.1.86"/>
+			</antcall>
+			<antcall target="p2psearchremote">
+			  <param name="ip" value="192.168.1.85"/>
+			</antcall>
+			</parallel>
 			</sequential>
 			</parallel>
 </target>
