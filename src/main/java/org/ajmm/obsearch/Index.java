@@ -11,6 +11,7 @@ import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
 
+import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.DatabaseException;
 
 /*
@@ -167,6 +168,13 @@ public interface Index<O extends OB> {
      * @return
      */
 	String toXML();
+	
+	/**
+	 * Instantiates an object from a byte stream
+	 * @param in
+	 * @return
+	 */
+	O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException;
 
    }
 

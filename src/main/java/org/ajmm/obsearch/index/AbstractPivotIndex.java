@@ -808,7 +808,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * @param in
 	 * @return
 	 */
-	protected O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
+	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
 		O result = this.instantiateObject();
 		result.load(in);
 		return result;

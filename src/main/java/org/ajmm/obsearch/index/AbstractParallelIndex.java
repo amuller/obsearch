@@ -20,6 +20,7 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import org.apache.log4j.Logger;
 
+import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.DatabaseException;
 /*
     OBSearch: a distributed similarity search engine
@@ -197,5 +198,9 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 	NotFrozenException, DatabaseException, IllegalAccessException,
 	InstantiationException, OBException, IOException{
 		getIndex().relocateInitialize(dbPath);
+	}
+	
+	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
+		return getIndex().readObject(in);
 	}
 }

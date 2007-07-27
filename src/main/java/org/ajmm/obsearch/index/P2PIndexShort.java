@@ -35,7 +35,7 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws OBException 
 	 */
 	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName) throws  IOException,
-	PeerGroupException, OBException, NotFrozenException {
+	PeerGroupException, OBException, NotFrozenException, DatabaseException {
 		this(index,dbPath,clientName, index.totalBoxes());
 	}
 	/**
@@ -51,7 +51,7 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws OBException 
 	 */
 	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName, int boxesToServe) throws IOException,
-	PeerGroupException, OBException, NotFrozenException {
+	PeerGroupException, OBException, NotFrozenException, DatabaseException {
 		super(index, dbPath, clientName, boxesToServe);
 		if(!  (index instanceof IndexShort)){
 			throw new OBException("Expecting an IndexShort");

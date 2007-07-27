@@ -9,6 +9,7 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 
+import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.DatabaseException;
 /*
     OBSearch: a distributed similarity search engine
@@ -69,6 +70,7 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 		return getIndex().toXML();
 	}
 	
-	
+
+
 
 }
