@@ -59,7 +59,8 @@ public interface Index<O extends OB> {
      *             the ID's did not come in sequential order
      * @throws DatabaseException
      *             If something goes wrong with the DB
-     * @return The internal id of the object
+     * @return The internal id of the object or -1 if the object was not inserted because it
+     *              already exists
      * @since 0.0
      */
     int insert(O object) throws IllegalIdException, DatabaseException,
@@ -95,7 +96,7 @@ public interface Index<O extends OB> {
      *
      * @param object
      *            The object to be deleted
-     * @return 0 if the object was not found in the database or 1 if it
+     * @return >= (the object ID) if the object was deleted or -1 if the object was not deleted
      * @throws NotFrozenException
      *             if the index has not been frozen. was deleted successfully
      * @throws DatabaseException
