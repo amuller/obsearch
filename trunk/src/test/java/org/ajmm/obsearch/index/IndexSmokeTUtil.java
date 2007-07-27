@@ -180,7 +180,7 @@ public class IndexSmokeTUtil {
 			logger.info("Total Boxes: " + index2.totalBoxes());
 			while (i < index2.totalBoxes()) {
 				Iterator<OBSlice> it2 = index2
-						.elementsNewerThan(i, 0);
+						.elementsInsertedNewerThan(i, 0);
 				int cx2 = 0;
 				while (it2.hasNext()) {
 					OBSlice o = it2.next();

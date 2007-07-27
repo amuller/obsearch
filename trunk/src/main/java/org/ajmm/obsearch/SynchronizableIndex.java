@@ -74,7 +74,7 @@ public interface SynchronizableIndex<O extends OB> extends Index<O> {
 	 * @param Box to search
 	 * @return Iterator 
 	 */
-	Iterator<O> elementsNewerThan(int box, long x) throws DatabaseException,  OBException;
+	Iterator<O> elementsInsertedNewerThan(int box, long x) throws DatabaseException,  OBException;
 	
 	Index<O> getIndex();
 }

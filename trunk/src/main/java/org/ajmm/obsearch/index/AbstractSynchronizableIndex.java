@@ -251,7 +251,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return data.getBufferBytes();
 	}
 
-	public Iterator<O> elementsNewerThan(int box, long time) throws DatabaseException {
+	public Iterator<O> elementsInsertedNewerThan(int box, long time) throws DatabaseException {
 		return new TimeStampIterator(box, time);
 	}
 	
@@ -383,5 +383,9 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	NotFrozenException, DatabaseException, IllegalAccessException,
 	InstantiationException, OBException, IOException{
 		getIndex().relocateInitialize(dbPath);
+	}
+	
+	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
+		return getIndex().readObject(in);
 	}
 }
