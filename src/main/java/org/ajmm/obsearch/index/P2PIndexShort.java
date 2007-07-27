@@ -21,18 +21,38 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	// to avoid casts
 	IndexShort<O> index;
 	SynchronizableIndex<O> syncIndex;
+	
+	/**
+	 * Creates a P2P Index short
+	 * The provided index must be SynchronizableIndex and also 
+	 * implement IndexShort. The index must be frozen.
+	 * The number of boxes served will be the maximum number of boxes serviced by the index
+	 * @param index
+	 * @param dbPath place were to put p2p related data
+	 * @param clientName the name 
+	 * @throws IOException
+	 * @throws PeerGroupException
+	 * @throws OBException 
+	 */
+	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName) throws  IOException,
+	PeerGroupException, OBException, NotFrozenException {
+		this(index,dbPath,clientName, index.totalBoxes());
+	}
 	/**
 	 * Creates a P2P Index short
 	 * The provided index must be SynchronizableIndex and also 
 	 * implement IndexShort. The index must be frozen.
 	 * @param index
+	 * @param dbPath place were to put p2p related data
+	 * @param clientName the name 
+	 * @param boxesToServe # of boxes that will be served
 	 * @throws IOException
 	 * @throws PeerGroupException
 	 * @throws OBException 
 	 */
-	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName) throws IOException,
-	PeerGroupException, OBException, NotFrozenException, IOException {
-		super(index, dbPath, clientName);
+	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName, int boxesToServe) throws IOException,
+	PeerGroupException, OBException, NotFrozenException {
+		super(index, dbPath, clientName, boxesToServe);
 		if(!  (index instanceof IndexShort)){
 			throw new OBException("Expecting an IndexShort");
 		}

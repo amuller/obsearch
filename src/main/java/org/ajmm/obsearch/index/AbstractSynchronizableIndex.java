@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
@@ -75,14 +76,14 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	/**
 	 * stores the latest modification to the data
 	 */
-	protected transient long[] timeByBox;
+	protected transient AtomicLongArray timeByBox;
 	
 	protected File dbDir;
 	
 	public AbstractSynchronizableIndex(Index<O> index, File dbDir) throws DatabaseException{
 		this.dbDir = dbDir;
 		initDB();
-		timeByBox = new long[index.totalBoxes()];
+		timeByBox = new AtomicLongArray(index.totalBoxes());
 	}
 	
 	private void initDB()throws DatabaseException{
@@ -173,10 +174,11 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
 		int id = getIndex().insert(object);
-		
-		if(isFrozen()){
-			int box = getIndex().getBox(object);
-			insertTimeEntry(box, System.currentTimeMillis(), id);
+		if(id != -1){ // if we could insert the object
+			if(isFrozen()){
+				int box = getIndex().getBox(object);
+				insertTimeEntry(box, System.currentTimeMillis(), id);
+			}
 		}
 		return id;
 	}
@@ -203,21 +205,21 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		OperationStatus ret = insertTimeDB.put(null, keyEntry, dataEntry);
 		if(ret != OperationStatus.SUCCESS){
 			throw new DatabaseException();
-		}		
+		}	
+		// update the cache.
+		timeByBox.set(box, time);
 	}
 	
 	
 	
 	public long latestModification(int box) throws DatabaseException, OBException{
-		if(timeByBox[box] == 0){ // 0 is the unitialized value.
-			timeByBox[box] = latestInsertedItemAux(box);
+		if(timeByBox.get(box) == 0){ // 0 is the unitialized value.
+			timeByBox.compareAndSet(box, 0, latestInsertedItemAux(box));
 		}
-		return this.timeByBox[box];
+		return timeByBox.get(box);
 	}
 	
 	private long latestInsertedItemAux(int box) throws DatabaseException, OBException {
-		//TODO: cache these values, and load them only once at start-up
-		// this method is very expensive in terms of I/O
 		Cursor cursor = null;
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry foundData = new DatabaseEntry();
