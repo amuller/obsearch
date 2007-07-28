@@ -6,11 +6,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.SynchronizableIndex;
+import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -80,10 +82,18 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	
 	protected File dbDir;
 	
+	protected transient AtomicIntegerArray objectsByBox;
+	
 	public AbstractSynchronizableIndex(Index<O> index, File dbDir) throws DatabaseException{
 		this.dbDir = dbDir;
 		initDB();
 		timeByBox = new AtomicLongArray(index.totalBoxes());
+		objectsByBox = new AtomicIntegerArray(index.totalBoxes());
+		int i =0;
+		while(i < index.totalBoxes()){
+			objectsByBox.set(i, -1);
+			i++;
+		}
 	}
 	
 	private void initDB()throws DatabaseException{
@@ -137,7 +147,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	}
 
 	public int delete(O object) throws NotFrozenException, DatabaseException {
-		// TODO Auto-generated method stub
+		// TODO: update the objects count array.
 		return -1;
 	}
 
@@ -170,7 +180,6 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return getIndex().getObject(i);
 	}
 	
-    // problem with the freezing. we don't know which box they belong too.
 	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
 		int id = getIndex().insert(object);
@@ -178,6 +187,21 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			if(isFrozen()){
 				int box = getIndex().getBox(object);
 				insertTimeEntry(box, System.currentTimeMillis(), id);
+				this.objectsByBox.incrementAndGet(box);
+			}
+		}
+		return id;
+	}
+	
+
+	public int insert(O object, long time) throws IllegalIdException, DatabaseException,
+			OBException, IllegalAccessException, InstantiationException {
+		int id = getIndex().insert(object);
+		if(id != -1){ // if we could insert the object
+			if(isFrozen()){
+				int box = getIndex().getBox(object);
+				insertTimeEntry(box, time, id);
+				this.objectsByBox.incrementAndGet(box);
 			}
 		}
 		return id;
@@ -206,19 +230,72 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		if(ret != OperationStatus.SUCCESS){
 			throw new DatabaseException();
 		}	
-		// update the cache.
-		timeByBox.set(box, time);
+		// update the cache, make sure that the latest
+		// time is updated automatically
+		synchronized(timeByBox){
+			if(timeByBox.get(box) < time){
+				timeByBox.set(box, time);
+			}
+		}
 	}
 	
 	
 	
 	public long latestModification(int box) throws DatabaseException, OBException{
-		if(timeByBox.get(box) == 0){ // 0 is the unitialized value.
-			timeByBox.compareAndSet(box, 0, latestInsertedItemAux(box));
+		if(timeByBox.get(box) == 0){ 
+			// 0 is the unitialized value.
+			timeByBox.set(box, latestInsertedItemAux(box));
 		}
 		return timeByBox.get(box);
 	}
 	
+	public int elementsPerBox(int box) throws DatabaseException,  OBException{
+		if(objectsByBox.get(box) == -1){
+			// this updates the box count.
+			objectsByBox.set(box, objectsPerBoxAux(box));
+		}
+		return this.objectsByBox.get(box);
+	}
+	/**
+	 * Counts the number of objects for the given box
+	 * @param box the box to be processed 
+	 * @return
+	 */
+	private int objectsPerBoxAux(int box) throws DatabaseException{
+		Cursor cursor = null;
+		DatabaseEntry key = new DatabaseEntry();
+		DatabaseEntry foundData = new DatabaseEntry();
+		long resTime = -1;
+		int count = 0;
+		try {
+			cursor = insertTimeDB.openCursor(null, null);			
+			key.setData(boxTimeToByteArray(box, resTime));			
+			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
+			MyTupleInput in = new MyTupleInput();
+			int cbox = box;
+			while (retVal == OperationStatus.SUCCESS && cbox == box) {
+				in.setBuffer(key.getData());
+				cbox = in.readInt();
+
+				retVal = cursor.getNext(key, foundData, null);		
+				if(cbox == box){
+					count++;
+				}
+			}
+		} finally {
+			cursor.close();
+		}
+		return count;
+	}
+	/**
+	 * Obtains the latest inserted item in the given box or -1 if there are
+	 * no items. It also calculates the number of boxes available in the index
+	 * 
+	 * @param box
+	 * @return
+	 * @throws DatabaseException
+	 * @throws OBException
+	 */
 	private long latestInsertedItemAux(int box) throws DatabaseException, OBException {
 		Cursor cursor = null;
 		DatabaseEntry key = new DatabaseEntry();
@@ -236,7 +313,8 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				long time = in.readLong();
 				assert resTime <= time;
 				resTime = time;
-				retVal = cursor.getNext(key, foundData, null);				
+				retVal = cursor.getNext(key, foundData, null);		
+
 			}
 		} finally {
 			cursor.close();
@@ -251,7 +329,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return data.getBufferBytes();
 	}
 
-	public Iterator<O> elementsInsertedNewerThan(int box, long time) throws DatabaseException {
+	public Iterator<TimeStampResult<O>> elementsInsertedNewerThan(int box, long time) throws DatabaseException {
 		return new TimeStampIterator(box, time);
 	}
 	
@@ -351,7 +429,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			return res;
 		}
 
-		public O next() {
+		public TimeStampResult<O> next() {
 			try {
 				if (hasNext()) {
 					TupleInput inl = new TupleInput(dataEntry.getData());
@@ -359,7 +437,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 					int id = inl.readInt();
 					O obj = getObject(id);
 					goNext();
-					return obj;
+					return new TimeStampResult(obj, previous);
 				} else {
 					assert false : "You should be calling hasNext before calling next.";
 					return null;
@@ -377,7 +455,6 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		}
 
 	}
-
 
 	public void relocateInitialize(File dbPath) throws DatabaseException,
 	NotFrozenException, DatabaseException, IllegalAccessException,

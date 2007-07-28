@@ -365,12 +365,12 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             If something goes wrong with the DB
 	 * @since 0.0
 	 */
-	public int insert(O object) throws IllegalIdException, DatabaseException,
+	public int insert(O object) throws  DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
 		return insert(object, id.getAndIncrement());
 	}
 
-	protected int  insert(O object, int id) throws IllegalIdException,
+	protected int  insert(O object, int id) throws 
 			DatabaseException, OBException, IllegalAccessException,
 			InstantiationException {
 		if (isFrozen()) {

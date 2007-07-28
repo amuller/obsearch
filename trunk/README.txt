@@ -255,6 +255,17 @@ TODO:
   - When the peers have a newer index, we drop the index, and reload everything again.
 
 
+***********************************************************
+I just found out a problem with the timestamp sync process:
+We insert at the same time data in A and B.
+their latest modification data is 2 (for example)
+They query each other and think they are up to date, but they are not.
+FIX: only allow insertions in one place at a time. 
+OR allow chaotic insertions and once per day perform full syncs.
+But this would require very efficient full sync computations.
+Note that we can choose any peer to perform insertions.
+I don't think it is that bad. It is good because anyway we need to
+control what is being inserted in the database. 
 
 
 
