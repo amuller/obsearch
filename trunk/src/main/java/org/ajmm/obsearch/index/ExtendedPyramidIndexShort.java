@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 import hep.aida.bin.QuantileBin1D;
 
@@ -422,6 +423,21 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 			tuple[i] = obj.distance(this.pivots[i]);
 			i++;
 		}
+	}
+	
+	public boolean exists(O object) throws DatabaseException, OBException, IllegalAccessException, InstantiationException{
+		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte)1);
+		//perform a search with r==0 and k==1
+		// TODO: this short must not be replaced in the template, it is always short
+		searchOB(object, (short)0, result);
+		if(result.getSize() == 1){
+			Iterator<OBResultShort<O>> it = result.iterator();
+			assert it.hasNext();
+			OBResultShort<O> r = it.next();
+			return object.equals(r.getObject());
+		}else{
+			return false;
+		}		
 	}
 
 }

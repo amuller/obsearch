@@ -1407,5 +1407,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
 		return getIndex().readObject(in);
 	}
+	
+	public boolean exists(O object)throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException {
+		return getIndex().exists(object);
+	}
 
 }
