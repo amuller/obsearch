@@ -22,7 +22,7 @@ public class Directory {
 			if(! dbFolder.delete()){
 				throw new IOException("Could not delete: " + dbFolder);
 			}
-			if(! dbFolder.exists()){
+			if(dbFolder.exists()){
 				throw new IOException("Could not delete: " + dbFolder);
 			}			
 		}

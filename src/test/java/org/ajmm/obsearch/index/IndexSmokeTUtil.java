@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.SynchronizableIndex;
+import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
@@ -179,11 +180,12 @@ public class IndexSmokeTUtil {
 			int totalCx = 0;
 			logger.info("Total Boxes: " + index2.totalBoxes());
 			while (i < index2.totalBoxes()) {
-				Iterator<OBSlice> it2 = index2
+				Iterator<TimeStampResult<OBSlice>> it2 = index2
 						.elementsInsertedNewerThan(i, 0);
 				int cx2 = 0;
 				while (it2.hasNext()) {
-					OBSlice o = it2.next();
+					TimeStampResult<OBSlice> t = it2.next();
+					OBSlice o = t.getObject();
 					assert o != null;
 					OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>(
 							(byte) 1);
@@ -201,6 +203,7 @@ public class IndexSmokeTUtil {
 					cx2++;
 					
 				}
+				assertEquals(cx2, index2.elementsPerBox(i));
 				logger.info("Result: box: " + i + " Cx"   + cx2);
 				totalCx += cx2;
 				i++;
