@@ -54,8 +54,8 @@ public class IndexSmokeTUtil {
 			String line = parseLine(re);
 			if (line != null) {
 				OBSlice s = new OBSlice(line);
-				if (this.shouldProcessSlice(s)) {
-					index.insert(s);
+				if (shouldProcessSlice(s)) {
+					assertEquals(realIndex,index.insert(s));
 					realIndex++;
 				}
 			}
@@ -81,6 +81,26 @@ public class IndexSmokeTUtil {
 		// the pyramid values are created
 		logger.info("freezing");
 		index.freeze();
+		
+		// we should test that the exists method works well
+		
+		r = new BufferedReader(new FileReader(db));
+		re = r.readLine();
+
+		while (re != null) {
+			String line = parseLine(re);
+			if (line != null) {
+				OBSlice s = new OBSlice(line);
+				if (shouldProcessSlice(s)) {
+					assertTrue(index.exists(s));
+					// attempt to insert the object again, and get
+					// the -1
+					assertEquals(-1,index.insert(s));
+				}
+			}
+			re = r.readLine();
+
+		}
 	}
 
 	/**

@@ -539,5 +539,22 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			resultCache = new HashMap<O, OBQueryShort<O>>(3000);
 			return this;
 	}
+	
+	public boolean exists(O object) throws DatabaseException, OBException, IllegalAccessException, InstantiationException{
+		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte)1);
+		//perform a search with r==0 and k==1
+		// TODO: this short must not be replaced in the template, it is always short
+		// FIXME: check why PPTree needs a 1 here and not a 0
+		// this incurrs in an important performance penalty for insertions.
+		searchOB(object, (short)1, result);
+		if(result.getSize() == 1){
+			Iterator<OBResultShort<O>> it = result.iterator();
+			assert it.hasNext();
+			OBResultShort<O> r = it.next();
+			return object.equals(r.getObject());
+		}else{
+			return false;
+		}		
+	}
 
 }

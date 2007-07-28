@@ -465,4 +465,9 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
 		return getIndex().readObject(in);
 	}
+	
+	public boolean exists(O object)throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException {
+		return getIndex().exists(object);
+	}
 }

@@ -46,23 +46,23 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
-  	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /**
  * A Pivot index uses n pivots from the database to speed up search. The
  * following outlines the insertion workflow: 1) All insertions are copied into
@@ -76,10 +76,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * function and the objects must be consistent. Also, Inserts are first added to
  * A, and then to C. This guarantees that there will be always objects to match.
  * 
- * Subclasses must populate correctly the timestamp B-tree.
- * This B-tree contains this information:
- * key: <box><timestamp>  value: <id>
- * And the subclass has to fill this in.
+ * Subclasses must populate correctly the timestamp B-tree. This B-tree contains
+ * this information: key: <box><timestamp> value: <id> And the subclass has to
+ * fill this in.
+ * 
  * @param <O>
  *            The object type to be used
  * @param <D>
@@ -89,8 +89,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @since 0.0
  */
 @XStreamAlias("AbstractPivotIndex")
-public abstract class AbstractPivotIndex<O extends OB> implements
-		Index<O> {
+public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 
 	private static transient final Logger logger = Logger
 			.getLogger(AbstractPivotIndex.class);
@@ -113,16 +112,13 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	// database with the objects
 	protected transient Database aDB;
 
-	
-
 	// database with the temporary pivots
 	protected transient Database bDB;
 
 	protected transient DatabaseConfig dbConfig;
-	
-	
 
 	protected transient O[] pivots;
+
 	protected byte[][] pivotsBytes;
 
 	protected transient OBCache<O> cache;
@@ -134,8 +130,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 
 	// we keep this in order to be able to create objects of type O
 	protected Class<O> type;
-	
-	
 
 	/**
 	 * Creates a new pivot index. The maximum number of pivots has been
@@ -174,7 +168,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 * we are using generics
 	 */
 	protected void createPivotsArray() {
-		this.pivots = emptyPivotsArray();		
+		this.pivots = emptyPivotsArray();
 	}
 
 	public O[] emptyPivotsArray() {
@@ -192,10 +186,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// way of creating a database
 		initA();
 		initB();
-		initC();		
+		initC();
 	}
-	
-	
 
 	private void initB() throws DatabaseException {
 		final boolean duplicates = dbConfig.getSortedDuplicates();
@@ -236,14 +228,14 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		id = new AtomicInteger(this.databaseSize());
 		return this.returnSelf();
 	}
-	
+
 	public void relocateInitialize(File dbPath) throws DatabaseException,
-	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException, OBException, IOException{
-		if(dbPath != null){
+			NotFrozenException, DatabaseException, IllegalAccessException,
+			InstantiationException, OBException, IOException {
+		if (dbPath != null) {
 			this.dbDir = dbPath;
 		}
-		if(!dbPath.exists()){
+		if (!dbPath.exists()) {
 			throw new IOException(dbPath + " does not exist.");
 		}
 		initializeAfterSerialization();
@@ -273,7 +265,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		dbConfig.setSortedDuplicates(false);
 		aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
 		dbConfig.setSortedDuplicates(duplicates);
-	
+
 	}
 
 	/**
@@ -288,8 +280,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 			return true;
 		}
 	}
-
-	
 
 	/**
 	 * This method makes sure that all the databases are created with the same
@@ -348,43 +338,27 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		return 1;
 	}
 
-	/**
-	 * Inserts the given object into the index with the given ID If the given ID
-	 * already exists, the exception IllegalIDException is thrown.
-	 * 
-	 * @param object
-	 *            The object to be added
-	 * @param id
-	 *            Identification number of the given object. This number must be
-	 *            responsibly generated by someone
-	 * @return 0 if the object already existed or 1 if the object was inserted
-	 * @throws IllegalIdException
-	 *             if the given ID already exists or if isFrozen() = false and
-	 *             the ID's did not come in sequential order
-	 * @throws DatabaseException
-	 *             If something goes wrong with the DB
-	 * @since 0.0
-	 */
-	public int insert(O object) throws  DatabaseException,
-			OBException, IllegalAccessException, InstantiationException {
-		return insert(object, id.getAndIncrement());
-	}
-
-	protected int  insert(O object, int id) throws 
-			DatabaseException, OBException, IllegalAccessException,
-			InstantiationException {
+	public int insert(O object) throws DatabaseException, OBException,
+			IllegalAccessException, InstantiationException {
+		int resId = -1;
 		if (isFrozen()) {
-			insertA(object, id);
-			insertFrozen(object, id);
+			if (!exists(object)) { 
+				// if the object is not in the database, we can insert it
+				resId = id.getAndIncrement();
+				insertA(object, resId);
+				insertFrozen(object, resId);
+			}
 		} else {
-			insertUnFrozen(object, id);
+			resId = id.getAndIncrement();
+			insertUnFrozen(object, resId);
 		}
-		return id;
+		return resId;
 	}
 
 	/**
-	 * Inserts in database A the given Object.
-	 * The timestamp of the object is stored too.
+	 * Inserts in database A the given Object. The timestamp of the object is
+	 * stored too.
+	 * 
 	 * @param object
 	 * @param id
 	 * @throws DatabaseException
@@ -514,10 +488,10 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		if (logger.isDebugEnabled()) {
 			logger.debug("Storing pivot tuples from A to B");
 		}
-		//		 cache is initialized as from the point we set frozen = true
+		// cache is initialized as from the point we set frozen = true
 		// queries can be achieved
 		initCache();
-		
+
 		// we have to create database B
 		insertFromAtoB();
 
@@ -526,7 +500,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		// we have to insert the objects already inserted in A into C
 		logger.info("Copying data from B to C");
 		insertFromBtoC();
-		
+
 		// we could delete bDB from this point
 
 		this.frozen = true;
@@ -539,7 +513,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		fout.close();
 
 		assert aDB.count() == bDB.count();
-		
+
 	}
 
 	/**
@@ -562,20 +536,20 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	private void insertFromAtoB() throws IllegalAccessException,
 			InstantiationException, DatabaseException, OBException {
-	
-			int i = 0;
-			O obj;
-			int count = this.databaseSize();
-			while (i < count) {
-				obj = this.getObject(i);
-				insertInB(i, obj);
-				i++;
-			}
+
+		int i = 0;
+		O obj;
+		int count = this.databaseSize();
+		while (i < count) {
+			obj = this.getObject(i);
+			insertInB(i, obj);
+			i++;
+		}
 
 	}
-	
-	public String toXML(){
-		XStream xstream = new XStream();		
+
+	public String toXML() {
+		XStream xstream = new XStream();
 		String xml = xstream.toXML(returnSelf());
 		return xml;
 	}
@@ -666,7 +640,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             If the pivot selector generates invalid ids
 	 */
 	public void storePivots(int[] ids) throws IllegalIdException,
-			IllegalAccessException, InstantiationException, DatabaseException, OBException {
+			IllegalAccessException, InstantiationException, DatabaseException,
+			OBException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Pivots selected " + Arrays.toString(ids));
 		}
@@ -677,7 +652,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 			O obj = getObject(ids[i], aDB);
 			TupleOutput out = new TupleOutput();
 			obj.store(out);
-			this.pivotsBytes[i] = out.getBufferBytes(); 			
+			this.pivotsBytes[i] = out.getBufferBytes();
 			pivots[i] = obj;
 			i++;
 		}
@@ -691,27 +666,26 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 */
 	protected void loadPivots() throws NotFrozenException, DatabaseException,
 			IllegalAccessException, InstantiationException, OBException {
-		
+
 		createPivotsArray();
 		if (!isFrozen()) {
 			throw new NotFrozenException();
 		}
-		
-		int i = 0;			
-		while (i < pivotsCount) {				
-				TupleInput in = new TupleInput(this.pivotsBytes[i]);
-				O obj = this.instantiateObject();
-				obj.load(in);
-				pivots[i] = obj;
-				i++;
+
+		int i = 0;
+		while (i < pivotsCount) {
+			TupleInput in = new TupleInput(this.pivotsBytes[i]);
+			O obj = this.instantiateObject();
+			obj.load(in);
+			pivots[i] = obj;
+			i++;
 		}
 		assert i == pivotsCount; // pivot count and read # of pivots
-			// should be the same
+		// should be the same
 		if (logger.isDebugEnabled()) {
-				logger.debug("Loaded " + i + " pivots, pivotsCount:"
-						+ pivotsCount);
+			logger.debug("Loaded " + i + " pivots, pivotsCount:" + pivotsCount);
 		}
-		
+
 	}
 
 	/**
@@ -735,7 +709,8 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 	 *             if the given id does not exist in the database
 	 */
 	private O getObject(int id, Database DB) throws DatabaseException,
-			IllegalIdException, IllegalAccessException, InstantiationException, OBException {
+			IllegalIdException, IllegalAccessException, InstantiationException,
+			OBException {
 		// TODO: put these two objects in the class so that they don't have to
 		// be created over and over again
 		// TODO: add an OB cache
@@ -749,7 +724,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 			// TODO: Extend TupleInput so that we don't have to create the
 			// object over and over again
 			TupleInput in = new TupleInput(dataEntry.getData());
-			object  = this.readObject(in);
+			object = this.readObject(in);
 		} else {
 			throw new IllegalIdException();
 		}
@@ -801,19 +776,18 @@ public abstract class AbstractPivotIndex<O extends OB> implements
 		databaseEnvironment.cleanLog();
 		databaseEnvironment.close();
 	}
-	
-		
+
 	/**
 	 * Reads an object from the given tupleinput
+	 * 
 	 * @param in
 	 * @return
 	 */
-	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
+	public O readObject(TupleInput in) throws InstantiationException,
+			IllegalAccessException, OBException {
 		O result = this.instantiateObject();
 		result.load(in);
 		return result;
 	}
-	
-	
 
 }
