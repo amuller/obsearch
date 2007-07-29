@@ -393,7 +393,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		
 		public void heartBeat10(long count) throws DatabaseException, IOException, OBException{
 			if (count % 10 == 0) {
-				sendBoxInfo();
+				
 			}
 		}
 
