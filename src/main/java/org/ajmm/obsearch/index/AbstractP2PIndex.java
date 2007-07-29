@@ -965,12 +965,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 			TupleOutput out = new TupleOutput();
 			out.writeInt(box);
-			// calculate the time in the other server
-			long x = timeFill;
-			if (0 > biggestTimeDifference) {
-				x = x * -1;
-			}
-			long mukouTime = time + (biggestTimeDifference + x);
 			out.writeLong(time);
 			Message msg = new Message();
 			addMessageElement(msg, MessageType.SYNCBOX, out.getBufferBytes());
@@ -1232,15 +1226,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				while (i < totalBoxes) {
 					int box = in.readInt();
 					long time = in.readLong();
-					this.boxLastUpdated.set(box, normalizeMukouTime(time));
+					this.boxLastUpdated.set(box, time);
 					handlersPerBox.get(box).add(this);
 					i++;
 				}
 			}
-		}
-
-		private long normalizeMukouTime(long time) {
-			return time + this.biggestTimeDifference;
 		}
 
 		/**

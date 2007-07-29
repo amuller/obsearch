@@ -267,7 +267,13 @@ Note that we can choose any peer to perform insertions.
 I don't think it is that bad. It is good because anyway we need to
 control what is being inserted in the database. 
 
-
+What it is easier safer and better is to have a couple of seeders
+(provided by YOU), where the data is inserted. The data will
+flow through the peers in a distributed way... 
+you can keep these data providers only for that and not for matching.
+The important thing is that only one object must be inserted at a time
+in any of the seeders, and the clocks in the seeders must be kept
+totally synchronized. The seeders can feed data from each other
 
 
 
