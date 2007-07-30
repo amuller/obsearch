@@ -801,7 +801,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * @param p
 	 *            peer advertisement to be added
 	 */
-	private synchronized void addPipe(PipeAdvertisement p) {
+	private  void addPipe(PipeAdvertisement p) {
 
 		try {
 			// only if we don't have already the connection
@@ -828,8 +828,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * @param ph
 	 * @throws IOException
 	 */
-	private synchronized void addPipeAux(URI id, PipeHandler ph)
+	private  void addPipeAux(URI id, PipeHandler ph)
 			throws IOException, Exception {
+		synchronized(clients){
 		if (clients.containsKey(id)) {
 			try {
 				ph.close();
@@ -853,6 +854,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				assert false;
 			}
 		}
+		}
 	}
 
 	/**
@@ -863,9 +865,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private synchronized void addPipe(PipeHandler bidipipe) throws IOException,
 			Exception {
 		URI id = bidipipe.getPeerID();
-		if (!clients.containsKey(id)) {
 			addPipeAux(id, bidipipe);
-		}
+		
 	}
 
 	/**
@@ -884,6 +885,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void closePipe(URI id) throws IOException {
 		PipeHandler pipe = clients.get(id);
 		pipe.close();
+		clients.remove(id);
 	}
 
 	private class PipeHandler implements PipeMsgListener {
@@ -910,7 +912,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			lastSentTimestamp = new AtomicLong[boxesCount];
 			int i = 0;
 			while(i < lastSentTimestamp.length){
-				lastSentTimestamp[i] = new AtomicLong(0);
+				lastSentTimestamp[i] = new AtomicLong(-2);
 				i++;
 			}
 		}
@@ -1161,7 +1163,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			int box = in.readInt();
 			long time = in.readLong();
 			synchronized(this.lastSentTimestamp[box]){
-				if(time != -1 && this.lastSentTimestamp[box].get() > time){
+				if(this.lastSentTimestamp[box].get() > time){
 					// do not serve duplicate requests.
 					logger.debug("Cancelling sync!" + time);
 					return; 
