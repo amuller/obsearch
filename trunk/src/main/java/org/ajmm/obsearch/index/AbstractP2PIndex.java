@@ -28,6 +28,7 @@ import net.jxta.document.Advertisement;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.MimeMediaType;
 import net.jxta.endpoint.ByteArrayMessageElement;
+import net.jxta.endpoint.EndpointAddress;
 import net.jxta.endpoint.Message;
 import net.jxta.endpoint.MessageElement;
 import net.jxta.endpoint.Message.ElementIterator;
@@ -100,7 +101,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		TIME, // time
 		BOX, // box information (for sync and box selection purposes)
 		SYNCBOX, // synchronize box (request for synchronization)
-		INDEX, // local index data 
+		INDEX, // local index data
 		INSOB, // insert object (after a SYNCBOX)
 		DSYNQ, // data sync query
 		DSYNR, // data sync reply
@@ -110,7 +111,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	};
 
 	private transient final Logger logger;
-	
+
 	// messages bigger than this one have problems
 	private static final int messageSize = 64 * 1024;
 
@@ -168,7 +169,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	// time when the index was created
 	protected long indexTime;
 
-
 	// contains all the pipes separated by box type
 	// only if our index is in full mode
 	private Queue[] searchPipes;
@@ -185,7 +185,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 	// The boxes that we are currently serving
 	private int[] ourBoxes;
-	
+
 	// total number of boxes that will be supported
 	private int boxesCount;
 
@@ -196,7 +196,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	// Every List holds handlers that hold the box in which they are indexed
 	// each handler is responsible of registering and unregistering
 	private List<List<PipeHandler>> handlersPerBox;
-	
+
 	private AtomicBoolean boxesUpdated;
 
 	/**
@@ -261,23 +261,23 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void initHandlersPerBox(List<List<PipeHandler>> x) {
 		int i = 0;
 		while (i < boxesCount) {
-			x.add(  Collections
-					.synchronizedList(new ArrayList<PipeHandler>(
-							maxNumberOfPeers)));
+			x.add(Collections.synchronizedList(new ArrayList<PipeHandler>(
+					maxNumberOfPeers)));
 			i++;
 		}
 	}
-	
+
 	/**
-	 * Returns true if any box == 0. This means we need sync
-	 * But only if we are connected to providers of every box
+	 * Returns true if any box == 0. This means we need sync But only if we are
+	 * connected to providers of every box
+	 * 
 	 * @return
 	 */
-	private boolean needSync() throws OBException, DatabaseException{
-		if(totalBoxesCovered()){
+	private boolean needSync() throws OBException, DatabaseException {
+		if (totalBoxesCovered()) {
 			int i = 0;
-			while(i < boxesCount){
-				if(getIndex().elementsPerBox(i) == 0){
+			while (i < boxesCount) {
+				if (getIndex().elementsPerBox(i) == 0) {
 					return true;
 				}
 				i++;
@@ -310,14 +310,15 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 		configurator.addRdvSeedingURI(seedURI);
 		configurator.addRelaySeedingURI(seedURI);
-		configurator.setUseOnlyRelaySeeds(true);
-		configurator.setUseOnlyRendezvousSeeds(true);
+		//configurator.setUseOnlyRelaySeeds(true);
+		//configurator.setUseOnlyRendezvousSeeds(true);
 		configurator.setHttpEnabled(false);
 		configurator.setTcpIncoming(true);
 		configurator.setTcpEnabled(true);
 		configurator.setTcpOutgoing(true);
 		configurator.setUseMulticast(false);
-
+		
+		
 		manager.startNetwork();
 		// Get the NetPeerGroup
 		netPeerGroup = manager.getNetPeerGroup();
@@ -330,16 +331,17 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		serverPipe = new JxtaServerPipe(netPeerGroup, adv);
 		serverPipe.setPipeTimeout(0);
 
-		discovery.publish(adv);
-		discovery.publish(netPeerGroup.getPeerAdvertisement());
-		discovery.remotePublish(netPeerGroup.getPeerAdvertisement());
-
 		// wait for rendevouz connection
 		if (isClient) {
 			logger.debug("Waiting for rendevouz connection");
 			manager.waitForRendezvousConnection(0);
 			logger.debug("Rendevouz connection found");
 		}
+
+		discovery.publish(adv);
+		discovery.remotePublish(adv);
+		discovery.publish(netPeerGroup.getPeerAdvertisement());
+		discovery.remotePublish(netPeerGroup.getPeerAdvertisement());
 
 	}
 
@@ -390,10 +392,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		public void heartBeat1() throws PeerGroupException, IOException {
 			timeBeat();
 		}
-		
-		public void heartBeat10(long count) throws DatabaseException, IOException, OBException{
+
+		public void heartBeat10(long count) throws DatabaseException,
+				IOException, OBException {
 			if (count % 10 == 0) {
-				
+
 			}
 		}
 
@@ -405,18 +408,14 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				// or if not all the boxes have been covered
 				if (!minimumNumberOfPeers() || !totalBoxesCovered()) {
 					findPipes();
-					
-				}		
-				if(needSync()){
+
+				}
+				if (needSync()) {
 					sync();
 				}
 				info();
 			}
 		}
-		
-		
-		
-		
 
 		// executed once every 100 heartbeats
 		public void heartBeat100(long count) throws PeerGroupException,
@@ -465,29 +464,32 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			}
 		}
 	}
-	
+
 	/**
 	 * Prints some information of the peer
 	 */
-	private void info() throws OBException, DatabaseException{
-		int [] servicedBoxes = servicedBoxes();
-		if(servicedBoxes != null){
-		int [] boxCount = new int[servicedBoxes.length];
-		int i = 0;
-		while(i < boxCount.length){
-			boxCount[i] = getIndex().elementsPerBox(i);
-			i++;
-		}
-		logger.info("Heart: Connected Peers: " + clients.size() + ", boxes: " 
-				+ Arrays.toString(servicedBoxes) + " count: " + Arrays.toString(boxCount));
-		}else{
-			logger.info("Heart: Connected Peers: " + clients.size() + " no boxes served");
+	private void info() throws OBException, DatabaseException {
+		int[] servicedBoxes = servicedBoxes();
+		if (servicedBoxes != null) {
+			int[] boxCount = new int[servicedBoxes.length];
+			int i = 0;
+			while (i < boxCount.length) {
+				boxCount[i] = getIndex().elementsPerBox(i);
+				i++;
+			}
+			logger.info("Heart: Connected Peers: " + clients.size()
+					+ ", boxes: " + Arrays.toString(servicedBoxes) + " count: "
+					+ Arrays.toString(boxCount));
+		} else {
+			logger.info("Heart: Connected Peers: " + clients.size()
+					+ " no boxes served");
 		}
 	}
 
 	/**
 	 * Returns the pipe handler that has the reported most recent modification
 	 * Returns null if we don't have a peer with the given box.
+	 * 
 	 * @param box
 	 * @return
 	 */
@@ -576,10 +578,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * findBestBox(boxCount); int toRemoveBox = sb[myGoodBox]; sb[myGoodBox] =
 	 * badBox; // updates boxCount to reflect the new layout
 	 * boxCount[toRemoveBox]--; boxCount[badBox]++; i++; } this.ourBoxes = sb;
-	 * assert false: "need to send an update to everybody"; }
-	 *  // find which is the worst box in the locality // the worst box must not
-	 * be included in myBoxes // returns -1 if there are no worst cases private
-	 * int findWorstBox(int[] boxCount){ int minVal = Integer.MAX_VALUE; int
+	 * assert false: "need to send an update to everybody"; } // find which is
+	 * the worst box in the locality // the worst box must not be included in
+	 * myBoxes // returns -1 if there are no worst cases private int
+	 * findWorstBox(int[] boxCount){ int minVal = Integer.MAX_VALUE; int
 	 * minIndex = -1; }
 	 */
 
@@ -588,26 +590,31 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * 
 	 */
 	private void timeBeat() throws IOException {
-		Iterator<PipeHandler> it = this.clients.values().iterator();
-		while (it.hasNext()) {
-			PipeHandler u = it.next();
-			u.sendTimeMessage();
+		synchronized (clients) {
+			Iterator<PipeHandler> it = this.clients.values().iterator();
+			while (it.hasNext()) {
+				PipeHandler u = it.next();
+				u.sendTimeMessage();
+			}
 		}
 	}
-	
+
 	/**
-	 * Sends box information to all the peers
-	 * if box information has been changed
+	 * Sends box information to all the peers if box information has been
+	 * changed
 	 */
-	private void sendBoxInfo() throws IOException, DatabaseException, OBException{
-		//if(this.boxesUpdated.get()){
+	private void sendBoxInfo() throws IOException, DatabaseException,
+			OBException {
+		// if(this.boxesUpdated.get()){
+		synchronized (clients) {
 			Iterator<PipeHandler> it = clients.values().iterator();
 			while (it.hasNext()) {
 				PipeHandler u = it.next();
 				u.sendBoxMessage();
 			}
-		//}
-		//boxesUpdated.set(false);
+		}
+		// }
+		// boxesUpdated.set(false);
 	}
 
 	/**
@@ -634,15 +641,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * @param msg
 	 * @throws IOException
 	 */
-	protected final void sendMessage(URI pipeID, Message msg)
-			throws IOException {
-		PipeHandler p = clients.get(pipeID);
-		if (p != null) {
-			p.sendMessage(msg);
-		} else {
-			assert false;
-		}
-	}
+	/*
+	 * protected final void sendMessage(URI pipeID, Message msg) throws
+	 * IOException { PipeHandler p = clients.get(pipeID); if (p != null) {
+	 * p.sendMessage(msg); } else { assert false; } }
+	 */
 
 	/**
 	 * For every pipe we have registered, we send them the globalBoxCount so
@@ -716,26 +719,34 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		return IDFactory.newPipeID(netPeerGroup.getPeerGroupID()).toURI();
 	}
 
-	private boolean readyToAcceptConnections() {
-		assert false;
-		return false;
-	}
-
 	/** Finds the pipe for the given peer * */
 	protected void findPipePeer(URI peer) throws IOException,
 			PeerGroupException {
 		if (!minimumNumberOfPeers()) {
 			discovery.getRemoteAdvertisements(peer.toString(),
-					DiscoveryService.ADV, "Name", pipeName, 1, this);
+					DiscoveryService.ADV, "Name", pipeName, 1, null);
 		}
 	}
 
 	// query the discovery service for OBSearch pipes
 	protected void findPipes() throws IOException, PeerGroupException {
 
+		/*Enumeration<Advertisement> en = discovery.getLocalAdvertisements(
+				DiscoveryService.PEER, null, null);
+		while (en.hasMoreElements()) {
+			Advertisement adv = en.nextElement();
+			assert adv instanceof PeerAdvertisement;
+			PeerAdvertisement padv = (PeerAdvertisement) adv;
+			synchronized (clients) {
+				if (!clients.containsKey(padv.getPeerID())) {
+					findPipePeer(padv.getPeerID().toURI());
+				}
+			}
+		}*/
+
 		// logger.debug("Getting advertisements");
 		discovery.getRemoteAdvertisements(null, DiscoveryService.PEER, null,
-				null, 0, this);
+				null, 1, null);
 
 	}
 
@@ -772,16 +783,20 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 					adv = (Advertisement) en.nextElement();
 					// logger.info("Discovery event: " + adv);
 					if (adv instanceof PipeAdvertisement) {
+						synchronized(clients){
 						PipeAdvertisement p = (PipeAdvertisement) adv;
 						addPipe(p);
+						}
 					} else if (adv instanceof PeerAdvertisement) {
 						// if we get a peer advertisement, then if the peer is
 						// not yet connected to us
 						// we can search for pipes.
-						PeerAdvertisement p = (PeerAdvertisement) adv;
-						if (!clients.containsKey(p.getPeerID().toURI())) {
-							// find pipes
-							findPipePeer(p.getPeerID().toURI());
+						synchronized (clients) {
+							PeerAdvertisement p = (PeerAdvertisement) adv;
+							if (!clients.containsKey(p.getPeerID().toURI())) {
+								// find pipes
+								findPipePeer(p.getPeerID().toURI());
+							}
 						}
 					}
 				}
@@ -794,27 +809,24 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 	/**
 	 * Adds the given pipe to our cache of pipes. The pipe is added if our quote
-	 * of pipes is under the minimum. TODO: Remove synchronized ?
-	 * 
+	 * of pipes is under the minimum. and if we don't have the pipe
+	 * already
 	 * @param peerID
 	 *            peerId of the given peer advertisement
 	 * @param p
 	 *            peer advertisement to be added
 	 */
-	private  void addPipe(PipeAdvertisement p) {
-
-		try {
-			// only if we don't have already the connection
-			JxtaBiDiPipe pipe = new JxtaBiDiPipe();
-			PipeHandler ph = new PipeHandler(p);
-			addPipeAux(ph.getPeerID(), ph);
-
-		} catch (IOException e) {
-			logger.fatal("IO Error while trying to add Pipe:" + p + " \n ", e);
-			assert false;
-		} catch (Exception e) {
-			logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
-			assert false;
+	private void addPipe(PipeAdvertisement p) {
+		synchronized (clients) {
+			try {
+				PipeHandler ph = new PipeHandler(p);
+				addPipeAux(ph.getPeerID(), ph);
+			} catch (IOException e) {
+				logger.warn("Exception while connecting: ", e);
+			} catch (Exception e) {
+				logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
+				assert false;
+			}
 		}
 
 	}
@@ -828,32 +840,33 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * @param ph
 	 * @throws IOException
 	 */
-	private  void addPipeAux(URI id, PipeHandler ph)
-			throws IOException, Exception {
-		synchronized(clients){
-		if (clients.containsKey(id)) {
-			try {
-				ph.close();
-			} catch (IOException e) {
-				logger.fatal("Error while trying to close a duplicated pipe"
-						+ e);
-				assert false;
+	private void addPipeAux(URI id, PipeHandler ph) throws IOException,
+			Exception {
+		synchronized (clients) {
+			if (clients.containsKey(id)) {
+				try {
+					ph.close();
+				} catch (IOException e) {
+					logger
+							.fatal("Error while trying to close a duplicated pipe"
+									+ e);
+					assert false;
+				}
+			} else if (!clients.containsKey(id)
+					&& clients.size() <= maxNumberOfPeers) {
+				logger.debug("Adding pipe of peer: " + ph.getPeerID());
+				this.clients.put(id, ph);
+				// send initial sync data to make sure that everybody is
+				// syncrhonized enough to be meaningful.
+				ph.sendMessagesAfterFirstEncounter();
+			} else {
+				try {
+					ph.close();
+				} catch (IOException e) {
+					logger.fatal("Error while closing pipe" + e);
+					assert false;
+				}
 			}
-		} else if (!clients.containsKey(id)
-				&& clients.size() <= maxNumberOfPeers) {
-			logger.debug("Adding pipe of peer: " + ph.getPeerID());
-			this.clients.put(id, ph);
-			// send initial sync data to make sure that everybody is
-			// syncrhonized enough to be meaningful.
-			ph.sendMessagesAfterFirstEncounter();
-		} else {
-			try {
-				ph.close();
-			} catch (IOException e) {
-				logger.fatal("Error while closing pipe" + e);
-				assert false;
-			}
-		}
 		}
 	}
 
@@ -862,11 +875,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * 
 	 * @param bidipipe
 	 */
-	private synchronized void addPipe(PipeHandler bidipipe) throws IOException,
-			Exception {
-		URI id = bidipipe.getPeerID();
+	private void addPipe(PipeHandler bidipipe) throws IOException, Exception {
+		synchronized (clients) {
+			URI id = bidipipe.getPeerID();
 			addPipeAux(id, bidipipe);
-		
+		}
 	}
 
 	/**
@@ -883,9 +896,11 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 * Closes the given pipe. all resources are released.
 	 */
 	private void closePipe(URI id) throws IOException {
-		PipeHandler pipe = clients.get(id);
-		pipe.close();
-		clients.remove(id);
+		synchronized (clients) {
+			PipeHandler pipe = clients.get(id);
+			clients.remove(id);
+			pipe.close();
+		}
 	}
 
 	private class PipeHandler implements PipeMsgListener {
@@ -902,16 +917,17 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		// he changed.
 		// value of 0 means that the box is not being served
 		private AtomicLongArray boxLastUpdated;
-		
+
 		// we keep track of the latest sent timestamp in order to
-		// avoid re-sending data. YAY! (minimizes the duplicated data considerably)
-		private AtomicLong [] lastSentTimestamp;
+		// avoid re-sending data. YAY! (minimizes the duplicated data
+		// considerably)
+		private AtomicLong[] lastSentTimestamp;
 
 		public PipeHandler() {
 			boxLastUpdated = new AtomicLongArray(getIndex().totalBoxes());
 			lastSentTimestamp = new AtomicLong[boxesCount];
 			int i = 0;
-			while(i < lastSentTimestamp.length){
+			while (i < lastSentTimestamp.length) {
 				lastSentTimestamp[i] = new AtomicLong(-2);
 				i++;
 			}
@@ -927,16 +943,21 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		 */
 		public PipeHandler(URI id, JxtaBiDiPipe pipe) {
 			this();
-			this.pipe = pipe;
-			this.peerID = id;
-			pipe.setMessageListener(this);
+			synchronized (pipe) {
+				this.pipe = pipe;
+				this.peerID = id;
+				pipe.setMessageListener(this);
+			}
 		}
 
 		public PipeHandler(PipeAdvertisement p) throws IOException {
 			this();
+
 			pipe = new JxtaBiDiPipe();
-			pipe.connect(netPeerGroup, null, p, globalTimeout, this);
-			peerID = pipe.getRemotePeerAdvertisement().getPeerID().toURI();
+			synchronized (pipe) {
+				pipe.connect(netPeerGroup, null, p, globalTimeout, this);
+				peerID = pipe.getRemotePeerAdvertisement().getPeerID().toURI();
+			}
 		}
 
 		public URI getPeerID() {
@@ -960,8 +981,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				// this should not be happening.
 				throw new BoxNotAvailableException();
 			}
-			
-			if(logger.isDebugEnabled()){
+
+			if (logger.isDebugEnabled()) {
 				logger.debug("req sync " + box + " " + time);
 			}
 
@@ -992,8 +1013,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			int i = 0;
 			TupleOutput out = new TupleOutput();
 			out.writeInt(serviced.length);
-			if(logger.isDebugEnabled()){
-				logger.debug("box info " + Arrays.toString(serviced) );
+			if (logger.isDebugEnabled()) {
+				logger.debug("box info " + Arrays.toString(serviced));
 			}
 			while (i < serviced.length) {
 				int box = serviced[i];
@@ -1113,69 +1134,77 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			} catch (IOException io) {
 				logger.fatal("Exception while receiving message", io);
 				assert false;
-			}catch(Exception e){
+			} catch (Exception e) {
 				logger.fatal("Exception while receiving message", e);
 				assert false;
 			}
 		}
+
 		/**
-		 * The message comes with an object, and also the original date the object was inserted
-		 * if we don't use this date, we will keep reloading data over and over again. 
-		 * Example:
-		 * A received some data (time 1)
-		 * A sends the data to B, (from time 3)
-		 * A thinks that B has new data, and receives again the records.
+		 * The message comes with an object, and also the original date the
+		 * object was inserted if we don't use this date, we will keep reloading
+		 * data over and over again. Example: A received some data (time 1) A
+		 * sends the data to B, (from time 3) A thinks that B has new data, and
+		 * receives again the records.
+		 * 
 		 * @param msg
 		 * @throws InstantiationException
 		 * @throws IllegalAccessException
 		 * @throws OBException
 		 * @throws DatabaseException
 		 */
-		private void processInsertOB(Message msg) throws InstantiationException, IllegalAccessException, OBException, DatabaseException{
-			ElementIterator it = msg.getMessageElementsOfNamespace(MessageType.INSOB.toString());
-			
-			while(it.hasNext()){
-				ByteArrayMessageElement m = (ByteArrayMessageElement)it.next();
+		private void processInsertOB(Message msg)
+				throws InstantiationException, IllegalAccessException,
+				OBException, DatabaseException {
+			ElementIterator it = msg
+					.getMessageElementsOfNamespace(MessageType.INSOB.toString());
+
+			while (it.hasNext()) {
+				ByteArrayMessageElement m = (ByteArrayMessageElement) it.next();
 				TupleInput in = new TupleInput(m.getBytes());
 				long time = in.readLong();
 				O o = readObject(in);// instantiate object
-				getIndex().insert(o,time);
+				getIndex().insert(o, time);
 			}
 			// set the boxes updated = true
 			boxesUpdated.set(true);
 		}
 
 		/**
-		 * Responds to a sync request. If another sync request
-		 * is added, and it has the same parameters, we just ignore it.
-		 * |timestamp| object
-		 * It will send objects to the other end of the pipe
-		 * that have been deleted or inserted in the time specified 
-		 * in the message.
-		 * If we receive another request for the same box while we are sending data,
-		 * we block until we have finished the first request. If the time requested in the message
-		 * is smaller than the latest sent timestamp, then we will ignore the request
+		 * Responds to a sync request. If another sync request is added, and it
+		 * has the same parameters, we just ignore it. |timestamp| object It
+		 * will send objects to the other end of the pipe that have been deleted
+		 * or inserted in the time specified in the message. If we receive
+		 * another request for the same box while we are sending data, we block
+		 * until we have finished the first request. If the time requested in
+		 * the message is smaller than the latest sent timestamp, then we will
+		 * ignore the request
+		 * 
 		 * @param box
 		 */
-		private void processSyncBox(Message msg) throws OBException, DatabaseException, IOException{
-			ByteArrayMessageElement m = getMessageElement(msg, MessageType.SYNCBOX);
+		private void processSyncBox(Message msg) throws OBException,
+				DatabaseException, IOException {
+			ByteArrayMessageElement m = getMessageElement(msg,
+					MessageType.SYNCBOX);
 			TupleInput in = new TupleInput(m.getBytes());
 			int box = in.readInt();
 			long time = in.readLong();
-			synchronized(this.lastSentTimestamp[box]){
-				if(this.lastSentTimestamp[box].get() > time){
+			synchronized (this.lastSentTimestamp[box]) {
+				if (this.lastSentTimestamp[box].get() > time) {
 					// do not serve duplicate requests.
 					logger.debug("Cancelling sync!" + time);
-					return; 
+					return;
 				}
-				// now we just have to read the latest modifications and send them
+				// now we just have to read the latest modifications and send
+				// them
 				// one by one to the underlying pipe.
-				Iterator<TimeStampResult<O>> it = getIndex().elementsInsertedNewerThan(box, time);
-				
+				Iterator<TimeStampResult<O>> it = getIndex()
+						.elementsInsertedNewerThan(box, time);
+
 				Message minsert = new Message();
-				
-				int i =0;
-				while(it.hasNext()){
+
+				int i = 0;
+				while (it.hasNext()) {
 					TimeStampResult<O> r = it.next();
 					O o = r.getObject();
 					TupleOutput out = new TupleOutput();
@@ -1183,21 +1212,22 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 					this.lastSentTimestamp[box].set(t);
 					out.writeLong(t);
 					o.store(out);
-					byte [] data = out.getBufferBytes();
-					if((msg.getByteLength() + data.length) > messageSize){
+					byte[] data = out.getBufferBytes();
+					if ((msg.getByteLength() + data.length) > messageSize) {
 						this.sendMessage(minsert);
 						minsert = new Message();
 					}
 					this.addMessageElement(minsert, MessageType.INSOB, data);
 					i++;
-				}	
-				if(logger.isDebugEnabled()){
-					logger.debug("Replying to sync request in " + box +", " + time + " sent " + i + " items " );
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("Replying to sync request in " + box + ", "
+							+ time + " sent " + i + " items ");
 				}
 				// send last msg
 				this.sendMessage(minsert);
 				// TODO: implement delete
-				}
+			}
 		}
 
 		/**
@@ -1207,7 +1237,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		 * as possible. We don't expect this method to be called a lot, so it
 		 * should ok for now.
 		 */
-		private synchronized void processBox(Message msg) {
+		private void processBox(Message msg) {
 			ByteArrayMessageElement m = getMessageElement(msg, MessageType.BOX);
 			assert m != null;
 			TupleInput in = new TupleInput(m.getBytes());
@@ -1217,13 +1247,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			// it, but for the meantime it is safe.
 			synchronized (handlersPerBox) {
 				// remove all the references of this.
-				while (i < boxLastUpdated.length()) {
-					boxLastUpdated.set(i, 0);
-					// shifts all the elements to the
-					handlersPerBox.get(i).remove(this);
-					i++;
-				}
-				i = 0;
+				this.removeFromHandler();
 				// update the boxes that were sent in the message
 				while (i < totalBoxes) {
 					int box = in.readInt();
@@ -1242,7 +1266,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		 * @return latest updated information for the given box
 		 */
 		public long lastUpdated(int box) {
-			assert box >= 0 && box <= boxesCount: "Box inputted:" + box;
+			assert box >= 0 && box <= boxesCount : "Box inputted:" + box;
 			return this.boxLastUpdated.get(box);
 		}
 
@@ -1263,7 +1287,22 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		 * @throws IOException
 		 */
 		public void sendMessage(Message msg) throws IOException {
-			this.pipe.sendMessage(msg);
+			try {
+				synchronized (pipe) {
+					if (pipe != null) {
+						this.pipe.sendMessage(msg);
+					} else {
+						logger
+								.warn("Could not send message because pipe was closed");
+					}
+				}
+			} catch (IOException e) {
+				// if this happens, is because the pipe was closed in the other
+				// end.
+				// we just have to close this connection
+				logger.warn("Closing pipe because received I/O exception");
+				closePipe(this.peerID);
+			}
 		}
 
 		/**
@@ -1277,10 +1316,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			long time = parseTimeMessage(msg);
 			long ourtime = System.currentTimeMillis();
 			long diff = time - ourtime;
-			//if (logger.isDebugEnabled()) {
-			//	logger.debug("Received time " + time + " from peer: " + peerID
-			//			+ " diff: " + diff);
-			//}
+			// if (logger.isDebugEnabled()) {
+			// logger.debug("Received time " + time + " from peer: " + peerID
+			// + " diff: " + diff);
+			// }
 			// time must be within +- k units away from our current time.
 			// otherwise we drop the connection with the given pipe id
 			if (Math.abs(diff) > maxTimeDifference) {
@@ -1293,10 +1332,28 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		}
 
 		/**
-		 * Closes the underlying pipe and releases results
+		 * Closes the underlying pipe and releases results Removes the
 		 */
 		public void close() throws IOException {
-			pipe.close();
+			synchronized (pipe) {
+				synchronized (handlersPerBox) {
+
+					pipe.close();
+					pipe = null;
+					removeFromHandler();
+				}
+			}
+		}
+
+		private void removeFromHandler() {
+			int i = 0;
+			// remove all the references of this.
+			while (i < boxLastUpdated.length()) {
+				boxLastUpdated.set(i, 0);
+				// shifts all the elements to the
+				handlersPerBox.get(i).remove(this);
+				i++;
+			}
 		}
 
 	}
@@ -1395,13 +1452,14 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	public String toXML() {
 		return getIndex().toXML();
 	}
-	
-	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
+
+	public O readObject(TupleInput in) throws InstantiationException,
+			IllegalAccessException, OBException {
 		return getIndex().readObject(in);
 	}
-	
-	public boolean exists(O object)throws DatabaseException, OBException,
-	IllegalAccessException, InstantiationException {
+
+	public boolean exists(O object) throws DatabaseException, OBException,
+			IllegalAccessException, InstantiationException {
 		return getIndex().exists(object);
 	}
 
