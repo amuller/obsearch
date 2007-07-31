@@ -164,7 +164,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	// contains a pipe per client that have tried to connect to us or that we
 	// have tried to connect to
 	// the key is a peer id and not a pipe!
-	private ConcurrentMap<URI, PipeHandler> clients;
+	private ConcurrentMap<String, PipeHandler> clients;
 
 	// time when the index was created
 	protected long indexTime;
@@ -224,7 +224,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		if (!dbPath.exists()) {
 			throw new IOException(dbPath + " does not exist");
 		}
-		clients = new ConcurrentHashMap<URI, PipeHandler>();
+		clients = new ConcurrentHashMap<String, PipeHandler>();
 		searchPipes = new Queue[index.totalBoxes()];
 		boxesCount = index.totalBoxes();
 		this.dbPath = dbPath;
@@ -810,8 +810,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 											.toURI().toString().replaceAll("/",
 													"");
 							URI u = new URI(hack);
-
-							if (!clients.containsKey(u)) {
+							// avoid connecting to ourselves and connecting to peers we have already
+							if (! u.toString().equals(this.netPeerGroup.getPeerAdvertisement().getPeerID().toURI().toString()) &&
+									! isConnectedToPeer(u.toString())) {
 								logger.info("Discovered new peer: " + u);
 								PipeAdvertisement p = (PipeAdvertisement) adv;
 								addPipe(u, p);
@@ -826,7 +827,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 						// we can search for pipes.
 						synchronized (clients) {
 							PeerAdvertisement p = (PeerAdvertisement) adv;
-							if (!clients.containsKey(p.getPeerID().toURI())) {
+							if (! isConnectedToPeer(p.getPeerID().toURI().toString()) ) {
 								// find pipes
 								findPipePeer(p.getPeerID().toURI());
 							}
@@ -838,6 +839,15 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			logger.fatal("Exception", e);
 			assert false;
 		}
+	}
+	
+	/**
+	 * Returns true if the given peer id is connected to us.
+	 * @param id
+	 * @return
+	 */
+	private boolean isConnectedToPeer(String id){
+		return clients.containsKey(id);
 	}
 
 	/**
@@ -853,7 +863,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void addPipe(URI id, PipeAdvertisement p) {
 
 		try {
-			if (!clients.containsKey(id)) {
+			if (! isConnectedToPeer(id.toString())) {
 				PipeHandler ph = new PipeHandler(p);
 				assert id.equals(ph.getPeerID());
 				addPipeAux(ph.getPeerID(), ph);
@@ -879,7 +889,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void addPipeAux(URI id, PipeHandler ph) throws IOException,
 			Exception {
 		synchronized (clients) {
-			if (clients.containsKey(id)) {
+			if (isConnectedToPeer(id.toString())) {
 				try {
 					logger.debug("Closing " + id);
 					ph.close();
@@ -889,10 +899,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 									+ e);
 					assert false;
 				}
-			} else if (!clients.containsKey(id)
+			} else if (!isConnectedToPeer( id.toString())
 					&& clients.size() <= maxNumberOfPeers) {
 				logger.debug("Adding pipe of peer: " + ph.getPeerID());
-				this.clients.put(id, ph);
+				this.clients.put(id.toString(), ph);
 				// send initial sync data to make sure that everybody is
 				// syncrhonized enough to be meaningful.
 				ph.sendMessagesAfterFirstEncounter();
@@ -907,6 +917,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			}
 		}
 	}
+	
 
 	/**
 	 * TODO: Remove synchronized ?
@@ -933,7 +944,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	/**
 	 * Closes the given pipe. all resources are released.
 	 */
-	private void closePipe(URI id) throws IOException {
+	private void closePipe(String id) throws IOException {
 		synchronized (clients) {
 			PipeHandler pipe = clients.get(id);
 			clients.remove(id);
@@ -1341,7 +1352,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				// we just have to close this connection
 				logger.warn("Closing pipe because received I/O exception. "
 						+ this.peerID);
-				closePipe(this.peerID);
+				closePipe(this.peerID.toString());
 				logger.warn("clients:" + clients.size());
 			}
 		}
@@ -1365,7 +1376,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			// otherwise we drop the connection with the given pipe id
 			if (Math.abs(diff) > maxTimeDifference) {
 				logger.debug("Rejected " + time + " from peer: " + peerID);
-				closePipe(peerID);
+				closePipe(peerID.toString());
 			}
 			if (Math.abs(biggestTimeDifference) < Math.abs(diff)) {
 				this.biggestTimeDifference = diff;
