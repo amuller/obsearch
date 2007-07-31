@@ -148,7 +148,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private final static int heartBeatInterval = 10000;
 
 	// general timeout used for most p2p operations
-	private final static int globalTimeout = 120 * 1000;
+	private final static int globalTimeout = 10 * 1000;
 
 	// maximum time difference between the peers.
 	// peers that have bigger time differences will be dropped.
@@ -198,6 +198,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private List<List<PipeHandler>> handlersPerBox;
 
 	private AtomicBoolean boxesUpdated;
+
+	private boolean isClient = true;
 
 	/**
 	 * Initialize the abstract class
@@ -296,6 +298,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void init(boolean isClient, NetworkManager.ConfigMode c,
 			boolean clearCache, URI seedURI) throws IOException,
 			PeerGroupException {
+
 		File cache = new File(new File(dbPath, ".cache"), clientName);
 		if (clearCache) {
 			Directory.deleteDirectory(cache);
@@ -310,15 +313,14 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 		configurator.addRdvSeedingURI(seedURI);
 		configurator.addRelaySeedingURI(seedURI);
-		//configurator.setUseOnlyRelaySeeds(true);
-		//configurator.setUseOnlyRendezvousSeeds(true);
+		// configurator.setUseOnlyRelaySeeds(true);
+		// configurator.setUseOnlyRendezvousSeeds(true);
 		configurator.setHttpEnabled(false);
 		configurator.setTcpIncoming(true);
 		configurator.setTcpEnabled(true);
 		configurator.setTcpOutgoing(true);
 		configurator.setUseMulticast(false);
-		
-		
+
 		manager.startNetwork();
 		// Get the NetPeerGroup
 		netPeerGroup = manager.getNetPeerGroup();
@@ -337,12 +339,16 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			manager.waitForRendezvousConnection(0);
 			logger.debug("Rendevouz connection found");
 		}
-
+		if (logger.isDebugEnabled()) {
+			logger.debug("Peer id: "
+					+ netPeerGroup.getPeerAdvertisement().getPeerID().toURI());
+		}
 		discovery.publish(adv);
 		discovery.remotePublish(adv);
 		discovery.publish(netPeerGroup.getPeerAdvertisement());
 		discovery.remotePublish(netPeerGroup.getPeerAdvertisement());
-
+		assert netPeerGroup.getPeerAdvertisement().equals(
+				netPeerGroup.getPeerAdvertisement());
 	}
 
 	/**
@@ -366,6 +372,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				try {
 					heartBeat1();
 					heartBeat3(count);
+					heartBeat6(count);
 					heartBeat10(count);
 					heartBeat100(count);
 					synchronized (timer) {
@@ -394,9 +401,21 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		}
 
 		public void heartBeat10(long count) throws DatabaseException,
-				IOException, OBException {
+				IOException, OBException, PeerGroupException {
 			if (count % 10 == 0) {
+				//	find pipes if not enough peers are available
+				// or if not all the boxes have been covered
+				if (!minimumNumberOfPeers() || !totalBoxesCovered()) {
+					logger.debug("Finding pipes!");
+					findPipes();
+				}
+			}
+		}
 
+		public void heartBeat6(long count) throws PeerGroupException,
+				IOException, OBException, DatabaseException {
+			if (count % 6 == 0) {
+				
 			}
 		}
 
@@ -404,14 +423,12 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		public void heartBeat3(long count) throws PeerGroupException,
 				IOException, OBException, DatabaseException {
 			if (count % 3 == 0) {
-				// find pipes if not enough peers are available
-				// or if not all the boxes have been covered
-				if (!minimumNumberOfPeers() || !totalBoxesCovered()) {
-					findPipes();
 
-				}
 				if (needSync()) {
-					sync();
+					if (count != 0) { // the first iteration is performed
+										// lower
+						sync();
+					}
 				}
 				info();
 			}
@@ -479,7 +496,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			}
 			logger.info("Heart: Connected Peers: " + clients.size()
 					+ ", boxes: " + Arrays.toString(servicedBoxes) + " count: "
-					+ Arrays.toString(boxCount));
+					+ Arrays.toString(boxCount) + clients.keySet());
 		} else {
 			logger.info("Heart: Connected Peers: " + clients.size()
 					+ " no boxes served");
@@ -679,6 +696,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	 */
 	public void open(boolean client, boolean clearPeerCache, File seedFile)
 			throws IOException, PeerGroupException {
+		this.isClient = client;
 		NetworkManager.ConfigMode c = null;
 		if (!seedFile.exists()) {
 			throw new IOException("File does not exist: " + seedFile);
@@ -703,9 +721,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 	private PipeAdvertisement getPipeAdvertisement() {
 		PipeID pipeID = (PipeID) ID.create(generatePipeID());
-		if (logger.isDebugEnabled()) {
-			logger.debug("Generated pipeid: " + pipeID);
-		}
+
 		PipeAdvertisement advertisement = (PipeAdvertisement) AdvertisementFactory
 				.newAdvertisement(PipeAdvertisement.getAdvertisementType());
 
@@ -731,22 +747,20 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	// query the discovery service for OBSearch pipes
 	protected void findPipes() throws IOException, PeerGroupException {
 
-		/*Enumeration<Advertisement> en = discovery.getLocalAdvertisements(
-				DiscoveryService.PEER, null, null);
-		while (en.hasMoreElements()) {
-			Advertisement adv = en.nextElement();
-			assert adv instanceof PeerAdvertisement;
-			PeerAdvertisement padv = (PeerAdvertisement) adv;
-			synchronized (clients) {
-				if (!clients.containsKey(padv.getPeerID())) {
-					findPipePeer(padv.getPeerID().toURI());
-				}
-			}
-		}*/
+		/*
+		 * Enumeration<Advertisement> en = discovery.getLocalAdvertisements(
+		 * DiscoveryService.PEER, null, null); while (en.hasMoreElements()) {
+		 * Advertisement adv = en.nextElement(); assert adv instanceof
+		 * PeerAdvertisement; PeerAdvertisement padv = (PeerAdvertisement) adv;
+		 * synchronized (clients) { if (!clients.containsKey(padv.getPeerID())) {
+		 * findPipePeer(padv.getPeerID().toURI()); } } }
+		 */
 
 		// logger.debug("Getting advertisements");
-		discovery.getRemoteAdvertisements(null, DiscoveryService.PEER, null,
-				null, 1, null);
+		if (isClient) {
+			discovery.getRemoteAdvertisements(null, DiscoveryService.PEER,
+					null, null, 2, null);
+		}
 
 	}
 
@@ -783,9 +797,28 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 					adv = (Advertisement) en.nextElement();
 					// logger.info("Discovery event: " + adv);
 					if (adv instanceof PipeAdvertisement) {
-						synchronized(clients){
-						PipeAdvertisement p = (PipeAdvertisement) adv;
-						addPipe(p);
+
+						synchronized (clients) {
+							// add the pipe only if its peer hasn't been added
+							// this is a hack in order to prevent additions of
+							// pipes whose
+							// TODO: if there is some inconsistency with the
+							// string generated by EndpointAddress,
+							// this hack won't work
+							String hack = "urn:"
+									+ ((EndpointAddress) ev.getSource())
+											.toURI().toString().replaceAll("/",
+													"");
+							URI u = new URI(hack);
+
+							if (!clients.containsKey(u)) {
+								logger.info("Discovered new peer: " + u);
+								PipeAdvertisement p = (PipeAdvertisement) adv;
+								addPipe(u, p);
+							} else {
+								 logger.debug("Never gonna say goodbye: " +
+								 u);
+							}
 						}
 					} else if (adv instanceof PeerAdvertisement) {
 						// if we get a peer advertisement, then if the peer is
@@ -809,24 +842,27 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 	/**
 	 * Adds the given pipe to our cache of pipes. The pipe is added if our quote
-	 * of pipes is under the minimum. and if we don't have the pipe
-	 * already
+	 * of pipes is under the minimum. and if we don't have the pipe already
+	 * 
 	 * @param peerID
 	 *            peerId of the given peer advertisement
 	 * @param p
 	 *            peer advertisement to be added
 	 */
-	private void addPipe(PipeAdvertisement p) {
-		synchronized (clients) {
-			try {
+
+	private void addPipe(URI id, PipeAdvertisement p) {
+
+		try {
+			if (!clients.containsKey(id)) {
 				PipeHandler ph = new PipeHandler(p);
+				assert id.equals(ph.getPeerID());
 				addPipeAux(ph.getPeerID(), ph);
-			} catch (IOException e) {
-				logger.warn("Exception while connecting: ", e);
-			} catch (Exception e) {
-				logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
-				assert false;
 			}
+		} catch (IOException e) {
+			logger.warn("Exception while connecting: ", e);
+		} catch (Exception e) {
+			logger.fatal("Error while trying to add Pipe:" + p + " \n ", e);
+			assert false;
 		}
 
 	}
@@ -845,6 +881,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		synchronized (clients) {
 			if (clients.containsKey(id)) {
 				try {
+					logger.debug("Closing " + id);
 					ph.close();
 				} catch (IOException e) {
 					logger
@@ -861,6 +898,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 				ph.sendMessagesAfterFirstEncounter();
 			} else {
 				try {
+					logger.debug("Closing (2) " + id);
 					ph.close();
 				} catch (IOException e) {
 					logger.fatal("Error while closing pipe" + e);
@@ -1288,20 +1326,23 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		 */
 		public void sendMessage(Message msg) throws IOException {
 			try {
-				synchronized (pipe) {
-					if (pipe != null) {
+				if (pipe != null) {
+					synchronized (pipe) {
 						this.pipe.sendMessage(msg);
-					} else {
-						logger
-								.warn("Could not send message because pipe was closed");
 					}
+				} else {
+					logger
+							.warn("Could not send message because pipe was closed");
 				}
+
 			} catch (IOException e) {
 				// if this happens, is because the pipe was closed in the other
 				// end.
 				// we just have to close this connection
-				logger.warn("Closing pipe because received I/O exception");
+				logger.warn("Closing pipe because received I/O exception. "
+						+ this.peerID);
 				closePipe(this.peerID);
+				logger.warn("clients:" + clients.size());
 			}
 		}
 
@@ -1337,7 +1378,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		public void close() throws IOException {
 			synchronized (pipe) {
 				synchronized (handlersPerBox) {
-
 					pipe.close();
 					pipe = null;
 					removeFromHandler();
