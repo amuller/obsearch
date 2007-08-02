@@ -816,10 +816,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 								logger.info("Discovered new peer: " + u);
 								PipeAdvertisement p = (PipeAdvertisement) adv;
 								addPipe(u, p);
-							} else {
-								 logger.debug("Never gonna say goodbye: " +
-								 u);
-							}
+							} 
 						}
 					} else if (adv instanceof PeerAdvertisement) {
 						// if we get a peer advertisement, then if the peer is
@@ -1439,6 +1436,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 					assert false;
 
 				} catch (Exception e) {
+					
 					logger.fatal("Error while listening to a connection:" + e);
 					assert false;
 				}

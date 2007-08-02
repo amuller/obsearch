@@ -245,14 +245,18 @@ TODO:
   - Change interface index to obtain the latest inserted time OK
   - Change interface index to obtain all the items greater than some time OK
 - Implement deletion (P+Tree)
-- we will have an index for deletions too...
-  - It is just a timestamp->object index.
-  - Very easy to implement, and the distance function is not used.
-- The p2pindex interface will keep track of deleted items :)
+- Implement search
+  - create List<Box> getBoxes(O object, r, k) 
+     returns all the boxes that will touch a given object
+  - create <range> searchOB(O object, int[] boxes, r, k) 
+		 does the same as searchOB for one thread, but only searches
+     the given boxes in the given order. 
+     if during the process the range changes, the process returns
+     the new range, otherwise returns the original range. 
+  - create Box
+		 isInside(O object, r) // if the object continues to be inside the box
+     int getBox()      
 
-- Write the Index that binds everything.
-  - Write something that loads a new index when it is the first time we log in.
-  - When the peers have a newer index, we drop the index, and reload everything again.
 
 
 ***********************************************************

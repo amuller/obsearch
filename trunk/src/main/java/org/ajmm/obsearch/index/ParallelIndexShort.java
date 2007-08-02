@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.index;
 
+import java.util.BitSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -118,6 +119,23 @@ public class ParallelIndexShort<O extends OBShort> extends
 
 	}
 	
+	
+	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException{
+		return index.intersects(object, r, box);
+	}
+
+	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		return index.intersectingBoxes(object, r);
+	}
+	
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	throws NotFrozenException, DatabaseException,
+	InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		index.searchOB(object, r, result, boxes);
+	}
 	
 
 }

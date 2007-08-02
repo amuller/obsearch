@@ -14,6 +14,7 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import com.sleepycat.je.DatabaseException;
+import java.util.BitSet;
 
 /*
     OBSearch: a distributed similarity search engine
@@ -44,16 +45,15 @@ import com.sleepycat.je.DatabaseException;
 
 
 public interface Index${Type}<O extends OB${Type}> extends Index<O> {
-/**
+		/**
      * Searches the Index and returns OBResult (ID, OB and distance) elements
      * that are closer to "object". The closest element is at the beginning of
-     * the list and the farthest elements is at the end of the list This
-     * condition must hold result.length == k
+     * the list and the farthest elements is at the end of the list.
+		 * You can control the size of the resulting set when you create the
+		 * object "result". This becomes the k parameter of the search.
      * 
      * @param object
      *            The object that has to be searched
-     * @param k
-     *            The maximum number of objects to be returned
      * @param r
      *            The range to be used
      * @param result
@@ -66,6 +66,54 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
     void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result)
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
+
+		/**
+     * Returns true if the given object intersects the given
+		 * box when range r is used.
+		 * @param object The object that has to be compared
+		 * @param r Range to be used
+     * @param box The box to be searched
+		 * @return True if the object intersects the given box
+		 */
+		boolean intersects(O object, ${type} r, int box)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException ;
+
+		/**
+		 * For an object, it returns the boxes that have
+		 * to be searched based on a certain range
+		 * @param object The object that will be analyzed
+		 * @param r The range 
+		 * @return A bit set with the ith bit set to true if
+		 *         the ith box intersects the given object
+		 */
+		BitSet intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException ;
+
+
+		 /**
+     * Searches the Index and returns OBResult (ID, OB and distance) elements
+     * that are closer to "object". The closest element is at the beginning of
+     * the list and the farthest elements is at the end of the list.
+		 * You can control the size of the resulting set when you create the
+		 * object "result". This becomes the k parameter of the search.
+     * This search method only searches the object in the given boxes. 
+     * @param object
+     *            The object that has to be searched
+     * @param r
+     *            The range to be used
+     * @param result
+     *            A priority queue that will hold the result
+		 * @param boxes
+		 *            A BitSet that holds the boxes that are to be searched
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
+     * @since 0.0
+     */
+    
+    void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result, BitSet boxes)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
+		
 }
 
 </#list>

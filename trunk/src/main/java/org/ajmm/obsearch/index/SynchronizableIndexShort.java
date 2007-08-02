@@ -1,6 +1,8 @@
 package org.ajmm.obsearch.index;
 
 import java.io.File;
+import java.util.BitSet;
+
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -40,11 +42,11 @@ import com.sleepycat.je.DatabaseException;
 public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchronizableIndex<O> implements
 		IndexShort<O> {
 	
-	protected IndexShort<O> source;
+	protected IndexShort<O> index;
 	
 	public SynchronizableIndexShort(IndexShort<O> source, File dbDir) throws DatabaseException{		
 		super(source,dbDir);
-		this.source = source;
+		this.index = source;
 	}
 	
 	public int databaseSize() throws DatabaseException{
@@ -55,11 +57,11 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
-		source.searchOB(object, r, result);
+		index.searchOB(object, r, result);
 	}
 	
 	public Index<O> getIndex(){
-		return source;
+		return index;
 	}
 	
 	/**
@@ -70,7 +72,22 @@ public class SynchronizableIndexShort<O extends OBShort> extends AbstractSynchro
 		return getIndex().toXML();
 	}
 	
+	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException{
+		return index.intersects(object, r, box);
+	}
 
+	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		return index.intersectingBoxes(object, r);
+	}
+	
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	throws NotFrozenException, DatabaseException,
+	InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		index.searchOB(object, r, result, boxes);
+	}
 
 
 }

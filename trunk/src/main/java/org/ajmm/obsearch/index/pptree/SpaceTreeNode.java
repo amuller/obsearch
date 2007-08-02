@@ -91,7 +91,19 @@ public class SpaceTreeNode implements SpaceTree {
 			right.searchRange(query, result);
 		}
 	}
-
-
+	public SpaceTreeLeaf searchSpace(int spaceNumber){
+		SpaceTreeLeaf l = right.searchSpace(spaceNumber);
+		SpaceTreeLeaf r = left.searchSpace(spaceNumber);
+		assert ! (l != null && r  != null);
+		if(l != null){
+			return l;
+		}
+		if(r != null){
+			return r;
+		}
+		else{
+			return null;
+		}
+	}
 
 }

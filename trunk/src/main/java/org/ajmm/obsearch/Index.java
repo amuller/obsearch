@@ -201,5 +201,8 @@ public interface Index<O extends OB> {
 	 */
 	O readObject(TupleInput in) throws InstantiationException,
 			IllegalAccessException, OBException;
+	
+	
+	
 
 }

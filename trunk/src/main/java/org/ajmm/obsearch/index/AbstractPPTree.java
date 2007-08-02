@@ -72,6 +72,11 @@ public abstract class AbstractPPTree<O extends OB> extends
 	 * Hack to catch when k-meanspp is not able to generate centers that converge.
 	 */
 	protected static final int  kMeansPPIterations = 3;  
+	
+	/**
+	 * Holds the spaceTree's leaf nodes so we can access them fast
+	 */
+	protected transient SpaceTreeLeaf [] spaceTreeLeaves;
 
 	/**
 	 * AbstractPPTree Constructs a P+Tree
@@ -90,6 +95,21 @@ public abstract class AbstractPPTree<O extends OB> extends
 		super(databaseDirectory, pivots);
 		this.od = od;
 	}
+	
+	/**
+	 * Initializes the spaceTreeLeaves array
+	 * It assumes that the spaceTree is alreay initialized/loaded
+	 */
+	protected void initSpaceTreeLeaves(){
+		assert spaceTree != null;
+		int max = super.totalBoxes();
+		spaceTreeLeaves = new SpaceTreeLeaf[max];
+		int i = 0;
+		while(i < max){
+			spaceTreeLeaves[i] = spaceTree.searchSpace(i);
+			i++;
+		}
+	}
 
 	// TODO: We could override freeze and remove the creation of database B
 	// P+Tree needs B so maybe this is not so relevant.
@@ -100,11 +120,6 @@ public abstract class AbstractPPTree<O extends OB> extends
 	protected void calculateIndexParameters() throws DatabaseException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
-
-		long count = super.bDB.count();
-		// each median for each dimension will be stored in this array
-		DatabaseEntry foundKey = new DatabaseEntry();
-		DatabaseEntry foundData = new DatabaseEntry();
 
 		
 		Random ran = new Random(System.currentTimeMillis());
@@ -126,10 +141,12 @@ public abstract class AbstractPPTree<O extends OB> extends
 			if (logger.isDebugEnabled()) {
 				logger.debug("Space tree: \n" + spaceTree);
 			}
-		
+		// add a handy shortcut to access space tree leaves.
+		this.initSpaceTreeLeaves();
 		logger.debug("Space Tree calculated");
 
 	}
+	
 
 	/**
 	 * Calculates the parameters for the leaf based on minMax, and the center

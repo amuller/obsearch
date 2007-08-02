@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.BitSet;
 import java.util.Iterator;
 
 import hep.aida.bin.QuantileBin1D;
@@ -27,36 +28,36 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
-  	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-	  Class: ExtendedPyramidIndexShort
-	  
-    @author      Arnoldo Jose Muller Molina    
-    @version     %I%, %G%
-    @since       0.0
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * Class: ExtendedPyramidIndexShort
+ * 
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
+ */
 
 public class ExtendedPyramidIndexShort<O extends OBShort> extends
-		AbstractExtendedPyramidIndex<O> 
-		implements IndexShort<O> {
-	    
+		AbstractExtendedPyramidIndex<O> implements IndexShort<O> {
+
 	private short minInput;
 
 	private short maxInput;
@@ -64,7 +65,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	/**
 	 * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
 	 * will be between 0 and Short.MAX_VALUE
-	 *
+	 * 
 	 * @param databaseDirectory
 	 * @param pivots
 	 * @throws DatabaseException
@@ -80,7 +81,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
 	 * will be defined by the user. We recommend the use of this constructor. We
 	 * believe it will give better resolution to the float transformation.
-	 *
+	 * 
 	 * @param databaseDirectory
 	 * @param pivots
 	 * @param minInput
@@ -105,12 +106,48 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	@Override
 	protected float[] extractTuple(TupleInput in) throws OutOfRangeException {
 		int i = 0;
-		float [] res = new float[pivotsCount];
-		while( i < pivotsCount){
+		float[] res = new float[pivotsCount];
+		while (i < pivotsCount) {
 			res[i] = normalize(in.readShort());
 			i++;
 		}
 		return res;
+	}
+
+	public boolean intersects(O object, short r, int box)
+			throws NotFrozenException, DatabaseException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t); // calculate the pivot for the given
+		float[][] q = new float[pivotsCount][2]; // rectangular query
+		generateRectangle(t, r, q);
+		float[] lowHighResult = new float[2];
+		return intersect(q, box, lowHighResult);
+	}
+
+	public BitSet intersectingBoxes(O object, short r)
+			throws NotFrozenException, DatabaseException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		BitSet result = new BitSet(super.totalBoxes());
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t); // calculate the pivot for the given
+		int pyramidCount = 2 * pivotsCount;
+		float[][] qorig = new float[pivotsCount][2]; // rectangular query
+		float[][] q = new float[pivotsCount][2]; // rectangular query
+		short myr = r;
+		float[] lowHighResult = new float[2];
+		generateRectangle(t, myr, qorig);
+		int i = 0;
+		while (i < pyramidCount) {
+			copyQuery(qorig, q);
+			if (intersect(q, i, lowHighResult)) {
+				result.set(i);
+			}
+			i++;
+		}
+		return result;
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -131,14 +168,49 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		generateRectangle(t, myr, qorig);
 		int i = 0;
 		float[] lowHighResult = new float[2];
-		//TODO: select the pyramids randomly just like quicksort
+		// TODO: select the pyramids randomly just like quicksort
 		while (i < pyramidCount) {
-			copyQuery(qorig,q);
+			copyQuery(qorig, q);
 			if (intersect(q, i, lowHighResult)) {
 				searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
 						+ lowHighResult[HHIGH], result);
 				short nr = result.updateRange(myr);
-				if(nr < myr){
+				if (nr < myr) {
+					myr = nr;
+					// regenerate the query with a smaller range
+					generateRectangle(t, myr, qorig);
+				}
+			}
+			i++;
+		}
+	}
+
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
+			BitSet boxes) throws NotFrozenException, DatabaseException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		// check if we are frozen
+		assertFrozen();
+
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t); // calculate the pivot for the given
+		// object
+
+		int pyramidCount = 2 * pivotsCount;
+		float[][] qorig = new float[pivotsCount][2]; // rectangular query
+		float[][] q = new float[pivotsCount][2]; // rectangular query
+		short myr = r;
+		generateRectangle(t, myr, qorig);
+		int i = 0;
+		float[] lowHighResult = new float[2];
+		// TODO: select the pyramids randomly just like quicksort
+		while (i < pyramidCount) {
+			copyQuery(qorig, q);
+			if (intersect(q, i, lowHighResult) && boxes.get(i)) {
+				searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
+						+ lowHighResult[HHIGH], result);
+				short nr = result.updateRange(myr);
+				if (nr < myr) {
 					myr = nr;
 					// regenerate the query with a smaller range
 					generateRectangle(t, myr, qorig);
@@ -153,7 +225,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * positives Calculates the real distance and updates the result priority
 	 * queue It is left public so that junit can perform validations on it
 	 * Performance-wise this is one of the most important methods
-	 *
+	 * 
 	 * @param object
 	 * @param tuple
 	 * @param r
@@ -201,7 +273,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 							max = t;
 							if (t > r) {
 								break; // finish this loop this slice won't be
-										// matched
+								// matched
 								// after all!
 							}
 						}
@@ -212,7 +284,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 						int id = in.readInt();
 						O toCompare = super.getObject(id);
 						realDistance = object.distance(toCompare);
-						if(realDistance <= r){
+						if (realDistance <= r) {
 							result.add(id, toCompare, realDistance);
 						}
 					}
@@ -234,7 +306,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	 * Generates min and max for the given tuple It is actually the query. If
 	 * you want non-rectangular queries you have to override this method and
 	 * make sure your modification works well with searchOB
-	 *
+	 * 
 	 * @param t
 	 *            the tuple to be processed
 	 * @param r
@@ -299,7 +371,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	/**
 	 * Transforms the given tuple into an extended pyramid technique normalized
 	 * value that considers the "center" of the dimension
-	 *
+	 * 
 	 * @param tuple
 	 *            The original tuple in the default dimension
 	 * @param result
@@ -321,7 +393,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 	/**
 	 * Normalize the given value
-	 *
+	 * 
 	 * @param x
 	 * @return the normalized value
 	 */
@@ -341,18 +413,17 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 		return insertFrozenAux(t, id);
 	}
-	
-	
-	public int getBox(O object) throws OBException{
+
+	public int getBox(O object) throws OBException {
 		short[] t = new short[pivotsCount];
 		calculatePivotTuple(object, t); // calculate the tuple for the new //
 		float[] et = extendedPyramidTransform(t);
 		return super.pyramidOfPoint(et);
-    }
+	}
 
 	/**
 	 * Inserts the given tuple and id into C
-	 *
+	 * 
 	 * @param t
 	 * @param id
 	 * @return
@@ -376,13 +447,11 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		// create the key
 		SortedFloatBinding.floatToEntry(pyramidValue, keyEntry);
 		dataEntry.setData(out.getBufferBytes());
-		
-		
 
 		// TODO: check the status result of all the operations
-		if( cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS){
+		if (cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS) {
 			throw new DatabaseException();
-		}		
+		}
 		return 1;
 	}
 
@@ -409,7 +478,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 
 	/**
 	 * Calculates the tuple vector for the given object
-	 *
+	 * 
 	 * @param obj
 	 *            object to be processed
 	 * @param tuple
@@ -424,20 +493,22 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 			i++;
 		}
 	}
-	
-	public boolean exists(O object) throws DatabaseException, OBException, IllegalAccessException, InstantiationException{
-		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte)1);
-		//perform a search with r==0 and k==1
-		// TODO: this short must not be replaced in the template, it is always short
-		searchOB(object, (short)0, result);
-		if(result.getSize() == 1){
+
+	public boolean exists(O object) throws DatabaseException, OBException,
+			IllegalAccessException, InstantiationException {
+		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte) 1);
+		// perform a search with r==0 and k==1
+		// TODO: this short must not be replaced in the template, it is always
+		// short
+		searchOB(object, (short) 0, result);
+		if (result.getSize() == 1) {
 			Iterator<OBResultShort<O>> it = result.iterator();
 			assert it.hasNext();
 			OBResultShort<O> r = it.next();
 			return object.equals(r.getObject());
-		}else{
+		} else {
 			return false;
-		}		
+		}
 	}
 
 }
