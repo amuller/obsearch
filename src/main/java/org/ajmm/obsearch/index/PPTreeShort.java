@@ -3,6 +3,7 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -70,6 +71,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	.getLogger(PPTreeShort.class);
 	
 	protected transient HashMap<O, OBQueryShort<O>> resultCache;
+	
+	protected final static int resultCacheSize = 3000; 
 
 	/*
 	 * Cache used for getting objects from B.
@@ -177,9 +180,78 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 	}
 
-
-
+	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException{
+		// calculate the vector for the object
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t);
+		// calculate the rectangle
+		float[][] qrect = new float[pivotsCount][2]; 
+		generateRectangleFirstPass(t,r, qrect);
+		
+		return super.spaceTreeLeaves[box].intersects(qrect);
+	}
+	
+	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		int max = super.totalBoxes();
+		BitSet result = new BitSet(max);
+		// calculate the vector for the object
+		short[] t = new short[pivotsCount];
+		calculatePivotTuple(object, t);
+		// calculate the rectangle
+		float[][] qrect = new float[pivotsCount][2]; 
+		generateRectangleFirstPass(t, r, qrect);
+		// obtain the hypercubes that have to be matched
+		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();		
+		spaceTree.searchRange(qrect, hyperRectangles);
+		Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
+		while(it.hasNext()){
+			SpaceTreeLeaf leaf = it.next();
+			result.set(leaf.getSNo());
+		}
+		return result;
+	}
+	
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
+	throws NotFrozenException, DatabaseException,
+	InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		short[] t = new short[pivotsCount];
+		// calculate the pivot for the given object		
+		calculatePivotTuple(object, t); 
+		float[][] qrect = new float[pivotsCount][2]; // rectangular query
+		generateRectangleFirstPass(t, r, qrect);
+		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
+		// obtain the hypercubes that have to be matched
+		spaceTree.searchRange(qrect, hyperRectangles);
+		searchOBAux(object,r,result,qrect,t,hyperRectangles);
+	}
+	
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	throws NotFrozenException, DatabaseException,
+	InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		short[] t = new short[pivotsCount];
+		// calculate the pivot for the given object		
+		calculatePivotTuple(object, t); 
+		float[][] qrect = new float[pivotsCount][2]; // rectangular query
+		generateRectangleFirstPass(t, r, qrect);
+		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
+		int i = 0;
+		int max = boxes.cardinality();
+		int in = 0;
+		while(i < max){
+			in = boxes.nextSetBit(in);
+			hyperRectangles.add(super.spaceTreeLeaves[in]);
+			in++;
+			i++;
+		}
+		searchOBAux(object,r,result,qrect,t,hyperRectangles);
+	}
+	
+	
+	public void searchOBAux(O object, short r, OBPriorityQueueShort<O> result, float[][] qrect, short[] t, List<SpaceTreeLeaf> hyperRectangles)
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
@@ -197,26 +269,12 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			}			
 			return;
 		}*/
-
-		short[] t = new short[pivotsCount];
-		calculatePivotTuple(object, t); // calculate the pivot for the given
-		// object
-
 		int pyramidCount = 2 * pivotsCount;
-		float[][] qrect = new float[pivotsCount][2]; // rectangular query
+		
 		short myr = r;
-		generateRectangleFirstPass(t, myr, qrect);
-		// q has the rectangle now,
-		// we have to find all the subspacess that collide with the query
-		// the space-tree leaves will have the rectangle they cover,
-		// in case our range gets reduced during the query, we can skip
-		// those rectangles.
-
+		
 		float[] lowHighResult = new float[2];
-		// hypercubes that intersect with this query will be stored here
-		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
-		// obtain the hypercubes that have to be matched
-		spaceTree.searchRange(qrect, hyperRectangles);
+		
 		Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
 		// this will hold the rectangle for the current hyperrectangle
 		float[][] qw = new float[pivotsCount][2];
@@ -536,7 +594,8 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	private Object readResolve() throws DatabaseException,
     NotFrozenException, DatabaseException, IllegalAccessException,
     InstantiationException {
-			resultCache = new HashMap<O, OBQueryShort<O>>(3000);
+			super.initSpaceTreeLeaves();
+			resultCache = new HashMap<O, OBQueryShort<O>>(resultCacheSize);
 			return this;
 	}
 	

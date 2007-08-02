@@ -244,5 +244,13 @@ public class SpaceTreeLeaf implements SpaceTree {
 			i++;
 		}
 	}
+	
+	public SpaceTreeLeaf searchSpace(int spaceNumber){
+		if(this.SNo == spaceNumber){
+			return this;
+		}else{
+			return null;
+		}
+	}
 
 }

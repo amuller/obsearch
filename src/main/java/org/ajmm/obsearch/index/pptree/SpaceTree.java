@@ -18,6 +18,7 @@ public interface  SpaceTree {
 	 * I know it is funny that the interface specifies
 	 * a SpaceTreeLeaf...
 	 * Is this good? Is this bad? Please post your comments.
+	 * I just felt that it helps to document better... but it is cyclic.
 	 * @param value
 	 * @return
 	 */
@@ -32,4 +33,11 @@ public interface  SpaceTree {
 	 */
 	void searchRange(float[][] query, List<SpaceTreeLeaf> result);
 
+	/**
+	 * Returns the space tree that holds the corresponding number
+	 * Please see the comment in "search" method of this interface
+	 * @param spaceNumber
+	 * @return The space with number spaceNumber
+	 */
+	SpaceTreeLeaf searchSpace(int spaceNumber);
 }

@@ -2,6 +2,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.BitSet;
 
 import net.jxta.exception.PeerGroupException;
 
@@ -89,8 +90,20 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 
 	}
 	
+	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException{
+		return index.intersects(object, r, box);
+	}
+
+	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+		return index.intersectingBoxes(object, r);
+	}
 	
-
-
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	throws NotFrozenException, DatabaseException,
+	InstantiationException, IllegalIdException, IllegalAccessException,
+	OutOfRangeException, OBException {
+	}
 
 }

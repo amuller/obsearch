@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -180,6 +181,26 @@ public class IndexSmokeTUtil {
 					OBPriorityQueueShort<OBSlice> x1 = it.next();
 					assertEquals("Error in query line: " + i + " slice: "
 							+ line, x2, x1);
+					
+					// test the other search methods
+					OBPriorityQueueShort<OBSlice> x3 = new OBPriorityQueueShort<OBSlice>(
+							k);
+					BitSet inter = index.intersectingBoxes(s, range);
+					index.searchOB(s, range, x3,inter);
+					
+					assertEquals("Error in intersectingBoxes: " + i + " slice: "
+							+ line, x2, x3);
+					
+					int box = 0; // this is just an index :)					
+					while(box < index.totalBoxes()){
+						if(inter.get(box)){
+							assertTrue(index.intersects(s, range, box));
+						}else{
+							assertFalse(index.intersects(s, range, box));
+						}
+						box++;
+					}
+					
 					i++;
 				}
 			}
