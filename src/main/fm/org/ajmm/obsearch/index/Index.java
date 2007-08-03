@@ -91,8 +91,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
 		 * @param object The object that will be analyzed
 		 * @param r The range 
 		 * @return An array which holds all the boxes that have to be searched
-		 *         for the given object and range
-		 *         
+		 *         for the given object and range       
 		 */
 		int[] intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException ;

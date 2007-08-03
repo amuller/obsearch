@@ -3,7 +3,12 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
 
+import net.jxta.endpoint.ByteArrayMessageElement;
+import net.jxta.endpoint.Message;
+import net.jxta.endpoint.Message.ElementIterator;
 import net.jxta.exception.PeerGroupException;
 
 import org.ajmm.obsearch.SynchronizableIndex;
@@ -11,9 +16,13 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
+import org.ajmm.obsearch.index.AbstractP2PIndex.PipeHandler;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
+import org.ajmm.obsearch.result.OBResultShort;
 
+import com.sleepycat.bind.tuple.TupleInput;
+import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.DatabaseException;
 
 public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implements IndexShort<O> {
@@ -22,6 +31,9 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	// to avoid casts
 	IndexShort<O> index;
 	SynchronizableIndex<O> syncIndex;
+	
+	// stores the queries to be used
+	protected QueryProcessingShort[] queries;
 	
 	/**
 	 * Creates a P2P Index short
@@ -35,9 +47,10 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws PeerGroupException
 	 * @throws OBException 
 	 */
-	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName) throws  IOException,
+	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName, int maximumServerThreads) throws  IOException,
 	PeerGroupException, OBException, NotFrozenException, DatabaseException {
-		this(index,dbPath,clientName, index.totalBoxes());
+		this(index,dbPath,clientName, index.totalBoxes(), maximumServerThreads);
+		queries = new QueryProcessingShort[maximumItemsToProcess];
 	}
 	/**
 	 * Creates a P2P Index short
@@ -51,9 +64,9 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	 * @throws PeerGroupException
 	 * @throws OBException 
 	 */
-	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName, int boxesToServe) throws IOException,
+	public P2PIndexShort(SynchronizableIndex<O> index, File dbPath, String clientName, int boxesToServe, int maximumServerThreads) throws IOException,
 	PeerGroupException, OBException, NotFrozenException, DatabaseException {
-		super(index, dbPath, clientName, boxesToServe);
+		super(index, dbPath, clientName, boxesToServe, maximumServerThreads);
 		if(!  (index instanceof IndexShort)){
 			throw new OBException("Expecting an IndexShort");
 		}
@@ -86,8 +99,29 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
-		// TODO Auto-generated method stub
-
+		//		 1) get a <tab> (from super. takeATab)
+		int tab = super.takeATab.poll();
+		// 2) find the boxes that have to be matched for "object"
+		int [] boxes = intersectingBoxes(object, r);
+		// 3) create a QueryProcessing.
+		// to save some unnecessary garbage collection we will reuse the QueryProcessing Objects.
+		// synchronize because some lost and old request might try to access the object
+		synchronized(queries[tab]){
+		queries[tab].setBoxIndex(0);
+		queries[tab].setLastRequestId(-1);
+		queries[tab].setLastRequestTime(-1);
+		queries[tab].setPrevIndex(0);
+		queries[tab].setRemainingBoxes(boxes);
+		queries[tab].setTab(tab);
+		// 4) QueryProcessing will find a peer to match.
+		//     sends the query to the pipe
+		queries[tab].setRange(r);
+		queries[tab].setObject(object);
+		queries[tab].performNextMatch();
+		// 5) after a while, the pipe receives the result (req_id <tab> [dist][ob1] [dist][obj2]...)
+		// 6) The pipe gives the message to QueryProcessingShort and internal data is
+		//     updated, after this, we can
+		}
 	}
 	
 	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
@@ -100,10 +134,117 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 		return index.intersectingBoxes(object, r);
 	}
 	
+	/**
+	 * This method is not supported for P2P
+	 */
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, int[] boxes)
 	throws NotFrozenException, DatabaseException,
 	InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {
+		
+		
+		throw new OBException("This method is not supported");
+		
 	}
+	
+	private class QueryProcessingShort<T> extends QueryProcessing{
+		
+		private OBPriorityQueueShort<O> result;
+		private short range;
+		public QueryProcessingShort(){
+			this(null,null,(short)-1,-1,null);
+		}
+		public QueryProcessingShort(int[] x, OBPriorityQueueShort<O> result, short range, int tab, O object){
+			super(x,tab, object);
+			this.result = result;
+			this.range = range;
+		}
+		public short getRange() {
+			return range;
+		}
+		public void setRange(short range) {
+			this.range = range;
+		}
+		public OBPriorityQueueShort<O> getResult() {
+			return result;
+		}
+		public void setResult(OBPriorityQueueShort<O> result) {
+			this.result = result;
+		}
+		
+		public void handleResult(Message msg){
+			// basically add the MessageElementType.SSR
+			// to the results. Find out if the range changed...
+			// if it changed, start checking check each box to see
+			// if we should add the box again (maybe getting the boxes again is cheaper)
+			// once the range and the remaining of the boxes has been calculated
+			// perform the match again.
+		}
+		
+		protected  void writeRange(TupleOutput out){
+			out.writeShort(range);
+		}
+		
+		protected void addResult(Message msg) {
+			addResultAux(result, msg, MessageType.SQ);
+		}
+		
+		
+		
+		protected  void writeK(TupleOutput out){
+			out.writeByte(result.getK());
+		}
+				
+	}
+	
+       /**
+        * Performs the match, and creates 
+	* <pre>
+        * Header: |requestId| |tab| |num_boxes| |box1| |box2|... 
+        * Query: |range| |k| |object| 
+        * Result: (multiple results) |distance| |object|
+        * </pre>
+        */
+	protected Message performMatch(int[] boxes, Message msg) throws InstantiationException,
+	IllegalAccessException, OBException, DatabaseException{
+		// get the object and the parameters
+	    	ByteArrayMessageElement m = getMessageElement(msg, MessageType.SQ, MessageElementType.SO);
+	    	TupleInput in = new TupleInput(m.getBytes());
+	    	short r = in.readShort();
+	    	byte k = in.readByte();
+	    	O obj = this.index.readObject(in);
+	    	// now we have to read all the candidates that have been processed
+	    	OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(k);
+	    	
+	    	ElementIterator it = msg.getMessageElements(MessageType.SQ.toString(), MessageElementType.SSR.toString());
+	    	while(it.hasNext()){
+	    	    ByteArrayMessageElement h = (ByteArrayMessageElement) it.next();
+	    	    in = new TupleInput(h.getBytes());
+	    	    short distance = in.readShort();
+	    	    O o = this.index.readObject(in);
+	    	    // FIXME: remove ids from OBPriorityQueue*
+	    	    result.add(-1, o, distance);
+	    	}
+	    	// now we can perform the match
+	    	this.index.searchOB(obj, r, result, boxes);
+	    	// match is completed... we have to reply back a message
+	    	// that can be parsed with the peer that requested the information
+	    	Message res = new Message();
+	    	addResultAux(result, res, MessageType.SR);
+	    	return res;
+	}
+	
+	protected   void addResultAux(OBPriorityQueueShort<O>  result, Message msg, MessageType x ){
+	    Iterator<OBResultShort<O>> it = result.iterator();
+		while(it.hasNext()){
+			OBResultShort<O> t = it.next();
+			TupleOutput out = new TupleOutput();
+			out.writeShort(t.getDistance());
+			t.getObject().store(out);
+			// add the message:
+			addMessageElement(MessageElementType.SSR, msg, x, out.toByteArray());
+		}
+	}
+	
 
 }
