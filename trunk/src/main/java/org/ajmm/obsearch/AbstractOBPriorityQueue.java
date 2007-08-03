@@ -66,7 +66,9 @@ public abstract class AbstractOBPriorityQueue<O extends AbstractOBResult>{
         return queue.size();
     }
 
-
+    public byte getK(){
+    	return k;
+    }
 
 
 
