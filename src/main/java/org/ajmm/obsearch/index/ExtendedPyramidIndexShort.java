@@ -126,7 +126,7 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		return intersect(q, box, lowHighResult);
 	}
 
-	public BitSet intersectingBoxes(O object, short r)
+	public int [] intersectingBoxes(O object, short r)
 			throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
@@ -147,7 +147,16 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 			}
 			i++;
 		}
-		return result;
+		int [] res = new int[result.cardinality()];
+		i = 0;
+		int index = 0;
+		while(i < res.length){
+			index = result.nextSetBit(index);
+			res[i] = index;
+			index++;
+			i++;
+		}
+		return res;
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
@@ -186,12 +195,17 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 	}
 
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
-			BitSet boxes) throws NotFrozenException, DatabaseException,
+			int [] boxes) throws NotFrozenException, DatabaseException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
 		// check if we are frozen
 		assertFrozen();
-
+		BitSet boxesBit = new BitSet();
+		int i = 0;
+		while(i < boxes.length){
+			boxesBit.set(boxes[i]);
+			i++;
+		}
 		short[] t = new short[pivotsCount];
 		calculatePivotTuple(object, t); // calculate the pivot for the given
 		// object
@@ -201,12 +215,12 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 		float[][] q = new float[pivotsCount][2]; // rectangular query
 		short myr = r;
 		generateRectangle(t, myr, qorig);
-		int i = 0;
+		i = 0;
 		float[] lowHighResult = new float[2];
 		// TODO: select the pyramids randomly just like quicksort
 		while (i < pyramidCount) {
 			copyQuery(qorig, q);
-			if (intersect(q, i, lowHighResult) && boxes.get(i)) {
+			if (intersect(q, i, lowHighResult) && boxesBit.get(i)) {
 				searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
 						+ lowHighResult[HHIGH], result);
 				short nr = result.updateRange(myr);

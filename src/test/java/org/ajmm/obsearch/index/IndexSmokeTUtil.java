@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -185,15 +186,14 @@ public class IndexSmokeTUtil {
 					// test the other search methods
 					OBPriorityQueueShort<OBSlice> x3 = new OBPriorityQueueShort<OBSlice>(
 							k);
-					BitSet inter = index.intersectingBoxes(s, range);
+					int [] inter = index.intersectingBoxes(s, range);
 					index.searchOB(s, range, x3,inter);
 					
 					assertEquals("Error in intersectingBoxes: " + i + " slice: "
 							+ line, x2, x3);
-					
 					int box = 0; // this is just an index :)					
 					while(box < index.totalBoxes()){
-						if(inter.get(box)){
+						if(isIn(box, inter) ){
 							assertTrue(index.intersects(s, range, box));
 						}else{
 							assertFalse(index.intersects(s, range, box));
@@ -259,7 +259,15 @@ public class IndexSmokeTUtil {
 		Directory.deleteDirectory(dbFolder);
 	}
 
-	
+	// if x is in j
+	public static boolean isIn(int x, int[] j){
+		for(int k : j){
+			if(k == x){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static boolean shouldProcessSlice(OBSlice x) throws Exception {
 		return x.size() <= 100;

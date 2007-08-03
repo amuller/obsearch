@@ -125,12 +125,12 @@ public class ParallelIndexShort<O extends OBShort> extends
 		return index.intersects(object, r, box);
 	}
 
-	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	public int[] intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {
 		return index.intersectingBoxes(object, r);
 	}
 	
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, int[] boxes)
 	throws NotFrozenException, DatabaseException,
 	InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {

@@ -70,6 +70,8 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
 		/**
      * Returns true if the given object intersects the given
 		 * box when range r is used.
+		 * <b>You should normally use this method. This is intended to be used by
+		 * OBSearch indexes</b>
 		 * @param object The object that has to be compared
 		 * @param r Range to be used
      * @param box The box to be searched
@@ -81,12 +83,18 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
 		/**
 		 * For an object, it returns the boxes that have
 		 * to be searched based on a certain range
+		 * Some index implementations will return the boxes in a special
+		 * order to optimize matching performance. Do not change the order
+		 * of the returned boxes.
+		 * <b>You should normally use this method. This is intended to be used by
+		 * OBSearch indexes</b>
 		 * @param object The object that will be analyzed
 		 * @param r The range 
-		 * @return A bit set with the ith bit set to true if
-		 *         the ith box intersects the given object
+		 * @return An array which holds all the boxes that have to be searched
+		 *         for the given object and range
+		 *         
 		 */
-		BitSet intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+		int[] intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException ;
 
 
@@ -97,6 +105,10 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
 		 * You can control the size of the resulting set when you create the
 		 * object "result". This becomes the k parameter of the search.
      * This search method only searches the object in the given boxes. 
+		 * Implementations will search the given boxes from left to right. 
+		 * This is because some indexes return the boxes in order as an optimization
+		 * <b>You should normally use this method. This is intended to be used by
+		 * OBSearch indexes</b>
      * @param object
      *            The object that has to be searched
      * @param r
@@ -104,13 +116,13 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
      * @param result
      *            A priority queue that will hold the result
 		 * @param boxes
-		 *            A BitSet that holds the boxes that are to be searched
+		 *            An array of box ids that holds the boxes that are to be searched
      * @throws NotFrozenException
      *             if the index has not been frozen.
      * @since 0.0
      */
     
-    void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result, BitSet boxes)
+    void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result, int[] boxes)
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 		

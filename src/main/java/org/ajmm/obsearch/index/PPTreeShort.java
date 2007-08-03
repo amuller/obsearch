@@ -192,10 +192,10 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		return super.spaceTreeLeaves[box].intersects(qrect);
 	}
 	
-	public BitSet intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+	public int [] intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {
 		int max = super.totalBoxes();
-		BitSet result = new BitSet(max);
+		
 		// calculate the vector for the object
 		short[] t = new short[pivotsCount];
 		calculatePivotTuple(object, t);
@@ -205,10 +205,13 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		// obtain the hypercubes that have to be matched
 		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();		
 		spaceTree.searchRange(qrect, hyperRectangles);
+		int [] result = new int[hyperRectangles.size()]; 
 		Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
+		int i = 0;
 		while(it.hasNext()){
 			SpaceTreeLeaf leaf = it.next();
-			result.set(leaf.getSNo());
+			result[i] = leaf.getSNo();
+			i++;
 		}
 		return result;
 	}
@@ -228,7 +231,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		searchOBAux(object,r,result,qrect,t,hyperRectangles);
 	}
 	
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, BitSet boxes)
+	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, int [] boxes)
 	throws NotFrozenException, DatabaseException,
 	InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {
@@ -239,12 +242,9 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		generateRectangleFirstPass(t, r, qrect);
 		List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
 		int i = 0;
-		int max = boxes.cardinality();
-		int in = 0;
+		int max = boxes.length;		
 		while(i < max){
-			in = boxes.nextSetBit(in);
-			hyperRectangles.add(super.spaceTreeLeaves[in]);
-			in++;
+			hyperRectangles.add(super.spaceTreeLeaves[boxes[i]]);
 			i++;
 		}
 		searchOBAux(object,r,result,qrect,t,hyperRectangles);
