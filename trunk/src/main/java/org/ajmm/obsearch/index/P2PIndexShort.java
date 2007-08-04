@@ -52,6 +52,20 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 		this(index,dbPath,clientName, index.totalBoxes(), maximumServerThreads);
 		queries = new QueryProcessingShort[maximumItemsToProcess];
 	}
+	
+	protected  void queryTimeoutCheckEntry(int tap, long time){
+	    synchronized(queries[tap]){
+		// if the entry is not disabled
+		long t = queries[tap].getLastRequestTime();
+		assert t <= time;
+		if(t != -1 ){
+		   if(Math.abs(t - time) > queryTimeout){
+		       // re-send the previous query
+		       queries[tap].repeatPreviousQuery();
+		   }
+		}
+	    }
+	}
 	/**
 	 * Creates a P2P Index short
 	 * The provided index must be SynchronizableIndex and also 
@@ -81,6 +95,8 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	protected SynchronizableIndex<O> getIndex(){
 		return syncIndex;
 	}
+	
+	
 	
 	/**
 	 * Perform a distributed search in the network
@@ -172,13 +188,33 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 			this.result = result;
 		}
 		
-		public void handleResult(Message msg){
+		public void handleResult(Message msg)throws InstantiationException,
+		IllegalAccessException, OBException, DatabaseException {
 			// basically add the MessageElementType.SSR
 			// to the results. Find out if the range changed...
 			// if it changed, start checking check each box to see
 			// if we should add the box again (maybe getting the boxes again is cheaper)
 			// once the range and the remaining of the boxes has been calculated
 			// perform the match again.
+		    fillResultsFromMessage(msg, MessageType.SR, result);
+		    if(isFinished()){
+			// nothing more to do, we just have to free resources
+			takeATab.add(tab);
+			// put the time in -1; this means the object id disabled
+			super.lastRequestTime = -1;
+		    }else{
+        		    // if the range changes, then the boxes change too.
+        		    short newRange = result.updateRange(range);
+        		    if(newRange != range){ 
+        			// range is smaller now
+        			// we should calculate the boxes, and remove all the boxes we have explored so far.
+        			// those are the boxes to the left of boxIndex
+        			this.range = newRange;
+        			int [] newBoxes = intersectingBoxes(this.object, newRange );
+        			updateRemainingBoxes(newBoxes);
+        		    }
+        		    performNextMatch();
+		    }
 		}
 		
 		protected  void writeRange(TupleOutput out){
@@ -189,7 +225,9 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 			addResultAux(result, msg, MessageType.SQ);
 		}
 		
-		
+		protected boolean rangeChanged(){
+		    return result.updateRange(range) != range;
+		}
 		
 		protected  void writeK(TupleOutput out){
 			out.writeByte(result.getK());
@@ -198,7 +236,8 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	}
 	
        /**
-        * Performs the match, and creates 
+        * Performs the match, and creates a message that will be sent
+        * back to the peer who queried us
 	* <pre>
         * Header: |requestId| |tab| |num_boxes| |box1| |box2|... 
         * Query: |range| |k| |object| 
@@ -214,17 +253,8 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	    	byte k = in.readByte();
 	    	O obj = this.index.readObject(in);
 	    	// now we have to read all the candidates that have been processed
-	    	OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(k);
-	    	
-	    	ElementIterator it = msg.getMessageElements(MessageType.SQ.toString(), MessageElementType.SSR.toString());
-	    	while(it.hasNext()){
-	    	    ByteArrayMessageElement h = (ByteArrayMessageElement) it.next();
-	    	    in = new TupleInput(h.getBytes());
-	    	    short distance = in.readShort();
-	    	    O o = this.index.readObject(in);
-	    	    // FIXME: remove ids from OBPriorityQueue*
-	    	    result.add(-1, o, distance);
-	    	}
+	    	OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(k);	    	
+	    	fillResultsFromMessage(msg, MessageType.SQ, result);
 	    	// now we can perform the match
 	    	this.index.searchOB(obj, r, result, boxes);
 	    	// match is completed... we have to reply back a message
@@ -232,6 +262,29 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	    	Message res = new Message();
 	    	addResultAux(result, res, MessageType.SR);
 	    	return res;
+	}
+	
+	/**
+	 * Loads the packages that look like
+	 * <pre>
+	 * Result: (multiple results) |distance| |object|
+	 * </pre>
+	 * from msg to the priority queue result
+	 * @param msg
+	 * @param type
+	 * @param result
+	 */
+	protected void fillResultsFromMessage(Message msg, MessageType type, OBPriorityQueueShort<O> result)throws InstantiationException,
+	IllegalAccessException, OBException, DatabaseException{
+	    ElementIterator it = msg.getMessageElements(type.toString(), MessageElementType.SSR.toString());
+	    	while(it.hasNext()){
+	    	    ByteArrayMessageElement h = (ByteArrayMessageElement) it.next();
+	    	    TupleInput in = new TupleInput(h.getBytes());
+	    	    short distance = in.readShort();
+	    	    O o = this.index.readObject(in);
+	    	    // FIXME: remove ids from OBPriorityQueue*
+	    	    result.add(-1, o, distance);
+	    	}
 	}
 	
 	protected   void addResultAux(OBPriorityQueueShort<O>  result, Message msg, MessageType x ){
@@ -246,5 +299,23 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 		}
 	}
 	
-
+	
+	protected  void processMatchResult(int tab, long id, Message msg)throws InstantiationException,
+	IllegalAccessException, OBException, DatabaseException {
+	    // There can be multiple calls to this tab at any given time
+	    synchronized(this.queries[tab]){
+		QueryProcessingShort q = this.queries[tab];	
+		// load the new results into the QueryProcessing object
+		// if the request id is not the same something it means that
+		// a timed out request arrived too late (someone else already
+		// worked on the result)
+	    	if(q.getLastRequestId() == id){
+	    	    q.handleResult(msg);
+	    	}
+	    }
+	}
+	
+	protected QueryProcessing returnQuery(int tab){
+	    return (QueryProcessing) queries[tab];
+	}
 }
