@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLong;
@@ -51,6 +53,7 @@ import net.jxta.protocol.PipeAdvertisement;
 import net.jxta.util.JxtaBiDiPipe;
 import net.jxta.util.JxtaServerPipe;
 
+import org.ajmm.obsearch.AsynchronousIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.SynchronizableIndex;
@@ -98,7 +101,7 @@ import com.sleepycat.je.DatabaseException;
  */
 
 public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
-	DiscoveryListener {
+	DiscoveryListener, AsynchronousIndex {
 
     /**
          * Lists all the message types available in the network
@@ -179,7 +182,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
     // maximum number of objects to query at the same time
     protected static final int maximumItemsToProcess = 1000;
-    
+
     // maximum time to wait for a query to be answered.
     protected static final int queryTimeout = 30000;
 
@@ -243,6 +246,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
     // a unique identifier of requests.
     private AtomicLong requestId;
+
+    // threads to be used in the search
+    private Semaphore searchThreads;
 
     /**
          * Initialize the abstract class
@@ -312,6 +318,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	handlerSearchIndexes = new AtomicIntegerArray(boxesCount);
 
 	requestId = new AtomicLong(0);
+
+	searchThreads = new Semaphore(maximumServerThreads, true);
     }
 
     // makes sure that all the components of the given list of lists are
@@ -504,35 +512,35 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    }
 	}
     }
+
     /**
-     * Returns true if the index is still processing query results
-     * @return
-     */
-    public boolean isProcessingQueries(){
+         * Returns true if the index is still processing query results
+         * 
+         * @return
+         */
+    public boolean isProcessingQueries() {
 	return takeATab.size() != maximumItemsToProcess;
     }
-    
-    /** 
-     * Monitors all the 
-     *
-     */
-    protected void queryTimeoutCheck(){
+
+    /**
+         * Monitors all the
+         * 
+         */
+    protected void queryTimeoutCheck() {
 	long time = System.currentTimeMillis();
 	int i = 0;
-	while(i < maximumItemsToProcess){
+	while (i < maximumItemsToProcess) {
 	    queryTimeoutCheckEntry(i, time);
 	    i++;
 	}
     }
-    
+
     /**
-     * 
-     * @param tap
-     * @param time
-     */
-    protected  abstract void queryTimeoutCheckEntry(int tap, long time);
-	
-    
+         * 
+         * @param tap
+         * @param time
+         */
+    protected abstract void queryTimeoutCheckEntry(int tap, long time);
 
     /**
          * Prerequisites: Each PipeHandler contains information of the latest
@@ -747,6 +755,65 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
     protected boolean minimumNumberOfPeers() {
 	return this.clients.size() >= this.minNumberOfPeers;
+    }
+
+    public int getNumberOfPeers() {
+	return this.clients.size();
+    }
+
+    /**
+         * Returns true if all the peers have data that is synchronized to the
+         * same timestamp. This should not be used normally but it is useful for
+         * testing purposes.
+         * 
+         * @return
+         */
+    public boolean areAllPeersSynchronizedWithMe() throws OBException, DatabaseException{
+	// browse each box of the
+	int i = 0;
+	long [] boxes = new long[boxesCount];
+	Collection<PipeHandler> h = clients.values();
+	while(i < boxesCount){
+	    long box = getIndex().latestModification(i);
+	    if(box != -1){
+	    if(boxes[i] == 0){
+		boxes[i] = box;
+	    }else if(boxes[i] != box){
+		return false;
+	    }	    
+	    }
+	    // get the boxes from
+	    List<PipeHandler> b =  handlersPerBox.get(i);
+	    Iterator<PipeHandler> it = b.iterator();
+	    while(it.hasNext()){
+		PipeHandler p = it.next();
+		if(p.isServing(i)){
+		box = p.lastUpdated(i);
+		if(boxes[i] == 0 ){
+		    boxes[i] = box;		    
+		}else if(boxes[i] != box){
+		    return false;
+		}
+		}
+	    }
+	    i++;
+	}
+	return true;
+    }
+    /**
+     * Check if we have peers who serve at least one box per box #
+     * @return true if the above condition applies
+     */
+    public boolean areAllBoxesAvailable(){
+	
+	Iterator<List<PipeHandler>> it = handlersPerBox.iterator();
+	while(it.hasNext()){
+	    List<PipeHandler> l = it.next();
+	    if(l.size() == 0){
+		return false;
+	    }
+	}
+	return false;
     }
 
     /**
@@ -1043,8 +1110,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private AtomicLongArray boxLastUpdated;
 
 	// we keep track of the latest sent timestamp in order to
-	// avoid re-sending data. YAY! (minimizes the duplicated data
-	// considerably)
+	// avoid re-sending data. YAY! (minimizes duplicated data
+	// transmission considerably)
 	private AtomicLong[] lastSentTimestamp;
 
 	public PipeHandler() {
@@ -1265,13 +1332,15 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
          * 
          * @param msg
          */
-	private void processSearchResponse(Message msg) throws InstantiationException,
-	IllegalAccessException, OBException, DatabaseException{
-	    ByteArrayMessageElement elem=  getMessageElement(msg, MessageType.SR, MessageElementType.SSR);
+	private void processSearchResponse(Message msg)
+		throws InstantiationException, IllegalAccessException,
+		OBException, DatabaseException {
+	    ByteArrayMessageElement elem = getMessageElement(msg,
+		    MessageType.SR, MessageElementType.SSR);
 	    TupleInput in = new TupleInput(elem.getBytes());
 	    long id = in.readLong();
-	    int tab = in.readInt(); 
-	    // we have to send back the results.	    
+	    int tab = in.readInt();
+	    // we have to send back the results.
 	    processMatchResult(tab, id, msg);
 	}
 
@@ -1300,7 +1369,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void processSearchQuery(Message msg) throws IOException,
 		InstantiationException, IllegalAccessException, OBException,
 		DatabaseException {
-
+	    searchThreads.acquireUninterruptibly();
 	    ByteArrayMessageElement m = getMessageElement(msg, MessageType.SQ,
 		    MessageElementType.SH);
 	    TupleInput in = new TupleInput(m.getBytes());
@@ -1326,6 +1395,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		    out.toByteArray());
 	    // send the result back:
 	    sendMessage(toSender);
+	    searchThreads.release();
 	}
 
 	/**
@@ -1594,6 +1664,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
     public void close() throws DatabaseException {
 	manager.stopNetwork();
 	getIndex().close();
+	// FIXME: stop all the threads
     }
 
     public int databaseSize() throws DatabaseException {
@@ -1750,24 +1821,27 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	public void setTab(int tab) {
 	    this.tab = tab;
 	}
-	
-	/**
-	 * Returns true if this match is complete
-	 * @return
-	 */
-	protected boolean isFinished(){
+
+	/*
+         * (non-Javadoc)
+         * 
+         * @see org.ajmm.obsearch.index.AsynchronousIndex#isFinished()
+         */
+	protected boolean isFinished() {
 	    return this.remainingBoxes.length >= boxIndex;
 	}
+
 	/**
-	 * Updates the remainingBoxes array
-	 * Removes the boxes already processed
-	 * @param newBoxes (this array is destroyed by this method)
-	 */
-	protected void updateRemainingBoxes(int [] newBoxes){
+         * Updates the remainingBoxes array Removes the boxes already processed
+         * 
+         * @param newBoxes
+         *                (this array is destroyed by this method)
+         */
+	protected void updateRemainingBoxes(int[] newBoxes) {
 	    List<Integer> res = new LinkedList<Integer>();
 	    int i = 0;
-	    while(i < newBoxes.length){
-		if(! exists(newBoxes[i], this.remainingBoxes, this.boxIndex)){
+	    while (i < newBoxes.length) {
+		if (!exists(newBoxes[i], this.remainingBoxes, this.boxIndex)) {
 		    res.add(newBoxes[i]);
 		}
 		i++;
@@ -1777,23 +1851,26 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    remainingBoxes = new int[res.size()];
 	    i = 0;
 	    Iterator<Integer> it = res.iterator();
-	    while(it.hasNext()){
+	    while (it.hasNext()) {
 		remainingBoxes[i] = it.next();
 		i++;
 	    }
 	}
+
 	/**
-	 * Returns true if x is in array. We search array for indexes < max_index
-	 * @param x
-	 * @param array
-	 * @param max_index
-	 * @return
-	 */
-	private boolean exists(int x, int[] array, int max_index){
+         * Returns true if x is in array. We search array for indexes <
+         * max_index
+         * 
+         * @param x
+         * @param array
+         * @param max_index
+         * @return
+         */
+	private boolean exists(int x, int[] array, int max_index) {
 	    int i = 0;
 	    assert array.length >= max_index;
-	    while(i < max_index){
-		if(array[i] == x){
+	    while (i < max_index) {
+		if (array[i] == x) {
 		    return true;
 		}
 		i++;
@@ -1806,8 +1883,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
          * updates the state of the query result. If the match is complete, the
          * method releases the tab and leaves the space open for another entry.
          */
-	public abstract void handleResult(Message msg)throws InstantiationException,
-	IllegalAccessException, OBException, DatabaseException;
+	public abstract void handleResult(Message msg)
+		throws InstantiationException, IllegalAccessException,
+		OBException, DatabaseException;
 
 	protected PipeHandler findNextPipeHandler() {
 	    int nextBox = remainingBoxes[boxIndex];
@@ -1854,15 +1932,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    return res;
 	}
 
-	/**
-         * This method processes the result obtained
-         * 
-         * @param msg
-         */
-	public void handleMatchResult(Message msg) {
-
-	}
-	
 	protected abstract boolean rangeChanged();
 
 	/**
@@ -1886,7 +1955,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 		prevIndex = boxIndex;
 		boxIndex = boxIndex + boxesToSearch.size();
-		
+
 		try {
 		    ph.sendMessage(createCurrentQueryMessage(boxesToSearch));
 		    error = false;
@@ -1901,11 +1970,12 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		}
 	    }
 	}
+
 	/**
-	 * Repeats the previous query
-	 * Should be used by the heart if there is a timeout error in the 
-	 */
-	public void repeatPreviousQuery(){
+         * Repeats the previous query Should be used by the heart if there is a
+         * timeout error in the
+         */
+	public void repeatPreviousQuery() {
 	    boolean error = true;
 	    while (error) {
 		PipeHandler ph = findNextPipeHandler();
@@ -1923,38 +1993,37 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		}
 	    }
 	}
-	
+
 	/**
-	 * Send query information 
-	 * Uses the current state of the object.
-	 */
-	protected Message createCurrentQueryMessage(List<Integer> boxesToSearch){
-	    	// now we just have to send the query message
-		lastRequestId = requestId.getAndIncrement();
-		lastRequestTime = System.currentTimeMillis();
-		Message msg = new Message();
-		// create header
-		TupleOutput out = new TupleOutput();
-		out.writeLong(lastRequestId);
-		// add the boxes to search
-		out.writeInt(boxesToSearch.size());
-		Iterator<Integer> it = boxesToSearch.iterator();
-		while (it.hasNext()) {
-		    out.writeInt(it.next());
-		}
-		addMessageElement(MessageElementType.SH, msg, MessageType.SQ,
-			out.toByteArray());
-		// create query
-		out = new TupleOutput();
-		writeRange(out);
-		writeK(out);
-		object.store(out);
-		addMessageElement(MessageElementType.SO, msg, MessageType.SQ,
-			out.toByteArray());
-		// create the results
-		addResult(msg);
-		// send the message
-		return msg;
+         * Send query information Uses the current state of the object.
+         */
+	protected Message createCurrentQueryMessage(List<Integer> boxesToSearch) {
+	    // now we just have to send the query message
+	    lastRequestId = requestId.getAndIncrement();
+	    lastRequestTime = System.currentTimeMillis();
+	    Message msg = new Message();
+	    // create header
+	    TupleOutput out = new TupleOutput();
+	    out.writeLong(lastRequestId);
+	    // add the boxes to search
+	    out.writeInt(boxesToSearch.size());
+	    Iterator<Integer> it = boxesToSearch.iterator();
+	    while (it.hasNext()) {
+		out.writeInt(it.next());
+	    }
+	    addMessageElement(MessageElementType.SH, msg, MessageType.SQ, out
+		    .toByteArray());
+	    // create query
+	    out = new TupleOutput();
+	    writeRange(out);
+	    writeK(out);
+	    object.store(out);
+	    addMessageElement(MessageElementType.SO, msg, MessageType.SQ, out
+		    .toByteArray());
+	    // create the results
+	    addResult(msg);
+	    // send the message
+	    return msg;
 	}
 
 	/**
@@ -2072,8 +2141,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
     }
 
     /**
-         * Receives a message that looks like: *
-         * And updates the result for the given query.
+         * Receives a message that looks like: * And updates the result for the
+         * given query.
+         * 
          * <pre>
          * Header: |requestId| |tab|
          * Result:
@@ -2084,6 +2154,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
          * @param id
          * @param msg
          */
-    protected abstract void processMatchResult(int tab, long id, Message msg)throws InstantiationException,
-	IllegalAccessException, OBException, DatabaseException;
+    protected abstract void processMatchResult(int tab, long id, Message msg)
+	    throws InstantiationException, IllegalAccessException, OBException,
+	    DatabaseException;
 }

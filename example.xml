@@ -16,6 +16,8 @@
 
 	<property name="name" value="seeder"/>
 
+	<property name="threads" value="4"/>
+
 </target>
 
 <!-- check if maven tasks have been downloaded -->
@@ -122,6 +124,8 @@
 				<arg value="2"/>
 				<arg value="-name"/>
 				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
 			</java>
 
 </target>
@@ -146,7 +150,7 @@
 
 		<exec executable="ssh" failonerror="true">
 			  <arg value="${ip}"/>
-			  <arg value="/bin/bash -i  -c 'cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch -Dname=${ip}'"/>
+			  <arg value="/bin/bash -i  -c 'cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch -Dname=${ip}' -Dthreads=${threads}"/>
 		</exec>
 
 </target>
@@ -176,6 +180,8 @@
 				<arg value="${querydata}"/>
 				<arg value="-name"/>
 				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
 			</java>
 </target>
 
@@ -196,9 +202,11 @@
 			<parallel>
 			<antcall target="p2psearchremote">
 			  <param name="ip" value="192.168.1.86"/>
+				<param name="threads" value="8"/>
 			</antcall>
 			<antcall target="p2psearchremote">
 			  <param name="ip" value="192.168.1.85"/>
+				<param name="threads" value="2"/>
 			</antcall>
 			</parallel>
 			</sequential>
