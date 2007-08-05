@@ -11,6 +11,7 @@ import net.jxta.endpoint.Message;
 import net.jxta.endpoint.Message.ElementIterator;
 import net.jxta.exception.PeerGroupException;
 
+import org.ajmm.obsearch.AsynchronousIndex;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -151,14 +152,13 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O> implem
 	}
 	
 	/**
-	 * This method is not supported for P2P
+	 * This method is not supported for P2P indexes
 	 */
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, int[] boxes)
 	throws NotFrozenException, DatabaseException,
 	InstantiationException, IllegalIdException, IllegalAccessException,
 	OutOfRangeException, OBException {
-		
-		
+
 		throw new OBException("This method is not supported");
 		
 	}

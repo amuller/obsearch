@@ -27,7 +27,7 @@ public class TestP2PIndex extends TestCase {
 		IndexSmokeTUtil t = new IndexSmokeTUtil();
 		t.initIndex(index1);
 		// the index must be frozen before we add it to p2p
-		P2PIndexShort<OBSlice> p2p1 = new P2PIndexShort<OBSlice>(index1, jxta1, "sync");
+		P2PIndexShort<OBSlice> p2p1 = new P2PIndexShort<OBSlice>(index1, jxta1, "sync",1);
 		logger.debug("Opening p2p #1");
 		//p2p1.open();
 		
@@ -51,7 +51,7 @@ public class TestP2PIndex extends TestCase {
 		
 		SynchronizableIndexShort<OBSlice> index2 = new SynchronizableIndexShort<OBSlice>(
 				loadedFromXML, sync2);
-		P2PIndexShort<OBSlice> p2p2 = new P2PIndexShort<OBSlice>(index2,jxta2, "join");
+		P2PIndexShort<OBSlice> p2p2 = new P2PIndexShort<OBSlice>(index2,jxta2, "join",1);
 		logger.debug("Opening p2p #2");
 		//p2p2.open();
 

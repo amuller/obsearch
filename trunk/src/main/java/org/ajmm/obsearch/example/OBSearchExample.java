@@ -75,6 +75,8 @@ public class OBSearchExample {
 				throw new IOException();
 			}
 			
+			int searchThreads = Integer.parseInt(cline.getOptionValue("searchThreads"));
+			
 			if(cline.hasOption("create")){
 				
 				//create the database
@@ -102,20 +104,71 @@ public class OBSearchExample {
 	            // generate pivots
 	            //DummyPivotSelector ps = new DummyPivotSelector();
 	            TentaclePivotSelectorShort<OBSlice> ps = new TentaclePivotSelectorShort<OBSlice>((short)10);
-	            ps.generatePivots((AbstractPivotIndex<OBSlice>)index.getIndex());
+	            ps.generatePivots((AbstractPivotIndex<OBSlice>) index.getIndex());
 	            // the pyramid values are created
 	            logger.info("freezing");
 	            index.freeze();
 	            
-	            P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"));
+	            P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"), searchThreads);
 	            logger.info("Opening Seeder");
 	            p2p.open(false, true, seeds);
 		        // index.close();
-	            while(true){ // wait undefinitely
-	            	synchronized(dbFolder){
+	            
+	            // wait until we have a minimum number of peers connected, and their 
+		    // boxes are up to date with ours
+	            
+	            while(true){
+	        	if(p2p.getNumberOfPeers() >= 2 && p2p.areAllPeersSynchronizedWithMe()
+	        	&& p2p.areAllBoxesAvailable()	
+	        	){
+	        	    break;
+	        	}
+	        	synchronized(dbFolder){
 	            		dbFolder.wait(10000);
 	            	}
 	            }
+	            logger.debug("Going to perform the match, we are ready! ");
+	            
+	            	byte k = Byte.parseByte(cline.getOptionValue("k"));
+			short range = Short.parseShort(cline.getOptionValue("r")); // range
+			r = new BufferedReader(new FileReader(data));
+			List<OBPriorityQueueShort<OBSlice>> result = new LinkedList<OBPriorityQueueShort<OBSlice>>();
+			re = r.readLine();
+			int i = 0;
+			long start = System.currentTimeMillis();
+			while (re != null) {
+			    String l = OBExampleTrees.parseLine(re);
+			    if (l != null) {
+				OBPriorityQueueShort<OBSlice> x = new OBPriorityQueueShort<OBSlice>(
+					k);
+				if (i % 100 == 0) {
+				    logger.info("Matching " + i);
+				}
+
+				OBSlice s = new OBSlice(l);
+				if (OBExampleTrees.shouldProcessSlice(s)) {
+				    p2p.searchOB(s, range, x);
+				    result.add(x);
+				    i++;
+				}
+			    }
+			    if (i == 1642) {
+				logger.warn("Finishing test at i : " + i);
+				break;
+			    }
+			    re = r.readLine();
+			}
+			while(p2p.isProcessingQueries()){
+			    try{
+				r.wait(10000);
+			    }catch(InterruptedException e){
+				
+			    }
+			}
+			// pindex.waitQueries();
+			long time = System.currentTimeMillis() - start;
+	            
+	          
 			}else if(cline.hasOption("search")){
 				
 				
@@ -133,14 +186,16 @@ public class OBSearchExample {
 		        // required step to init databases
 		        pp.relocateInitialize(stdFolder);
 		        SynchronizableIndexShort<OBSlice> index = new  SynchronizableIndexShort<OBSlice>(pp, syncFolder);
-		        P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"));
+		        P2PIndexShort<OBSlice> p2p = new P2PIndexShort<OBSlice>(index, jxtaFolder, cline.getOptionValue("name"), searchThreads);
 		        logger.info("Opening Leecher");
 		        p2p.open(true, true, seeds);
 		        
+		        
+		        
 		        while(true){ // wait undefinitely
-	            	synchronized(dbFolder){
-	            		dbFolder.wait(10000);
-	            	}
+        	            	synchronized(dbFolder){
+        	            		dbFolder.wait(10000);
+        	            	}
 	            }
 		        /*
 				logger.info("Done! DB size: " + pp.databaseSize());
@@ -243,6 +298,12 @@ public class OBSearchExample {
         .withDescription( "# of partitions for P+Tree" )
         .create( "od" );
 		
+		final Option searchThreads = OptionBuilder.withArgName( "#" )
+	        .hasArg()
+	        .isRequired(true)
+	        .withDescription( "# of search threads" )
+	        .create( "searchThreads" );
+		
 		Options options = new Options();
 		options.addOption(in);
 		options.addOption(out);
@@ -253,6 +314,7 @@ public class OBSearchExample {
 		options.addOption(od);
 		options.addOption(spore);
 		options.addOption(name);
+		options.addOption(searchThreads);
 		return options;
 	}
 	
