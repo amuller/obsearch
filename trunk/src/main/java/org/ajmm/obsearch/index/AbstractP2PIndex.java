@@ -778,7 +778,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
          * Returns true if all the peers have data that is synchronized to the
          * same timestamp. This should not be used normally but it is useful for
          * testing purposes.
-         * 
+         * TODO: fix this sot hat boxes are only sent when we modify one of our boxes
          * @return
          */
     public boolean areAllPeersSynchronizedWithMe() throws OBException,
