@@ -792,7 +792,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		if (boxes[i] == 0) {
 		    boxes[i] = box;
 		} else if (boxes[i] != box) {
-		    logger.debug("Box " + i + " has two values: " +  boxes[i] + " " + box);
 		    return false;
 		}
 	    }
@@ -806,7 +805,6 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		    if (boxes[i] == 0) {
 			boxes[i] = box;
 		    } else if (boxes[i] != box) {
-			 logger.debug("(2)Box " + i + " has two values: " +  boxes[i] + " " + box);
 			return false;
 		    }
 		   // }
@@ -1315,7 +1313,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		    if(namespace.equals("jxta")){
 			continue;
 		    }
-		    logger.debug("Receiving " + namespace);
+		    
 		    try {
 			MessageType messageType = MessageType
 				.valueOf(namespace);
@@ -1439,7 +1437,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    // send the result back:
 	    sendMessage(toSender);
 	    //searchThreads.release();
-	    logger.info("3) Took: " + ((System.currentTimeMillis() - t)) + " mseconds to match an object. tab: " + tab + " id: " + id); 
+	    //logger.info("3) Took: " + ((System.currentTimeMillis() - t)) + " mseconds to match an object. tab: " + tab + " id: " + id); 
 	}
 
 	/**
@@ -2008,10 +2006,10 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		boxIndex = boxIndex + boxesToSearch.size();
 
 		try {
-		    if(logger.isDebugEnabled()){
-			logger.debug("1) Querying boxes: " + boxesToSearch +
-				" for tab:" + this.tab + " id: " + this.getLastRequestId());
-		    }
+//		    if(logger.isDebugEnabled()){
+//			logger.debug("1) Querying boxes: " + boxesToSearch +
+//				" for tab:" + this.tab + " id: " + this.getLastRequestId());
+//		    }
 		    ph.sendMessage(createCurrentQueryMessage(boxesToSearch));
 		    error = false;
 		} catch (IOException e) {

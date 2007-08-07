@@ -163,9 +163,9 @@ public class OBSearchExample {
 
 			OBSlice s = new OBSlice(l);
 			if (OBExampleTrees.shouldProcessSlice(s)) {
-			    if(logger.isDebugEnabled()){
-				    logger.debug("Starting query # " + i);
-			    }
+			    //if(logger.isDebugEnabled()){
+			//	    logger.debug("Starting query # " + i);
+			 //   }
 			    p2p.searchOB(s, range, x);
 			    result.add(x);
 			    i++;
@@ -182,7 +182,7 @@ public class OBSearchExample {
 		    try {
 			synchronized (r) {
 			    logger.debug("Waiting for queries to complete...");
-			    r.wait(5000);
+			    r.wait(1000);
 			}
 		    } catch (InterruptedException e) {
 
@@ -191,7 +191,7 @@ public class OBSearchExample {
 		long time = System.currentTimeMillis() - start;
 		logger.info("Matched in: " + (time / 1000) + " seconds");
 		// show the result:
-		if (logger.isDebugEnabled()) {
+		/*if (logger.isDebugEnabled()) {
 		    logger.debug("Results!");
 		    Iterator<OBPriorityQueueShort<OBSlice>> it = result
 			    .iterator();
@@ -199,7 +199,7 @@ public class OBSearchExample {
 			OBPriorityQueueShort<OBSlice> t = it.next();
 			logger.debug(t);
 		    }
-		}
+		}*/
 		// pindex.waitQueries();
 
 	    } else if (cline.hasOption("search")) {

@@ -390,9 +390,9 @@ public class P2PIndexShort<O extends OBShort> extends AbstractP2PIndex<O>
 	    // if the request id is not the same something it means that
 	    // a timed out request arrived too late (someone else already
 	    // worked on the result)
-	    if(logger.isDebugEnabled()){
-		logger.debug("4) Received result for id:  " + id + " tab: " + id);
-	    }
+//	    if(logger.isDebugEnabled()){
+//		logger.debug("4) Received result for id:  " + id + " tab: " + id);
+//	    }
 	    if (q.getLastRequestId() == id) {
 		q.handleResult(msg);
 	    }
