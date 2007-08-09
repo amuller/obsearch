@@ -12,13 +12,14 @@ import org.ajmm.obsearch.exception.OBException;
 public class SliceParseException extends OBException {
 	
 	private String slice;
-	
-	SliceParseException(String x){
+	private Exception e;
+	SliceParseException(String x, Exception e){
 		slice = x;
+		this.e = e;
 	}
 	
 	public String toString(){
-		return slice;
+		return slice + e;
 	}
 
 }

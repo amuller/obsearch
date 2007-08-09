@@ -125,7 +125,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		dbConfig.setTransactional(false);
 		dbConfig.setAllowCreate(true);
 		dbConfig.setSortedDuplicates(true);
-		dbConfig.setBtreeComparator(IntLongComparator.class);
+		//dbConfig.setBtreeComparator(IntLongComparator.class);
 		//dbConfig.setDuplicateComparator(IntLongComparator.class);
 		// dbConfig.setExclusiveCreate(true);
 	}
@@ -198,11 +198,11 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			OBException, IllegalAccessException, InstantiationException {
 		int id = getIndex().insert(object);
 		if(id != -1){ // if we could insert the object
-			if(isFrozen()){
+			//if(isFrozen()){
 				int box = getIndex().getBox(object);
 				insertTimeEntry(box, time, id);
 				this.objectsByBox.incrementAndGet(box);
-			}
+			//}
 		}
 		return id;
 	}
@@ -303,7 +303,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		long resTime = -1;
 		try {
 			cursor = insertTimeDB.openCursor(null, null);			
-			key.setData(boxTimeToByteArray(box, resTime));			
+			key.setData(boxTimeToByteArray(box, 0));	
 			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
 			MyTupleInput in = new MyTupleInput();
 			int cbox = box;
@@ -311,15 +311,31 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				in.setBuffer(key.getData());
 				cbox = in.readInt();
 				long time = in.readLong();
-				assert resTime <= time;
-				resTime = time;
+				assert  validate(resTime, time, cbox, box) : "resTime: " + resTime + " time: " + time;				
+				resTime = time;				
 				retVal = cursor.getNext(key, foundData, null);		
-
 			}
 		} finally {
 			cursor.close();
 		}
 		return resTime;
+	}
+	
+	/**
+	 * Method used to perform a validation from the assert
+	 * only if prev is <= next when cbox == box we return true
+	 * @param prev
+	 * @param next
+	 * @param cbox
+	 * @param box
+	 * @return
+	 */
+	private boolean validate(long prev, long next, int cbox , int box){
+	    if(cbox != box){
+		return true;
+	    }else{
+	    return prev <= next;
+	    }
 	}
 	
 	private byte[] boxTimeToByteArray(int box, long time){

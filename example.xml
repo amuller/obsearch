@@ -11,8 +11,8 @@
 	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value=".."/>
-
-	<property name="dbfolder" value="${user.home}/temp/obexampleTentacleOTHER/"/>
+  
+	<property name="dbfolder" value="${user.home}/temp/PurpleTentacle/"/>
 
 	<property name="name" value="seeder"/>
 
@@ -81,7 +81,7 @@
 <target name="search" depends="maven">
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<jvmarg value="-server" />
-<!--				<jvmarg value="-ea"/>-->
+				<jvmarg value="-ea"/>
 				<jvmarg value="-Xmx1000M" />
 				<arg value="-search"/>
 				<arg value="-r"/>
@@ -97,74 +97,43 @@
 
 
 <target name="p2pinit" depends="maven">
-	    <property name="seederFolder" value="${dbfolder}/seeder/"/>
-			<property name="leecherFolder" value="${dbfolder}/leecher/"/>
-	    <property name="spore" value="${seederFolder}/std/PPTreeShort"/>
-			
-		
-
-			
+	    
+			<!-- someone has to copy the spore file into this folder, only
+           the folder who originally contained the data will have this
+           file. Think of it as a .torrent file-->
+	    <property name="spore" value="${dbfolder}/std/PPTreeShort"/>								
 </target>
 
 <target name="p2pcreate" depends="p2pinit">
 
-	<delete dir="${seederFolder}"/>
-	<mkdir dir="${seederFolder}"/>	
+	<delete dir="${dbfolder}"/>
+	<mkdir dir="${dbfolder}"/>	
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-ea" />
 				<jvmarg value="-server" />
-				<jvmarg value="-Xmx1000M" />
+				<jvmarg value="-Xmx3700M" />
 				<arg value="-create"/>
 				<arg value="-db"/>
-				<arg value="${seederFolder}"/>
+				<arg value="${dbfolder}"/>
 				<arg value="-data"/>
 				<arg value="${dbdata}"/>
 				<arg value="-od"/>
 				<arg value="2"/>
+				<arg value="-d"/>
+				<arg value="30"/>
 				<arg value="-name"/>
 				<arg value="${name}"/>
 				<arg value="-searchThreads"/>
 				<arg value="${threads}"/>
 			</java>
-
 </target>
 
-<target name="p2psearchremote" depends="p2pinit">
-	  <!--TODO: remove this -->
-    <exec failonerror="true" executable="rsync">
-				<arg value="-az"/>
-				<arg value="."/>
-				<arg value="${ip}:~/gsoc/obsearch/"/>
-		</exec>		
-
-    <exec executable="scp" failonerror="true">
-				<arg value="${spore}"/>
-				<arg value="${ip}:${spore}"/>
-		</exec>
-
-		<exec executable="ssh">
-			  <arg value="${ip}"/>
-			  <arg value="killall java"/>
-		</exec>
-
-		<exec executable="ssh" failonerror="true">
-			  <arg value="${ip}"/>
-			  <arg value="/bin/bash -i  -c 'cd ~/gsoc/obsearch/; ant -buildfile example.xml p2psearch -Dname=${ip}' -Dthreads=${threads}"/>
-		</exec>
-
-</target>
 
 <target name="p2psearch" depends="p2pinit">
 
-<delete dir="${leecherFolder}"/>
- <mkdir dir="${leecherFolder}"/>
-
-
-
-
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-ea" />
 				<jvmarg value="-server" />
 				<jvmarg value="-Xmx1000M" />
 				<arg value="-spore"/>
@@ -175,7 +144,7 @@
 				<arg value="-k"/>
 				<arg value="2"/>
 				<arg value="-db"/>
-				<arg value="${leecherFolder}"/>
+				<arg value="${dbfolder}"/>
 				<arg value="-data"/>
 				<arg value="${querydata}"/>
 				<arg value="-name"/>
@@ -185,32 +154,43 @@
 			</java>
 </target>
 
-<target name="p2p" depends="p2pinit">
-			<parallel>
-			<!-- Parallel task #1 -->
-	    <antcall target="p2pcreate"/>
-			<!-- Parallel task #2 -->
-			<sequential>
-			<!-- Wait for the spore -->
-		  <waitfor maxwait="1" maxwaitunit="day">
-        <available file="${spore}"/>
-			</waitfor>
-			<waitfor maxwait="1" maxwaitunit="day">
-				 <socket server="127.0.0.1" port="9701"/>
-			</waitfor>
-			<echo>Spore file found!</echo>	
-			<parallel>
-			<antcall target="p2psearchremote">
-			  <param name="ip" value="192.168.1.86"/>
-				<param name="threads" value="8"/>
-			</antcall>
-			<antcall target="p2psearchremote">
-			  <param name="ip" value="192.168.1.85"/>
-				<param name="threads" value="2"/>
-			</antcall>
-			</parallel>
-			</sequential>
-			</parallel>
+<target name="p2ptentacle" depends="p2pinit">
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+				<jvmarg value="-ea" />
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-tentacle"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+			</java>
 </target>
+
+<target name="p2pserver" depends="p2pinit">
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+				<jvmarg value="-ea" />
+				<!--<jvmarg value="-esa" />-->
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-tentacle"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+				<arg value="-server"/>
+			</java>
+</target>
+
+
 
 </project>

@@ -242,7 +242,6 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 	}
 
 	// private abstract Object readResolve() throws DatabaseException;
-
 	protected void initCache() throws DatabaseException {
 		if (cache == null) {
 			int size = databaseSize();
@@ -506,14 +505,18 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 		this.frozen = true;
 		// queries can be executed from this point
 
-		String xml = toXML();
+		writeSporeFile();
+
+		assert aDB.count() == bDB.count();
+
+	}
+	
+	protected void writeSporeFile() throws IOException{
+	    	String xml = toXML();
 		FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator
 				+ getSerializedName());
 		fout.write(xml);
 		fout.close();
-
-		assert aDB.count() == bDB.count();
-
 	}
 
 	/**

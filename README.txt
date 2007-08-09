@@ -45,3 +45,9 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
 
 
 --------------------- End of Readme ----------
+
+Do everything in a bash file:
+- Create db with search A (the first example should be good)
+- Call some "client" peers and a "server" peer with the created DB spore.
+  (the server must be given access to A.
+- ask one of the clients to search when certain peers and boxes are connected.

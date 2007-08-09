@@ -152,6 +152,7 @@ public class OBExampleTrees {
 	    returnValue = 84;
 	} catch (HelpException exp) {
 	    // no problem, we just display the help and quit
+	    logger.debug("Should have shown the help msg");
 	} catch (Exception e) {
 	    logger.fatal("Exception caught", e);
 	    returnValue = 83;
