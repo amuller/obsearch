@@ -128,8 +128,8 @@ public class OBSlice implements OBShort {
                 	tree.getSize();
                 }
                 // TODO: maybe this method should be syncronized
-            } catch (Exception e) {
-                throw new SliceParseException(slice);
+            } catch (Exception e) {        	
+                throw new SliceParseException(slice,e);
             }
             //slice = null;
         }
