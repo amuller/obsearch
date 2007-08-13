@@ -196,7 +196,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			if(isFrozen()){
 				int box = getIndex().getBox(object);
 				insertTimeEntry(box, time, id);
-				this.objectsByBox.incrementAndGet(box);
+				
 			}
 		}
 		return id;
@@ -232,6 +232,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				timeByBox.set(box, time);
 			}
 		}
+		this.objectsByBox.incrementAndGet(box);
 	}
 	
 	
@@ -271,7 +272,6 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			while (retVal == OperationStatus.SUCCESS && cbox == box) {
 				in.setBuffer(key.getData());
 				cbox = in.readInt();
-
 				retVal = cursor.getNext(key, foundData, null);		
 				if(cbox == box){
 					count++;
