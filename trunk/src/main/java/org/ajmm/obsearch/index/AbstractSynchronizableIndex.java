@@ -86,9 +86,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	protected File dbDir;
 	
 	protected transient AtomicIntegerArray objectsByBox;
-	
-	
-	
+
 	public AbstractSynchronizableIndex(Index<O> index, File dbDir) throws DatabaseException{
 		this.dbDir = dbDir;
 		initDB();
@@ -187,15 +185,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	
 	public int insert(O object) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
-		int id = getIndex().insert(object);
-		if(id != -1){ // if we could insert the object
-			if(isFrozen()){
-				int box = getIndex().getBox(object);
-				insertTimeEntry(box, System.currentTimeMillis(), id);
-				this.objectsByBox.incrementAndGet(box);
-			}
-		}
-		return id;
+		return insert(object, System.currentTimeMillis());
 	}
 	
 	// FIXME time cannot be 0
