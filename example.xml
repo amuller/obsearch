@@ -12,7 +12,7 @@
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value=".."/>
   
-	<property name="dbfolder" value="${user.home}/temp/PurpleTentacle/"/>
+	<property name="dbfolder" value="${user.home}/temp/PurpleTentacleSMALL/"/>
 
 	<property name="name" value="seeder"/>
 

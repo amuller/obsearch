@@ -129,6 +129,9 @@ public class OBSearchExample {
 			    index.insert(s);
 			    realIndex++;
 			}
+			if(realIndex == 20000){
+			    break;
+			}
 		    }
 		    re = r.readLine();
 		}

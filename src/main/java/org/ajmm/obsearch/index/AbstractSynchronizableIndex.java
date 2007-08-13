@@ -196,7 +196,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			if(isFrozen()){
 				int box = getIndex().getBox(object);
 				insertTimeEntry(box, time, id);
-				
+				 incElementsPerBox(box);
 			}
 		}
 		return id;
@@ -215,7 +215,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	 * @param id
 	 * @return
 	 */
-	protected void insertTimeEntry(int box, long time, int id) throws DatabaseException{
+	protected void insertTimeEntry(int box, long time, int id) throws DatabaseException ,  OBException{
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();
 
@@ -232,10 +232,15 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				timeByBox.set(box, time);
 			}
 		}
-		this.objectsByBox.incrementAndGet(box);
+		
 	}
 	
-	
+	private void incElementsPerBox(int box) throws DatabaseException,  OBException{
+	    if(objectsByBox.get(box) == -1){
+		elementsPerBox(box);
+	    }
+	    objectsByBox.incrementAndGet(box);
+	}
 	
 	public long latestModification(int box) throws DatabaseException, OBException{
 		if(timeByBox.get(box) == 0){ 
@@ -446,17 +451,14 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		    try {
 			cursor.close();
 			closeForced = true;
-		    } catch (Exception e) {
-			logger.fatal(e);
-			assert false;
-			
+		    } catch (DatabaseException e) {
+			//logger.fatal(e);
+			// if the cursor has been closed already ignore the error
+			//assert false;			
 		    }
 		}
 		
 		public boolean hasNext() {
-		    if(closeForced){
-			return false;
-		    }
 			boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
 			if (!res) {			    
 				close();
