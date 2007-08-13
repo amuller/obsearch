@@ -81,7 +81,7 @@ public class OBSlice implements OBShort {
 
         List<SliceAST> aExpanded = this.tree.depthFirst();
         List<SliceAST> bExpanded = b.tree.depthFirst();
-        List<SliceAST> bExpanded2 = new LinkedList();
+        List<SliceAST> bExpanded2 = new LinkedList<SliceAST>();
         bExpanded2.addAll(bExpanded);
         int Na = aExpanded.size() * 2;
         int Nb = bExpanded.size() * 2;
@@ -145,7 +145,7 @@ public class OBSlice implements OBShort {
     	updateTree();
     	return tree.toStringList();
     	}catch(Exception e){
-    		
+    		assert false;
     	}
     	return ":)";
     }
@@ -168,12 +168,19 @@ public class OBSlice implements OBShort {
      * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
     public void store(TupleOutput out) {
-        // TODO Auto-generated method stub
+	assert slice != null: "Slice was null";
         out.writeString(slice);
     }
 
     public boolean equals(Object obj) {
         OBSlice o = (OBSlice) obj;
+        // parse the strings into trees before the equals too!
+        try{
+            updateTree();
+            o.updateTree();
+        }catch(Exception e){
+            assert false ;
+        }
         return this.tree.equals(o.tree);
     }
     

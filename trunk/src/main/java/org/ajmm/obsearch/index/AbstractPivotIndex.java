@@ -291,7 +291,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 		/* Open a transactional Oracle Berkeley DB Environment. */
 		EnvironmentConfig envConfig = new EnvironmentConfig();
 		envConfig.setAllowCreate(true);
-		envConfig.setTransactional(false);
+		envConfig.setTransactional(true);
 		envConfig.setCacheSize(300 * 1024 * 1024); // 80 MB
 		// envConfig.setTxnNoSync(true);
 		// envConfig.setTxnWriteNoSync(true);
@@ -299,7 +299,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 		this.databaseEnvironment = new Environment(dbDir, envConfig);
 
 		dbConfig = new DatabaseConfig();
-		dbConfig.setTransactional(false);
+		dbConfig.setTransactional(true);
 		dbConfig.setAllowCreate(true);
 		dbConfig.setSortedDuplicates(true);
 		// dbConfig.setExclusiveCreate(true);
@@ -341,7 +341,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 			IllegalAccessException, InstantiationException {
 		int resId = -1;
 		if (isFrozen()) {
-			if (!exists(object)) { 
+			if (! exists(object)) { 
 				// if the object is not in the database, we can insert it
 				resId = id.getAndIncrement();
 				insertA(object, resId);

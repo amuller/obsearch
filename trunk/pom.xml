@@ -177,6 +177,9 @@ This project is being developed as part of Google Summer of Code 2007
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
+				<configuration>
+					<argLine>-Xmx1700M</argLine>
+				</configuration>
 			</plugin>
 
 			 <plugin>

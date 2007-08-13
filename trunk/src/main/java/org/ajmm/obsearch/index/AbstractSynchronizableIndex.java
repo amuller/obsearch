@@ -27,6 +27,7 @@ import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Cursor;
+import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
@@ -35,6 +36,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
 /*
     OBSearch: a distributed similarity search engine
     This project is to similarity search what 'bit-torrent' is to downloads.
@@ -53,6 +55,7 @@ import com.sleepycat.je.OperationStatus;
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import com.sleepycat.je.TransactionConfig;
 
 /**
  * This class wraps an standard index, and allows the user to
@@ -84,6 +87,8 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	
 	protected transient AtomicIntegerArray objectsByBox;
 	
+	
+	
 	public AbstractSynchronizableIndex(Index<O> index, File dbDir) throws DatabaseException{
 		this.dbDir = dbDir;
 		initDB();
@@ -114,7 +119,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		/* Open a transactional Oracle Berkeley DB Environment. */
 		EnvironmentConfig envConfig = new EnvironmentConfig();
 		envConfig.setAllowCreate(true);
-		envConfig.setTransactional(false);
+		envConfig.setTransactional(true);
 		envConfig.setCacheSize(20 * 1024 * 1024); // 20 MB
 		// envConfig.setTxnNoSync(true);
 		// envConfig.setTxnWriteNoSync(true);
@@ -122,7 +127,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		this.databaseEnvironment = new Environment(dbDir, envConfig);
 
 		dbConfig = new DatabaseConfig();
-		dbConfig.setTransactional(false);
+		dbConfig.setTransactional(true);
 		dbConfig.setAllowCreate(true);
 		dbConfig.setSortedDuplicates(true);
 		//dbConfig.setBtreeComparator(IntLongComparator.class);
@@ -193,16 +198,16 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return id;
 	}
 	
-
+	// FIXME time cannot be 0
 	public int insert(O object, long time) throws IllegalIdException, DatabaseException,
 			OBException, IllegalAccessException, InstantiationException {
 		int id = getIndex().insert(object);
 		if(id != -1){ // if we could insert the object
-			//if(isFrozen()){
+			if(isFrozen()){
 				int box = getIndex().getBox(object);
 				insertTimeEntry(box, time, id);
 				this.objectsByBox.incrementAndGet(box);
-			//}
+			}
 		}
 		return id;
 	}
@@ -268,7 +273,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		long resTime = -1;
 		int count = 0;
 		try {
-			cursor = insertTimeDB.openCursor(null, null);			
+			cursor = insertTimeDB.openCursor(null, null);
 			key.setData(boxTimeToByteArray(box, resTime));			
 			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
 			MyTupleInput in = new MyTupleInput();
@@ -283,10 +288,13 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				}
 			}
 		} finally {
+		    if(cursor != null){
 			cursor.close();
+		    }
 		}
 		return count;
 	}
+
 	/**
 	 * Obtains the latest inserted item in the given box or -1 if there are
 	 * no items. It also calculates the number of boxes available in the index
@@ -302,7 +310,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		DatabaseEntry foundData = new DatabaseEntry();
 		long resTime = -1;
 		try {
-			cursor = insertTimeDB.openCursor(null, null);			
+			cursor = insertTimeDB.openCursor(null, null);
 			key.setData(boxTimeToByteArray(box, 0));	
 			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
 			MyTupleInput in = new MyTupleInput();
@@ -311,12 +319,16 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 				in.setBuffer(key.getData());
 				cbox = in.readInt();
 				long time = in.readLong();
-				assert  validate(resTime, time, cbox, box) : "resTime: " + resTime + " time: " + time;				
-				resTime = time;				
+				assert  validate(resTime, time, cbox, box) : "resTime: " + resTime + " time: " + time;
+				if(resTime < time){
+				    resTime = time;	
+				}
 				retVal = cursor.getNext(key, foundData, null);		
 			}
-		} finally {
+		}finally {
+		    if(cursor != null){
 			cursor.close();
+		    }
 		}
 		return resTime;
 	}
@@ -373,7 +385,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return resultArray;
 	}
 
-	protected class TimeStampIterator implements Iterator {
+	public class TimeStampIterator  implements Iterator {
 		
 		private Cursor cursor = null;
 
@@ -392,10 +404,18 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		private long previous = Long.MIN_VALUE;
 		
 		private int count = 0;
-
+		private Transaction txn;
+		
+		private boolean closeForced = false;
+		
 		public TimeStampIterator(int box, long from) throws DatabaseException {
 			this.box = box;
-			cursor = insertTimeDB.openCursor(null, null);
+
+			CursorConfig config = new CursorConfig();
+			config.setReadUncommitted(true);
+			txn = databaseEnvironment.beginTransaction(null, null);
+			cursor = insertTimeDB.openCursor(txn, config);
+			
 			previous = from;
 			keyEntry.setData(boxTimeToByteArray(box,from));
 			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);			
@@ -432,20 +452,29 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			goNextAux();
 		}
 		
+		public void close(){
+		    try {
+			cursor.close();
+			closeForced = true;
+		    } catch (Exception e) {
+			logger.fatal(e);
+			assert false;
+			
+		    }
+		}
+		
 		public boolean hasNext() {
+		    if(closeForced){
+			return false;
+		    }
 			boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
-			if (!res) {
-				try {
-					cursor.close();
-				} catch (Exception e) {
-					assert false;
-					logger.fatal(e);
-				}
+			if (!res) {			    
+				close();
 			}
 			return res;
 		}
 
-		public TimeStampResult<O> next() {
+		public TimeStampResult next() {
 			try {
 				if (hasNext()) {
 					TupleInput inl = new TupleInput(dataEntry.getData());
@@ -459,7 +488,8 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 					return null;
 				}
 			} catch (Exception e) {
-				assert false : " Error: " + e;
+			    	logger.fatal("Error while retrieving record" , e);
+				assert false;
 				return null;
 			}
 		}
@@ -468,6 +498,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		 * The remove method is not implemented. Please do not use it.
 		 */
 		public void remove() {
+		    assert false;
 		}
 
 	}

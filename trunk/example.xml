@@ -55,7 +55,7 @@
 
 	<!-- DB and QUERY datafiles -->
 
-	<property name="dbdata" value="${project.build.outputDirectory}/slices-small"/>
+	<property name="dbdata" value="${project.build.outputDirectory}/slices"/>
 	<property name="querydata" value="${project.build.outputDirectory}/slices-query"/>
 </target>
 
