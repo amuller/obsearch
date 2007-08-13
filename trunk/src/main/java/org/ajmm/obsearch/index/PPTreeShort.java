@@ -610,7 +610,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	resultCache = new HashMap<O, OBQueryShort<O>>(resultCacheSize);
 	return this;
     }
-
+    
     public boolean exists(O object) throws DatabaseException, OBException,
 	    IllegalAccessException, InstantiationException {	
 	
@@ -641,7 +641,6 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		float currentPyramidValue = SortedFloatBinding
 			.entryToFloat(keyEntry);
 		short max = Short.MIN_VALUE;
-		short realDistance = Short.MIN_VALUE;
 		while (retVal == OperationStatus.SUCCESS
 			&& currentPyramidValue == ppTreeValue) {
 
@@ -675,7 +674,6 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			}
 
 		    }
-
 		    // read the next record
 		    retVal = cursor.getNext(keyEntry, dataEntry, null);
 		    // update the current pyramid value so that we know when
@@ -694,7 +692,9 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 	return false;
     }
     
+    
     // re-implemented here to improve performance
+    // This code has some bugs
     public int insert(O object) throws DatabaseException, OBException,
 	    IllegalAccessException, InstantiationException {
 	int resId = -1;
@@ -767,7 +767,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 				// there is a chance it is a possible match
 				int id = in.readInt();
 				O toCompare = super.getObject(id);
-				if (object.equals(toCompare)) {
+				if (object.equals(toCompare)) {				    
 				    exists  = true;
 				    break;
 				}

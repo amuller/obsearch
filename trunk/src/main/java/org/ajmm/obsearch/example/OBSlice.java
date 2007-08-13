@@ -181,7 +181,7 @@ public class OBSlice implements OBShort {
         }catch(Exception e){
             assert false ;
         }
-        return this.tree.equals(o.tree);
+        return tree.equalsTree(o.tree);
     }
     
     public int hashCode(){
