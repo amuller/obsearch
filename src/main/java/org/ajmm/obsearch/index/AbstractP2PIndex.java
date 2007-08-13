@@ -167,7 +167,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
     private final static int heartBeatInterval = 10000;
 
     // general timeout used for most p2p operations
-    private final static int globalTimeout = 60 * 1000;
+    private final static int globalTimeout = 30 * 1000;
 
     // maximum time difference between the peers.
     // peers that have bigger time differences will be dropped.
@@ -1275,7 +1275,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 
 	    //pipe.setReliable(true);
 	    synchronized (pipe) {
-		pipe.connect(netPeerGroup, null, p, 600000, this);
+		pipe.connect(netPeerGroup, null, p, globalTimeout, this);
 		peerID = pipe.getRemotePeerAdvertisement().getPeerID().toURI();
 	    }
 	}
@@ -1511,12 +1511,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void processSyncEnd() throws OBException, DatabaseException,
 		IOException {
 	    resetSyncInfo();
-	    logger.debug("Sync finished for one box");
-	    if (needSync()) {
-		// lower
-		logger.debug("Sync finished for one box, doing sync again");
-		sync();
-	    }
+	    logger.debug("Sync finished for one box");	  
 	}
 
 	/**
@@ -1701,6 +1696,12 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	private void sendNextSyncMessage() throws IOException,
 		DatabaseException, OBException {
 	    // we will write here all the bytes
+	    if(insertIterator == null){
+		// return because we have to wait for an "official"
+		// sync request based on something
+		sendEndSyncMessage();
+		return;
+	    }
 	    synchronized (insertIterator) {
 		TupleOutput out = new TupleOutput();
 		int i = 0;
