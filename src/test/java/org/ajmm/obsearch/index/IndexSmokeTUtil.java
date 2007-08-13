@@ -101,7 +101,6 @@ public class IndexSmokeTUtil {
 				}
 			}
 			re = r.readLine();
-
 		}
 	}
 
