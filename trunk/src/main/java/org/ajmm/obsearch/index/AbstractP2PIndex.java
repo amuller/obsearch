@@ -442,6 +442,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	}
 	manager = new NetworkManager(c, clientName, cache.toURI());
 	NetworkConfigurator configurator = manager.getConfigurator();
+
 	// clear the seeds
 	configurator.setRendezvousSeedURIs(new LinkedList<String>());
 	configurator.setRelaySeedURIs(new LinkedList<String>());
@@ -472,9 +473,9 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	// TODO: learn why we can't put the following 4 lines
 	// after getting rendezvous connection...
 	discovery.publish(adv);
-	discovery.remotePublish(adv);
+	//discovery.remotePublish(adv);
 	discovery.publish(netPeerGroup.getPeerAdvertisement());
-	discovery.remotePublish(netPeerGroup.getPeerAdvertisement());
+	//discovery.remotePublish(netPeerGroup.getPeerAdvertisement());
 
 	// wait for rendevouz connection
 	if (isClient) {
@@ -804,7 +805,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
          * 
          */
     private void timeBeat() throws IOException {
-	logger.debug("time");
+	//logger.debug("time");
 	synchronized (clients) {
 	    Iterator<PipeHandler> it = this.clients.values().iterator();
 	    while (it.hasNext()) {
@@ -945,7 +946,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    throw new IOException("File does not exist: " + seedFile);
 	}
 	if (client) {
-	    c = NetworkManager.ConfigMode.EDGE;
+	    c = NetworkManager.ConfigMode.RELAY;
 	} else {
 	    c = NetworkManager.ConfigMode.RENDEZVOUS_RELAY;
 	}
@@ -1624,6 +1625,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    long time = -2;
 	    // logger.debug("Starting insertion");
 	    long t = System.currentTimeMillis();
+	    int repeatedItems = 0;
 	    while (it.hasNext()) {
 		ByteArrayMessageElement m = (ByteArrayMessageElement) it.next();
 		TupleInput in = new TupleInput(m.getBytes());
@@ -1637,11 +1639,16 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 			}
 			O o = readObject(in);
 			// logger.info("Inserting object");
-			getIndex().insert(o, time);
+			int res = getIndex().insert(o, time);
+			if(res == -1){
+			    repeatedItems ++;
+			}
+			// update the sync info so that timeouts won't occurr 
+			  updateSyncInfo();
 			cx++;
 		    }
 		    logger.debug("Inserted objects: " + cx + " in "
-			    + (System.currentTimeMillis() - t) + " msec");
+			    + (System.currentTimeMillis() - t) + " msec. Repeated:" + repeatedItems);
 		} catch (IndexOutOfBoundsException e) {
 		    // we are done
 		}
