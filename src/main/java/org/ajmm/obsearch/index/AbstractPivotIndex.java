@@ -234,10 +234,10 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
 			InstantiationException, OBException, IOException {
 		if (dbPath != null) {
 			this.dbDir = dbPath;
-		}
-		if (!dbPath.exists()) {
-			throw new IOException(dbPath + " does not exist.");
-		}
+			if (!dbPath.exists()) {
+				throw new IOException(dbPath + " does not exist.");
+			}
+		}		
 		initializeAfterSerialization();
 	}
 

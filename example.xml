@@ -12,7 +12,7 @@
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value=".."/>
   
-	<property name="dbfolder" value="${user.home}/temp/PurpleTentacle/"/>
+	<property name="dbfolder" value="${user.home}/temp/PurpleTentacle6/"/>
 
 	<property name="name" value="seeder"/>
 
@@ -81,7 +81,7 @@
 <target name="search" depends="maven">
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<jvmarg value="-server" />
-				<jvmarg value="-ea"/>
+				<!--<jvmarg value="-ea"/>-->
 				<jvmarg value="-Xmx1000M" />
 				<arg value="-search"/>
 				<arg value="-r"/>
@@ -89,7 +89,7 @@
 				<arg value="-k"/>
 				<arg value="2"/>
 				<arg value="-db"/>
-				<arg value="${dbfolder}"/>
+				<arg value="${dbfolder}/std/"/>
 				<arg value="-data"/>
 				<arg value="${querydata}"/>
 			</java>
@@ -110,7 +110,7 @@
 	<mkdir dir="${dbfolder}"/>	
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-				<jvmarg value="-ea" />
+<!--				<jvmarg value="-ea" />-->
 				<jvmarg value="-server" />
 				<jvmarg value="-Xmx3700M" />
 				<arg value="-create"/>
@@ -119,7 +119,7 @@
 				<arg value="-data"/>
 				<arg value="${dbdata}"/>
 				<arg value="-od"/>
-				<arg value="2"/>
+				<arg value="6"/>
 				<arg value="-d"/>
 				<arg value="30"/>
 				<arg value="-name"/>
@@ -133,8 +133,7 @@
 <target name="p2psearch" depends="p2pinit">
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-				<jvmarg value="-ea" />
-				<jvmarg value="-server" />
+<!--				<jvmarg value="-ea" />-->
 				<jvmarg value="-Xmx1000M" />
 				<arg value="-spore"/>
 				<arg value="${spore}"/>
@@ -157,13 +156,13 @@
 <target name="p2ptentacle" depends="p2pinit">
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-				<jvmarg value="-ea" />
+<!--				<jvmarg value="-ea" />-->
 				<jvmarg value="-server" />
 				<jvmarg value="-Xmx1000M" />
 				<arg value="-spore"/>
 				<arg value="${spore}"/>
 				<arg value="-tentacle"/>
-				<arg value="-db"/>
+				<Arg value="-db"/>
 				<arg value="${dbfolder}"/>
 				<arg value="-name"/>
 				<arg value="${name}"/>
@@ -174,10 +173,10 @@
 
 <target name="p2pserver" depends="p2pinit">
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
-				<jvmarg value="-ea" />
+<!--				<jvmarg value="-ea" />-->
 				<!--<jvmarg value="-esa" />-->
 				<jvmarg value="-server" />
-				<jvmarg value="-Xmx1000M" />
+				<jvmarg value="-Xmx3700M" />
 				<arg value="-spore"/>
 				<arg value="${spore}"/>
 				<arg value="-tentacle"/>
