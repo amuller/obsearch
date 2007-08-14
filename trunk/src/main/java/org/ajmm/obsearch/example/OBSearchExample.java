@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.index.AbstractP2PIndex;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
 import org.ajmm.obsearch.index.IndexFactory;
 import org.ajmm.obsearch.index.P2PIndexShort;
@@ -129,9 +130,6 @@ public class OBSearchExample {
 			    index.insert(s);
 			    realIndex++;
 			}
-			if(realIndex == 20000){
-			    break;
-			}
 		    }
 		    re = r.readLine();
 		}
@@ -161,7 +159,7 @@ public class OBSearchExample {
 		// wait until our peer is connected properly, the peer must
 		// sync all its data
 		while (true) {
-		    boolean peers = p2p.getNumberOfPeers() >= 2;
+		    boolean peers = p2p.getNumberOfPeers() >= AbstractP2PIndex.minNumberOfPeers;
 		    boolean sync = p2p.areAllPeersSynchronizedWithMe();
 		    boolean boxes = p2p.areAllBoxesAvailable();
 		    if (peers && sync && boxes) {
