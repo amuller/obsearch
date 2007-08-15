@@ -559,7 +559,7 @@ public abstract class AbstractPivotIndex<O extends OB> implements Index<O> {
     }
 
     public int delete(final O object) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException {
+	    IllegalAccessException, InstantiationException, NotFrozenException{
 	assertFrozen();
 	int res = deleteAux(object);
 	// delete the data from database A
