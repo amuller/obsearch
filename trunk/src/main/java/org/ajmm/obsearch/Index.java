@@ -123,10 +123,12 @@ public interface Index<O extends OB> {
 	 *             if the index has not been frozen. was deleted successfully
 	 * @throws DatabaseException
 	 *             If something goes wrong with the DB
-	 * @return The former id of the given object
+	 * @return The former  internal id of the given object or -1 if no object
+	 * 	         was deleted
 	 * @since 0.0
 	 */
-	public int delete(O object) throws NotFrozenException, DatabaseException;
+	public int delete(O object) throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException;
 
 	/**
 	 * This method returns the object with id "i". Mainly used for internal

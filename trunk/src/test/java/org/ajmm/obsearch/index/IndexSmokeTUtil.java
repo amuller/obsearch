@@ -253,7 +253,16 @@ public class IndexSmokeTUtil {
 			logger.info("Testing completed");
 		}
 
-	
+		// now we delete elements from the DB
+		i = 0;
+		int max = index.databaseSize();
+		while(i < max){
+		    OBSlice x = index.getObject(i);
+		    assertTrue(index.exists(x));
+		    assertEquals(i , index.delete(x));
+		    assertTrue(! index.exists(x));
+		    i++;
+		}
 		index.close();
 		Directory.deleteDirectory(dbFolder);
 	}

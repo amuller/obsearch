@@ -116,7 +116,8 @@ public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, 
 
 
 
-	public int delete(O object) throws NotFrozenException, DatabaseException {
+	public int delete(O object) throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException {
 		return getIndex().delete(object);
 	}
 

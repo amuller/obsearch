@@ -24,10 +24,13 @@ import com.sleepycat.bind.tuple.SortedFloatBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Cursor;
+import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -524,5 +527,94 @@ public class ExtendedPyramidIndexShort<O extends OBShort> extends
 			return false;
 		}
 	}
+	
+	protected  int deleteAux(final O object) throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException {
+	int resId = -1;
+	short[] tuple = new short[pivotsCount];
+	// calculate the pivot for the given object
+	calculatePivotTuple(object, tuple);
+	float[] et = extendedPyramidTransform(tuple);
+	float pyramidValue = pyramidValue(et);	
+
+	
+	Cursor cursor = null;
+	Transaction txn = null;
+	try {
+	    
+	    CursorConfig config = new CursorConfig();
+		config.setReadUncommitted(true);
+	    DatabaseEntry keyEntry = new DatabaseEntry();
+	    DatabaseEntry dataEntry = new DatabaseEntry();
+	    cursor = cDB.openCursor(null, null);
+	    SortedFloatBinding.floatToEntry(pyramidValue, keyEntry);
+	    OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+		    dataEntry, null);
+
+	    if (retVal == OperationStatus.NOTFOUND) {
+		// nothing to do here
+	    }else
+	    if (cursor.count() > 0) {
+		float currentPyramidValue = SortedFloatBinding
+			.entryToFloat(keyEntry);
+		short max = Short.MIN_VALUE;
+		while (retVal == OperationStatus.SUCCESS
+			&& currentPyramidValue == pyramidValue) {
+
+		    TupleInput in = new TupleInput(dataEntry.getData());
+
+		    int i = 0;
+		    short t;
+		    max = Short.MIN_VALUE;
+		    // STATS
+		    while (i < tuple.length) {
+			t = (short) Math.abs(tuple[i] - in.readShort());
+			if (t > max) {
+			    max = t;
+			    if (t != 0) {
+				break; // finish this loop this slice won't be
+				// matched
+				// after all!
+			    }
+			}
+			i++;
+		    }
+
+		    // if max == 0 we can check the candidate
+
+		    if (max == 0) {
+			// there is a chance it is a possible match
+			int id = in.readInt();
+			O toCompare = super.getObject(id);
+			if (object.equals(toCompare)) {
+			    resId = id;
+			    retVal = cursor.delete();	
+			    //txn.commit();
+			    if(retVal != OperationStatus.SUCCESS){
+				throw new DatabaseException();
+			    }
+			    break;
+			}
+
+		    }
+		    // read the next record
+		    retVal = cursor.getNext(keyEntry, dataEntry, null);
+		    // update the current pyramid value so that we know when
+		    // to
+		    // stop
+		    currentPyramidValue = SortedFloatBinding
+			    .entryToFloat(keyEntry);
+		}
+		
+	    }
+
+	} finally {
+	    if (cursor != null) {
+		
+		cursor.close();
+	    }
+	}
+	return resId;
+    }
 
 }

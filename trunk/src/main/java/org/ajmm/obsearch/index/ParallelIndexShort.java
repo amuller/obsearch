@@ -22,8 +22,6 @@ import com.sleepycat.je.DatabaseException;
 /**
  * This class has to be improved, please do not use it.
  * @author amuller
- *
- * @param <O>
  */
 public class ParallelIndexShort<O extends OBShort> extends
 		AbstractParallelIndex<O> implements IndexShort<O>{
