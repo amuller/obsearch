@@ -152,9 +152,10 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		getIndex().close();
 	}
 
-	public int delete(O object) throws NotFrozenException, DatabaseException {
+	public int delete(O object) throws IllegalIdException, DatabaseException,
+	OBException, IllegalAccessException, InstantiationException {
 		// TODO: update the objects count array.
-		return -1;
+		return delete(object, System.currentTimeMillis());
 	}
 
 	public void freeze() throws IOException, AlreadyFrozenException,
