@@ -76,7 +76,8 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	protected transient DatabaseConfig dbConfig;
 	
 	// this database holds a view of aDB based on timestamps
-	protected transient Database insertTimeDB;
+	protected transient Database timeDB;
+
 	
 	/**
 	 * stores the latest modification to the data
@@ -138,8 +139,10 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	 * @throws DatabaseException
 	 */
 	private void initInsertTime() throws DatabaseException{
-		insertTimeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
+		timeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
 	}
+	
+	
 	
 	public int totalBoxes() {
 		return getIndex().totalBoxes();
@@ -168,14 +171,14 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			assert object != null;
 			int box = getIndex().getBox(object);
 			boxes[box] += 1;
-			insertTimeEntry(box, System.currentTimeMillis(),  i);
+			insertInsertEntry(box, System.currentTimeMillis(),  i );
 			i++;
 		}
 		if(logger.isDebugEnabled()){
 			logger.debug("Boxes distribution:" + Arrays.toString(boxes));
 		}
 		assert i == this.getIndex().databaseSize();
-		assert this.insertTimeDB.count() == this.getIndex().databaseSize() : "time: " + insertTimeDB.count() + " the rest: " + getIndex().databaseSize();
+		assert this.timeDB.count() == this.getIndex().databaseSize() : "time: " + timeDB.count() + " the rest: " + getIndex().databaseSize();
 	}
 
 	public O getObject(int i) throws DatabaseException, IllegalIdException,
@@ -195,11 +198,24 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		if(id != -1){ // if we could insert the object
 			if(isFrozen()){
 				int box = getIndex().getBox(object);
-				insertTimeEntry(box, time, id);
+				insertInsertEntry(box, time, id);
 				 incElementsPerBox(box);
 			}
 		}
 		return id;
+	}
+	
+	public int delete(O object, long time) throws IllegalIdException, DatabaseException,
+	OBException, IllegalAccessException, InstantiationException {
+	    int id = getIndex().delete(object);
+	    if(id != -1){ // if we could delete the object
+		if(isFrozen()){
+		    int box = getIndex().getBox(object);
+		    insertDeleteEntry(box, time, object);
+		    decElementsPerBox(box);
+		}
+	    }
+	    return id;
 	}
 
 	public boolean isFrozen() {		
@@ -215,13 +231,48 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	 * @param id
 	 * @return
 	 */
-	protected void insertTimeEntry(int box, long time, int id) throws DatabaseException ,  OBException{
+	protected void insertInsertEntry(int box, long time, int id) throws DatabaseException ,  OBException{
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();
 
 		keyEntry.setData(boxTimeToByteArray(box,time));
-		IntegerBinding.intToEntry(id, dataEntry);
-		OperationStatus ret = insertTimeDB.put(null, keyEntry, dataEntry);
+		TupleOutput out = new TupleOutput();
+		out.writeBoolean(true);
+		out.writeInt(id);
+		dataEntry.setData(out.getBufferBytes());
+		OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
+		if(ret != OperationStatus.SUCCESS){
+			throw new DatabaseException();
+		}	
+		// update the cache, make sure that the latest
+		// time is updated automatically
+		synchronized(timeByBox){
+			if(timeByBox.get(box) < time){
+				timeByBox.set(box, time);
+			}
+		}
+		
+	}
+	/**
+	 * Stores the given object into deleteTimeDB using the appropiate key
+	 * (box + time). In the case of insertTimeDB we insert only the internal
+	 * object id, but in the case of deletes, we store all the object
+	 * @param box
+	 * @param time
+	 * @param object
+	 * @throws DatabaseException
+	 * @throws OBException
+	 */
+	protected void insertDeleteEntry(int box, long time, O object) throws DatabaseException ,  OBException{
+		DatabaseEntry keyEntry = new DatabaseEntry();
+		DatabaseEntry dataEntry = new DatabaseEntry();
+
+		keyEntry.setData(boxTimeToByteArray(box,time));
+		TupleOutput out = new TupleOutput();
+		out.writeBoolean(false);
+		object.store(out);
+		dataEntry.setData(out.getBufferBytes());
+		OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
 		if(ret != OperationStatus.SUCCESS){
 			throw new DatabaseException();
 		}	
@@ -240,6 +291,13 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		elementsPerBox(box);
 	    }
 	    objectsByBox.incrementAndGet(box);
+	}
+	
+	private void decElementsPerBox(int box) throws DatabaseException,  OBException{
+	    if(objectsByBox.get(box) == -1){
+		elementsPerBox(box);
+	    }
+	    objectsByBox.decrementAndGet(box);
 	}
 	
 	public long latestModification(int box) throws DatabaseException, OBException{
@@ -269,7 +327,7 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		long resTime = -1;
 		int count = 0;
 		try {
-			cursor = insertTimeDB.openCursor(null, null);
+			cursor = timeDB.openCursor(null, null);
 			key.setData(boxTimeToByteArray(box, resTime));			
 			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
 			MyTupleInput in = new MyTupleInput();
@@ -300,12 +358,15 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 	 * @throws OBException
 	 */
 	private long latestInsertedItemAux(int box) throws DatabaseException, OBException {
+	    return latestInsertedItemAuxAux(box,this.timeDB);
+	}
+	private long latestInsertedItemAuxAux(int box, Database db) throws DatabaseException, OBException {
 		Cursor cursor = null;
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry foundData = new DatabaseEntry();
 		long resTime = -1;
 		try {
-			cursor = insertTimeDB.openCursor(null, null);
+			cursor = db.openCursor(null, null);
 			key.setData(boxTimeToByteArray(box, 0));	
 			OperationStatus retVal = cursor.getSearchKeyRange(key, foundData, LockMode.DEFAULT);
 			MyTupleInput in = new MyTupleInput();
@@ -352,9 +413,11 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		return data.getBufferBytes();
 	}
 
-	public Iterator<TimeStampResult<O>> elementsInsertedNewerThan(int box, long time) throws DatabaseException {
+	public Iterator<TimeStampResult<O>> elementsNewerThan(int box, long time) throws DatabaseException {
 		return new TimeStampIterator(box, time);
 	}
+	
+
 	
 	public int getBox(O object) throws OBException{
 		return this.getIndex().getBox(object);
@@ -403,19 +466,29 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 		
 		private boolean closeForced = false;
 		
+		/**
+		 * Creates a new TimeStampIterator from the given database
+		 * if the parameter idFormat = true then the iterator will extract
+		 * the objects from the internal index. If the parameter is false, then
+		 * the objects are actually embeded in the record and will be read from there
+		 * @param box
+		 * @param from
+		 * @param db
+		 * @param idFormat
+		 * @throws DatabaseException
+		 */
 		public TimeStampIterator(int box, long from) throws DatabaseException {
 			this.box = box;
 
 			CursorConfig config = new CursorConfig();
 			config.setReadUncommitted(true);
 			txn = databaseEnvironment.beginTransaction(null, null);
-			cursor = insertTimeDB.openCursor(txn, config);
+			cursor = timeDB.openCursor(txn, config);
 			
 			previous = from;
 			keyEntry.setData(boxTimeToByteArray(box,from));
 			retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);			
 			in = new MyTupleInput();
-		  
 			goNextAux();
 		}
 		
@@ -470,11 +543,16 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements Synch
 			try {
 				if (hasNext()) {
 					TupleInput inl = new TupleInput(dataEntry.getData());
-					
-					int id = inl.readInt();
-					O obj = getObject(id);
+					O obj = null;
+					Boolean insert = inl.readBoolean();
+					if(insert){
+					    int id = inl.readInt();
+					    obj = getObject(id);
+					}else{
+					    obj = getIndex().readObject(inl);
+					}
 					goNext();
-					return new TimeStampResult(obj, previous);
+					return new TimeStampResult(obj, previous, insert);
 				} else {
 					assert false : "You should be calling hasNext before calling next.";
 					return null;

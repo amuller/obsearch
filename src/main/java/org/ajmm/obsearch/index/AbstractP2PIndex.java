@@ -175,7 +175,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
     private final static int maxTimeDifference = 3600000;
 
     // maximum number of objects to query at the same time
-    protected static final int maximumItemsToProcess = 100;
+    protected static final int maximumItemsToProcess = 60;
 
     // maximum time to wait for a query to be answered.
     protected static final int queryTimeout = 30000;
@@ -1665,15 +1665,22 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		TupleInput in = new TupleInput(m.getBytes());
 		try {
 		    int cx = 0;
-		    while (true) {
+		    while (true) {			
 			time = in.readLong();
+			
 			if (time == 0) {
 			    // we are done when we find a time of 0
 			    break;
 			}
+			boolean insert  = in.readBoolean();
 			O o = readObject(in);
 			// logger.info("Inserting object");
-			int res = getIndex().insert(o, time);
+			int res = -1;
+			if(insert){
+			 res = getIndex().insert(o, time);
+			}else{
+			    getIndex().delete(o, time);
+			}
 			if (res == -1) {
 			    repeatedItems++;
 			}
@@ -1730,7 +1737,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	    // them
 	    // one by one to the underlying pipe.
 	    insertIterator = (TimeStampIterator) getIndex()
-		    .elementsInsertedNewerThan(box, time);
+		    .elementsNewerThan(box, time);
 
 	    sendNextSyncMessage();
 	}
@@ -1753,6 +1760,7 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 		    // format: <time> <data>
 		    long t = r.getTimestamp();
 		    out.writeLong(t);
+		    out.writeBoolean(r.isInsert());
 		    o.store(out);
 		    i++;
 		    if ((out.getBufferLength()) > messageSize) {
@@ -1992,7 +2000,8 @@ public abstract class AbstractP2PIndex<O extends OB> implements Index<O>,
 	return getIndex().databaseSize();
     }
 
-    public int delete(O object) throws NotFrozenException, DatabaseException {
+    public int delete(O object) throws DatabaseException, OBException,
+	IllegalAccessException, InstantiationException {
 	int res = getIndex().delete(object);
 
 	this.boxesUpdated.set(true);

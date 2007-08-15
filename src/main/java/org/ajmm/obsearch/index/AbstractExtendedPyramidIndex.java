@@ -107,9 +107,12 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 	 */
 	protected void initC() throws DatabaseException {
 		final boolean duplicates = dbConfig.getSortedDuplicates();
+		final boolean trans = dbConfig.getTransactional();
 		dbConfig.setSortedDuplicates(true);
+		dbConfig.setTransactional(false);
 		cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
-		dbConfig.setSortedDuplicates(duplicates);		
+		dbConfig.setSortedDuplicates(duplicates);	
+		dbConfig.setTransactional(trans);
 		
 	}
 	
@@ -303,19 +306,7 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
         return Integer.MIN_VALUE;
     }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.ajmm.obsearch.Index#delete(org.ajmm.obsearch.OB)
-	 */
-	// TODO: implement Delete operation for the pyramid technique
-	public final int delete(final O object) throws NotFrozenException,
-			DatabaseException {
-		// TODO Auto-generated method stub
-		assertFrozen();
-		assert false;
-		return -1;
-	}
+	
 
 
 

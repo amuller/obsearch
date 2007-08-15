@@ -9,12 +9,31 @@ public class TimeStampResult<O extends OB> {
 	
 	private O object;
 	private long timestamp;
+	private boolean insert;
 	
-	public TimeStampResult(O object, long timestamp) {
+	
+	/**
+	 * Creates a time stamp result where the object and its associated
+	 * timestamp are kept. We also have a flag that indicates if
+	 * the object was inserted or deleted
+	 * @param object
+	 * @param timestamp
+	 * @param insert
+	 */
+	public TimeStampResult(O object, long timestamp, boolean insert) {
 		super();
 		this.object = object;
 		this.timestamp = timestamp;
+		this.insert = insert;
 	}
+	
+	public boolean isInsert() {
+	    return insert;
+	}
+	public void setInsert(boolean insert) {
+	    this.insert = insert;
+	}
+	
 	public O getObject() {
 		return object;
 	}
