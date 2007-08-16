@@ -31,14 +31,12 @@ public class OutOfRangeException
     private String message;
 
     public OutOfRangeException() {
-        message = "N/A";
+        super("N/A");
     }
 
     public OutOfRangeException(String min, String max, String obtained) {
-        message = " min: " + min + " max: " + max + " obtained: " + obtained;
+        super( " min: " + min + " max: " + max + " obtained: " + obtained);
     }
 
-    public String toString() {
-        return message;
-    }
+   
 }

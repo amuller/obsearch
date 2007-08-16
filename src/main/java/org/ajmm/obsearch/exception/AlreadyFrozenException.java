@@ -20,7 +20,8 @@ package org.ajmm.obsearch.exception;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * Class: AlreadyFrozenException
+ * Exception thrown when an user tries to freeze
+ * an index that is already frozen.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0

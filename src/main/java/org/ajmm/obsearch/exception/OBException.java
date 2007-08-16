@@ -5,9 +5,9 @@ package org.ajmm.obsearch.exception;
  This project is to similarity search what 'bit-torrent' is to downloads.
  Copyright (C)  2007 Arnoldo Jose Muller Molina
 
- This program is free software; you can redistribute it and/or modify
+ This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
@@ -15,38 +15,72 @@ package org.ajmm.obsearch.exception;
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License along
- with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * OBException, the mother of all Exceptions.
+ * OBException, the mother of all Exceptions in OBSearch.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
- * @since 1.0
+ * @since 0.0
  */
-
 public class OBException
         extends Exception {
-    protected Exception ex;
+    /**
+     * An exception associated
+     * with the error.
+     */
+    private Exception ex;
 
-    // sing it!
-    protected String str;
+    /**
+     * A message for the user.
+     */
+    private String str;
 
-    public OBException(String msg) {
+    /**
+     * Constructor.
+     * @param msg
+     *            A message for the user
+     */
+    public OBException(final String msg) {
         this.str = msg;
     }
 
+    /**
+     * Constructor.
+     * @param msg
+     *            A message for the user
+     * @param ex
+     *            An exception for the user
+     */
+    public OBException(final String msg, final Exception ex) {
+        this.str = msg;
+        this.ex = ex;
+    }
+
+    /**
+     * Default constructor.
+     */
     public OBException() {
         ex = null;
     }
 
+    /**
+     * Constructor.
+     * @param e
+     *            An exception that will be wrapped.
+     */
     public OBException(Exception e) {
         this.ex = e;
     }
 
-    public String toString() {
-        if (ex != null) {
+    /**
+     * @return A description for the user of the exception.
+     */
+    public final String toString() {
+        if (ex != null && str != null) {
+            return str + " " + ex.toString();
+        } else if (ex != null) {
             return ex.toString();
         } else if (str != null) {
             return str;

@@ -20,10 +20,10 @@ package org.ajmm.obsearch.exception;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * Class: IllegalIdException
+ * Occurs when an internal id requested but the id is not available.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
- * @since 1.0
+ * @since 0.0
  */
 
 public class IllegalIdException
