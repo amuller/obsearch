@@ -22,7 +22,7 @@ import org.ajmm.obsearch.exception.OBException;
  */
 
 /**
- * A ParallelIndex is an Index wrapper. Whenever you perform a search the
+ * An index wrapper that . Whenever you perform a search the
  * control will return inmediately to the caller and the matching will be
  * performed in background. A synchronization method called waitQueries() is
  * provided. When the caller calls it, the control will return until all the

@@ -1,30 +1,63 @@
 package org.ajmm.obsearch.example;
 
-import java.util.BitSet;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import antlr.BaseAST;
-import antlr.CommonAST;
 import antlr.Token;
 import antlr.collections.AST;
 
+/*
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /**
  * This class provides extra functionality required by tree edit distance
- * algorithms and the like
- * @author amuller
+ * algorithms and the like.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
  */
+
 public class SliceAST
         extends BaseAST {
 
+    /**
+     * Serial version of the class.
+     */
+    private static final long serialVersionUID = -7669115912647058933L;
+
+    /**
+     * Number of children this node has.
+     */
     protected int decendants = -1;
 
+    /**
+     * The text of this node.
+     */
     protected String text;
 
-    public int updateDecendantInformation() {
+    /**
+     * Updates decendant information.
+     * @return An integer that represents the number of children of this node.
+     */
+    public final int updateDecendantInformation() {
         decendants = 0;
-        SliceAST n = (SliceAST) this.getLeftmostChild();
+        SliceAST n = getLeftmostChild();
         while (n != null) {
             decendants += n.updateDecendantInformation();
             n = (SliceAST) n.getNextSibling();
@@ -32,99 +65,148 @@ public class SliceAST
         return decendants + 1;
     }
 
-    /*
-     * public int getDescendants(){ int decendants = 0; SliceAST n =
-     * this.getLeftmostChild(); while(n != null){ decendants +=
-     * n.getDescendants(); decendants++; n = (SliceAST)n.getNextSibling(); }
-     * return decendants; }
+    /**
+     * Returns the number of decendants of this node.
+     * @return The number of children of this node.
      */
-
-    public int getDescendants() {
+    public final int getDescendants() {
         if (decendants == -1) {
-            this.updateDecendantInformation();
+            updateDecendantInformation();
         }
         return decendants;
     }
 
-    public int getSize() {
+    /**
+     * @return The size of the Tree (includes the root node)
+     */
+    public final int getSize() {
         return getDescendants() + 1;
     }
 
-    public SliceAST findFirstNodeThatMatches(String label) {
-        SliceAST result = null;
-        if (this.text.equals(label)) {
-            result = this;
-        } else {
-            SliceAST n = this.getLeftmostChild();
-            while (n != null && result == null) {
-                result = n.findFirstNodeThatMatches(label);
-                n = (SliceAST) n.getNextSibling();
-            }
-        }
-        return result;
-    }
-
-    /** Get the token text for this node */
-    public String getText() {
+    /**
+     * Get the token text for this node.
+     * @return The text of the node.
+     */
+    @Override
+    public final String getText() {
         return text;
     }
 
-    /** Get the token type for this node */
-    public int getType() {
+    /**
+     * Get the token type for this node.
+     * @return The type of node
+     */
+    @Override
+    public final int getType() {
         return -1;
     }
 
-    public void initialize(int t, String txt) {
+    /**
+     * Initialize the node.
+     * @param t
+     *            Node type
+     * @param txt
+     *            Node tag
+     */
+    public final void initialize(final int t, final String txt) {
         setType(t);
         setText(txt);
     }
 
-    public void initialize(AST t) {
+    /**
+     * Initialize the node from another node.
+     * @param t
+     *            Another node.
+     */
+    public final void initialize(final AST t) {
         setText(t.getText());
         setType(t.getType());
     }
 
+    /**
+     * Default constructor.
+     */
     public SliceAST() {
     }
 
-    public SliceAST(int t, String txt) {
-        this.text = txt;
+    /**
+     * Initialize the node.
+     * @param t
+     *            Node type
+     * @param txt
+     *            Node text
+     */
+    public SliceAST(final int t, final String txt) {
+        text = txt;
     }
 
-    public SliceAST(Token tok) {
-        this.text = tok.getText();
+    /**
+     * Initialize the node from a token.
+     * @param tok
+     *            The token to use as initializer.
+     */
+    public SliceAST(final Token tok) {
+        text = tok.getText();
     }
 
-    public SliceAST(SliceAST t) {
-        this.text = t.text;
+    /**
+     * Clone the node with this constructor.
+     * @param t
+     *            Another SliceAST
+     */
+    public SliceAST(final SliceAST t) {
+        text = t.text;
     }
 
-    public final void initialize(Token tok) {
+    /**
+     * Initialize from the given token.
+     * @param tok
+     *            A token.
+     */
+    @Override
+    public final void initialize(final Token tok) {
         setText(tok.getText());
         setType(tok.getType());
     }
 
-    /** Set the token text for this node */
-    public void setText(String text_) {
+    /**
+     * Set the token text for this node.
+     * @param text_
+     *            The text to use.
+     */
+    @Override
+    public final void setText(final String text_) {
         text = text_;
     }
 
-    /** Set the token type for this node */
-    public void setType(int ttype_) {
+    /**
+     * Set the token type for this node. Currently ignored.
+     * @param ttype_
+     *            Type to use
+     */
+    @Override
+    public final void setType(final int ttype_) {
 
     }
 
-    public SliceAST getLeftmostChild() {
+    /**
+     * Get the leftmost child of this node.
+     * @return The leftmost child of this node.
+     */
+    public final SliceAST getLeftmostChild() {
         return (SliceAST) super.getFirstChild();
     }
 
-    /** Print out a child-sibling tree in LISP notation */
-    public String prettyPrint() {
-        SliceAST t = this;
+    /**
+     * Print out a child-sibling tree in LISP notation.
+     * @return A child-sibling tree in LISP notation
+     */
+    public final String prettyPrint() {
+        final SliceAST t = this;
         String ts = "";
         if (t.getFirstChild() != null)
             ts += " (";
-        ts += " " + this.toString();
+        ts += " " + toString();
         if (t.getFirstChild() != null) {
             ts += ((SliceAST) t.getFirstChild()).prettyPrint();
         }
@@ -136,136 +218,50 @@ public class SliceAST
         return ts;
     }
 
-    /** Print out a child-sibling tree in Q notation */
-    public String toQ() {
-        SliceAST t = this;
-        String ts = "";
-        ts += this.toString();
-        if (t.getFirstChild() != null) {
-            ts += "(";
-            ts += ((SliceAST) t.getFirstChild()).toQ();
-            ts += ")";
-        }
+    
 
-        if (t.getNextSibling() != null) {
-            ts += ",";
-            ts += ((SliceAST) t.getNextSibling()).toQ();
-        }
-
-        return ts;
-    }
-
-    /*
-     * little speed up to the normal equalsTree method
+    /**
+     * Little speed up to the normal equalsTree method.
+     * Returns tree if this and t are equal
+     * @param t Another tree to compare.
+     * @return True if both trees are equal.
      * @see antlr.BaseAST#equalsTree(antlr.collections.AST)
      */
-    public boolean equalsTree(AST t) {
-        SliceAST j = (SliceAST) t;
-        if (j.getSize() != this.getSize()) { // little speed up! ;)
+    @Override
+    public final boolean equalsTree(final AST t) {
+        final SliceAST j = (SliceAST) t;
+        if (j.getSize() != getSize()) { // little speed up! ;)
             return false;
         } else {
             return super.equalsTree(t);
         }
     }
 
-    /*
-     * 1 = equal 0 = not equal 2 = equal if we rename the root 3 = children not
-     * equal but the same root
-     * @see antlr.BaseAST#equalsTree(antlr.collections.AST)
-     */
-    public int detailedTreeComparison(AST t) {
-        SliceAST j = (SliceAST) t;
-        if (j.getSize() != this.getSize()) { // little speed up! ;)
-            if (this.equals(t)) {
-                return 3;
-            } else {
-                return 0;
-            }
-        } else {
-            return detailedTreeAux(t);
-        }
-    }
 
     /**
-     * Is tree rooted at 'this' equal to 't'? The siblings of 'this' are
-     * ignored.
+     * @return  A list of the nodes in depth first order
      */
-    protected int detailedTreeAux(AST t) {
-        int res = -1;
-        // check roots first.
-
-        // if roots match, do full list match test on children.
-        if (this.getFirstChild() != null) {
-            if (this.getFirstChild().equalsList(t.getFirstChild())) {
-                res = 2;
-            } else {
-                res = 0;
-            }
-        }
-        // sibling has no kids, make sure t doesn't either
-        else if (t.getFirstChild() != null) {
-            res = 0;
-        }
-
-        if (this.equals(t) && (res == 2 || res == -1)) {
-            res = 1;
-        }
-        if (res == -1) {
-            res = 0;
-        }
-        if (this.equals(t) && res == 0) {
-            res = 3;
-        }
-
-        return res;
-    }
-
-    /*
-     * get a list of the nodes in depth first order
-     */
-    public synchronized List < SliceAST > depthFirst() {
-        LinkedList < SliceAST > res = new LinkedList < SliceAST >();
+    public final synchronized List < SliceAST > depthFirst() {
+        final LinkedList < SliceAST > res = new LinkedList < SliceAST >();
         depthFirstAux(res);
         return res;
     }
 
-    protected void depthFirstAux(LinkedList < SliceAST > res) {
+    /**
+     * Auxiliary function for {@link #depthFirst()}.
+     * @param res Where the result will be stored.
+     */
+    protected final void depthFirstAux(final LinkedList < SliceAST > res) {
         res.add(this);
-        SliceAST down = (SliceAST) this.getFirstChild();
+        final SliceAST down = (SliceAST) getFirstChild();
         if (down != null) {
             down.depthFirstAux(res);
         }
-        SliceAST right = (SliceAST) this.getNextSibling();
+        final SliceAST right = (SliceAST) getNextSibling();
         if (right != null) {
             right.depthFirstAux(res);
         }
     }
 
-    // TODO refactor all these things. hack to keep the unit tests working
-    // dummy
-    /**
-     * public int updateDecendantInformation(){ assert false; return -1; }
-     */
-    // dummy
-    public void updateIdInfo() {
-        assert false;
-    }
-
-    // dummy
-    public void updateContains() {
-        assert false;
-    }
-
-    // dummy
-    public int getId() {
-        assert false;
-        return -1;
-    }
-
-    // dummy
-    public boolean containsNode(int i) {
-        assert false;
-        return false;
-    }
 
 }
