@@ -40,14 +40,4 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
              https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix \
              -m "I will change the way values are mapped, to reduce precision loss... this may be the problem I have"  --username <you>
 
-30 min
-
-
-
---------------------- End of Readme ----------
-
-Do everything in a bash file:
-- Create db with search A (the first example should be good)
-- Call some "client" peers and a "server" peer with the created DB spore.
-  (the server must be given access to A.
-- ask one of the clients to search when certain peers and boxes are connected.
+It took 30 min!
