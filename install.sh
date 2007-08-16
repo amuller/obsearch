@@ -41,5 +41,6 @@ mvn install:install-file -Dfile=jxta.jar -DgroupId=jxta -DartifactId=jxta -Dvers
 
 cd ..
 
-rm -fdr temp
+rm -fdr temp 
+
 
