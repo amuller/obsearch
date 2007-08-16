@@ -34,7 +34,9 @@ import com.sleepycat.bind.tuple.TupleOutput;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * Class: OBSlice
+ * Example Object that can be stored in OBSearch This class reads strings
+ * representations of trees and calcualtes the distance between the objects by
+ * using a tree distance function.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
@@ -42,34 +44,45 @@ import com.sleepycat.bind.tuple.TupleOutput;
 
 public class OBSlice implements OBShort {
 
+    /**
+     * An String representation of the tree.
+     */
     private String slice;
 
+    /**
+     * The root node of the tree.
+     */
     private SliceAST tree;
 
     /**
-     * Default constructor must be provided by OB's sons and daughters
+     * Default constructor must be provided by every object that implements the
+     * interface OB.
      */
     public OBSlice() {
 
     }
 
     /**
-     * Creates an slice object
+     * Creates an slice object.
      * @param slice
+     *            A string representation of a tree.
      */
-    public OBSlice(String slice) {
+    public OBSlice(final String slice) {
         assert slice != null;
         this.slice = slice;
     }
 
     /**
-     * Calculates the distance between two trees When the internal tree is null
-     * (first time is loaded or unloaded from memory) The tree is recreated from
-     * the string and the original string is deleted to preserve memory
+     * Calculates the distance between two trees.
+     * @param object
+     *            The other object to compare
      * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
+     * @throws OBException
+     *             if something wrong happens.
+     * @return A short that indicates how similar or different the trees are.
      */
-    public short distance(OB object) throws OBException {
+    public final short distance(final OB object) throws OBException {
         // TODO Auto-generated method stub
         OBSlice b = (OBSlice) object;
         updateTree();
@@ -111,32 +124,44 @@ public class OBSlice implements OBShort {
         return (short) (((Na + Nb) - (2 * res)) / 2);
     }
 
+    /**
+     * Internal method that updates the Tree from the String
+     * @throws OBException
+     */
     protected void updateTree() throws OBException {
         if (tree == null) {
             try {
-                assert slice != null;
-                SliceLexer lexer = new SliceLexer(new StringReader(slice));
-                SliceParser parser = new SliceParser(lexer);
-                parser.setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
-                parser.slice();
-                tree = (SliceAST) parser.getAST();
-                synchronized (tree) {
+                synchronized (slice) {
+                    assert slice != null;
+                    SliceLexer lexer = new SliceLexer(new StringReader(slice));
+                    SliceParser parser = new SliceParser(lexer);
+                    parser
+                            .setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
+                    parser.slice();
+                    tree = (SliceAST) parser.getAST();
                     tree.getSize();
                 }
-                // TODO: maybe this method should be syncronized
             } catch (Exception e) {
                 throw new SliceParseException(slice, e);
             }
-            // slice = null;
         }
     }
 
-    public int size() throws OBException {
+    /**
+     * Returns the size (in nodes) of the tree.
+     * @return The size of the tree.
+     * @throws OBException
+     *             If something goes wrong.
+     */
+    public final int size() throws OBException {
         updateTree();
         return tree.getSize();
     }
 
-    public String toString() {
+    /**
+     * @return A String representation of the tree.
+     */
+    public final String toString() {
         try {
             updateTree();
             return tree.toStringList();
@@ -146,27 +171,40 @@ public class OBSlice implements OBShort {
         return ":)";
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Re-creates this object from the given byte stream
+     * @param in
+     *            A byte stream with the data that must be loaded.
      * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
     public void load(TupleInput in) {
-        // TODO Auto-generated method stub
         slice = in.readString();
         assert slice != null : "Slice was null!";
         tree = null; // very important!
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Stores this object into the given byte stream.
+     * @param out
+     *            The byte stream to be used
      * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
-    public void store(TupleOutput out) {
+    public final void store(TupleOutput out) {
         assert slice != null : "Slice was null";
         out.writeString(slice);
     }
 
-    public boolean equals(Object obj) {
+    /**
+     * Returns true of this.tree.equals(obj.tree). For this distance function
+     * this.distance(obj) == 0 implies that this.equals(obj) == true
+     * @param obj Object to compare.
+     * @return true if this == obj
+     */
+    public final boolean equals(final Object obj) {
+        if (!(obj instanceof OBSlice)) {
+            assert false;
+            return false;
+        }
         OBSlice o = (OBSlice) obj;
         // parse the strings into trees before the equals too!
         try {
@@ -178,7 +216,11 @@ public class OBSlice implements OBShort {
         return tree.equalsTree(o.tree);
     }
 
-    public int hashCode() {
+    /**
+     * A hashCode based on the string representation of the tree.
+     * @return a hash code of the string representation of this tree.
+     */
+    public final int hashCode() {
         assert slice != null;
         return this.slice.hashCode();
     }
