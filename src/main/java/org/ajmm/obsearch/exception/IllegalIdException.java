@@ -21,12 +21,12 @@ package org.ajmm.obsearch.exception;
  */
 /**
  * Class: IllegalIdException
- * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 
-public class IllegalIdException extends OBException {
+public class IllegalIdException
+        extends OBException {
 
 }

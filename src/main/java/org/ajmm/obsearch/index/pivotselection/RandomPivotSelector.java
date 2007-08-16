@@ -32,7 +32,6 @@ import com.sleepycat.je.DatabaseException;
 /**
  * This class receives the maximum ID available in the database (before freeze)
  * and generates random pivot numbers that are inside this range
- * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
@@ -42,15 +41,15 @@ public class RandomPivotSelector implements PivotSelector {
 
     /**
      * Selects a number of pivots from the database.
-     * 
      * @param pivots
      *            The number of pivots to be selected
      * @return A list of object ids from the database
      * @see org.ajmm.obsearch.index.PivotSelector#generatePivots(short)
      */
-    public void generatePivots(AbstractPivotIndex index ) throws OBException, IllegalAccessException, InstantiationException, DatabaseException{
-    	short pivots = index.getPivotsCount();
-    	int maxIdAvailable = index.getMaxId();
+    public void generatePivots(AbstractPivotIndex index) throws OBException,
+            IllegalAccessException, InstantiationException, DatabaseException {
+        short pivots = index.getPivotsCount();
+        int maxIdAvailable = index.getMaxId();
         final int maxId = maxIdAvailable + 1;
         int[] res = new int[pivots];
         Random r = new Random();
@@ -61,7 +60,5 @@ public class RandomPivotSelector implements PivotSelector {
         }
         index.storePivots(res);
     }
-    
-    
 
 }

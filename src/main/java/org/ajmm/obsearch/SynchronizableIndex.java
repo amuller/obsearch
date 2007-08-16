@@ -1,9 +1,8 @@
 package org.ajmm.obsearch;
 
-import java.util.Date;
 import java.util.Iterator;
 
-import org.ajmm.obsearch.exception.IllegalIdException;
+
 import org.ajmm.obsearch.exception.OBException;
 
 import com.sleepycat.je.DatabaseException;
@@ -26,130 +25,126 @@ import com.sleepycat.je.DatabaseException;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-/** 
- A SynchronizableIndex can be used to perform syncrhonizations with other
- indexes. We use timestamps as the base for this process.
- Someone has to guarantee that the clocks are somewhat syncrhonized if 
- the indexes were generated in different computers.
- 
- @author      Arnoldo Jose Muller Molina    
- @version     %I%, %G%
- @since       0.0
- */
 
 /**
- * A boxed index is an index that divides the data into boxes. In this way boxes
- * can be distributed among different computers. For n boxes, the box id is in
- * the range [0 , n-1].
- * 
+ * A SynchronizableIndex can be used to perform syncrhonizations with other
+ * indexes. We use timestamps as the base for this process. A boxed index is an
+ * index that divides the data into boxes. In this way boxes can be distributed
+ * among different computers. For n boxes, the box id is in the range [0 , n-1].
+ * A SynchronizableIndex was designed to be used by other indexes within OB, you
+ * do not usually need to use this kind of index.
  * @param <O>
- *                The object that will be indexed
+ *            The object that will be indexed
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
  */
-public interface SynchronizableIndex<O extends OB> extends Index<O> {
+public interface SynchronizableIndex < O extends OB > extends Index < O > {
 
     /**
-         * Returns the total # of boxes this index can potentially hold
-         * 
-         * @return
-         */
+     * @return The total # of boxes this index can potentially hold.
+     */
     int totalBoxes();
 
     /**
-         * Returns a list of the currently held boxes for this index
-         * 
-         * @return
-         */
+     * @return A list of the currently held boxes for this index.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
     int[] currentBoxes() throws DatabaseException, OBException;
 
     /**
-         * Returns the most recent insert /delete date for the given box The
-         * resulting long is actually a date as returned by
-         * System.currentTimeMillis() Returns -1 if no data is found for the
-         * given box
-         * 
-         * @param box
-         * @return Latest inserted time in System.currentTimeMillis() format.
-         */
+     * Returns the most recent insert /delete date for the given box. The
+     * resulting long is actually a date as returned by
+     * System.currentTimeMillis() Returns -1 if no data is found for the given
+     * box
+     * @param box
+     *            The box that will be queried.
+     * @return Latest inserted time in System.currentTimeMillis() format.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
     long latestModification(int box) throws DatabaseException, OBException;
 
     /**
-         * Returns the # of objects per box
-         * 
-         * @param box
-         * @return
-         * @throws DatabaseException
-         * @throws OBException
-         */
+     * Returns the # of objects per box.
+     * @param box
+     *            The box that will be queried.
+     * @return Number of objects stored in the given box.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
     int elementsPerBox(int box) throws DatabaseException, OBException;
 
     /**
-         * Returns an iterator with all the inserted or deleted elements newer
-         * than the given date
-         * 
-         * @param x
-         *                date in the format returned by
-         *                System.currentTimeMillis()
-         * @param Box
-         *                to search
-         * @return Iterator
-         */
-    Iterator<TimeStampResult<O>> elementsNewerThan(int box, long x)
-	    throws DatabaseException, OBException;
+     * Returns an iterator with all the inserted or deleted elements newer than
+     * the given date.
+     * @param date
+     *            Date in the format returned by System.currentTimeMillis()
+     * @param box
+     *            The box # that will be searched
+     * @return Iterator
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    Iterator < TimeStampResult < O > > elementsNewerThan(int box, long date)
+            throws DatabaseException, OBException;
 
     /**
-         * Return the internal index. A synchronized index uses a "standard"
-         * index
-         * 
-         * @return
-         */
-    Index<O> getIndex();
+     * @return The underlying index.
+     */
+    Index < O > getIndex();
 
     /**
-         * Inserts the given object into the index. Forces the object to have
-         * the given timestamp. This method is intended to be used internally by
-         * OBSearch.
-         * 
-         * @param object
-         *                The object to be added
-         * @param id
-         *                Identification number of the given object. This number
-         *                must be responsibly generated by someone
-         * @param time
-         *                Timestamp to be used.
-         * @return The internal id of the object(>= 0) or -1 if the object
-         *         exists in the database
-         * @throws IllegalIdException
-         *                 if the given ID already exists or if isFrozen() =
-         *                 false and the ID's did not come in sequential order
-         * @throws DatabaseException
-         *                 If something goes wrong with the DB
-         * @return The internal id of the object or -1 if the object was not
-         *         inserted because it already exists
-         * @since 0.0
-         */
+     * Inserts the given object into the index. Forces the object to have the
+     * given timestamp. This method is intended to be used internally by
+     * OBSearch.
+     * @param object
+     *            The object to be added
+     * @param time
+     *            Timestamp to be used.
+     * @return The internal id of the object(>= 0) or -1 if the object exists in
+     *         the database
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @since 0.0
+     */
     int insert(O object, long time) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException;
+            IllegalAccessException, InstantiationException;
 
     /**
-         * Deletes the given object into the index. Forces the object to be
-         * deleted in the given timestamp. This method is intended to be used
-         * internally by OBSearch.
-         * 
-         * @param object
-         *                Object to insert
-         * @param time
-         *                The time where it should be inserted
-         * @return The internal id of the object(>= 0) or -1 if the object
-         *         exists in the database *
-         * @throws IllegalIdException
-         *                 if the given ID already exists or if isFrozen() =
-         *                 false and the ID's did not come in sequential order
-         * @throws DatabaseException
-         *                 If something goes wrong with the DB
-         * @return The internal id of the object or -1 if the object was not
-         *         inserted because it already exists
-         * 
-         */
+     * Deletes the given object into the index. Forces the object to be deleted
+     * in the given timestamp. This method is intended to be used internally by
+     * OBSearch.
+     * @param object
+     *            Object to insert
+     * @param time
+     *            The time where it should be inserted
+     * @return The internal id of the object(>= 0) or -1 if the object exists in
+     *         the database
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     */
     int delete(O object, long time) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException;
+            IllegalAccessException, InstantiationException;
 }

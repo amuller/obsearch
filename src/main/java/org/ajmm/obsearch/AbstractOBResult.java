@@ -1,62 +1,94 @@
 package org.ajmm.obsearch;
 
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
-  	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-	  Class: AbstractOBResult
-	  
-    @author      Arnoldo Jose Muller Molina    
-    @version     %I%, %G%
-    @since       1.0
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * Holds a match result. It includes the object matched, its internal id and
+ * subclasses of this class will hold the distance value. WARNING: The internal
+ * id held in this class does not make sense in a P2P environment.
+ * @author Arnoldo Jose Muller Molina
+ * @param <O>
+ *            The object that was added into the result.
+ * @version %I%, %G%
+ * @since 1.0
+ */
 
+public abstract class AbstractOBResult < O extends OB > implements Comparable {
 
-public abstract class AbstractOBResult<O extends OB> implements Comparable{
-
+    /**
+     * The object to be stored.
+     */
     protected O object;
+
+    /**
+     * Its internal id.
+     */
     protected int id;
 
-
-    public AbstractOBResult(){
+    /**
+     * Default constructor.
+     */
+    public AbstractOBResult() {
 
     }
 
-    public AbstractOBResult(O object, int id) {
-		super();
-		this.object = object;
-		this.id = id;
+    /**
+     * Creates a new result with the given object and id.
+     * @param object
+     *            The object to be stored in the result.
+     * @param id
+     *            The internal id of the object.
+     */
+    public AbstractOBResult(final O object, final int id) {
+        super();
+        this.object = object;
+        this.id = id;
 
-	}
-
-	public O getObject() {
-        return object;
     }
 
-    public void setObject(O obj) {
+    /**
+     * @return The object of the result.
+     */
+    public final O getObject() {
+        return this.object;
+    }
+
+    /**
+     * Sets the object of the result.
+     * @param obj
+     */
+    public final void setObject(final O obj) {
         this.object = obj;
     }
 
-    public int getId() {
-        return id;
+    /**
+     * @return The internal id of the result. (Not useful in P2P mode)
+     */
+    public final int getId() {
+        return this.id;
     }
 
-    public void setId(int identification) {
+    /**
+     * Sets the internal id of the result.
+     * @param identification
+     */
+    public final void setId(final int identification) {
         this.id = identification;
     }
 }

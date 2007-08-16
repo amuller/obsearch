@@ -35,7 +35,6 @@ import com.sleepycat.bind.tuple.TupleOutput;
  */
 /**
  * Class: OBSlice
- * 
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
@@ -49,7 +48,6 @@ public class OBSlice implements OBShort {
 
     /**
      * Default constructor must be provided by OB's sons and daughters
-     * 
      */
     public OBSlice() {
 
@@ -57,11 +55,10 @@ public class OBSlice implements OBShort {
 
     /**
      * Creates an slice object
-     * 
      * @param slice
      */
     public OBSlice(String slice) {
-    	assert slice != null;
+        assert slice != null;
         this.slice = slice;
     }
 
@@ -69,7 +66,6 @@ public class OBSlice implements OBShort {
      * Calculates the distance between two trees When the internal tree is null
      * (first time is loaded or unloaded from memory) The tree is recreated from
      * the string and the original string is deleted to preserve memory
-     * 
      * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
      */
@@ -79,18 +75,18 @@ public class OBSlice implements OBShort {
         updateTree();
         b.updateTree();
 
-        List<SliceAST> aExpanded = this.tree.depthFirst();
-        List<SliceAST> bExpanded = b.tree.depthFirst();
-        List<SliceAST> bExpanded2 = new LinkedList<SliceAST>();
+        List < SliceAST > aExpanded = this.tree.depthFirst();
+        List < SliceAST > bExpanded = b.tree.depthFirst();
+        List < SliceAST > bExpanded2 = new LinkedList < SliceAST >();
         bExpanded2.addAll(bExpanded);
         int Na = aExpanded.size() * 2;
         int Nb = bExpanded.size() * 2;
 
-        ListIterator<SliceAST> ait = aExpanded.listIterator();
+        ListIterator < SliceAST > ait = aExpanded.listIterator();
         int res = 0;
         while (ait.hasNext()) {
             SliceAST aTree = ait.next();
-            ListIterator<SliceAST> bit = bExpanded.listIterator();
+            ListIterator < SliceAST > bit = bExpanded.listIterator();
             while (bit.hasNext()) {
                 SliceAST bTree = bit.next();
                 if (aTree.equalsTree(bTree)) {
@@ -99,7 +95,7 @@ public class OBSlice implements OBShort {
                     break;
                 }
             }
-            //  do the same for the nodes without children
+            // do the same for the nodes without children
             bit = bExpanded2.listIterator();
             while (bit.hasNext()) {
                 SliceAST bTree = bit.next();
@@ -118,76 +114,73 @@ public class OBSlice implements OBShort {
     protected void updateTree() throws OBException {
         if (tree == null) {
             try {
-            	assert slice != null;
+                assert slice != null;
                 SliceLexer lexer = new SliceLexer(new StringReader(slice));
                 SliceParser parser = new SliceParser(lexer);
                 parser.setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
                 parser.slice();
                 tree = (SliceAST) parser.getAST();
-                synchronized(tree){
-                	tree.getSize();
+                synchronized (tree) {
+                    tree.getSize();
                 }
                 // TODO: maybe this method should be syncronized
-            } catch (Exception e) {        	
-                throw new SliceParseException(slice,e);
+            } catch (Exception e) {
+                throw new SliceParseException(slice, e);
             }
-            //slice = null;
+            // slice = null;
         }
     }
-    
-    public int size() throws OBException{
-    	updateTree();
-    	return tree.getSize();
+
+    public int size() throws OBException {
+        updateTree();
+        return tree.getSize();
     }
 
-    public String toString(){
-    	try{
-    	updateTree();
-    	return tree.toStringList();
-    	}catch(Exception e){
-    		assert false;
-    	}
-    	return ":)";
+    public String toString() {
+        try {
+            updateTree();
+            return tree.toStringList();
+        } catch (Exception e) {
+            assert false;
+        }
+        return ":)";
     }
 
     /*
      * (non-Javadoc)
-     * 
      * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
     public void load(TupleInput in) {
         // TODO Auto-generated method stub
         slice = in.readString();
-        assert slice !=null: "Slice was null!";
-        tree = null; //very important!
+        assert slice != null : "Slice was null!";
+        tree = null; // very important!
     }
 
     /*
      * (non-Javadoc)
-     * 
      * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
     public void store(TupleOutput out) {
-	assert slice != null: "Slice was null";
+        assert slice != null : "Slice was null";
         out.writeString(slice);
     }
 
     public boolean equals(Object obj) {
         OBSlice o = (OBSlice) obj;
         // parse the strings into trees before the equals too!
-        try{
+        try {
             updateTree();
             o.updateTree();
-        }catch(Exception e){
-            assert false ;
+        } catch (Exception e) {
+            assert false;
         }
         return tree.equalsTree(o.tree);
     }
-    
-    public int hashCode(){
-    	assert slice != null;
-    	return this.slice.hashCode();
+
+    public int hashCode() {
+        assert slice != null;
+        return this.slice.hashCode();
     }
-    
 
 }

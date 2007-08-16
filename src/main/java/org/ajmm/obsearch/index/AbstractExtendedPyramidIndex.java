@@ -56,210 +56,198 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 /**
  * This Index uses the extended pyramid technique and SMAP to store arbitrary
- * objects TODO: what if we create one b-tree per pyramid? Would that make
- * things faster? 
- *
+ * objects.
+ * @param <O>
+ *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
 @XStreamAlias("ExtendedPyramidIndex")
-public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
-		AbstractPivotIndex<O>  {
+public abstract class AbstractExtendedPyramidIndex < O extends OB >
+        extends AbstractPivotIndex < O > {
 
-	protected static final int MIN = 0;
+    protected static final int MIN = 0;
 
-	protected static final int MAX = 1;
+    protected static final int MAX = 1;
 
-	protected static final int HLOW = 0;
+    protected static final int HLOW = 0;
 
-	protected static final int HHIGH = 1;
+    protected static final int HHIGH = 1;
 
-	private static final transient Logger logger = Logger
-			.getLogger(AbstractExtendedPyramidIndex.class);
+    private static final transient Logger logger = Logger
+            .getLogger(AbstractExtendedPyramidIndex.class);
 
-	// median points of the extended pyramid technique
-	protected float[] mp;
+    // median points of the extended pyramid technique
+    protected float[] mp;
 
-	// the database where the pyramid values are stored
-	protected transient Database cDB;
-	
+    // the database where the pyramid values are stored
+    protected transient Database cDB;
 
+    /**
+     * Constructs an extended pyramid index
+     * @param databaseDirectory
+     *            the database directory
+     * @param pivots
+     *            how many pivots will be used
+     * @throws DatabaseException
+     */
+    public AbstractExtendedPyramidIndex(final File databaseDirectory,
+            final short pivots) throws DatabaseException, IOException {
+        super(databaseDirectory, pivots); // initializes the databases
+        mp = new float[super.pivotsCount];
+    }
 
-	/**
-	 * Constructs an extended pyramid index
-	 *
-	 * @param databaseDirectory
-	 *            the database directory
-	 * @param pivots
-	 *            how many pivots will be used
-	 * @throws DatabaseException
-	 */
-	public AbstractExtendedPyramidIndex(final File databaseDirectory,
-			final short pivots) throws DatabaseException, IOException {
-		super(databaseDirectory, pivots); // initializes the databases
-		mp = new float[super.pivotsCount];
-	}
+    /**
+     * This method will be called by the super class Initializes the C
+     * database(s)
+     */
+    protected void initC() throws DatabaseException {
+        final boolean duplicates = dbConfig.getSortedDuplicates();
+        final boolean trans = dbConfig.getTransactional();
+        dbConfig.setSortedDuplicates(true);
+        dbConfig.setTransactional(false);
+        cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
+        dbConfig.setSortedDuplicates(duplicates);
+        dbConfig.setTransactional(trans);
 
-	/**
-	 * This method will be called by the super class Initializes the C
-	 * database(s)
-	 */
-	protected void initC() throws DatabaseException {
-		final boolean duplicates = dbConfig.getSortedDuplicates();
-		final boolean trans = dbConfig.getTransactional();
-		dbConfig.setSortedDuplicates(true);
-		dbConfig.setTransactional(false);
-		cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
-		dbConfig.setSortedDuplicates(duplicates);	
-		dbConfig.setTransactional(trans);
-		
-	}
-	
+    }
 
+    /**
+     * Calculates the pyramid's median values We basically have to get the
+     * median from each dimension and use the median to approximate the center
+     * of the data Using Colt's QuantileBin1D to extract the median. It allows
+     * an approximate but very fast and memory friendly processing! :)
+     */
+    // TODO: We could override freeze and remove the creation of database B
+    // P+Tree needs B so maybe this is not so relevant.
+    @Override
+    protected void calculateIndexParameters() throws DatabaseException,
+            IllegalAccessException, InstantiationException,
+            OutOfRangeException, OBException {
+        long count = super.bDB.count();
+        // each median for each dimension will be stored in this array
+        QuantileBin1D[] medianHolder = createMedianHolders(count);
+        Cursor cursor = null;
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
 
-	/**
-	 * Calculates the pyramid's median values We basically have to get the
-	 * median from each dimension and use the median to approximate the center
-	 * of the data Using Colt's QuantileBin1D to extract the median. It allows
-	 * an approximate but very fast and memory friendly processing! :)
-	 */
-	// TODO: We could override freeze and remove the creation of database B
-	// P+Tree needs B so maybe this is not so relevant.
-	@Override
-	protected void calculateIndexParameters() throws DatabaseException,
-			IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
-		long count = super.bDB.count();
-		// each median for each dimension will be stored in this array
-		QuantileBin1D[] medianHolder = createMedianHolders(count);
-		Cursor cursor = null;
-		DatabaseEntry foundKey = new DatabaseEntry();
-		DatabaseEntry foundData = new DatabaseEntry();
+        try {
+            int i = 0;
+            cursor = bDB.openCursor(null, null);
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                assert i == IntegerBinding.entryToInt(foundKey);
 
-		try {
-			int i = 0;
-			cursor = bDB.openCursor(null, null);
-			while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-				assert i == IntegerBinding.entryToInt(foundKey);
+                TupleInput in = new TupleInput(foundData.getData());
+                updateMedianHolder(extractTuple(in), medianHolder);
+                i++;
+            }
+            assert i == count; // pivot count and read # of pivots
+            // should be the same
+        } finally {
+            cursor.close();
+        }
 
-				TupleInput in = new TupleInput(foundData.getData());
-				updateMedianHolder(extractTuple(in), medianHolder);
-				i++;
-			}
-			assert i == count; // pivot count and read # of pivots
-			// should be the same
-		} finally {
-			cursor.close();
-		}
+        int i = 0;
+        while (i < mp.length) {
+            double median = medianHolder[i].median();
+            assert median >= 0 && median <= 1;
+            mp[i] = (float) median;
+            i++;
+        }
+        logger.debug("Median calculation finished");
+    }
 
-		int i = 0;
-		while (i < mp.length) {
-			double median = medianHolder[i].median();
-			assert median >= 0 && median <= 1;
-			mp[i] = (float) median;
-			i++;
-		}
-		logger.debug("Median calculation finished");
-	}
+    /**
+     * Extracts the tuple values from in and returns a normalized vector from 1
+     * to 0. Note that this is first level normalization. Extended pyramid
+     * normalization performs further analysis. TODO: Optimization, make this
+     * method return the result as a parameter
+     * @param in
+     * @return
+     */
+    protected abstract float[] extractTuple(TupleInput in)
+            throws OutOfRangeException;
 
-	/**
-	 * Extracts the tuple values from in and returns a normalized vector from 1
-	 * to 0. Note that this is first level normalization. Extended pyramid
-	 * normalization performs further analysis. TODO: Optimization, make this
-	 * method return the result as a parameter
-	 *
-	 * @param in
-	 * @return
-	 */
-	protected abstract float[] extractTuple(TupleInput in)
-			throws OutOfRangeException;
+    /**
+     * Updates each median holder with the given TupleInput of floats.
+     * @param in
+     *            TupleInput of floats
+     * @param medianHolders
+     *            an array of objects used to find the median
+     */
+    protected void updateMedianHolder(float[] tuple,
+            QuantileBin1D[] medianHolder) {
+        int i = 0;
+        assert tuple.length == medianHolder.length;
+        assert medianHolder.length == pivotsCount;
+        while (i < medianHolder.length) {
+            medianHolder[i].add(tuple[i]);
+            i++;
+        }
+    }
 
-	/**
-	 * Updates each median holder with the given TupleInput of floats.
-	 *
-	 * @param in
-	 *            TupleInput of floats
-	 * @param medianHolders
-	 *            an array of objects used to find the median
-	 */
-	protected void updateMedianHolder(float[] tuple,
-			QuantileBin1D[] medianHolder) {
-		int i = 0;
-		assert tuple.length == medianHolder.length;
-		assert medianHolder.length == pivotsCount;
-		while (i < medianHolder.length) {
-			medianHolder[i].add(tuple[i]);
-			i++;
-		}
-	}
+    /**
+     * Creates pivotsCount QuantileBin1D objects that will be used to calculate
+     * the medians of the data. TODO: put this precision thingy outside in a
+     * properties file. The user should be able to tweak it if she has memory
+     * errors.
+     * @param size
+     *            the size of the data to be processed
+     * @return an array of QuantileBin1D objects
+     */
+    protected final QuantileBin1D[] createMedianHolders(final long size) {
+        QuantileBin1D[] res = new QuantileBin1D[pivotsCount];
+        int i = 0;
+        while (i < res.length) {
+            res[i] = new QuantileBin1D(true, size, 0.00001, 0.00001, 10000,
+                    new cern.jet.random.engine.DRand(new java.util.Date()),
+                    true, true, 2);
+            i++;
+        }
+        return res;
+    }
 
+    /**
+     * Normalizes a value in the given dimension. The value must have been
+     * converted into a float [0,1.0] before using this method
+     * @param norm
+     * @param dimension
+     *            in which normalization has to be performed
+     * @return
+     */
+    protected final float extendedPyramidNormalization(final float norm,
+            final int i) {
+        return (float) Math.pow(norm, -1.d / (Math.log(mp[i]) / Math.log(2)));
+    }
 
-	/**
-	 * Creates pivotsCount QuantileBin1D objects that will be used to calculate
-	 * the medians of the data. TODO: put this precision thingy outside in a
-	 * properties file. The user should be able to tweak it if she has memory
-	 * errors.
-	 *
-	 * @param size
-	 *            the size of the data to be processed
-	 * @return an array of QuantileBin1D objects
-	 */
-	protected final QuantileBin1D[] createMedianHolders(final long size) {
-		QuantileBin1D[] res = new QuantileBin1D[pivotsCount];
-		int i = 0;
-		while (i < res.length) {
-			res[i] = new QuantileBin1D(true, size, 0.00001, 0.00001, 10000,
-					new cern.jet.random.engine.DRand(new java.util.Date()),
-					true, true, 2);
-			i++;
-		}
-		return res;
-	}
-
-
-	/**
-	 * Normalizes a value in the given dimension. The value must have been
-	 * converted into a float [0,1.0] before using this method
-	 *
-	 * @param norm
-	 * @param dimension
-	 *            in which normalization has to be performed
-	 * @return
-	 */
-	protected final float extendedPyramidNormalization(final float norm, final int i) {
-		return (float) Math.pow(norm, -1.d / (Math.log(mp[i]) / Math.log(2)));
-	}
-
-
-	/**
+    /**
      * For the given point and the pyramid number we return the height of that
      * point
-     *
      * @param tuple
      *            tuple to be processed
      * @param pyramidNumber
      *            which pyramid number will be processed.
      * @return height of the point
      */
-	protected final float heightOfPoint(float[] tuple, int pyramidNumber) {
+    protected final float heightOfPoint(float[] tuple, int pyramidNumber) {
         float res = (float) Math.abs(0.5 - tuple[pyramidNumber % pivotsCount]);
         assert res >= 0 && res <= 0.5;
         return res;
     }
 
-    public final float pyramidValue(float[] tuple){
+    public final float pyramidValue(float[] tuple) {
         int pyramid = pyramidOfPoint(tuple);
-        assert pyramid >= 0 && pyramid  < pivotsCount * 2: " Pyramid value:" + pyramid;
+        assert pyramid >= 0 && pyramid < pivotsCount * 2 : " Pyramid value:"
+                + pyramid;
         return pyramid + heightOfPoint(tuple, pyramid);
     }
 
     /**
      * Calculates the pyramid # for the given point
-     *
      * @return
      */
-    public final int pyramidOfPoint(float[] tuple){
+    public final int pyramidOfPoint(float[] tuple) {
         int jmax = pyramidOfPointAux(tuple);
         if (tuple[jmax] < 0.5) {
             return jmax;
@@ -271,7 +259,6 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
     /**
      * Is the actual calculator of the pyramid For the given tuple, returns the
      * pyramid # for the tuple.
-     *
      * @param tuple
      * @return pyramid # for the given tuple
      * @throws CatastrophicError
@@ -306,13 +293,8 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
         return Integer.MIN_VALUE;
     }
 
-	
-
-
-
-	/**
+    /**
      * Returns true if the given query (min[] and max[]) intersects pyramid i
-     *
      * @param max
      *            the maximum elements of the query
      * @param min
@@ -330,7 +312,7 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
         if (i < this.pivotsCount) { // the case where i < d
             while (j < q.length) {
                 if (j != i) {
-                    if (!(q[i][MIN] <= - min(q[j]))) {
+                    if (!(q[i][MIN] <= -min(q[j]))) {
                         return false;
                     }
                 }
@@ -338,8 +320,8 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
             }
             assert j == pivotsCount;
             if (q[i][MAX] > 0) {
-				q[i][MAX] = 0;
-			}
+                q[i][MAX] = 0;
+            }
         } else {// i >= d
             i = i - this.pivotsCount;
             while (j < q.length) { // this is the first definition!!!
@@ -352,37 +334,35 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
             }
             assert j == pivotsCount;
             if (q[i][MIN] < 0) {
-				q[i][MIN] = 0;
-			}
+                q[i][MIN] = 0;
+            }
         }
         // if we reach this, is because the pyramid intersects
         // we have to get the ranges now.
         determineRanges(i, q, lowHighResult);
         return true;
     }
-    
-    public int totalBoxes(){
-    	return pivotsCount * 2;
+
+    public int totalBoxes() {
+        return pivotsCount * 2;
     }
-    
-    
 
     /**
      * Determines the ranges that have to be searched in the b-tree
-     *
      * @param p
      *            Pyramid #
-     * @param q the query
-     * @param lowHighResult where the high a low will be stored
+     * @param q
+     *            the query
+     * @param lowHighResult
+     *            where the high a low will be stored
      */
-    private final void determineRanges(int p, float[][] q,
-            float[] lowHighResult) {
+    private final void determineRanges(int p, float[][] q, float[] lowHighResult) {
 
         int i = p;
         assert i < pivotsCount;
         lowHighResult[HHIGH] = max(q[i]); // HIGH calculation is always the
         if (isEasyCase(q)) { // do not use max2 here
-        	lowHighResult[HLOW] = 0;
+            lowHighResult[HLOW] = 0;
         } else {
             // return the minimum of QJmin
             int j = 0;
@@ -402,15 +382,15 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
 
     /**
      * Finds qjmin for the given j, and the given i pyramid and the ranges of
-     * the query max and min
-     * TODO: verify if we are actually here minimizing this value
+     * the query max and min TODO: verify if we are actually here minimizing
+     * this value
      * @param max
      * @param min
      * @param j
      * @param i
      * @return qjmin
      */
-    private final float qjmin(float[][]q, int j, int i) {
+    private final float qjmin(float[][] q, int j, int i) {
         if (min(q[j]) > min(q[i])) {
             return min(q[j]);
         } else {
@@ -418,62 +398,60 @@ public abstract class AbstractExtendedPyramidIndex<O extends OB> extends
         }
     }
 
+    private final boolean isEasyCase(float[][] q) {
+        int i = 0;
+        while (i < q.length) {
+            if (!((q[i][MIN] <= 0) && (0 <= q[i][MAX]))) {
+                return false;
+            }
+            i++;
+        }
+        return true;
+    }
 
+    private final float min(final float[] minMax) {
+        if (minMax[MIN] <= 0 && 0 <= minMax[MAX]) {
+            return 0;
+        } else {
+            return Math.min(Math.abs(minMax[MAX]), Math.abs(minMax[MIN]));
+        }
+    }
 
-   private final boolean isEasyCase(float[][] q) {
-       int i = 0;
-       while (i < q.length) {
-           if (!((q[i][MIN] <= 0) && (0 <= q[i][MAX]))) {
-               return false;
-           }
-           i++;
-       }
-       return true;
-   }
+    private final float max(final float[] minMax) {
+        return Math.max(Math.abs(minMax[MAX]), Math.abs(minMax[MIN]));
+    }
 
+    /**
+     * Queries are aligned to the center of the space
+     * @param et
+     */
+    protected final void centerQuery(final float[][] q) {
+        int i = 0;
+        while (i < q.length) {
+            q[i][MIN] = q[i][MIN] - 0.5f;
+            q[i][MAX] = q[i][MAX] - 0.5f;
+            i++;
+        }
+    }
 
-	private  final float min(final float[] minMax) {
-		if (minMax[MIN] <= 0 && 0 <= minMax[MAX]) {
-			return 0;
-		} else {
-			return Math.min(Math.abs(minMax[MAX]), Math.abs(minMax[MIN]));
-		}
-	}
+    protected void closeC() throws DatabaseException {
+        this.cDB.close();
+    }
 
-	private final float max(final float[] minMax) {
-		return Math.max(Math.abs(minMax[MAX]), Math.abs(minMax[MIN]));
-	}
-
-	/**
-	 * Queries are aligned to the center of the space
-	 *
-	 * @param et
-	 */
-	protected final void centerQuery(final float[][] q) {
-		int i = 0;
-		while (i < q.length) {
-			q[i][MIN] = q[i][MIN] - 0.5f;
-			q[i][MAX] = q[i][MAX] - 0.5f;
-			i++;
-		}
-	}
-
-	protected void closeC() throws DatabaseException {
-		this.cDB.close();
-	}
-
-	/**
-	 * Copies the contents of query src into dest
-	 * @param src source
-	 * @param dest destination
-	 */
-	protected final void copyQuery(float[][] src, float[][] dest){
-		int i = 0;
-		while(i < src.length){
-			dest[i][MIN] = src[i][MIN];
-			dest[i][MAX] = src[i][MAX];
-			i++;
-		}
-	}
+    /**
+     * Copies the contents of query src into dest
+     * @param src
+     *            source
+     * @param dest
+     *            destination
+     */
+    protected final void copyQuery(float[][] src, float[][] dest) {
+        int i = 0;
+        while (i < src.length) {
+            dest[i][MIN] = src[i][MIN];
+            dest[i][MAX] = src[i][MAX];
+            i++;
+        }
+    }
 
 }

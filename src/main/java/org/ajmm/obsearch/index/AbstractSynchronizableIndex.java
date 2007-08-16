@@ -59,113 +59,108 @@ import com.sleepycat.je.Transaction;
  * This class wraps an standard index, and allows the user to obtain information
  * regarding the most recent insertions and deletions. The idea is to used this
  * index in a distributed environment
- * 
  * @author amuller
- * 
  * @param <O>
+ *            The type of object to be stored in the Index.
  */
-public abstract class AbstractSynchronizableIndex<O extends OB> implements
-	SynchronizableIndex<O> {
+public abstract class AbstractSynchronizableIndex < O extends OB > implements
+        SynchronizableIndex < O > {
     /**
-         * Size of the cache for the underlying index.
-         */
+     * Size of the cache for the underlying index.
+     */
     private static final int CACHE_SIZE = 20 * 1024 * 1024;
 
     private static final transient Logger logger = Logger
-	    .getLogger(AbstractSynchronizableIndex.class);
+            .getLogger(AbstractSynchronizableIndex.class);
 
     /**
-         * Separate db environment for this index.
-         */
+     * Separate db environment for this index.
+     */
     private transient Environment databaseEnvironment;
 
     /**
-         * Convenience object for configuring databases.
-         */
+     * Convenience object for configuring databases.
+     */
     private transient DatabaseConfig dbConfig;
 
     /**
-         * Holds the box|time --> object mapping.
-         */
+     * Holds the box|time --> object mapping.
+     */
     private transient Database timeDB;
 
     /**
-         * Stores the latest modification to the data.
-         */
+     * Stores the latest modification to the data.
+     */
     protected transient AtomicLongArray timeByBox;
 
     /**
-         * Database directory where the sync information will be stored.
-         */
+     * Database directory where the sync information will be stored.
+     */
     private File dbDir;
 
     /**
-         * Holds a count of the number of boxes per each box.
-         */
+     * Holds a count of the number of boxes per each box.
+     */
     protected transient AtomicIntegerArray objectsByBox;
 
     /**
-         * Initializes the index.
-         * 
-         * @param index
-         * @param dbDir
-         * @throws DatabaseException
-         */
-    public AbstractSynchronizableIndex(Index<O> index, final File dbDir)
-	    throws DatabaseException {
-	this.dbDir = dbDir;
-	initDB();
-	timeByBox = new AtomicLongArray(index.totalBoxes());
-	objectsByBox = new AtomicIntegerArray(index.totalBoxes());
-	int i = 0;
-	while (i < index.totalBoxes()) {
-	    objectsByBox.set(i, -1);
-	    i++;
-	}
+     * Initializes the index.
+     * @param index
+     * @param dbDir
+     * @throws DatabaseException
+     */
+    public AbstractSynchronizableIndex(Index < O > index, final File dbDir)
+            throws DatabaseException {
+        this.dbDir = dbDir;
+        initDB();
+        timeByBox = new AtomicLongArray(index.totalBoxes());
+        objectsByBox = new AtomicIntegerArray(index.totalBoxes());
+        int i = 0;
+        while (i < index.totalBoxes()) {
+            objectsByBox.set(i, -1);
+            i++;
+        }
     }
 
     /**
-         * Initialize the databases.
-         * 
-         * @throws DatabaseException
-         */
+     * Initialize the databases.
+     * @throws DatabaseException
+     */
     private void initDB() throws DatabaseException {
-	initBerkeleyDB();
-	initInsertTime();
+        initBerkeleyDB();
+        initInsertTime();
     }
 
     /**
-         * Return the underlying index.
-         * 
-         * @return The index that is being synchronized
-         */
-    public abstract Index<O> getIndex();
+     * Return the underlying index.
+     * @return The index that is being synchronized
+     */
+    public abstract Index < O > getIndex();
 
     /**
-         * This method makes sure that all the databases are created with the
-         * same settings.
-         * 
-         * @throws DatabaseException
-         *                 Exception thrown by sleepycat
-         */
+     * This method makes sure that all the databases are created with the same
+     * settings.
+     * @throws DatabaseException
+     *             Exception thrown by sleepycat
+     */
     private void initBerkeleyDB() throws DatabaseException {
-	/* Open a transactional Oracle Berkeley DB Environment. */
-	EnvironmentConfig envConfig = new EnvironmentConfig();
-	envConfig.setAllowCreate(true);
-	envConfig.setTransactional(true);
-	envConfig.setCacheSize(CACHE_SIZE); // 20 MB
-	// envConfig.setTxnNoSync(true);
-	// envConfig.setTxnWriteNoSync(true);
-	// envConfig.setLocking(false);
-	this.databaseEnvironment = new Environment(dbDir, envConfig);
+        /* Open a transactional Oracle Berkeley DB Environment. */
+        EnvironmentConfig envConfig = new EnvironmentConfig();
+        envConfig.setAllowCreate(true);
+        envConfig.setTransactional(true);
+        envConfig.setCacheSize(CACHE_SIZE); // 20 MB
+        // envConfig.setTxnNoSync(true);
+        // envConfig.setTxnWriteNoSync(true);
+        // envConfig.setLocking(false);
+        this.databaseEnvironment = new Environment(dbDir, envConfig);
 
-	dbConfig = new DatabaseConfig();
-	dbConfig.setTransactional(true);
-	dbConfig.setAllowCreate(true);
-	dbConfig.setSortedDuplicates(true);
-	// dbConfig.setBtreeComparator(IntLongComparator.class);
-	// dbConfig.setDuplicateComparator(IntLongComparator.class);
-	// dbConfig.setExclusiveCreate(true);
+        dbConfig = new DatabaseConfig();
+        dbConfig.setTransactional(true);
+        dbConfig.setAllowCreate(true);
+        dbConfig.setSortedDuplicates(true);
+        // dbConfig.setBtreeComparator(IntLongComparator.class);
+        // dbConfig.setDuplicateComparator(IntLongComparator.class);
+        // dbConfig.setExclusiveCreate(true);
     }
 
     /**
@@ -173,475 +168,467 @@ public abstract class AbstractSynchronizableIndex<O extends OB> implements
      * @throws DatabaseException
      */
     private void initInsertTime() throws DatabaseException {
-	timeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
+        timeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
     }
 
-
     public final int totalBoxes() {
-	return getIndex().totalBoxes();
+        return getIndex().totalBoxes();
     }
 
     public void close() throws DatabaseException {
-	getIndex().close();
+        getIndex().close();
     }
 
     public int delete(O object) throws IllegalIdException, DatabaseException,
-	    OBException, IllegalAccessException, InstantiationException {
-	// TODO: update the objects count array.
-	return delete(object, System.currentTimeMillis());
+            OBException, IllegalAccessException, InstantiationException {
+        // TODO: update the objects count array.
+        return delete(object, System.currentTimeMillis());
     }
 
     public void freeze() throws IOException, AlreadyFrozenException,
-	    IllegalIdException, IllegalAccessException, InstantiationException,
-	    DatabaseException, OutOfRangeException, OBException,
-	    UndefinedPivotsException {
-	getIndex().freeze();
-	// after we freeze, we have to insert our data
-	int i = 0;
-	int max = getIndex().databaseSize();
-	int[] boxes = new int[this.totalBoxes()];
-	while (i < max) {
-	    O object = getIndex().getObject(i);
-	    assert object != null;
-	    int box = getIndex().getBox(object);
-	    boxes[box] += 1;
-	    insertInsertEntry(box, System.currentTimeMillis(), i);
-	    i++;
-	}
-	if (logger.isDebugEnabled()) {
-	    logger.debug("Boxes distribution:" + Arrays.toString(boxes));
-	}
-	assert i == this.getIndex().databaseSize();
-	assert this.timeDB.count() == this.getIndex().databaseSize() : "time: "
-		+ timeDB.count() + " the rest: " + getIndex().databaseSize();
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            DatabaseException, OutOfRangeException, OBException,
+            UndefinedPivotsException {
+        getIndex().freeze();
+        // after we freeze, we have to insert our data
+        int i = 0;
+        int max = getIndex().databaseSize();
+        int[] boxes = new int[this.totalBoxes()];
+        while (i < max) {
+            O object = getIndex().getObject(i);
+            assert object != null;
+            int box = getIndex().getBox(object);
+            boxes[box] += 1;
+            insertInsertEntry(box, System.currentTimeMillis(), i);
+            i++;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Boxes distribution:" + Arrays.toString(boxes));
+        }
+        assert i == this.getIndex().databaseSize();
+        assert this.timeDB.count() == this.getIndex().databaseSize() : "time: "
+                + timeDB.count() + " the rest: " + getIndex().databaseSize();
     }
 
     public O getObject(int i) throws DatabaseException, IllegalIdException,
-	    IllegalAccessException, InstantiationException, OBException {
-	return getIndex().getObject(i);
+            IllegalAccessException, InstantiationException, OBException {
+        return getIndex().getObject(i);
     }
 
     public int insert(O object) throws IllegalIdException, DatabaseException,
-	    OBException, IllegalAccessException, InstantiationException {
-	return insert(object, System.currentTimeMillis());
+            OBException, IllegalAccessException, InstantiationException {
+        return insert(object, System.currentTimeMillis());
     }
 
     // FIXME time cannot be 0
     public int insert(O object, long time) throws IllegalIdException,
-	    DatabaseException, OBException, IllegalAccessException,
-	    InstantiationException {
-	int id = getIndex().insert(object);
-	if (id != -1) { // if we could insert the object
-	    if (isFrozen()) {
-		int box = getIndex().getBox(object);
-		insertInsertEntry(box, time, id);
-		incElementsPerBox(box);
-	    }
-	}
-	return id;
+            DatabaseException, OBException, IllegalAccessException,
+            InstantiationException {
+        int id = getIndex().insert(object);
+        if (id != -1) { // if we could insert the object
+            if (isFrozen()) {
+                int box = getIndex().getBox(object);
+                insertInsertEntry(box, time, id);
+                incElementsPerBox(box);
+            }
+        }
+        return id;
     }
 
     public int delete(O object, long time) throws IllegalIdException,
-	    DatabaseException, OBException, IllegalAccessException,
-	    InstantiationException {
-	int id = getIndex().delete(object);
-	if (id != -1) { // if we could delete the object
-	    if (isFrozen()) {
-		int box = getIndex().getBox(object);
-		insertDeleteEntry(box, time, object);
-		decElementsPerBox(box);
-	    }
-	}
-	return id;
+            DatabaseException, OBException, IllegalAccessException,
+            InstantiationException {
+        int id = getIndex().delete(object);
+        if (id != -1) { // if we could delete the object
+            if (isFrozen()) {
+                int box = getIndex().getBox(object);
+                insertDeleteEntry(box, time, object);
+                decElementsPerBox(box);
+            }
+        }
+        return id;
     }
 
     public boolean isFrozen() {
-	return getIndex().isFrozen();
+        return getIndex().isFrozen();
     }
 
     /**
-         * Adds a time entry to the database Key: box + time Value: id
-         * 
-         * @param box
-         * @param time
-         * @param id
-         * @return
-         */
+     * Adds a time entry to the database Key: box + time Value: id
+     * @param box
+     * @param time
+     * @param id
+     * @return
+     */
     protected void insertInsertEntry(int box, long time, int id)
-	    throws DatabaseException, OBException {
-	DatabaseEntry keyEntry = new DatabaseEntry();
-	DatabaseEntry dataEntry = new DatabaseEntry();
+            throws DatabaseException, OBException {
+        DatabaseEntry keyEntry = new DatabaseEntry();
+        DatabaseEntry dataEntry = new DatabaseEntry();
 
-	keyEntry.setData(boxTimeToByteArray(box, time));
-	TupleOutput out = new TupleOutput();
-	out.writeBoolean(true);
-	out.writeInt(id);
-	dataEntry.setData(out.getBufferBytes());
-	OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
-	if (ret != OperationStatus.SUCCESS) {
-	    throw new DatabaseException();
-	}
-	// update the cache, make sure that the latest
-	// time is updated automatically
-	synchronized (timeByBox) {
-	    if (timeByBox.get(box) < time) {
-		timeByBox.set(box, time);
-	    }
-	}
+        keyEntry.setData(boxTimeToByteArray(box, time));
+        TupleOutput out = new TupleOutput();
+        out.writeBoolean(true);
+        out.writeInt(id);
+        dataEntry.setData(out.getBufferBytes());
+        OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
+        if (ret != OperationStatus.SUCCESS) {
+            throw new DatabaseException();
+        }
+        // update the cache, make sure that the latest
+        // time is updated automatically
+        synchronized (timeByBox) {
+            if (timeByBox.get(box) < time) {
+                timeByBox.set(box, time);
+            }
+        }
 
     }
 
     /**
-         * Stores the given object into deleteTimeDB using the appropiate key
-         * (box + time). In the case of insertTimeDB we insert only the internal
-         * object id, but in the case of deletes, we store all the object
-         * 
-         * @param box
-         * @param time
-         * @param object
-         * @throws DatabaseException
-         * @throws OBException
-         */
+     * Stores the given object into deleteTimeDB using the appropiate key (box +
+     * time). In the case of insertTimeDB we insert only the internal object id,
+     * but in the case of deletes, we store all the object
+     * @param box
+     * @param time
+     * @param object
+     * @throws DatabaseException
+     * @throws OBException
+     */
     protected void insertDeleteEntry(int box, long time, O object)
-	    throws DatabaseException, OBException {
-	DatabaseEntry keyEntry = new DatabaseEntry();
-	DatabaseEntry dataEntry = new DatabaseEntry();
+            throws DatabaseException, OBException {
+        DatabaseEntry keyEntry = new DatabaseEntry();
+        DatabaseEntry dataEntry = new DatabaseEntry();
 
-	keyEntry.setData(boxTimeToByteArray(box, time));
-	TupleOutput out = new TupleOutput();
-	out.writeBoolean(false);
-	object.store(out);
-	dataEntry.setData(out.getBufferBytes());
-	OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
-	if (ret != OperationStatus.SUCCESS) {
-	    throw new DatabaseException();
-	}
-	// update the cache, make sure that the latest
-	// time is updated automatically
-	synchronized (timeByBox) {
-	    if (timeByBox.get(box) < time) {
-		timeByBox.set(box, time);
-	    }
-	}
+        keyEntry.setData(boxTimeToByteArray(box, time));
+        TupleOutput out = new TupleOutput();
+        out.writeBoolean(false);
+        object.store(out);
+        dataEntry.setData(out.getBufferBytes());
+        OperationStatus ret = timeDB.put(null, keyEntry, dataEntry);
+        if (ret != OperationStatus.SUCCESS) {
+            throw new DatabaseException();
+        }
+        // update the cache, make sure that the latest
+        // time is updated automatically
+        synchronized (timeByBox) {
+            if (timeByBox.get(box) < time) {
+                timeByBox.set(box, time);
+            }
+        }
 
     }
 
     private void incElementsPerBox(int box) throws DatabaseException,
-	    OBException {
-	if (objectsByBox.get(box) == -1) {
-	    elementsPerBox(box);
-	}
-	objectsByBox.incrementAndGet(box);
+            OBException {
+        if (objectsByBox.get(box) == -1) {
+            elementsPerBox(box);
+        }
+        objectsByBox.incrementAndGet(box);
     }
 
     private void decElementsPerBox(int box) throws DatabaseException,
-	    OBException {
-	if (objectsByBox.get(box) == -1) {
-	    elementsPerBox(box);
-	}
-	objectsByBox.decrementAndGet(box);
+            OBException {
+        if (objectsByBox.get(box) == -1) {
+            elementsPerBox(box);
+        }
+        objectsByBox.decrementAndGet(box);
     }
 
     public long latestModification(int box) throws DatabaseException,
-	    OBException {
-	if (timeByBox.get(box) == 0) {
-	    // 0 is the unitialized value.
-	    timeByBox.set(box, latestInsertedItemAux(box));
-	}
-	return timeByBox.get(box);
+            OBException {
+        if (timeByBox.get(box) == 0) {
+            // 0 is the unitialized value.
+            timeByBox.set(box, latestInsertedItemAux(box));
+        }
+        return timeByBox.get(box);
     }
 
     public int elementsPerBox(int box) throws DatabaseException, OBException {
-	if (objectsByBox.get(box) == -1) {
-	    // this updates the box count.
-	    objectsByBox.set(box, objectsPerBoxAux(box));
-	}
-	return this.objectsByBox.get(box);
+        if (objectsByBox.get(box) == -1) {
+            // this updates the box count.
+            objectsByBox.set(box, objectsPerBoxAux(box));
+        }
+        return this.objectsByBox.get(box);
     }
 
     /**
-         * Counts the number of objects for the given box
-         * 
-         * @param box
-         *                the box to be processed
-         * @return
-         */
+     * Counts the number of objects for the given box
+     * @param box
+     *            the box to be processed
+     * @return
+     */
     private int objectsPerBoxAux(int box) throws DatabaseException {
-	Cursor cursor = null;
-	DatabaseEntry key = new DatabaseEntry();
-	DatabaseEntry foundData = new DatabaseEntry();
-	long resTime = -1;
-	int count = 0;
-	try {
-	    cursor = timeDB.openCursor(null, null);
-	    key.setData(boxTimeToByteArray(box, resTime));
-	    OperationStatus retVal = cursor.getSearchKeyRange(key, foundData,
-		    LockMode.DEFAULT);
-	    MyTupleInput in = new MyTupleInput();
-	    int cbox = box;
-	    while (retVal == OperationStatus.SUCCESS && cbox == box) {
-		in.setBuffer(key.getData());
-		cbox = in.readInt();
-		retVal = cursor.getNext(key, foundData, null);
-		if (cbox == box) {
-		    count++;
-		}
-	    }
-	} finally {
-	    if (cursor != null) {
-		cursor.close();
-	    }
-	}
-	return count;
+        Cursor cursor = null;
+        DatabaseEntry key = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        long resTime = -1;
+        int count = 0;
+        try {
+            cursor = timeDB.openCursor(null, null);
+            key.setData(boxTimeToByteArray(box, resTime));
+            OperationStatus retVal = cursor.getSearchKeyRange(key, foundData,
+                    LockMode.DEFAULT);
+            MyTupleInput in = new MyTupleInput();
+            int cbox = box;
+            while (retVal == OperationStatus.SUCCESS && cbox == box) {
+                in.setBuffer(key.getData());
+                cbox = in.readInt();
+                retVal = cursor.getNext(key, foundData, null);
+                if (cbox == box) {
+                    count++;
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return count;
     }
 
     /**
-         * Obtains the latest inserted item in the given box or -1 if there are
-         * no items. It also calculates the number of boxes available in the
-         * index
-         * 
-         * @param box
-         * @return
-         * @throws DatabaseException
-         * @throws OBException
-         */
+     * Obtains the latest inserted item in the given box or -1 if there are no
+     * items. It also calculates the number of boxes available in the index
+     * @param box
+     * @return
+     * @throws DatabaseException
+     * @throws OBException
+     */
     private long latestInsertedItemAux(int box) throws DatabaseException,
-	    OBException {
-	return latestInsertedItemAuxAux(box, this.timeDB);
+            OBException {
+        return latestInsertedItemAuxAux(box, this.timeDB);
     }
 
     private long latestInsertedItemAuxAux(int box, Database db)
-	    throws DatabaseException, OBException {
-	Cursor cursor = null;
-	DatabaseEntry key = new DatabaseEntry();
-	DatabaseEntry foundData = new DatabaseEntry();
-	long resTime = -1;
-	try {
-	    cursor = db.openCursor(null, null);
-	    key.setData(boxTimeToByteArray(box, 0));
-	    OperationStatus retVal = cursor.getSearchKeyRange(key, foundData,
-		    LockMode.DEFAULT);
-	    MyTupleInput in = new MyTupleInput();
-	    int cbox = box;
-	    while (retVal == OperationStatus.SUCCESS && cbox == box) {
-		in.setBuffer(key.getData());
-		cbox = in.readInt();
-		long time = in.readLong();
-		assert validate(resTime, time, cbox, box) : "resTime: "
-			+ resTime + " time: " + time;
-		if (resTime < time) {
-		    resTime = time;
-		}
-		retVal = cursor.getNext(key, foundData, null);
-	    }
-	} finally {
-	    if (cursor != null) {
-		cursor.close();
-	    }
-	}
-	return resTime;
+            throws DatabaseException, OBException {
+        Cursor cursor = null;
+        DatabaseEntry key = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        long resTime = -1;
+        try {
+            cursor = db.openCursor(null, null);
+            key.setData(boxTimeToByteArray(box, 0));
+            OperationStatus retVal = cursor.getSearchKeyRange(key, foundData,
+                    LockMode.DEFAULT);
+            MyTupleInput in = new MyTupleInput();
+            int cbox = box;
+            while (retVal == OperationStatus.SUCCESS && cbox == box) {
+                in.setBuffer(key.getData());
+                cbox = in.readInt();
+                long time = in.readLong();
+                assert validate(resTime, time, cbox, box) : "resTime: "
+                        + resTime + " time: " + time;
+                if (resTime < time) {
+                    resTime = time;
+                }
+                retVal = cursor.getNext(key, foundData, null);
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return resTime;
     }
 
     /**
-         * Method used to perform a validation from the assert only if prev is <=
-         * next when cbox == box we return true
-         * 
-         * @param prev
-         * @param next
-         * @param cbox
-         * @param box
-         * @return
-         */
+     * Method used to perform a validation from the assert only if prev is <=
+     * next when cbox == box we return true
+     * @param prev
+     * @param next
+     * @param cbox
+     * @param box
+     * @return
+     */
     private boolean validate(long prev, long next, int cbox, int box) {
-	if (cbox != box) {
-	    return true;
-	} else {
-	    return prev <= next;
-	}
+        if (cbox != box) {
+            return true;
+        } else {
+            return prev <= next;
+        }
     }
 
     private byte[] boxTimeToByteArray(int box, long time) {
-	TupleOutput data = new TupleOutput();
-	data.writeInt(box);
-	data.writeLong(time);
-	return data.getBufferBytes();
+        TupleOutput data = new TupleOutput();
+        data.writeInt(box);
+        data.writeLong(time);
+        return data.getBufferBytes();
     }
 
-    public Iterator<TimeStampResult<O>> elementsNewerThan(int box, long time)
-	    throws DatabaseException {
-	return new TimeStampIterator(box, time);
+    public Iterator < TimeStampResult < O >> elementsNewerThan(int box,
+            long time) throws DatabaseException {
+        return new TimeStampIterator(box, time);
     }
 
     public int getBox(O object) throws OBException {
-	return this.getIndex().getBox(object);
+        return this.getIndex().getBox(object);
     }
 
     public int[] currentBoxes() throws DatabaseException, OBException {
-	int i = 0;
-	int max = this.totalBoxes();
-	List<Integer> result = new LinkedList<Integer>();
-	while (i < max) {
-	    if (latestModification(i) != -1) {
-		result.add(i);
-	    }
-	    i++;
-	}
-	int[] resultArray = new int[result.size()];
-	i = 0;
-	Iterator<Integer> it = result.iterator();
-	while (it.hasNext()) {
-	    resultArray[i] = it.next();
-	    i++;
-	}
-	return resultArray;
+        int i = 0;
+        int max = this.totalBoxes();
+        List < Integer > result = new LinkedList < Integer >();
+        while (i < max) {
+            if (latestModification(i) != -1) {
+                result.add(i);
+            }
+            i++;
+        }
+        int[] resultArray = new int[result.size()];
+        i = 0;
+        Iterator < Integer > it = result.iterator();
+        while (it.hasNext()) {
+            resultArray[i] = it.next();
+            i++;
+        }
+        return resultArray;
     }
 
     public class TimeStampIterator implements Iterator {
 
-	private Cursor cursor = null;
+        private Cursor cursor = null;
 
-	private DatabaseEntry keyEntry = new DatabaseEntry();
+        private DatabaseEntry keyEntry = new DatabaseEntry();
 
-	private DatabaseEntry dataEntry = new DatabaseEntry();
+        private DatabaseEntry dataEntry = new DatabaseEntry();
 
-	private OperationStatus retVal;
+        private OperationStatus retVal;
 
-	private MyTupleInput in;
+        private MyTupleInput in;
 
-	private int box;
+        private int box;
 
-	private int cbox = -1;
+        private int cbox = -1;
 
-	private long previous = Long.MIN_VALUE;
+        private long previous = Long.MIN_VALUE;
 
-	private int count = 0;
+        private int count = 0;
 
-	private Transaction txn;
+        private Transaction txn;
 
-	private boolean closeForced = false;
+        private boolean closeForced = false;
 
-	/**
+        /**
          * Creates a new TimeStampIterator from the given database if the
          * parameter idFormat = true then the iterator will extract the objects
          * from the internal index. If the parameter is false, then the objects
          * are actually embeded in the record and will be read from there
-         * 
          * @param box
          * @param from
          * @param db
          * @param idFormat
          * @throws DatabaseException
          */
-	public TimeStampIterator(int box, long from) throws DatabaseException {
-	    this.box = box;
+        public TimeStampIterator(int box, long from) throws DatabaseException {
+            this.box = box;
 
-	    CursorConfig config = new CursorConfig();
-	    config.setReadUncommitted(true);
-	    txn = databaseEnvironment.beginTransaction(null, null);
-	    cursor = timeDB.openCursor(txn, config);
+            CursorConfig config = new CursorConfig();
+            config.setReadUncommitted(true);
+            txn = databaseEnvironment.beginTransaction(null, null);
+            cursor = timeDB.openCursor(txn, config);
 
-	    previous = from;
-	    keyEntry.setData(boxTimeToByteArray(box, from));
-	    retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
-	    in = new MyTupleInput();
-	    goNextAux();
-	}
+            previous = from;
+            keyEntry.setData(boxTimeToByteArray(box, from));
+            retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
+            in = new MyTupleInput();
+            goNextAux();
+        }
 
-	// update the data from keyEntry and dataEntry
-	private void goNextAux() {
-	    if (OperationStatus.SUCCESS == retVal) {
-		in.setBuffer(keyEntry.getData());
-		cbox = in.readInt();
-		long recent = in.readLong();
-		count++;
-		assert validate(recent) : "Previous: " + previous + " recent"
-			+ recent + "returned: " + count;
-		previous = recent;
-	    } else {
-		cbox = -1;
-	    }
-	}
+        // update the data from keyEntry and dataEntry
+        private void goNextAux() {
+            if (OperationStatus.SUCCESS == retVal) {
+                in.setBuffer(keyEntry.getData());
+                cbox = in.readInt();
+                long recent = in.readLong();
+                count++;
+                assert validate(recent) : "Previous: " + previous + " recent"
+                        + recent + "returned: " + count;
+                previous = recent;
+            } else {
+                cbox = -1;
+            }
+        }
 
-	// validates some general conditions in the data
-	private boolean validate(long recent) {
-	    if (box == cbox) {
-		return previous <= recent;
-	    } else {
-		return true;
-	    }
-	}
+        // validates some general conditions in the data
+        private boolean validate(long recent) {
+            if (box == cbox) {
+                return previous <= recent;
+            } else {
+                return true;
+            }
+        }
 
-	private void goNext() throws DatabaseException {
-	    retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
-	    goNextAux();
-	}
+        private void goNext() throws DatabaseException {
+            retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
+            goNextAux();
+        }
 
-	public void close() {
-	    try {
-		cursor.close();
-		closeForced = true;
-	    } catch (DatabaseException e) {
-		// logger.fatal(e);
-		// if the cursor has been closed already ignore the error
-		// assert false;
-	    }
-	}
+        public void close() {
+            try {
+                cursor.close();
+                closeForced = true;
+            } catch (DatabaseException e) {
+                // logger.fatal(e);
+                // if the cursor has been closed already ignore the error
+                // assert false;
+            }
+        }
 
-	public boolean hasNext() {
-	    boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
-	    if (!res) {
-		close();
-	    }
-	    return res;
-	}
+        public boolean hasNext() {
+            boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
+            if (!res) {
+                close();
+            }
+            return res;
+        }
 
-	public TimeStampResult next() {
-	    try {
-		if (hasNext()) {
-		    TupleInput inl = new TupleInput(dataEntry.getData());
-		    O obj = null;
-		    Boolean insert = inl.readBoolean();
-		    if (insert) {
-			int id = inl.readInt();
-			obj = getObject(id);
-		    } else {
-			obj = getIndex().readObject(inl);
-		    }
-		    goNext();
-		    return new TimeStampResult(obj, previous, insert);
-		} else {
-		    assert false : "You should be calling hasNext before calling next.";
-		    return null;
-		}
-	    } catch (Exception e) {
-		logger.fatal("Error while retrieving record", e);
-		assert false;
-		return null;
-	    }
-	}
+        public TimeStampResult next() {
+            try {
+                if (hasNext()) {
+                    TupleInput inl = new TupleInput(dataEntry.getData());
+                    O obj = null;
+                    Boolean insert = inl.readBoolean();
+                    if (insert) {
+                        int id = inl.readInt();
+                        obj = getObject(id);
+                    } else {
+                        obj = getIndex().readObject(inl);
+                    }
+                    goNext();
+                    return new TimeStampResult(obj, previous, insert);
+                } else {
+                    assert false : "You should be calling hasNext before calling next.";
+                    return null;
+                }
+            } catch (Exception e) {
+                logger.fatal("Error while retrieving record", e);
+                assert false;
+                return null;
+            }
+        }
 
-	/**
+        /**
          * The remove method is not implemented. Please do not use it.
          */
-	public void remove() {
-	    assert false;
-	}
+        public void remove() {
+            assert false;
+        }
 
     }
 
     public void relocateInitialize(File dbPath) throws DatabaseException,
-	    NotFrozenException, DatabaseException, IllegalAccessException,
-	    InstantiationException, OBException, IOException {
-	getIndex().relocateInitialize(dbPath);
+            NotFrozenException, DatabaseException, IllegalAccessException,
+            InstantiationException, OBException, IOException {
+        getIndex().relocateInitialize(dbPath);
     }
 
     public O readObject(TupleInput in) throws InstantiationException,
-	    IllegalAccessException, OBException {
-	return getIndex().readObject(in);
+            IllegalAccessException, OBException {
+        return getIndex().readObject(in);
     }
 
     public boolean exists(O object) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException {
-	return getIndex().exists(object);
+            IllegalAccessException, InstantiationException {
+        return getIndex().exists(object);
     }
 }
