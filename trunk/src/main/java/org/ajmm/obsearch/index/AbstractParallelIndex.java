@@ -22,191 +22,191 @@ import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.DatabaseException;
+
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
-  	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-	  Class: AbstractParallelIndex
-	  
-	  Wrapper class that allows to exploit all the cpus of a computer with
-		any OB index. :) yay!
-
-    @author      Arnoldo Jose Muller Molina
-    @version     %I%, %G%
-    @since       0.0
-*/
-// TODO: There is a performance bottleneck in this class. CPU usage for a quad core machine gets 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * Class: AbstractParallelIndex Wrapper class that allows to exploit all the
+ * cpus of a computer with any OB index. :) yay!
+ * @param <O>
+ *            The type of object to be stored in the Index.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
+ */
+// TODO: There is a performance bottleneck in this class. CPU usage for a quad
+// core machine gets
 // only to 280% when using 4 threads. It should be 400%.
-// It might be berkeley db. It might be simply the fact that there is only one hard drive, and 4 cpus 
-// eating a lot of data. Another possibility is that the queue is too slow, that the bottleneck is the creation of slices...
+// It might be berkeley db. It might be simply the fact that there is only one
+// hard drive, and 4 cpus
+// eating a lot of data. Another possibility is that the queue is too slow, that
+// the bottleneck is the creation of slices...
 // I will work on this in the future.
 // This class is officially suspended. I don't need it right now.
-public abstract class AbstractParallelIndex<O extends OB>  implements Index<O>, ParallelIndex<O>, Runnable {
+public abstract class AbstractParallelIndex < O extends OB > implements
+        Index < O >, ParallelIndex < O >, Runnable {
 
-	// # of threads to be used
-	protected int cpus;
-	// object that executes threads
-	protected Executor executor;
-	// keep track of an exception if it occurs
-	protected Exception recordedException;
+    // # of threads to be used
+    protected int cpus;
 
-	// variable that holds the # of unprocessed elements
-	// a search increments it by one
-	// a completed search decrements it by one
-	protected AtomicInteger counter;
-	
-	
+    // object that executes threads
+    protected Executor executor;
 
-	private static transient final Logger logger = Logger
-    .getLogger(AbstractParallelIndex.class);
+    // keep track of an exception if it occurs
+    protected Exception recordedException;
 
-	/**
-	 * Initializes this parallel index with an Index,
-	 * a paralellism level
-	 * @param index
-	 */
-	public AbstractParallelIndex(int cpus){
-		this.cpus = cpus;
-		recordedException = null;
-		executor  = Executors.newFixedThreadPool(cpus);
-		counter = new AtomicInteger();
-	}
+    // variable that holds the # of unprocessed elements
+    // a search increments it by one
+    // a completed search decrements it by one
+    protected AtomicInteger counter;
 
-	/**
-	 * This method must be called by daughters of this class
-	 * when they are ready to start matching
-	 */
-	protected void initiateThreads(){
-		int i = 0;
-		while(i < cpus){
-			executor.execute(getMe());
-			i++;
-		}
-	}
+    private static transient final Logger logger = Logger
+            .getLogger(AbstractParallelIndex.class);
 
-	protected abstract ParallelIndex getMe();
+    /**
+     * Initializes this parallel index with an Index, a paralellism level
+     * @param index
+     */
+    public AbstractParallelIndex(int cpus) {
+        this.cpus = cpus;
+        recordedException = null;
+        executor = Executors.newFixedThreadPool(cpus);
+        counter = new AtomicInteger();
+    }
 
-	protected void checkException() throws OBException{
-		if(recordedException != null){
-			logger.fatal("Exception caught in Parallel Index", recordedException);
-			throw new OBException(recordedException);
-		}
-	}
+    /**
+     * This method must be called by daughters of this class when they are ready
+     * to start matching
+     */
+    protected void initiateThreads() {
+        int i = 0;
+        while (i < cpus) {
+            executor.execute(getMe());
+            i++;
+        }
+    }
 
-	/**
-	 * Returns the index that this class is parallelizing
-	 * @return Internal index
-	 */
-	public abstract Index<O>getIndex();
+    protected abstract ParallelIndex getMe();
 
+    protected void checkException() throws OBException {
+        if (recordedException != null) {
+            logger.fatal("Exception caught in Parallel Index",
+                    recordedException);
+            throw new OBException(recordedException);
+        }
+    }
 
+    /**
+     * Returns the index that this class is parallelizing
+     * @return Internal index
+     */
+    public abstract Index < O > getIndex();
 
-	public int delete(O object) throws DatabaseException, OBException,
-	IllegalAccessException, InstantiationException {
-		return getIndex().delete(object);
-	}
+    public int delete(O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
+        return getIndex().delete(object);
+    }
 
-	public void freeze() throws IOException, AlreadyFrozenException,
-			IllegalIdException, IllegalAccessException, InstantiationException,
-			DatabaseException, OutOfRangeException, OBException,
-			UndefinedPivotsException {
-			getIndex().freeze();
-	}
+    public void freeze() throws IOException, AlreadyFrozenException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            DatabaseException, OutOfRangeException, OBException,
+            UndefinedPivotsException {
+        getIndex().freeze();
+    }
 
-	public O getObject(int i) throws DatabaseException, IllegalIdException,
-			IllegalAccessException, InstantiationException, OBException {
-		return getIndex().getObject(i);
-	}
-	
-	public int totalBoxes(){
-		return getIndex().totalBoxes();
-	}
-	
-	public int getBox(O object) throws OBException{
-		return getIndex().getBox(object);
-	}
+    public O getObject(int i) throws DatabaseException, IllegalIdException,
+            IllegalAccessException, InstantiationException, OBException {
+        return getIndex().getObject(i);
+    }
 
-	public int insert(O object) throws IllegalIdException,
-			DatabaseException, OBException, IllegalAccessException,
-			InstantiationException {
-		int res = getIndex().insert(object);
-		return res;
-	}
+    public int totalBoxes() {
+        return getIndex().totalBoxes();
+    }
 
-	public boolean isFrozen() {
-		return getIndex().isFrozen();
-	}
+    public int getBox(O object) throws OBException {
+        return getIndex().getBox(object);
+    }
 
-	/**
-	 * This method is in charge of continuously wait for items to match
-	 * and perform the respective match.
-	 */
-	public abstract void run();
+    public int insert(O object) throws IllegalIdException, DatabaseException,
+            OBException, IllegalAccessException, InstantiationException {
+        int res = getIndex().insert(object);
+        return res;
+    }
 
-	/**
-	 * Returns the elements found in this queue
-	 * @return
-	 */
-	public abstract int elementsInQueue();
+    public boolean isFrozen() {
+        return getIndex().isFrozen();
+    }
 
-	/**
-	 * Waits until there are no more items to be matched.
-	 *
-	 */
-	public void waitQueries()  throws OBException{
-		while(counter.get() != 0){
-			try {
-				checkException();				
-				//waiting.acquire();
-				synchronized(counter){
-					counter.wait();
-				}
+    /**
+     * This method is in charge of continuously wait for items to match and
+     * perform the respective match.
+     */
+    public abstract void run();
 
-            } catch (InterruptedException e) {}
-		}
-		
-	}
+    /**
+     * Returns the elements found in this queue
+     * @return
+     */
+    public abstract int elementsInQueue();
 
-	public void close() throws DatabaseException{
-		getIndex().close();
-	}
+    /**
+     * Waits until there are no more items to be matched.
+     */
+    public void waitQueries() throws OBException {
+        while (counter.get() != 0) {
+            try {
+                checkException();
+                // waiting.acquire();
+                synchronized (counter) {
+                    counter.wait();
+                }
 
-	/**
-	 * Returns the xml of the index embedded in this 
-	 * ParallelIndex
-	 */
-	public String toXML(){
-		return getIndex().toXML();
-	}
+            } catch (InterruptedException e) {
+            }
+        }
 
+    }
 
-	public void relocateInitialize(File dbPath) throws DatabaseException,
-	NotFrozenException, DatabaseException, IllegalAccessException,
-	InstantiationException, OBException, IOException{
-		getIndex().relocateInitialize(dbPath);
-	}
-	
-	public O readObject(TupleInput in) throws InstantiationException, IllegalAccessException, OBException{
-		return getIndex().readObject(in);
-	}
-	
-	public boolean exists(O object)throws DatabaseException, OBException,
-	IllegalAccessException, InstantiationException {
-		return getIndex().exists(object);
-	}
+    public void close() throws DatabaseException {
+        getIndex().close();
+    }
+
+    /**
+     * Returns the xml of the index embedded in this ParallelIndex
+     */
+    public String toXML() {
+        return getIndex().toXML();
+    }
+
+    public void relocateInitialize(File dbPath) throws DatabaseException,
+            NotFrozenException, DatabaseException, IllegalAccessException,
+            InstantiationException, OBException, IOException {
+        getIndex().relocateInitialize(dbPath);
+    }
+
+    public O readObject(TupleInput in) throws InstantiationException,
+            IllegalAccessException, OBException {
+        return getIndex().readObject(in);
+    }
+
+    public boolean exists(O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
+        return getIndex().exists(object);
+    }
 }

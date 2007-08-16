@@ -9,41 +9,42 @@ import cern.colt.map.OpenIntDoubleHashMap;
 import cern.colt.map.OpenIntObjectHashMap;
 
 /*
-    OBSearch: a distributed similarity search engine
-    This project is to similarity search what 'bit-torrent' is to downloads.
-    Copyright (C)  2007 Arnoldo Jose Muller Molina
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
 
-  	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
-	  By using soft references, an OB cache is implemented
-	  The garbage collector decides based on the access patterns of each
-      reference, which elements are released and which are kept.
-    @author      Arnoldo Jose Muller Molina
-    @version     %I%, %G%
-    @since       1.0
-*/
+ * By using soft references, an OB cache is implemented The garbage collector
+ * decides based on the access patterns of each reference, which elements are
+ * released and which are kept.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 1.0
+ */
 
 public class OBCache < O > {
 
-    ConcurrentHashMap<Integer,SoftReference<O>> map;
-    
-    public OBCache(int currentDBSize){
+    ConcurrentHashMap < Integer, SoftReference < O >> map;
+
+    public OBCache(int currentDBSize) {
         // using open addressing because it is cheaper
-        //map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
-    	map = new ConcurrentHashMap<Integer,SoftReference<O>>(currentDBSize);
+        // map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
+        map = new ConcurrentHashMap < Integer, SoftReference < O >>(
+                currentDBSize);
     }
 
     /**
@@ -51,8 +52,8 @@ public class OBCache < O > {
      * @param id
      * @param object
      */
-    public void  put(int id, O object){
-        map.put(Integer.valueOf(id), new SoftReference<O>(object));
+    public void put(int id, O object) {
+        map.put(Integer.valueOf(id), new SoftReference < O >(object));
     }
 
     /**
@@ -60,18 +61,17 @@ public class OBCache < O > {
      * @param id
      * @return null if no object is found
      */
-    public O get(int id){
-        SoftReference<O> ref = map.get(id);
-        if(ref == null){
+    public O get(int id) {
+        SoftReference < O > ref = map.get(id);
+        if (ref == null) {
             return null; // the object is not here.
-         }
+        }
         O result = ref.get();
-        /*if(result == null){
-            map.removeKey(id); // do we really need to remove the object?
-        }*/
+        /*
+         * if(result == null){ map.removeKey(id); // do we really need to remove
+         * the object? }
+         */
         return result;
     }
-
-
 
 }

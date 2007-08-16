@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.exception;
 
-public class BoxNotAvailableException extends OBException {
+public class BoxNotAvailableException
+        extends OBException {
 
 }

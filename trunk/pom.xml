@@ -4,7 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <packaging>jar</packaging>
-  <version>0.0-SNAPSHOT</version>
+  <version>0.7</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description>  

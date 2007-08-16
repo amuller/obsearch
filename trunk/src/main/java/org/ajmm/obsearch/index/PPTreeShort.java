@@ -54,838 +54,827 @@ import com.sleepycat.je.OperationStatus;
 /**
  * Class: PPTreeShort Implementation of a P+Tree that stores shorts. We take the
  * burden of maintaining one class per datatype for efficiency reasons.
- * 
  * @author Arnoldo Jose Muller Molina
+ * @param <O>
+ *            The type of object to be stored in the Index.
  * @version %I%, %G%
  * @since 0.0
  */
 
-public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
-	IndexShort<O> {
+public class PPTreeShort < O extends OBShort >
+        extends AbstractPPTree < O > implements IndexShort < O > {
 
     private short minInput;
 
     private short maxInput;
 
     private static final transient Logger logger = Logger
-	    .getLogger(PPTreeShort.class);
+            .getLogger(PPTreeShort.class);
 
-    protected transient HashMap<O, OBQueryShort<O>> resultCache;
+    protected transient HashMap < O, OBQueryShort < O >> resultCache;
 
     protected final static int resultCacheSize = 3000;
 
     /*
-         * Cache used for getting objects from B. Only used before freezing
-         */
-    private transient OBCache<float[]> bCache;
+     * Cache used for getting objects from B. Only used before freezing
+     */
+    private transient OBCache < float[] > bCache;
 
     public PPTreeShort(File databaseDirectory, short pivots, byte od)
-	    throws DatabaseException, IOException {
-	this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE);
+            throws DatabaseException, IOException {
+        this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
-	    short minInput, short maxInput) throws DatabaseException,
-	    IOException {
-	super(databaseDirectory, pivots, od);
-	assert minInput < maxInput;
-	this.minInput = minInput;
-	this.maxInput = maxInput;
-	resultCache = new HashMap<O, OBQueryShort<O>>(3000);
-	bCache = new OBCache<float[]>(this.databaseSize());
+            short minInput, short maxInput) throws DatabaseException,
+            IOException {
+        super(databaseDirectory, pivots, od);
+        assert minInput < maxInput;
+        this.minInput = minInput;
+        this.maxInput = maxInput;
+        resultCache = new HashMap < O, OBQueryShort < O >>(3000);
+        bCache = new OBCache < float[] >(this.databaseSize());
     }
 
     @Override
     protected float[] extractTuple(TupleInput in) throws OutOfRangeException {
-	int i = 0;
-	float[] res = new float[pivotsCount];
-	while (i < pivotsCount) {
-	    res[i] = normalizeFirstPassAux(in.readShort());
-	    i++;
-	}
-	return res;
+        int i = 0;
+        float[] res = new float[pivotsCount];
+        while (i < pivotsCount) {
+            res[i] = normalizeFirstPassAux(in.readShort());
+            i++;
+        }
+        return res;
     }
 
     @Override
     public String getSerializedName() {
-	// TODO Auto-generated method stub
-	return "PPTreeShort";
+        // TODO Auto-generated method stub
+        return "PPTreeShort";
     }
 
     protected int distanceValueSizeInBytes() {
-	return Short.SIZE / 8;
+        return Short.SIZE / 8;
     }
 
     /**
-         * Method that takes the values already calculated in B and puts them
-         * into C This is to save some time when rebuilding the index
-         */
+     * Method that takes the values already calculated in B and puts them into C
+     * This is to save some time when rebuilding the index
+     */
     @Override
     protected void insertFromBtoC() throws DatabaseException,
-	    OutOfRangeException {
+            OutOfRangeException {
 
-	DatabaseEntry foundKey = new DatabaseEntry();
-	DatabaseEntry foundData = new DatabaseEntry();
-	Cursor cursor = null;
-	long count = super.bDB.count();
-	short[] t = new short[pivotsCount];
-	try {
-	    int i = 0;
-	    cursor = bDB.openCursor(null, null);
-	    MyTupleInput in = new MyTupleInput();
-	    while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-		assert i == IntegerBinding.entryToInt(foundKey);
-		// i contains the actual id of the tuple
-		in.setBuffer(foundData.getData());
-		int cx = 0;
-		while (cx < t.length) {
-		    t[cx] = in.readShort();
-		    cx++;
-		}
-		this.insertFrozenAux(t, i);
-		i++;
-	    }
-	    // Size reported by the DB and the items
-	    // we read should be the same
-	    assert i == count;
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        Cursor cursor = null;
+        long count = super.bDB.count();
+        short[] t = new short[pivotsCount];
+        try {
+            int i = 0;
+            cursor = bDB.openCursor(null, null);
+            MyTupleInput in = new MyTupleInput();
+            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                assert i == IntegerBinding.entryToInt(foundKey);
+                // i contains the actual id of the tuple
+                in.setBuffer(foundData.getData());
+                int cx = 0;
+                while (cx < t.length) {
+                    t[cx] = in.readShort();
+                    cx++;
+                }
+                this.insertFrozenAux(t, i);
+                i++;
+            }
+            // Size reported by the DB and the items
+            // we read should be the same
+            assert i == count;
 
-	} finally {
-	    cursor.close();
-	}
-	assert cDB.count() == bDB.count();
+        } finally {
+            cursor.close();
+        }
+        assert cDB.count() == bDB.count();
 
     }
 
     /**
-         * Generates a query rectangle based on the given range and the given
-         * tuple. It normalizes the query first level only
-         * 
-         * @param t
-         *                the tuple to be processed
-         * @param r
-         *                the range
-         * @param q
-         *                resulting rectangle query
-         */
+     * Generates a query rectangle based on the given range and the given tuple.
+     * It normalizes the query first level only
+     * @param t
+     *            the tuple to be processed
+     * @param r
+     *            the range
+     * @param q
+     *            resulting rectangle query
+     */
 
     protected void generateRectangleFirstPass(short[] t, short r, float[][] q)
-	    throws OutOfRangeException {
-	// create a rectangle query
-	int i = 0;
-	while (i < q.length) { //
-	    q[i][MIN] = normalizeFirstPassAux((short) Math.max(t[i] - r,
-		    minInput));
-	    q[i][MAX] = normalizeFirstPassAux((short) Math.min(t[i] + r,
-		    maxInput));
-	    i++;
-	}
+            throws OutOfRangeException {
+        // create a rectangle query
+        int i = 0;
+        while (i < q.length) { //
+            q[i][MIN] = normalizeFirstPassAux((short) Math.max(t[i] - r,
+                    minInput));
+            q[i][MAX] = normalizeFirstPassAux((short) Math.min(t[i] + r,
+                    maxInput));
+            i++;
+        }
     }
 
     public boolean intersects(O object, short r, int box)
-	    throws NotFrozenException, DatabaseException,
-	    InstantiationException, IllegalIdException, IllegalAccessException,
-	    OutOfRangeException, OBException {
-	// calculate the vector for the object
-	short[] t = new short[pivotsCount];
-	calculatePivotTuple(object, t);
-	// calculate the rectangle
-	float[][] qrect = new float[pivotsCount][2];
-	generateRectangleFirstPass(t, r, qrect);
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        // calculate the vector for the object
+        short[] t = new short[pivotsCount];
+        calculatePivotTuple(object, t);
+        // calculate the rectangle
+        float[][] qrect = new float[pivotsCount][2];
+        generateRectangleFirstPass(t, r, qrect);
 
-	return super.spaceTreeLeaves[box].intersects(qrect);
+        return super.spaceTreeLeaves[box].intersects(qrect);
     }
 
     public int[] intersectingBoxes(O object, short r)
-	    throws NotFrozenException, DatabaseException,
-	    InstantiationException, IllegalIdException, IllegalAccessException,
-	    OutOfRangeException, OBException {
-	int max = super.totalBoxes();
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        int max = super.totalBoxes();
 
-	// calculate the vector for the object
-	short[] t = new short[pivotsCount];
-	calculatePivotTuple(object, t);
-	// calculate the rectangle
-	float[][] qrect = new float[pivotsCount][2];
-	generateRectangleFirstPass(t, r, qrect);
-	// obtain the hypercubes that have to be matched
-	List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
-	spaceTree.searchRange(qrect, hyperRectangles);
-	int[] result = new int[hyperRectangles.size()];
-	Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
-	int i = 0;
-	while (it.hasNext()) {
-	    SpaceTreeLeaf leaf = it.next();
-	    result[i] = leaf.getSNo();
-	    i++;
-	}
-	return result;
+        // calculate the vector for the object
+        short[] t = new short[pivotsCount];
+        calculatePivotTuple(object, t);
+        // calculate the rectangle
+        float[][] qrect = new float[pivotsCount][2];
+        generateRectangleFirstPass(t, r, qrect);
+        // obtain the hypercubes that have to be matched
+        List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
+        spaceTree.searchRange(qrect, hyperRectangles);
+        int[] result = new int[hyperRectangles.size()];
+        Iterator < SpaceTreeLeaf > it = hyperRectangles.iterator();
+        int i = 0;
+        while (it.hasNext()) {
+            SpaceTreeLeaf leaf = it.next();
+            result[i] = leaf.getSNo();
+            i++;
+        }
+        return result;
     }
 
-    public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
-	    throws NotFrozenException, DatabaseException,
-	    InstantiationException, IllegalIdException, IllegalAccessException,
-	    OutOfRangeException, OBException {
-	short[] t = new short[pivotsCount];
-	// calculate the pivot for the given object
-	calculatePivotTuple(object, t);
-	float[][] qrect = new float[pivotsCount][2]; // rectangular query
-	generateRectangleFirstPass(t, r, qrect);
-	List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
-	// obtain the hypercubes that have to be matched
+    public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        short[] t = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, t);
+        float[][] qrect = new float[pivotsCount][2]; // rectangular query
+        generateRectangleFirstPass(t, r, qrect);
+        List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
+        // obtain the hypercubes that have to be matched
 
-	spaceTree.searchRange(qrect, hyperRectangles);
+        spaceTree.searchRange(qrect, hyperRectangles);
 
-	searchOBAux(object, r, result, qrect, t, hyperRectangles);
+        searchOBAux(object, r, result, qrect, t, hyperRectangles);
     }
 
-    public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
-	    int[] boxes) throws NotFrozenException, DatabaseException,
-	    InstantiationException, IllegalIdException, IllegalAccessException,
-	    OutOfRangeException, OBException {
-	short[] t = new short[pivotsCount];
-	// calculate the pivot for the given object
-	calculatePivotTuple(object, t);
-	float[][] qrect = new float[pivotsCount][2]; // rectangular query
-	generateRectangleFirstPass(t, r, qrect);
-	List<SpaceTreeLeaf> hyperRectangles = new LinkedList<SpaceTreeLeaf>();
-	int i = 0;
-	int max = boxes.length;
-	while (i < max) {
-	    hyperRectangles.add(super.spaceTreeLeaves[boxes[i]]);
-	    i++;
-	}
-	searchOBAux(object, r, result, qrect, t, hyperRectangles);
+    public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
+            int[] boxes) throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        short[] t = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, t);
+        float[][] qrect = new float[pivotsCount][2]; // rectangular query
+        generateRectangleFirstPass(t, r, qrect);
+        List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
+        int i = 0;
+        int max = boxes.length;
+        while (i < max) {
+            hyperRectangles.add(super.spaceTreeLeaves[boxes[i]]);
+            i++;
+        }
+        searchOBAux(object, r, result, qrect, t, hyperRectangles);
     }
 
-    public void searchOBAux(O object, short r, OBPriorityQueueShort<O> result,
-	    float[][] qrect, short[] t, List<SpaceTreeLeaf> hyperRectangles)
-	    throws NotFrozenException, DatabaseException,
-	    InstantiationException, IllegalIdException, IllegalAccessException,
-	    OutOfRangeException, OBException {
-	// check if we are frozen
-	assertFrozen();
+    public void searchOBAux(O object, short r,
+            OBPriorityQueueShort < O > result, float[][] qrect, short[] t,
+            List < SpaceTreeLeaf > hyperRectangles) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
+        // check if we are frozen
+        assertFrozen();
 
-	// check if the result has been processed
-	/*
+        // check if the result has been processed
+        /*
          * OBQueryShort cachedResult = this.resultCache.get(object);
-         * if(cachedResult != null && cachedResult.getDistance() == r){
-         * 
-         * Iterator<OBResultShort<O>> it =cachedResult.getResult().iterator();
-         * while(it.hasNext()){ OBResultShort<O> element = it.next();
-         * result.add(element.getId(), element.getObject(),
-         * element.getDistance()); } return; }
+         * if(cachedResult != null && cachedResult.getDistance() == r){ Iterator<OBResultShort<O>>
+         * it =cachedResult.getResult().iterator(); while(it.hasNext()){
+         * OBResultShort<O> element = it.next(); result.add(element.getId(),
+         * element.getObject(), element.getDistance()); } return; }
          */
-	int pyramidCount = 2 * pivotsCount;
+        int pyramidCount = 2 * pivotsCount;
 
-	short myr = r;
+        short myr = r;
 
-	float[] lowHighResult = new float[2];
+        float[] lowHighResult = new float[2];
 
-	Iterator<SpaceTreeLeaf> it = hyperRectangles.iterator();
-	// this will hold the rectangle for the current hyperrectangle
-	float[][] qw = new float[pivotsCount][2];
-	float[][] q = new float[pivotsCount][2];
-	while (it.hasNext()) {
-	    SpaceTreeLeaf space = it.next();
-	    if (!space.intersects(qrect)) {
-		continue;
-	    }
+        Iterator < SpaceTreeLeaf > it = hyperRectangles.iterator();
+        // this will hold the rectangle for the current hyperrectangle
+        float[][] qw = new float[pivotsCount][2];
+        float[][] q = new float[pivotsCount][2];
+        while (it.hasNext()) {
+            SpaceTreeLeaf space = it.next();
+            if (!space.intersects(qrect)) {
+                continue;
+            }
 
-	    // for each space there are 2d pyramids that have to be browsed
-	    int i = 0;
-	    // update the current rectangle, we also have to center it
-	    space.generateRectangle(qrect, qw);
-	    centerQuery(qw); // center the rectangle
+            // for each space there are 2d pyramids that have to be browsed
+            int i = 0;
+            // update the current rectangle, we also have to center it
+            space.generateRectangle(qrect, qw);
+            centerQuery(qw); // center the rectangle
 
-	    while (i < pyramidCount) {
-		// intersect destroys q, so we have to copy it
-		copyQuery(qw, q);
-		if (intersect(q, i, lowHighResult)) {
-		    int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
-		    // index
-		    searchBTreeAndUpdate(object, t, myr, ri
-			    + lowHighResult[HLOW], ri + lowHighResult[HHIGH],
-			    result);
+            while (i < pyramidCount) {
+                // intersect destroys q, so we have to copy it
+                copyQuery(qw, q);
+                if (intersect(q, i, lowHighResult)) {
+                    int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
+                    // index
+                    searchBTreeAndUpdate(object, t, myr, ri
+                            + lowHighResult[HLOW], ri + lowHighResult[HHIGH],
+                            result);
 
-		    short nr = result.updateRange(myr);
-		    // make the range shorter
-		    if (nr < myr) {
-			myr = nr; // regenerate the query with a smaller
-			// range
-			generateRectangleFirstPass(t, myr, qrect);
-			space.generateRectangle(qrect, qw);
-			if (!space.intersects(qrect)) {
-			    break; // we have to skip the this space if
-			    // suddenly we are out of range...
-			    // otherwise we would end up
-			    // searching all the space for the
-			    // rest of the
-			    // pyramids!
-			}
-			centerQuery(qw); // center the rectangle
+                    short nr = result.updateRange(myr);
+                    // make the range shorter
+                    if (nr < myr) {
+                        myr = nr; // regenerate the query with a smaller
+                        // range
+                        generateRectangleFirstPass(t, myr, qrect);
+                        space.generateRectangle(qrect, qw);
+                        if (!space.intersects(qrect)) {
+                            break; // we have to skip the this space if
+                            // suddenly we are out of range...
+                            // otherwise we would end up
+                            // searching all the space for the
+                            // rest of the
+                            // pyramids!
+                        }
+                        centerQuery(qw); // center the rectangle
 
-		    }
+                    }
 
-		}
-		i++;
-	    }
-	}
+                }
+                i++;
+            }
+        }
 
-	// store the result in the cache
-	// this.resultCache.put(object, new OBQueryShort<O>(object,r, result));
+        // store the result in the cache
+        // this.resultCache.put(object, new OBQueryShort<O>(object,r, result));
     }
 
     /**
-         * This method reads from the B-tree appies l-infinite to discard false
-         * positives Calculates the real distance and updates the result
-         * priority queue It is left public so that junit can perform
-         * validations on it Performance-wise this is one of the most important
-         * methods
-         * 
-         * @param object
-         * @param tuple
-         * @param r
-         * @param hlow
-         * @param hhigh
-         * @param result
-         * @throws DatabaseException
-         */
+     * This method reads from the B-tree appies l-infinite to discard false
+     * positives Calculates the real distance and updates the result priority
+     * queue It is left public so that junit can perform validations on it
+     * Performance-wise this is one of the most important methods
+     * @param object
+     * @param tuple
+     * @param r
+     * @param hlow
+     * @param hhigh
+     * @param result
+     * @throws DatabaseException
+     */
     public void searchBTreeAndUpdate(O object, short[] tuple, short r,
-	    float hlow, float hhigh, OBPriorityQueueShort<O> result)
-	    throws DatabaseException, IllegalAccessException,
-	    InstantiationException, IllegalIdException, OBException {
+            float hlow, float hhigh, OBPriorityQueueShort < O > result)
+            throws DatabaseException, IllegalAccessException,
+            InstantiationException, IllegalIdException, OBException {
 
-	Cursor cursor = null;
+        Cursor cursor = null;
 
-	try {
+        try {
 
-	    DatabaseEntry keyEntry = new DatabaseEntry();
-	    DatabaseEntry dataEntry = new DatabaseEntry();
-	    cursor = cDB.openCursor(null, null);
-	    SortedFloatBinding.floatToEntry(hlow, keyEntry);
-	    OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
-		    dataEntry, null);
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = cDB.openCursor(null, null);
+            SortedFloatBinding.floatToEntry(hlow, keyEntry);
+            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+                    dataEntry, null);
 
-	    if (retVal == OperationStatus.NOTFOUND) {
-		return;
-	    }
+            if (retVal == OperationStatus.NOTFOUND) {
+                return;
+            }
 
-	    if (cursor.count() > 0) {
-		float currentPyramidValue = SortedFloatBinding
-			.entryToFloat(keyEntry);
-		short max = Short.MIN_VALUE;
-		short realDistance = Short.MIN_VALUE;
-		while (retVal == OperationStatus.SUCCESS
-			&& currentPyramidValue <= hhigh) {
+            if (cursor.count() > 0) {
+                float currentPyramidValue = SortedFloatBinding
+                        .entryToFloat(keyEntry);
+                short max = Short.MIN_VALUE;
+                short realDistance = Short.MIN_VALUE;
+                while (retVal == OperationStatus.SUCCESS
+                        && currentPyramidValue <= hhigh) {
 
-		    TupleInput in = new TupleInput(dataEntry.getData());
+                    TupleInput in = new TupleInput(dataEntry.getData());
 
-		    int i = 0;
-		    short t;
-		    max = Short.MIN_VALUE;
-		    // STATS
-		    while (i < tuple.length) {
-			t = (short) Math.abs(tuple[i] - in.readShort());
-			if (t > max) {
-			    max = t;
-			    if (t > r) {
-				break; // finish this loop this slice won't be
-				// matched
-				// after all!
-			    }
-			}
-			i++;
-		    }
+                    int i = 0;
+                    short t;
+                    max = Short.MIN_VALUE;
+                    // STATS
+                    while (i < tuple.length) {
+                        t = (short) Math.abs(tuple[i] - in.readShort());
+                        if (t > max) {
+                            max = t;
+                            if (t > r) {
+                                break; // finish this loop this slice won't be
+                                // matched
+                                // after all!
+                            }
+                        }
+                        i++;
+                    }
 
-		    if (max <= r && result.isCandidate(max)) {
-			// there is a chance it is a possible match
-			int id = in.readInt();
-			O toCompare = super.getObject(id);
-			realDistance = object.distance(toCompare);
+                    if (max <= r && result.isCandidate(max)) {
+                        // there is a chance it is a possible match
+                        int id = in.readInt();
+                        O toCompare = super.getObject(id);
+                        realDistance = object.distance(toCompare);
 
-			if (realDistance <= r) {
+                        if (realDistance <= r) {
 
-			    result.add(id, toCompare, realDistance);
-			}
-		    }
+                            result.add(id, toCompare, realDistance);
+                        }
+                    }
 
-		    // read the next record
-		    retVal = cursor.getNext(keyEntry, dataEntry, null);
-		    // update the current pyramid value so that we know when
-		    // to
-		    // stop
-		    currentPyramidValue = SortedFloatBinding
-			    .entryToFloat(keyEntry);
-		}
-	    }
-	} finally {
-	    cursor.close();
-	}
+                    // read the next record
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                    // update the current pyramid value so that we know when
+                    // to
+                    // stop
+                    currentPyramidValue = SortedFloatBinding
+                            .entryToFloat(keyEntry);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
     }
 
     /*
-         * public String toString(){ return " STATS: SMAP # " +
-         * this.totalExecutedTimesSMAP + " Avg time: " +
-         * ((double)this.accumExecutionTimeSMAP /
-         * (double)this.totalExecutedTimesSMAP) + "\n STATS: D # " +
-         * this.totalExecutedTimesD + " Avg time: " +
-         * ((double)this.accumExecutionTimeD /
-         * (double)this.totalExecutedTimesD); }
-         */
+     * public String toString(){ return " STATS: SMAP # " +
+     * this.totalExecutedTimesSMAP + " Avg time: " +
+     * ((double)this.accumExecutionTimeSMAP /
+     * (double)this.totalExecutedTimesSMAP) + "\n STATS: D # " +
+     * this.totalExecutedTimesD + " Avg time: " +
+     * ((double)this.accumExecutionTimeD / (double)this.totalExecutedTimesD); }
+     */
 
     @Override
     protected byte insertFrozen(O object, int id) throws IllegalIdException,
-	    OBException, DatabaseException, IllegalAccessException,
-	    InstantiationException {
-	short[] t = new short[pivotsCount];
-	calculatePivotTuple(object, t); // calculate the tuple for the new //
+            OBException, DatabaseException, IllegalAccessException,
+            InstantiationException {
+        short[] t = new short[pivotsCount];
+        calculatePivotTuple(object, t); // calculate the tuple for the new //
 
-	return insertFrozenAux(t, id);
+        return insertFrozenAux(t, id);
     }
 
     public int getBox(O object) throws OBException {
-	short[] t = new short[pivotsCount];
-	calculatePivotTuple(object, t); // calculate the tuple for the new //
-	float[] et = normalizeFirstPass(t);
-	return super.spaceNumber(et);
+        short[] t = new short[pivotsCount];
+        calculatePivotTuple(object, t); // calculate the tuple for the new //
+        float[] et = normalizeFirstPass(t);
+        return super.spaceNumber(et);
     }
 
     /**
-         * Inserts the given tuple and id into C
-         * 
-         * @param t
-         * @param id
-         * @return
-         * @throws OutOfRangeException
-         * @throws DatabaseException
-         */
+     * Inserts the given tuple and id into C
+     * @param t
+     * @param id
+     * @return
+     * @throws OutOfRangeException
+     * @throws DatabaseException
+     */
     protected byte insertFrozenAux(short[] t, int id)
-	    throws OutOfRangeException, DatabaseException {
-	float[] first = normalizeFirstPass(t);
-	float ppTreeValue = super.ppvalue(first);
-	return insertFrozenAuxAux(ppTreeValue, t, id);
+            throws OutOfRangeException, DatabaseException {
+        float[] first = normalizeFirstPass(t);
+        float ppTreeValue = super.ppvalue(first);
+        return insertFrozenAuxAux(ppTreeValue, t, id);
     }
-    
-    protected byte insertFrozenAuxAux(float ppTreeValue, short[] t, int id) throws DatabaseException{
-	DatabaseEntry keyEntry = new DatabaseEntry();
-	DatabaseEntry dataEntry = new DatabaseEntry();
-	TupleOutput out = new TupleOutput();
-	// write the tuple
-	for (short d : t) {
-	    out.writeShort(d);
-	}
-	// write the object's id
-	out.writeInt(id);
-	// create the key
-	SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
-	dataEntry.setData(out.getBufferBytes());
 
-	// TODO: check the status result of all the operations
-	if (cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS) {
-	    throw new DatabaseException();
-	}
-	return 1;
+    protected byte insertFrozenAuxAux(float ppTreeValue, short[] t, int id)
+            throws DatabaseException {
+        DatabaseEntry keyEntry = new DatabaseEntry();
+        DatabaseEntry dataEntry = new DatabaseEntry();
+        TupleOutput out = new TupleOutput();
+        // write the tuple
+        for (short d : t) {
+            out.writeShort(d);
+        }
+        // write the object's id
+        out.writeInt(id);
+        // create the key
+        SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
+        dataEntry.setData(out.getBufferBytes());
+
+        // TODO: check the status result of all the operations
+        if (cDB.put(null, keyEntry, dataEntry) != OperationStatus.SUCCESS) {
+            throw new DatabaseException();
+        }
+        return 1;
     }
 
     protected float[] normalizeFirstPass(short[] t) throws OutOfRangeException {
-	assert t.length == pivotsCount;
-	float[] res = new float[pivotsCount];
+        assert t.length == pivotsCount;
+        float[] res = new float[pivotsCount];
 
-	int i = 0;
-	while (i < t.length) {
-	    res[i] = normalizeFirstPassAux(t[i]);
-	    i++;
-	}
-	return res;
+        int i = 0;
+        while (i < t.length) {
+            res[i] = normalizeFirstPassAux(t[i]);
+            i++;
+        }
+        return res;
     }
 
     @Override
     protected void insertInB(int id, O object) throws OBException,
-	    DatabaseException {
-	DatabaseEntry keyEntry = new DatabaseEntry();
-	TupleOutput out = new TupleOutput();
-	short[] tuple = new short[pivotsCount];
-	calculatePivotTuple(object, tuple);
-	// write the tuple
-	for (short d : tuple) {
-	    out.writeShort(d);
-	}
-	// store the ID
-	IntegerBinding.intToEntry(id, keyEntry);
-	insertInDatabase(out, keyEntry, bDB);
+            DatabaseException {
+        DatabaseEntry keyEntry = new DatabaseEntry();
+        TupleOutput out = new TupleOutput();
+        short[] tuple = new short[pivotsCount];
+        calculatePivotTuple(object, tuple);
+        // write the tuple
+        for (short d : tuple) {
+            out.writeShort(d);
+        }
+        // store the ID
+        IntegerBinding.intToEntry(id, keyEntry);
+        insertInDatabase(out, keyEntry, bDB);
     }
 
     /**
-         * Read the given tuple from B database and load it into the given tuple
-         * in a normalized form
-         * 
-         * @param id
-         * @param tuple
-         */
+     * Read the given tuple from B database and load it into the given tuple in
+     * a normalized form
+     * @param id
+     * @param tuple
+     */
     protected void readFromB(int id, float[] tuple) throws DatabaseException,
-	    OutOfRangeException {
-	Cursor cursor = null;
-	// check if the tuple is in cache
-	float[] temp = this.bCache.get(id);
-	if (temp != null) {
-	    int i = 0;
-	    // copy the contents to the result.
-	    while (i < tuple.length) {
-		tuple[i] = temp[i];
-		i++;
-	    }
-	    return;
-	}
-	try {
-	    DatabaseEntry keyEntry = new DatabaseEntry();
-	    DatabaseEntry dataEntry = new DatabaseEntry();
-	    cursor = bDB.openCursor(null, null);
-	    IntegerBinding.intToEntry(id, keyEntry);
-	    OperationStatus retVal = cursor.getSearchKey(keyEntry, dataEntry,
-		    null);
+            OutOfRangeException {
+        Cursor cursor = null;
+        // check if the tuple is in cache
+        float[] temp = this.bCache.get(id);
+        if (temp != null) {
+            int i = 0;
+            // copy the contents to the result.
+            while (i < tuple.length) {
+                tuple[i] = temp[i];
+                i++;
+            }
+            return;
+        }
+        try {
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = bDB.openCursor(null, null);
+            IntegerBinding.intToEntry(id, keyEntry);
+            OperationStatus retVal = cursor.getSearchKey(keyEntry, dataEntry,
+                    null);
 
-	    if (retVal == OperationStatus.NOTFOUND) {
-		assert false : "Trying to read : " + id
-			+ " but the database is: " + this.databaseSize();
-		return;
-	    }
+            if (retVal == OperationStatus.NOTFOUND) {
+                assert false : "Trying to read : " + id
+                        + " but the database is: " + this.databaseSize();
+                return;
+            }
 
-	    assert cursor.count() == 1;
+            assert cursor.count() == 1;
 
-	    TupleInput in = new TupleInput(dataEntry.getData());
-	    int i = 0;
-	    assert tuple.length == pivotsCount;
-	    float[] tempTuple = new float[pivotsCount];
-	    while (i < pivotsCount) {
-		tuple[i] = normalizeFirstPassAux(in.readShort());
-		tempTuple[i] = tuple[i];
-		i++;
-	    }
-	    bCache.put(id, tempTuple);
-	} finally {
-	    cursor.close();
-	}
+            TupleInput in = new TupleInput(dataEntry.getData());
+            int i = 0;
+            assert tuple.length == pivotsCount;
+            float[] tempTuple = new float[pivotsCount];
+            while (i < pivotsCount) {
+                tuple[i] = normalizeFirstPassAux(in.readShort());
+                tempTuple[i] = tuple[i];
+                i++;
+            }
+            bCache.put(id, tempTuple);
+        } finally {
+            cursor.close();
+        }
     }
 
     /**
-         * Normalize the given value This is a first pass normalization, any
-         * value to [0,1]
-         * 
-         * @param x
-         * @return the normalized value
-         */
+     * Normalize the given value This is a first pass normalization, any value
+     * to [0,1]
+     * @param x
+     * @return the normalized value
+     */
     protected float normalizeFirstPassAux(short x) throws OutOfRangeException {
-	if (x < minInput || x > maxInput) {
-	    throw new OutOfRangeException(minInput + "", maxInput + "", "" + x);
-	}
-	return ((float) (x - minInput)) / ((float) (maxInput - minInput));
+        if (x < minInput || x > maxInput) {
+            throw new OutOfRangeException(minInput + "", maxInput + "", "" + x);
+        }
+        return ((float) (x - minInput)) / ((float) (maxInput - minInput));
     }
 
     @Override
     protected Index returnSelf() {
-	return this;
+        return this;
     }
 
     /**
-         * Calculates the tuple vector for the given object
-         * 
-         * @param obj
-         *                object to be processed
-         * @param tuple
-         *                The resulting tuple will be stored here
-         */
+     * Calculates the tuple vector for the given object
+     * @param obj
+     *            object to be processed
+     * @param tuple
+     *            The resulting tuple will be stored here
+     */
     protected void calculatePivotTuple(final O obj, short[] tuple)
-	    throws OBException {
-	assert tuple.length == this.pivotsCount;
-	int i = 0;
-	while (i < tuple.length) {
-	    tuple[i] = obj.distance(this.pivots[i]);
-	    i++;
-	}
+            throws OBException {
+        assert tuple.length == this.pivotsCount;
+        int i = 0;
+        while (i < tuple.length) {
+            tuple[i] = obj.distance(this.pivots[i]);
+            i++;
+        }
     }
 
     private Object readResolve() throws DatabaseException, NotFrozenException,
-	    DatabaseException, IllegalAccessException, InstantiationException {
-	super.initSpaceTreeLeaves();
-	resultCache = new HashMap<O, OBQueryShort<O>>(resultCacheSize);
-	return this;
+            DatabaseException, IllegalAccessException, InstantiationException {
+        super.initSpaceTreeLeaves();
+        resultCache = new HashMap < O, OBQueryShort < O >>(resultCacheSize);
+        return this;
     }
-    
+
     public boolean exists(O object) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException {	
-	
-	short[] tuple = new short[pivotsCount];
-	// calculate the pivot for the given object
-	calculatePivotTuple(object, tuple);
-	float[] first = normalizeFirstPass(tuple);
+            IllegalAccessException, InstantiationException {
 
-	// now we just have to search this guy
-	float ppTreeValue = super.ppvalue(first);
+        short[] tuple = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, tuple);
+        float[] first = normalizeFirstPass(tuple);
 
-	Cursor cursor = null;
+        // now we just have to search this guy
+        float ppTreeValue = super.ppvalue(first);
 
-	try {
+        Cursor cursor = null;
 
-	    DatabaseEntry keyEntry = new DatabaseEntry();
-	    DatabaseEntry dataEntry = new DatabaseEntry();
-	    cursor = cDB.openCursor(null, null);
-	    SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
-	    OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
-		    dataEntry, null);
+        try {
 
-	    if (retVal == OperationStatus.NOTFOUND) {
-		return false;
-	    }
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = cDB.openCursor(null, null);
+            SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
+            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+                    dataEntry, null);
 
-	    if (cursor.count() > 0) {
-		float currentPyramidValue = SortedFloatBinding
-			.entryToFloat(keyEntry);
-		short max = Short.MIN_VALUE;
-		while (retVal == OperationStatus.SUCCESS
-			&& currentPyramidValue == ppTreeValue) {
+            if (retVal == OperationStatus.NOTFOUND) {
+                return false;
+            }
 
-		    TupleInput in = new TupleInput(dataEntry.getData());
+            if (cursor.count() > 0) {
+                float currentPyramidValue = SortedFloatBinding
+                        .entryToFloat(keyEntry);
+                short max = Short.MIN_VALUE;
+                while (retVal == OperationStatus.SUCCESS
+                        && currentPyramidValue == ppTreeValue) {
 
-		    int i = 0;
-		    short t;
-		    max = Short.MIN_VALUE;
-		    // STATS
-		    while (i < tuple.length) {
-			t = (short) Math.abs(tuple[i] - in.readShort());
-			if (t > max) {
-			    max = t;
-			    if (t != 0) {
-				break; // finish this loop this slice won't be
-				// matched
-				// after all!
-			    }
-			}
-			i++;
-		    }
+                    TupleInput in = new TupleInput(dataEntry.getData());
 
-		    // if max == 0 we can check the candidate
+                    int i = 0;
+                    short t;
+                    max = Short.MIN_VALUE;
+                    // STATS
+                    while (i < tuple.length) {
+                        t = (short) Math.abs(tuple[i] - in.readShort());
+                        if (t > max) {
+                            max = t;
+                            if (t != 0) {
+                                break; // finish this loop this slice won't be
+                                // matched
+                                // after all!
+                            }
+                        }
+                        i++;
+                    }
 
-		    if (max == 0) {
-			// there is a chance it is a possible match
-			int id = in.readInt();
-			O toCompare = super.getObject(id);
-			if (object.equals(toCompare)) {
-			    return true;
-			}
+                    // if max == 0 we can check the candidate
 
-		    }
-		    // read the next record
-		    retVal = cursor.getNext(keyEntry, dataEntry, null);
-		    // update the current pyramid value so that we know when
-		    // to
-		    // stop
-		    currentPyramidValue = SortedFloatBinding
-			    .entryToFloat(keyEntry);
-		}
-	    }
+                    if (max == 0) {
+                        // there is a chance it is a possible match
+                        int id = in.readInt();
+                        O toCompare = super.getObject(id);
+                        if (object.equals(toCompare)) {
+                            return true;
+                        }
 
-	} finally {
-	    if (cursor != null) {
-		cursor.close();
-	    }
-	}
-	return false;
+                    }
+                    // read the next record
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                    // update the current pyramid value so that we know when
+                    // to
+                    // stop
+                    currentPyramidValue = SortedFloatBinding
+                            .entryToFloat(keyEntry);
+                }
+            }
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return false;
     }
-    
-    
+
     // re-implemented here to improve performance
     // This code has some bugs
     public int insert(O object) throws DatabaseException, OBException,
-	    IllegalAccessException, InstantiationException {
-	int resId = -1;
-	if (isFrozen()) {
-	   resId = insertAux(object);
-	} else {
-	    resId = id.getAndIncrement();
-	    insertUnFrozen(object, resId);
-	}
-	return resId;
+            IllegalAccessException, InstantiationException {
+        int resId = -1;
+        if (isFrozen()) {
+            resId = insertAux(object);
+        } else {
+            resId = id.getAndIncrement();
+            insertUnFrozen(object, resId);
+        }
+        return resId;
     }
-    
-    private int insertAux(O object)throws DatabaseException, OBException,
-    IllegalAccessException, InstantiationException{
-		// if the object is not in the database, we can insert it
-		
-		int resId = -1;
-		short[] tuple = new short[pivotsCount];
-		// calculate the pivot for the given object
-		calculatePivotTuple(object, tuple);
-		float[] first = normalizeFirstPass(tuple);
 
-		// now we just have to search this guy
-		float ppTreeValue = super.ppvalue(first);
+    private int insertAux(O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
+        // if the object is not in the database, we can insert it
 
-		Cursor cursor = null;
-		boolean exists = false;
-		try {
+        int resId = -1;
+        short[] tuple = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, tuple);
+        float[] first = normalizeFirstPass(tuple);
 
-		    DatabaseEntry keyEntry = new DatabaseEntry();
-		    DatabaseEntry dataEntry = new DatabaseEntry();
-		    cursor = cDB.openCursor(null, null);
-		    SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
-		    OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
-			    dataEntry, null);
+        // now we just have to search this guy
+        float ppTreeValue = super.ppvalue(first);
 
-		    if (retVal == OperationStatus.NOTFOUND) {
-			exists = false;
-		    }else
-		    if (cursor.count() > 0) {
-			float currentPyramidValue = SortedFloatBinding
-				.entryToFloat(keyEntry);
-			short max = Short.MIN_VALUE;
-			short realDistance = Short.MIN_VALUE;
-			while (retVal == OperationStatus.SUCCESS
-				&& currentPyramidValue == ppTreeValue) {
+        Cursor cursor = null;
+        boolean exists = false;
+        try {
 
-			    TupleInput in = new TupleInput(dataEntry.getData());
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = cDB.openCursor(null, null);
+            SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
+            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+                    dataEntry, null);
 
-			    int i = 0;
-			    short t;
-			    max = Short.MIN_VALUE;
-			    // STATS
-			    while (i < tuple.length) {
-				t = (short) Math.abs(tuple[i] - in.readShort());
-				if (t > max) {
-				    max = t;
-				    if (t != 0) {
-					break; // finish this loop this slice won't be
-					// matched
-					// after all!
-				    }
-				}
-				i++;
-			    }
+            if (retVal == OperationStatus.NOTFOUND) {
+                exists = false;
+            } else if (cursor.count() > 0) {
+                float currentPyramidValue = SortedFloatBinding
+                        .entryToFloat(keyEntry);
+                short max = Short.MIN_VALUE;
+                short realDistance = Short.MIN_VALUE;
+                while (retVal == OperationStatus.SUCCESS
+                        && currentPyramidValue == ppTreeValue) {
 
-			    // if max == 0 we can check the candidate
+                    TupleInput in = new TupleInput(dataEntry.getData());
 
-			    if (max == 0) {
-				// there is a chance it is a possible match
-				int id = in.readInt();
-				O toCompare = super.getObject(id);
-				if (object.equals(toCompare)) {				    
-				    exists  = true;
-				    break;
-				}
+                    int i = 0;
+                    short t;
+                    max = Short.MIN_VALUE;
+                    // STATS
+                    while (i < tuple.length) {
+                        t = (short) Math.abs(tuple[i] - in.readShort());
+                        if (t > max) {
+                            max = t;
+                            if (t != 0) {
+                                break; // finish this loop this slice won't be
+                                // matched
+                                // after all!
+                            }
+                        }
+                        i++;
+                    }
 
-			    }
-			    // read the next record
-			    retVal = cursor.getNext(keyEntry, dataEntry, null);
-			    // update the current pyramid value so that we know when
-			    // to
-			    // stop
-			    currentPyramidValue = SortedFloatBinding
-				    .entryToFloat(keyEntry);
-			}
-			
-		    }
+                    // if max == 0 we can check the candidate
 
-		} finally {
-		    if (cursor != null) {
-			cursor.close();
-		    }
-		}
-		if(exists){
-		    resId =  -1;
-		}else{
-		    // we have to insert the record. 
-		    resId = id.getAndIncrement();
-		    insertA(object, resId);
-		    insertFrozenAuxAux(ppTreeValue, tuple, resId);
-		}
-		return resId;		
-	    
+                    if (max == 0) {
+                        // there is a chance it is a possible match
+                        int id = in.readInt();
+                        O toCompare = super.getObject(id);
+                        if (object.equals(toCompare)) {
+                            exists = true;
+                            break;
+                        }
+
+                    }
+                    // read the next record
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                    // update the current pyramid value so that we know when
+                    // to
+                    // stop
+                    currentPyramidValue = SortedFloatBinding
+                            .entryToFloat(keyEntry);
+                }
+
+            }
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        if (exists) {
+            resId = -1;
+        } else {
+            // we have to insert the record.
+            resId = id.getAndIncrement();
+            insertA(object, resId);
+            insertFrozenAuxAux(ppTreeValue, tuple, resId);
+        }
+        return resId;
+
     }
-    
-    protected  int deleteAux(final O object) throws DatabaseException, OBException,
-	IllegalAccessException, InstantiationException {
-	int resId = -1;
-	short[] tuple = new short[pivotsCount];
-	// calculate the pivot for the given object
-	calculatePivotTuple(object, tuple);
-	float[] first = normalizeFirstPass(tuple);
 
-	// now we just have to search this guy
-	float ppTreeValue = super.ppvalue(first);
+    protected int deleteAux(final O object) throws DatabaseException,
+            OBException, IllegalAccessException, InstantiationException {
+        int resId = -1;
+        short[] tuple = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, tuple);
+        float[] first = normalizeFirstPass(tuple);
 
-	Cursor cursor = null;
-	boolean exists = false;
-	try {
+        // now we just have to search this guy
+        float ppTreeValue = super.ppvalue(first);
 
-	    DatabaseEntry keyEntry = new DatabaseEntry();
-	    DatabaseEntry dataEntry = new DatabaseEntry();
-	    cursor = cDB.openCursor(null, null);
-	    SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
-	    OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
-		    dataEntry, null);
+        Cursor cursor = null;
+        boolean exists = false;
+        try {
 
-	    if (retVal == OperationStatus.NOTFOUND) {
-		exists = false;
-	    }else
-	    if (cursor.count() > 0) {
-		float currentPyramidValue = SortedFloatBinding
-			.entryToFloat(keyEntry);
-		short max = Short.MIN_VALUE;
-		while (retVal == OperationStatus.SUCCESS
-			&& currentPyramidValue == ppTreeValue) {
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = cDB.openCursor(null, null);
+            SortedFloatBinding.floatToEntry(ppTreeValue, keyEntry);
+            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+                    dataEntry, null);
 
-		    TupleInput in = new TupleInput(dataEntry.getData());
+            if (retVal == OperationStatus.NOTFOUND) {
+                exists = false;
+            } else if (cursor.count() > 0) {
+                float currentPyramidValue = SortedFloatBinding
+                        .entryToFloat(keyEntry);
+                short max = Short.MIN_VALUE;
+                while (retVal == OperationStatus.SUCCESS
+                        && currentPyramidValue == ppTreeValue) {
 
-		    int i = 0;
-		    short t;
-		    max = Short.MIN_VALUE;
-		    // STATS
-		    while (i < tuple.length) {
-			t = (short) Math.abs(tuple[i] - in.readShort());
-			if (t > max) {
-			    max = t;
-			    if (t != 0) {
-				break; // finish this loop this slice won't be
-				// matched
-				// after all!
-			    }
-			}
-			i++;
-		    }
+                    TupleInput in = new TupleInput(dataEntry.getData());
 
-		    // if max == 0 we can check the candidate
+                    int i = 0;
+                    short t;
+                    max = Short.MIN_VALUE;
+                    // STATS
+                    while (i < tuple.length) {
+                        t = (short) Math.abs(tuple[i] - in.readShort());
+                        if (t > max) {
+                            max = t;
+                            if (t != 0) {
+                                break; // finish this loop this slice won't be
+                                // matched
+                                // after all!
+                            }
+                        }
+                        i++;
+                    }
 
-		    if (max == 0) {
-			// there is a chance it is a possible match
-			int id = in.readInt();
-			O toCompare = super.getObject(id);
-			if (object.equals(toCompare)) {
-			    resId = id;
-			    exists  = true;
-			    retVal = cursor.delete();
-			    if(retVal != OperationStatus.SUCCESS){
-				throw new DatabaseException();
-			    }
-			    break;
-			}
+                    // if max == 0 we can check the candidate
 
-		    }
-		    // read the next record
-		    retVal = cursor.getNext(keyEntry, dataEntry, null);
-		    // update the current pyramid value so that we know when
-		    // to
-		    // stop
-		    currentPyramidValue = SortedFloatBinding
-			    .entryToFloat(keyEntry);
-		}
-		
-	    }
+                    if (max == 0) {
+                        // there is a chance it is a possible match
+                        int id = in.readInt();
+                        O toCompare = super.getObject(id);
+                        if (object.equals(toCompare)) {
+                            resId = id;
+                            exists = true;
+                            retVal = cursor.delete();
+                            if (retVal != OperationStatus.SUCCESS) {
+                                throw new DatabaseException();
+                            }
+                            break;
+                        }
 
-	} finally {
-	    if (cursor != null) {
-		cursor.close();
-	    }
-	}
-	return resId;
+                    }
+                    // read the next record
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                    // update the current pyramid value so that we know when
+                    // to
+                    // stop
+                    currentPyramidValue = SortedFloatBinding
+                            .entryToFloat(keyEntry);
+                }
+
+            }
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return resId;
     }
 
 }

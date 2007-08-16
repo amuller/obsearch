@@ -19,121 +19,122 @@ import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
+
 /**
  * This class has to be improved, please do not use it.
  * @author amuller
+ * @param <O>
+ *            The type of object to be stored in the Index.
  */
-public class ParallelIndexShort<O extends OBShort> extends
-		AbstractParallelIndex<O> implements IndexShort<O>{
+public class ParallelIndexShort < O extends OBShort >
+        extends AbstractParallelIndex < O > implements IndexShort < O > {
 
-	protected BlockingQueue<OBQueryShort<O>> queue;
+    protected BlockingQueue < OBQueryShort < O >> queue;
 
-	protected IndexShort<O> index;
-	
-	
+    protected IndexShort < O > index;
 
-	private static transient final Logger logger = Logger
-    .getLogger(ParallelIndexShort.class);
+    private static transient final Logger logger = Logger
+            .getLogger(ParallelIndexShort.class);
 
-	/**
-	 * Initializes this parallel index with the given index
-	 *
-	 * @param index
-	 *            The underlying index
-	 * @param cpus
-	 *            The number of cpus to use
-	 * @param queueSize
-	 *            The maximum size of items to hold in the queue
-	 */
-	public ParallelIndexShort(IndexShort<O> index, int cpus, int queueSize) {
-		super(cpus);
-		this.index = index;
-		queue = new LinkedBlockingQueue<OBQueryShort<O>>(queueSize);
-		super.initiateThreads();
-	}
+    /**
+     * Initializes this parallel index with the given index
+     * @param index
+     *            The underlying index
+     * @param cpus
+     *            The number of cpus to use
+     * @param queueSize
+     *            The maximum size of items to hold in the queue
+     */
+    public ParallelIndexShort(IndexShort < O > index, int cpus, int queueSize) {
+        super(cpus);
+        this.index = index;
+        queue = new LinkedBlockingQueue < OBQueryShort < O >>(queueSize);
+        super.initiateThreads();
+    }
 
-	@Override
-	public int elementsInQueue() {
-		return queue.size();
-	}
+    @Override
+    public int elementsInQueue() {
+        return queue.size();
+    }
 
-	@Override
-	public Index<O>getIndex(){
-		return index;
-	}
-	
-	public int databaseSize() throws DatabaseException{
-		return this.getIndex().databaseSize();
-	}
+    @Override
+    public Index < O > getIndex() {
+        return index;
+    }
 
-	protected ParallelIndex getMe(){
-		return this;
-	}
-	
-	
+    public int databaseSize() throws DatabaseException {
+        return this.getIndex().databaseSize();
+    }
 
-	@Override
-	public void run() {
-		// this method takes an element from the queue, and matches it.
-		// the user is responsible of storing result values in a safe place.
-		// this is repeated forever
-		while (true) {
-			try {
-				OBQueryShort<O> toMatch = queue.take();
-				index.searchOB(toMatch.getObject(), toMatch.getDistance(), toMatch.getResult());
-				if(counter.decrementAndGet() == 0){
-					// only one thread is waiting on this object					
-					synchronized(counter){
-							counter.notifyAll();
-					}
-				}
-			} catch (InterruptedException e) {
-			} catch(Exception e){
-				// something went wrong. We won't recover at this point
-				this.recordedException = e;
-			}
-		}
-	}
+    protected ParallelIndex getMe() {
+        return this;
+    }
 
-	/**
-	 * This method enqueues the given object to be matched later
-	 * WARNING: never call this method after calling waitQueries()
-	 */
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
-			throws NotFrozenException, DatabaseException,
-			InstantiationException, IllegalIdException, IllegalAccessException,
-			OutOfRangeException, OBException {
-		checkException();
-		boolean interrupted = true;
-		while (interrupted) {
-			try {
-				queue.put(new OBQueryShort<O>(object, r, result));
-				counter.incrementAndGet();
-				interrupted = false;
-			} catch (InterruptedException e) {
-				interrupted = true;
-			}
-		}
+    @Override
+    public void run() {
+        // this method takes an element from the queue, and matches it.
+        // the user is responsible of storing result values in a safe place.
+        // this is repeated forever
+        while (true) {
+            try {
+                OBQueryShort < O > toMatch = queue.take();
+                index.searchOB(toMatch.getObject(), toMatch.getDistance(),
+                        toMatch.getResult());
+                if (counter.decrementAndGet() == 0) {
+                    // only one thread is waiting on this object
+                    synchronized (counter) {
+                        counter.notifyAll();
+                    }
+                }
+            } catch (InterruptedException e) {
+            } catch (Exception e) {
+                // something went wrong. We won't recover at this point
+                this.recordedException = e;
+            }
+        }
+    }
 
-	}
-	
-	
-	public boolean intersects(O object, short r, int box) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
-	OutOfRangeException, OBException{
-		return index.intersects(object, r, box);
-	}
+    /**
+     * This method enqueues the given object to be matched later WARNING: never
+     * call this method after calling waitQueries()
+     */
+    public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        checkException();
+        boolean interrupted = true;
+        while (interrupted) {
+            try {
+                queue.put(new OBQueryShort < O >(object, r, result));
+                counter.incrementAndGet();
+                interrupted = false;
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
+        }
 
-	public int[] intersectingBoxes(O object, short r) throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
-	OutOfRangeException, OBException {
-		return index.intersectingBoxes(object, r);
-	}
-	
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result, int[] boxes)
-	throws NotFrozenException, DatabaseException,
-	InstantiationException, IllegalIdException, IllegalAccessException,
-	OutOfRangeException, OBException {
-		index.searchOB(object, r, result, boxes);
-	}
-	
+    }
+
+    public boolean intersects(O object, short r, int box)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        return index.intersects(object, r, box);
+    }
+
+    public int[] intersectingBoxes(O object, short r)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        return index.intersectingBoxes(object, r);
+    }
+
+    public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
+            int[] boxes) throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
+        index.searchOB(object, r, result, boxes);
+    }
 
 }
