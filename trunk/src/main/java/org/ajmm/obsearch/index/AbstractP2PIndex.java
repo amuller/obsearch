@@ -5,16 +5,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -22,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -36,7 +31,6 @@ import net.jxta.document.MimeMediaType;
 import net.jxta.endpoint.ByteArrayMessageElement;
 import net.jxta.endpoint.EndpointAddress;
 import net.jxta.endpoint.Message;
-import net.jxta.endpoint.MessageElement;
 import net.jxta.endpoint.Message.ElementIterator;
 import net.jxta.exception.PeerGroupException;
 import net.jxta.id.ID;
@@ -107,105 +101,171 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         DiscoveryListener, AsynchronousIndex {
 
     /**
-     * Lists all the message types available in the network
+     * Lists all the message types available in the network.
      */
     public static enum MessageType {
-        TIME, // time
-        BOX, // box information (for sync and box selection purposes)
-        SYNCBOX, // synchronize box (request for synchronization)
-        SYNCC, // synchronize continue (asks for more data)
-        SYNCR, // synchronize retry (asks for the last packet in the event of a
-        // timeout)
-        SYNCE, // synchronize end (ends the synchronization for one box)
-        INDEX, // local index data
-        INSOB, // insert object (after a SYNCBOX)
-        DSYNQ, // data sync query
-        DSYNR, // data sync reply
-        SQ, // search query
+        /** time. */
+        TIME,
+        /** box information (for sync and box selection purposes). */
+        BOX,
+        /** synchronize box (request for synchronization). */
+        SYNCBOX,
+        /** synchronize continue (asks for more data). */
+        SYNCC,
+        /**
+         * synchronize retry (asks for the last packet in the event of a
+         * timeout).
+         */
+        SYNCR,
+        /** synchronize end (ends the synchronization for one box). */
+        SYNCE,
+        /** local index data. */
+        INDEX,
+        /** insert object (after a SYNCBOX). */
+        INSOB,
+        /** data sync query. */
+        DSYNQ,
+        /** data sync reply. */
+        DSYNR,
+        /** search query. */
+        SQ,
+        /** search result. */
         SR
-        // search result
+
     };
 
     /**
      * Lists all the message element types available (these elements are
-     * components found in MessageType packets)
+     * components found in MessageType packets).
      */
     public static enum MessageElementType {
-        SH, /** search header */
-        SO, /** search object */
+        /** Search header. */
+        SH,
+        /** Search object. */
+        SO,
+        /** Search sub result. */
         SSR
-        /** search sub result */
+
     };
 
+    /**
+     * Class logger.
+     */
     private transient final Logger logger;
 
-    // messages bigger than this one have problems
+    /**
+     * Messages bigger than this one have problems.
+     */
     private static final int messageSize = 40 * 1024;
 
-    // the string that holds the original index xml
+    /**
+     * The string that holds the original index xml.
+     */
     protected String indexXml;
 
-    // min number of pivots to have at any time... for controlling purposes
-    // the necessary minimum number of peers to allow matching might be
-    // bigger
-    // than this.
+    /**
+     * Min number of pivots to have at any time. For controlling purposes the
+     * necessary minimum number of peers to allow matching might be bigger than
+     * this.
+     */
     public static final int minNumberOfPeers = 3;
 
     // JXTA variables
+    /**
+     * JXTA network manager.
+     */
     private transient NetworkManager manager;
 
+    /**
+     * JXTA discovery service.
+     */
     private transient DiscoveryService discovery;
 
+    /**
+     * JXTA network client name.
+     */
     private String clientName;
 
-    private final static String pipeName = "OBSearchPipe";
-
-    private final static int maxNumberOfPeers = 100;
-
-    // Interval for each heartbeat (in miliseconds)
-    // heartbeats check for missing resources and make sure we are all well
-    // connected all the time
-    private final static int heartBeatInterval = 10000;
-
-    // general timeout used for most p2p operations
-    private final static int globalTimeout = 30 * 1000;
-
-    // maximum time difference between the peers.
-    // peers that have bigger time differences will be dropped.
-    private final static int maxTimeDifference = 3600000;
-
-    // maximum number of objects to query at the same time
-    protected static final int maximumItemsToProcess = 60;
-
-    // maximum time to wait for a query to be answered.
-    protected static final int queryTimeout = 30000;
-
-    // internally gives ids that can be used to get a space in the queries
-    // array
-    // this "tab" can be used to refer to the result until it is completed
-    protected BlockingQueue < Integer > takeATab;
-
-    // maximum number of objects to match at the same time.
-    // this should be close to the amount of CPUs available
-    protected int maximumServerThreads;
-
-    // object in charge of accepting new connections
-    private JxtaServerPipe serverPipe;
-
-    // contains a pipe per client that have tried to connect to us or that
-    // we
-    // have tried to connect to
-    // the key is a peer id and not a pipe!
-    private ConcurrentMap < String, PipeHandler > clients;
-
-    // time when the index was created
-    protected long indexTime;
-
+    /**
+     * JXTA peer group.
+     */
     private PeerGroup netPeerGroup;
 
+    /**
+     * OBSearch's pipe name.
+     */
+    private final static String pipeName = "OBSearchPipe";
+
+    /**
+     * Maximum number of peers to use.
+     */
+    private final static int maxNumberOfPeers = 100;
+
+    /**
+     * Interval for each heartbeat (in miliseconds) heartbeats check for missing
+     * resources and make sure we are all well connected all the time.
+     */
+    private final static int heartBeatInterval = 10000;
+
+    /**
+     * General timeout used for most p2p operations.
+     */
+    private final static int globalTimeout = 30 * 1000;
+
+    /**
+     * Maximum time difference between the peers. peers that have bigger time
+     * differences will be dropped.
+     */
+    private final static int maxTimeDifference = 3600000;
+
+    /**
+     * Maximum number of objects to query at the same time.
+     */
+    protected static final int maximumItemsToProcess = 60;
+
+    /**
+     * Maximum time to wait for a query to be answered.
+     */
+    protected static final int queryTimeout = 30000;
+
+    /**
+     * Internally gives ids that can be used to get a space in the queries
+     * array. This "tab" can be used to refer to the result until it is
+     * completed.
+     */
+    protected BlockingQueue < Integer > takeATab;
+
+    /**
+     * Maximum number of objects to match at the same time. This should be close
+     * to the amount of CPUs available. Currently not being used.
+     */
+    protected int maximumServerThreads;
+
+    /**
+     * Object in charge of accepting new connections.
+     */
+    private JxtaServerPipe serverPipe;
+
+    /**
+     * Contains a pipe per client that have tried to connect to us or that We
+     * have tried to connect to the key is a peer id and not a pipe!
+     */
+    private ConcurrentMap < String, PipeHandler > clients;
+
+    /**
+     * Time when the index was created.
+     */
+    protected long indexTime;
+
+    /**
+     * Location of this DB. Basically a place were JXTA info is stored.
+     */
     private File dbPath;
 
-    private String timer = "time";
+    /**
+     * Object used as a monitor. (hack :))
+     */
+    private final String timer = "time";
 
     /**
      * Pipe advertisement. to be re-published every once in a while
@@ -218,63 +278,82 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     private PeerAdvertisement peerAdv;
 
     /**
-     * lifetime and expiration for advertisements
+     * Lifetime and expiration for advertisements.
      */
     long lifetime = 60 * 2 * 1000L;
 
     /**
-     * lifetime and expiration for advertisements
+     * Lifetime and expiration for advertisements.
      */
     long expiration = 60 * 2 * 1000L;
 
-    protected abstract SynchronizableIndex < O > getIndex();
-
-    // The boxes that we are currently serving
+    /**
+     * The boxes that we are currently serving.
+     */
     private int[] ourBoxes;
 
-    // total number of boxes that will be supported
+    /**
+     * Total number of boxes that will be supported.
+     */
     private int boxesCount;
 
-    // the minimum amount of boxes that will be served
-    private int boxesToServe;
+    /**
+     * Each entry has a List. An entry in the array equals to a box #. Every
+     * List holds handlers that hold the box in which they are indexed each
+     * handler is responsible of registering and unregistering
+     */
+    private List < List < PipeHandler > > handlersPerBox;
 
-    // Each entry has a List. An entry in the array equals to a box #.
-    // Every List holds handlers that hold the box in which they are indexed
-    // each handler is responsible of registering and unregistering
-    private List < List < PipeHandler >> handlersPerBox;
-
-    // keeps track of the latest handler that was used for each box.
-    // at search time this values are used to distribute the queries
-    // "evenly"
+    /**
+     * keeps track of the latest handler that was used for each box. at search
+     * time this values are used to distribute the queries "evenly"
+     */
     private AtomicIntegerArray handlerSearchIndexes;
 
-    // set to true when some data is inserted or deleted or
-    // when a new peer comes in
-    // set to false when we publish all the peers our information
-    // or when a new peer comes in.
+    /**
+     * Set to true when some data is inserted or deleted or when a new peer
+     * comes in set to false when we publish all the peers our information or
+     * when a new peer comes in.
+     */
     private AtomicBoolean boxesUpdated;
 
+    /**
+     * If this peer is in client or server mode. If it is in client mode, Peers
+     * actively search for other peers. Otherwise the peer just waits for
+     * connections. The JXTA library also is configured differently for servers
+     * and for clients.
+     */
     private boolean isClient = true;
 
-    // a unique identifier of requests.
+    /**
+     * A unique identifier of requests.
+     */
     private AtomicLong requestId;
 
-    // threads to be used in the search
+    /**
+     * Maximum number of threads to be used in the search.
+     */
     private Semaphore searchThreads;
 
-    // it is set to true when data is inserted or deleted into this index.
-    // once the available boxes are published, this variable returns to
-    // false.
+    /**
+     * It is set to true when data is inserted or deleted into this index. once
+     * the available boxes are published, this variable returns to false.
+     */
     private AtomicBoolean modifiedData;
 
-    // tells if we are syncing or not.
-    // when we finish syncing the last box
+    /**
+     * Tells if we are syncing or not. Used to sync only box at a time.
+     */
     private AtomicBoolean syncing;
 
-    // syncing this box (index in the ourBoxes array)
+    /**
+     * The peer that we are currently syincing.
+     */
     private PipeHandler syncingPipe;
 
-    // last time we requested a box sync
+    /**
+     * The last request time for a box.
+     */
     private AtomicLong syncingBoxLastRequestTime;
 
     /**
@@ -283,16 +362,28 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      *            the index that will be distributed
      * @param dbPath
      *            the path where we will store information related to this index
+     * @param clientName
+     *            The name of this peer.
      * @param boxesToServe
      *            The number of boxes that will be served by this index
+     * @param maximumServerThreads
+     *            Max number of threads to support. (currently it has no effect)
      * @throws IOException
+     *             If a serialization exception occurs.
      * @throws PeerGroupException
+     *             If a JXTA exception occurs.
      * @throws NotFrozenException
+     *             If index is not frozen.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
-    protected AbstractP2PIndex(SynchronizableIndex < O > index, File dbPath,
-            String clientName, int boxesToServe, int maximumServerThreads)
-            throws IOException, PeerGroupException, NotFrozenException,
-            DatabaseException, OBException {
+    protected AbstractP2PIndex(final SynchronizableIndex < O > index,
+            final File dbPath, final String clientName, final int boxesToServe,
+            final int maximumServerThreads) throws IOException,
+            PeerGroupException, NotFrozenException, DatabaseException,
+            OBException {
         if (!index.isFrozen()) {
             throw new NotFrozenException();
         }
@@ -304,7 +395,6 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         boxesCount = index.totalBoxes();
         this.dbPath = dbPath;
         this.clientName = clientName;
-        this.boxesToServe = boxesToServe;
         this.boxesUpdated = new AtomicBoolean(false);
         logger = Logger.getLogger(clientName);
 
@@ -357,9 +447,18 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         syncingBoxLastRequestTime = new AtomicLong(-1);
     }
 
-    // makes sure that all the components of the given list of lists are
-    // synchronized
-    private void initHandlersPerBox(List < List < PipeHandler >> x) {
+    /**
+     * @return The underlying index
+     */
+    protected abstract SynchronizableIndex < O > getIndex();
+
+    /**
+     * Makes sure that all the components of the given list of lists are
+     * synchronized.
+     * @param x
+     *            A list of lists of pipe handlers.
+     */
+    private void initHandlersPerBox(final List < List < PipeHandler > > x) {
         int i = 0;
         while (i < boxesCount) {
             x.add(Collections.synchronizedList(new ArrayList < PipeHandler >(
@@ -370,9 +469,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Returns true if any box == 0. This means we need sync But only if we are
-     * connected to providers of every box TODO: make this method realize that
-     * he has to sync if the timestamps of the other peers are newer
-     * @return
+     * connected to providers of every box.
+     * @return True if we have to sync.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
     private boolean needSync() throws OBException, DatabaseException {
         if (syncing.get()) {
@@ -397,12 +499,16 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Returns true if I have to sync box i or false otherwise
      * @param i
      *            (box #)
-     * @return
+     * @return true if I have to sync box i or false otherwise
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
-    private boolean needSyncInBox(int i) throws OBException, DatabaseException {
+    private boolean needSyncInBox(final int i) throws OBException,
+            DatabaseException {
         long boxTime = getIndex().latestModification(i);
 
         PipeHandler mostRecent = mostRencentPipeHandlerPerBox(i);
@@ -419,11 +525,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Returns the pipe handler whose ith box has the most recent modification
-     * time
+     * time.
      * @param i
-     * @return
+     *            Box to search
+     * @return most recent pipe handler
      */
-    private PipeHandler mostRencentPipeHandlerPerBox(int i) {
+    private PipeHandler mostRencentPipeHandlerPerBox(final int i) {
         List < PipeHandler > boxList = handlersPerBox.get(i);
         PipeHandler ph = null;
         synchronized (boxList) {
@@ -443,14 +550,23 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Initializes the p2p network
-     * @param
+     * Initializes the p2p network.
+     * @param isClient
+     *            If this index is a client peer.
+     * @param c
+     *            Configuration mode
+     * @param clearCache
+     *            If the cache has to be cleared
+     * @param seedURI
+     *            The url of the seed file.
      * @throws IOException
+     *             If some network error occurs.
      * @throws PeerGroupException
+     *             If some JXTA error occurs.
      */
-    private void init(boolean isClient, NetworkManager.ConfigMode c,
-            boolean clearCache, URI seedURI) throws IOException,
-            PeerGroupException {
+    private void init(final boolean isClient,
+            final NetworkManager.ConfigMode c, final boolean clearCache,
+            final URI seedURI) throws IOException, PeerGroupException {
 
         File cache = new File(new File(dbPath, ".cache"), clientName);
         if (clearCache) {
@@ -505,6 +621,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
                 netPeerGroup.getPeerAdvertisement());
     }
 
+    /**
+     * Publish advertisements
+     * @throws IOException
+     *             if JXTA signals an error.
+     */
     private void publishAdvertisements() throws IOException {
         discovery.publish(peerAdv, lifetime, expiration);
         discovery.remotePublish(peerAdv, expiration);
@@ -518,11 +639,14 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      */
     private class HeartBeat implements Runnable {
 
+        /**
+         * If we caught an error.
+         */
         private boolean error = false;
 
         /**
          * This method starts network connections and calls heartbeat
-         * undefinitely until the program stops
+         * undefinitely until the program stops.
          */
         public void run() {
             long count = 0;
@@ -556,7 +680,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
-        // executed once per heart beat
+        /**
+         * Executed once per heart beat.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws PeerGroupException
+         *             If some JXTA error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         */
         public void heartBeat1() throws PeerGroupException, IOException,
                 OBException, DatabaseException {
             if (needSync()) {
@@ -566,7 +700,20 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
         }
 
-        public void heartBeat10(long count) throws DatabaseException,
+        /**
+         * Executed every 10 heart beats.
+         * @param count
+         *            The current heart beat count.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws PeerGroupException
+         *             If some JXTA error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         */
+        public void heartBeat10(final long count) throws DatabaseException,
                 IOException, OBException, PeerGroupException {
             if (count % 10 == 0) {
                 // find pipes if not enough peers are available
@@ -580,15 +727,40 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
-        public void heartBeat6(long count) throws PeerGroupException,
+        /**
+         * Executed every 6 heart beats.
+         * @param count
+         *            The current heart beat count.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws PeerGroupException
+         *             If some JXTA error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         */
+        public void heartBeat6(final long count) throws PeerGroupException,
                 IOException, OBException, DatabaseException {
             if (count % 6 == 0) {
                 publishAdvertisements();
             }
         }
 
-        // executed once every 3 heart beats
-        public void heartBeat3(long count) throws PeerGroupException,
+        /**
+         * Executed every 3 heart beats.
+         * @param count
+         *            The current heart beat count.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws PeerGroupException
+         *             If some JXTA error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         */
+        public void heartBeat3(final long count) throws PeerGroupException,
                 IOException, OBException, DatabaseException {
             if (count % 3 == 0) {
 
@@ -602,8 +774,20 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
-        // executed once every 100 heartbeats
-        public void heartBeat100(long count) throws PeerGroupException,
+        /**
+         * Executed every 100 heart beats.
+         * @param count
+         *            The current heart beat count.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws PeerGroupException
+         *             If some JXTA error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         */
+        public void heartBeat100(final long count) throws PeerGroupException,
                 IOException, OBException, DatabaseException {
             if (count % 100 == 0) {
                 // advertisements should be proactively searched for if we are
@@ -616,17 +800,16 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Returns true if the index is still processing query results
-     * @return
+     * @return true if the index is still processing query results
      */
-    public boolean isProcessingQueries() {
+    public final boolean isProcessingQueries() {
         return takeATab.size() != maximumItemsToProcess;
     }
 
     /**
-     * Monitors all the
+     * Monitors all the queries being executed.
      */
-    protected void queryTimeoutCheck() {
+    protected final void queryTimeoutCheck() {
         if (isProcessingQueries()) {
             long time = System.currentTimeMillis();
             int i = 0;
@@ -638,10 +821,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * @param tap
+     * Process the query entry for tab "tab"
+     * @param tab
+     *            The tab to be processed.
      * @param time
+     *            The current time.
      */
-    protected abstract void queryTimeoutCheckEntry(int tap, long time);
+    protected abstract void queryTimeoutCheckEntry(int tab, long time);
 
     /**
      * Prerequisites: Each PipeHandler contains information of the latest
@@ -651,6 +837,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * the data 2) Decide if we shall serve other boxes depending on the desired
      * amount of boxes to serve and the number of boxes currently served by the
      * peers that surround us.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
     private void sync() throws OBException, DatabaseException, IOException {
         logger.debug("sync");
@@ -673,7 +865,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Prints some information of the peer
+     * Prints some information of the peer.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
     private void info() throws OBException, DatabaseException {
         int[] servicedBoxes = servicedBoxes();
@@ -705,26 +901,14 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Returns the pipe handler that has the reported most recent modification
-     * Returns null if we don't have a peer with the given box.
-     * @param box
-     * @return
+     * Make sure the sync process is alive. If it is not, retry the sync.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
-    private PipeHandler latestPipeHandler(int box) {
-        PipeHandler res = null;
-        long time = 0;
-        Iterator < PipeHandler > it = this.handlersPerBox.get(box).iterator();
-        while (it.hasNext()) {
-            PipeHandler p = it.next();
-            long ltime = p.lastUpdated(box);
-            if (time < ltime) {
-                res = p;
-                time = ltime;
-            }
-        }
-        return res;
-    }
-
     private void syncAlive() throws IOException, DatabaseException, OBException {
         if (syncing.get()
                 && (System.currentTimeMillis() - this.syncingBoxLastRequestTime
@@ -749,8 +933,8 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      *            Changes the internal ourBoxes array with the boxes that will
      *            be served by this index
      */
-    private void decideServicedBoxes(int boxesToServe,
-            SynchronizableIndex < O > index) {
+    private void decideServicedBoxes(final int boxesToServe,
+            final SynchronizableIndex < O > index) {
         int[] sb = this.servicedBoxes();
         Random r = new Random(System.currentTimeMillis());
         if (sb == null) {
@@ -773,9 +957,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         this.ourBoxes = sb;
     }
 
-    // returns true if x is found in arr
-    // in the interval [0,i[
-    private boolean inArray(int x, int i, int[] arr) {
+    /**
+     * Returns true if x is found in arr in the interval [0,i[.
+     * @param x
+     *            the x to search
+     * @param i
+     *            the maximum bound
+     * @param arr
+     *            the array
+     * @return True if x is found in the interval [0,i[
+     */
+    private boolean inArray(final int x, final int i, final int[] arr) {
         int cx = 0;
         while (cx < i) {
             if (arr[cx] == x) {
@@ -786,39 +978,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         return false;
     }
 
-    /*
-     * Receives the # of elements per box, and: If we are not serving any box,
-     * it finds this.minBoxesToServe boxes. It will select boxes whose count is
-     * the least. If we are serving boxes, and we are serving a box that is
-     * exceedingly being served, then @param boxCount
-     */
-    /*
-     * private void decideServicedBoxes() throws Exception { int[] sb =
-     * this.servicedBoxes(); // initialize box counts int i = 0; int[] boxCount =
-     * new int[getIndex().totalBoxes()]; while (i < boxCount.length) {
-     * boxCount[i] = this.handlersPerBox.get(i).size(); i++; } // include our
-     * boxes i = 0; while(i < sb.length){ int box = sb[i]; boxCount[box]++; i++; }
-     * int findBoxes = 1; // number of boxes to find if (sb == null) { findBoxes =
-     * minBoxesToServe; } i = 0; while (i < findBoxes) { // find one box that
-     * should be replaced int badBox = findWorstBox(sb, boxCount); if(badBox ==
-     * -1){ break; } // find the box that should not be served // returns the
-     * index that should be removed // this cannot leave any box in 0. // if it
-     * can't be avoided then we signal an exception int myGoodBox =
-     * findBestBox(boxCount); int toRemoveBox = sb[myGoodBox]; sb[myGoodBox] =
-     * badBox; // updates boxCount to reflect the new layout
-     * boxCount[toRemoveBox]--; boxCount[badBox]++; i++; } this.ourBoxes = sb;
-     * assert false: "need to send an update to everybody"; } // find which is
-     * the worst box in the locality // the worst box must not be included in
-     * myBoxes // returns -1 if there are no worst cases private int
-     * findWorstBox(int[] boxCount){ int minVal = Integer.MAX_VALUE; int
-     * minIndex = -1; }
-     */
-
     /**
-     * For each pipe in pipes, send a time message
+     * For each pipe in pipes, send a time message.
+     * @throws IOException
+     *             If some network error occurs.
      */
     private void timeBeat() throws IOException {
-        // logger.debug("time");
         synchronized (clients) {
             Iterator < PipeHandler > it = this.clients.values().iterator();
             while (it.hasNext()) {
@@ -830,7 +995,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Sends box information to all the peers if box information has been
-     * changed
+     * changed.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
     private void sendBoxInfo() throws IOException, DatabaseException,
             OBException {
@@ -846,44 +1017,32 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Send the given message to the pipeID
-     * @param pipeID
-     * @param msg
-     * @throws IOException
+     * @return true if we are connected to the minimum number of peers.
      */
-    /*
-     * protected final void sendMessage(URI pipeID, Message msg) throws
-     * IOException { PipeHandler p = clients.get(pipeID); if (p != null) {
-     * p.sendMessage(msg); } else { assert false; } }
-     */
+    protected final boolean minimumNumberOfPeers() {
+        return this.clients.size() >= AbstractP2PIndex.minNumberOfPeers;
+    }
 
     /**
-     * For every pipe we have registered, we send them the globalBoxCount so
-     * that everybody has an overall idea on how many boxes are being served
-     * currently. We only need to call this method when: 1) We have changed the
-     * set of boxes we are serving 2) someone is telling us that they have done
-     * the same, and their information is more recent than ours.
+     * @return The number of peers connected to this peer.
      */
-    protected void syncGlobalBoxesInformation() {
-
-    }
-
-    protected boolean minimumNumberOfPeers() {
-        return this.clients.size() >= this.minNumberOfPeers;
-    }
-
-    public int getNumberOfPeers() {
+    public final int getNumberOfPeers() {
         return this.clients.size();
     }
 
     /**
      * Returns true if all the peers have data that is synchronized to the same
      * timestamp. This should not be used normally but it is useful for testing
-     * purposes. TODO: fix this sot hat boxes are only sent when we modify one
-     * of our boxes
-     * @return
+     * purposes.
+     * @return true if all the peers are in sync with me. *
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
-    public boolean areAllPeersSynchronizedWithMe() throws OBException,
+    // TODO: Improve this so that boxes are only sent when we modify one
+    // of our boxes
+    public final boolean areAllPeersSynchronizedWithMe() throws OBException,
             DatabaseException {
         // browse each box of the
         int i = 0;
@@ -918,10 +1077,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Check if we have peers who serve at least one box per box #
+     * Check if we have peers who serve at least one box per box #.
      * @return true if the above condition applies
      */
-    public boolean areAllBoxesAvailable() {
+    public final boolean areAllBoxesAvailable() {
 
         Iterator < List < PipeHandler >> it = handlersPerBox.iterator();
         while (it.hasNext()) {
@@ -936,7 +1095,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     /**
      * This method must be called by all users once It starts the network, and
      * creates some background threads like the hearbeat and the incoming
-     * connection handler
+     * connection handler.
      * @param client
      *            If true, the index will be created in client mode (from the
      *            p2p network perspective) If false, the index will be a
@@ -946,9 +1105,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * @param seedFile
      *            The seed file to be used for this index. Only the given seeds
      *            will be used
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws PeerGroupException
+     *             If some network error occurs.
      */
-    public void open(boolean client, boolean clearPeerCache, File seedFile)
-            throws IOException, PeerGroupException {
+    public final void open(final boolean client, final boolean clearPeerCache,
+            final File seedFile) throws IOException, PeerGroupException {
         this.isClient = client;
         NetworkManager.ConfigMode c = null;
         if (!seedFile.exists()) {
@@ -972,6 +1135,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         thread2.start();
     }
 
+    /**
+     * Generates a pipe advertisement.
+     * @return A pipe advertisement.
+     */
     private PipeAdvertisement getPipeAdvertisement() {
         PipeID pipeID = (PipeID) ID.create(generatePipeID());
 
@@ -984,12 +1151,25 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         return advertisement;
     }
 
+    /**
+     * Returns the pipe ID in URI form.
+     * @return an URI representing the pipe id.
+     */
     private URI generatePipeID() {
         return IDFactory.newPipeID(netPeerGroup.getPeerGroupID()).toURI();
     }
 
-    /** Finds the pipe for the given peer * */
-    protected void findPipePeer(URI peer) throws IOException,
+    /**
+     * Finds the pipe for the given peer. Gets advertisements of pipes for the
+     * given peer.n
+     * @param peer
+     *            The peer we are going to search.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws PeerGroupException
+     *             If some network error occurs.
+     */
+    protected final void findPipePeer(final URI peer) throws IOException,
             PeerGroupException {
         if (!minimumNumberOfPeers()) {
             discovery.getRemoteAdvertisements(peer.toString(),
@@ -998,27 +1178,26 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
     }
 
-    // query the discovery service for OBSearch pipes
-    protected void findPipes() throws IOException, PeerGroupException {
-        // logger.debug("Getting advertisements");
+    /**
+     * Query the discovery service for OBSearch pipes.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws PeerGroupException
+     *             If some network error occurs.
+     */
+    protected final void findPipes() throws IOException, PeerGroupException {
         if (isClient) {
-            /*
-             * Enumeration<Advertisement> en =
-             * discovery.getLocalAdvertisements( DiscoveryService.PEER, null,
-             * null); while (en.hasMoreElements()) { Advertisement adv =
-             * en.nextElement(); assert adv instanceof PeerAdvertisement;
-             * PeerAdvertisement padv = (PeerAdvertisement) adv; synchronized
-             * (clients) { if (!clients.containsKey(padv.getPeerID())) {
-             * findPipePeer(padv.getPeerID().toURI()); } } }
-             */
             discovery.getRemoteAdvertisements(null, DiscoveryService.PEER,
                     null, null, minNumberOfPeers, null);
         }
 
     }
 
-    // check if all the boxes are being supplied
-    protected boolean totalBoxesCovered() {
+    /**
+     * Check if all the boxes are being supplied.
+     * @return true if all the boxes are represented by a peer.
+     */
+    protected final boolean totalBoxesCovered() {
         if (handlersPerBox == null) {
             return false;
         }
@@ -1035,9 +1214,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Method called by the discovery server, when we discover something
+     * Method called by the discovery server.
+     * @param ev
+     *            The event that the discovery server found.
      */
-    public void discoveryEvent(DiscoveryEvent ev) {
+    public final void discoveryEvent(final DiscoveryEvent ev) {
 
         try {
             DiscoveryResponseMsg res = ev.getResponse();
@@ -1101,22 +1282,23 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     /**
      * Returns true if the given peer id is connected to us.
      * @param id
-     * @return
+     *            The id of the peer we are looking for
+     * @return True if the given id is connected to us.
      */
-    private boolean isConnectedToPeer(String id) {
+    private boolean isConnectedToPeer(final String id) {
         return clients.containsKey(id);
     }
 
     /**
      * Adds the given pipe to our cache of pipes. The pipe is added if our quote
      * of pipes is under the minimum. and if we don't have the pipe already
-     * @param peerID
+     * @param id
      *            peerId of the given peer advertisement
      * @param p
      *            peer advertisement to be added
      */
 
-    private void addPipe(URI id, PipeAdvertisement p) {
+    private void addPipe(final URI id, final PipeAdvertisement p) {
 
         try {
             if (!isConnectedToPeer(id.toString())) {
@@ -1139,10 +1321,14 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * @param id
      *            (peer id of the given bidipipe)
      * @param ph
+     *            pipe handler to add.
      * @throws IOException
+     *             If some network error occurs.
+     * @throws Exception
+     *             If something really bad happens.
      */
-    private void addPipeAux(URI id, PipeHandler ph) throws IOException,
-            Exception {
+    private void addPipeAux(final URI id, final PipeHandler ph)
+            throws IOException, Exception {
         synchronized (clients) {
             if (isConnectedToPeer(id.toString())) {
 
@@ -1174,10 +1360,16 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * TODO: Remove synchronized ?
+     * Add the given bidipipe
      * @param bidipipe
+     *            Bidipipe to add.
+     * @throws IOException
+     *             If some network error occurs.
+     * @throws Exception
+     *             If something really bad happens.
      */
-    private void addPipe(PipeHandler bidipipe) throws IOException, Exception {
+    private void addPipe(final PipeHandler bidipipe) throws IOException,
+            Exception {
         synchronized (clients) {
             URI id = bidipipe.getPeerID();
             addPipeAux(id, bidipipe);
@@ -1185,8 +1377,8 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Returns the currently boxes served by the library
-     * @return
+     * Returns the currently boxes served by the library.
+     * @return an int array with the serviced boxes.
      * @throws OBException
      */
     private int[] servicedBoxes() {
@@ -1195,8 +1387,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Closes the given pipe. all resources are released.
+     * @param id
+     *            the pipe id that will be closed.
+     * @throws IOException
+     *             If some network error occurs.
      */
-    private void closePipe(String id) throws IOException {
+    private void closePipe(final String id) throws IOException {
         synchronized (clients) {
             PipeHandler pipe = clients.get(id);
             clients.remove(id);
@@ -1204,37 +1400,58 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
     }
 
+    /**
+     * This class holds all the methods required to communicate with another
+     * peer.
+     */
     protected class PipeHandler implements PipeMsgListener {
 
+        /**
+         * The communication channel used to talk to the peer at the other end.
+         */
         private JxtaBiDiPipe pipe;
 
-        // the biggest time difference found
+        /**
+         * The biggest time difference found between us and the peer at the
+         * other end.
+         */
         private long biggestTimeDifference = Long.MIN_VALUE;
 
+        /**
+         * The peer id at the other end.
+         */
         private URI peerID;
 
-        // This holds the last time the boxes of the underlying pipe
-        // were updated. The peer is responsible of telling us when
-        // he changed.
-        // value of 0 means that the box is not being served
+        /**
+         * This holds the last time the boxes of the underlying pipe were
+         * updated. The peer is responsible of telling us when he changed. value
+         * of 0 means that the box is not being served
+         */
         private AtomicLongArray boxLastUpdated;
 
-        // we keep track of the latest sent timestamp in order to
-        // avoid re-sending data. YAY! (minimizes duplicated data
-        // transmission considerably)
+        /**
+         * We keep track of the latest sent timestamp in order to avoid
+         * re-sending data. YAY! (minimizes duplicated data transmission
+         * considerably)
+         */
         private AtomicLong[] lastSentTimestamp;
 
-        // we keep track of the most recent SYNCBOX request
-        // after a SYNCBOX request several SYNCC (SYNC Continue)
-        // messages will be sent until we send the receiver a
-        // SYNCE (SYNC End) message
+        /**
+         * We keep track of the most recent SYNCBOX request after a SYNCBOX
+         * request several SYNCC (SYNC Continue) messages will be sent until we
+         * send the receiver a SYNCE (SYNC End) message.
+         */
         private TimeStampIterator insertIterator = null;
 
-        // latest sync msg is stored here, in the event of a
-        // timeout msg from the peer at the other end, we
-        // just resend the bytes stored here.
+        /**
+         * latest sync msg is stored here, in the event of a timeout msg from
+         * the peer at the other end, we just resend the bytes stored here.
+         */
         private TupleOutput syncRetry;
 
+        /**
+         * Constructor for the pipe handler.
+         */
         public PipeHandler() {
             boxLastUpdated = new AtomicLongArray(getIndex().totalBoxes());
             lastSentTimestamp = new AtomicLong[boxesCount];
@@ -1246,13 +1463,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
 
         /**
-         * Creates a new pipe handler
+         * Creates a new pipe handler.
          * @param id
          *            The original peer id
          * @param pipe
          *            The pipe we will
          */
-        public PipeHandler(URI id, JxtaBiDiPipe pipe) {
+        public PipeHandler(final URI id, final JxtaBiDiPipe pipe) {
             this();
             synchronized (pipe) {
                 this.pipe = pipe;
@@ -1261,7 +1478,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
-        public PipeHandler(PipeAdvertisement p) throws IOException {
+        /**
+         * Creates a new pipe handler.
+         * @param p
+         *            PipeAdvertisement to use to create this pipe handler.
+         */
+        public PipeHandler(final PipeAdvertisement p) throws IOException {
             this();
 
             pipe = new JxtaBiDiPipe();
@@ -1273,6 +1495,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
+        /**
+         * @return The peer id that is at the other end
+         */
         public URI getPeerID() {
             return peerID;
         }
@@ -1285,10 +1510,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * @param boxIndex
          *            the index of the box in the ourBoxes array
          * @param time
+         *            Time of the sync message.
          * @throws BoxNotAvailableException
+         *             If the box given is out of range.
          * @throws IOException
+         *             If some network error occurs.
          */
-        public void sendRequestSyncMessage(int boxIndex, long time)
+        public void sendRequestSyncMessage(final int boxIndex, final long time)
                 throws BoxNotAvailableException, IOException {
 
             int box = ourBoxes[boxIndex];
@@ -1325,6 +1553,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * number object_count: the number of objects in the given box
          * latest_modification: the most recent modification time. n: total
          * number of servied boxes.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IOException
+         *             if some network error occurs.
          */
         // TODO: This method
         // * should only be invoked when: 1) We just connected with the peer 2)
@@ -1362,8 +1596,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * make sure that from the beginning we have performed all the standard
          * sync steps. The same syncs will be performed at various frequencies
          * by the heart.
-         * @param bidipipe
-         *            The pipe that to which we will send messages.
+         * @throws IOException
+         *             if some network error occurs.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
          */
         public void sendMessagesAfterFirstEncounter() throws IOException,
                 DatabaseException, OBException {
@@ -1375,20 +1613,35 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             sendBoxMessage();
         }
 
-        private final Message makeTimeMessage() throws IOException {
+        /**
+         * Creates a time message.
+         * @return a new time message with the current time.
+         * @throws IOException
+         *             if some network error occurs.
+         */
+        private Message makeTimeMessage() throws IOException {
             return makeTimeMessageAux(System.currentTimeMillis());
         }
 
         /**
-         * Sends a time message to the underlying pipe
+         * Sends a time message to the underlying pipe.
          * @throws IOException
+         *             if some network error occurs.
          */
         public final void sendTimeMessage() throws IOException {
             // time sync message
             sendMessage(makeTimeMessage());
         }
 
-        private final Message makeTimeMessageAux(long time) throws IOException {
+        /**
+         * Auxiliary method for {@link #makeTimeMessage()}.
+         * @param time
+         *            the time to use to create the time message
+         * @return A new time message
+         * @throws IOException
+         *             if some network error occurs.
+         */
+        private Message makeTimeMessageAux(final long time) throws IOException {
             TupleOutput out = new TupleOutput();
             out.writeLong(time);
             Message msg = new Message();
@@ -1396,7 +1649,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             return msg;
         }
 
-        private final long parseTimeMessage(Message msg) {
+        /**
+         * Parses the time embedded in a time message and returns the time.
+         * @param msg
+         *            A message
+         * @return The time from the message.
+         */
+        private long parseTimeMessage(final Message msg) {
             ByteArrayMessageElement m = getMessageElement(msg, MessageType.TIME);
             TupleInput in = new TupleInput(m.getBytes());
             return in.readLong();
@@ -1404,8 +1663,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
         /**
          * This method is called when a message comes into our pipe.
+         * @param event
+         *            Event sent by JXTA
          */
-        public void pipeMsgEvent(PipeMsgEvent event) {
+        public final void pipeMsgEvent(final PipeMsgEvent event) {
 
             Message msg = event.getMessage();
             if (msg == null) {
@@ -1472,18 +1733,35 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
+        /**
+         * Retry the sync process.
+         * @throws IOException
+         *             If some network error occurs.
+         * @throws OBException
+         *             User generated exception
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         */
         private void processSyncRetry() throws IOException, OBException,
                 DatabaseException {
             logger.debug("Doing re-sync");
             sendInsertMessageFromTuple(syncRetry);
         }
 
+        /**
+         * Reset sync info.
+         */
         private void resetSyncInfo() {
             syncing.set(false);
             syncingPipe = null;
             syncingBoxLastRequestTime.set(-1);
         }
 
+        /**
+         * Re-sends a sync message (after a timeout).
+         * @throws IOException
+         *             If some network error occurs.
+         */
         public void sendReSyncMessage() throws IOException {
             Message msg = new Message();
             // logger.debug("Give me more data!");
@@ -1492,12 +1770,24 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             updateSyncInfo();
         }
 
+        /**
+         * Update internal sync information.
+         */
         private void updateSyncInfo() {
             syncing.set(true);
             syncingPipe = this;
             syncingBoxLastRequestTime.set(System.currentTimeMillis());
         }
 
+        /**
+         * Process the sync-end messsage.
+         * @throws OBException
+         *             User generated exception
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws IOException
+         *             if something goes wrong with the network
+         */
         private void processSyncEnd() throws OBException, DatabaseException,
                 IOException {
             resetSyncInfo();
@@ -1515,8 +1805,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * </pre>
          * 
          * @param msg
+         *            the message to be processed
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IllegalAccessException
+         *             If there is a problem when instantiating objects O
+         * @throws InstantiationException
+         *             If there is a problem when instantiating objects O
          */
-        private void processSearchResponse(Message msg)
+        private void processSearchResponse(final Message msg)
                 throws InstantiationException, IllegalAccessException,
                 OBException, DatabaseException {
             ByteArrayMessageElement elem = getMessageElement(msg,
@@ -1549,8 +1848,19 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * Result:
          * (multiple results) |distance| |object|
          * </pre>
+         * 
+         * @param msg
+         *            Message where the query comes.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IllegalAccessException
+         *             If there is a problem when instantiating objects O
+         * @throws InstantiationException
+         *             If there is a problem when instantiating objects O
          */
-        private void processSearchQuery(Message msg) throws IOException,
+        private void processSearchQuery(final Message msg) throws IOException,
                 InstantiationException, IllegalAccessException, OBException,
                 DatabaseException {
             // searchThreads.acquireUninterruptibly();
@@ -1598,12 +1908,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * sends the data to B, (from time 3) A thinks that B has new data, and
          * receives again the records.
          * @param msg
-         * @throws InstantiationException
-         * @throws IllegalAccessException
-         * @throws OBException
+         *            Message where the insert data comes.
          * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IllegalAccessException
+         *             If there is a problem when instantiating objects O
+         * @throws InstantiationException
+         *             If there is a problem when instantiating objects O
          */
-        private void processInsertOB(Message msg)
+        private void processInsertOB(final Message msg)
                 throws InstantiationException, IllegalAccessException,
                 OBException, DatabaseException, IOException {
             ElementIterator it = msg
@@ -1655,6 +1970,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             sendSyncCMsg();
         }
 
+        /**
+         * Send sync continue message. After receiving sync updates we re-send
+         * the info again to continue synchronization.
+         * @throws IOException
+         *             if something goes wrong with the network
+         */
         private void sendSyncCMsg() throws IOException {
             Message msg = new Message();
             // logger.debug("Give me more data!");
@@ -1666,8 +1987,16 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         /**
          * Responds to a sync request. We initilalize some internal structures
          * used to keep
+         * @param msg
+         *            Message where thhe sync request info comes.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IOException
+         *             If a network error occurs.
          */
-        private void processSyncBox(Message msg) throws OBException,
+        private void processSyncBox(final Message msg) throws OBException,
                 DatabaseException, IOException {
 
             ByteArrayMessageElement m = getMessageElement(msg,
@@ -1694,6 +2023,15 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             sendNextSyncMessage();
         }
 
+        /**
+         * Continues sending sync messages.
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IOException
+         *             If a network error occurs.
+         */
         private void sendNextSyncMessage() throws IOException,
                 DatabaseException, OBException {
             // we will write here all the bytes
@@ -1737,6 +2075,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
         }
 
+        /**
+         * Sends the final sync message.
+         * @throws IOException
+         *             If a network error occurs.
+         */
         private void sendEndSyncMessage() throws IOException {
             Message msg = new Message();
             addMessageElement(msg, MessageType.SYNCE, new byte[1]);
@@ -1744,14 +2087,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
 
         /**
-         * Sends the given tupleoutput.
-         * @param count
+         * Sends the given tupleoutput as an insert message.
          * @param out
-         * @throws OBException
+         *            Byte stream to send.
          * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
          * @throws IOException
+         *             If a network error occurs.
          */
-        private void sendInsertMessageFromTuple(TupleOutput out)
+        private void sendInsertMessageFromTuple(final TupleOutput out)
                 throws OBException, DatabaseException, IOException {
             Message minsert = new Message();
             byte[] data = out.getBufferBytes();
@@ -1764,12 +2110,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
         /**
          * Process the given msg that should contain a BOX element we leave our
-         * heart the decision of getting data from the underlying Peer. TODO:
-         * this method is inneficient on purpose. We want to have it as correct
-         * as possible. We don't expect this method to be called a lot, so it
-         * should ok for now.
+         * heart the decision of getting data from the underlying Peer.
+         * @param msg
+         *            Receive the message containing the box info data.
          */
-        private void processBox(Message msg) {
+        private void processBox(final Message msg) {
             ByteArrayMessageElement m = getMessageElement(msg, MessageType.BOX);
             assert m != null;
             TupleInput in = new TupleInput(m.getBytes());
@@ -1793,30 +2138,33 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
 
         /**
-         * Returns the latest updated information for the given box
+         * Returns the latest updated information for the given box.
          * @param box
          * @return latest updated information for the given box
          */
-        public long lastUpdated(int box) {
+        public long lastUpdated(final int box) {
             assert box >= 0 && box <= boxesCount : "Box inputted:" + box;
             return this.boxLastUpdated.get(box);
         }
 
         /**
-         * Returns true if the given box is being served by this peer
+         * Returns true if the given box is being served by this peer.
          * @param box
-         * @return
+         *            The box that will be queried.
+         * @return true if the given box is served by this peer.
          */
-        public boolean isServing(int box) {
+        public boolean isServing(final int box) {
             return this.boxLastUpdated.get(box) != 0;
         }
 
         /**
-         * Sends a message to the underlying pipe
+         * Sends a message to the underlying pipe.
          * @param msg
+         *            the message to send
          * @throws IOException
+         *             If a network error occurs.
          */
-        public void sendMessage(Message msg) throws IOException {
+        public void sendMessage(final Message msg) throws IOException {
             try {
                 if (pipe != null) {
                     synchronized (pipe) {
@@ -1845,10 +2193,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         /**
          * Recevies a message that contains a time MessageElement
          * @param msg
-         * @param peerID
-         *            (the pipe we received the
+         *            Message with the time element.
+         * @throws IOException
+         *             If a network error occurs.
          */
-        private void processTime(Message msg) throws IOException {
+        private void processTime(final Message msg) throws IOException {
             long time = parseTimeMessage(msg);
             long ourtime = System.currentTimeMillis();
             long diff = time - ourtime;
@@ -1870,7 +2219,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
 
         /**
-         * Closes the underlying pipe and releases results Removes the
+         * Closes the underlying pipe and releases resources.
+         * @throws IOException
+         *             If a network error occurs.
          */
         public void close() throws IOException {
             if (pipe != null) {
@@ -1884,6 +2235,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             }
         }
 
+        /**
+         * Removes from the handlers the given this PipeHandler.
+         */
         private void removeFromHandler() {
             int i = 0;
             // remove all the references of this.
@@ -1906,10 +2260,16 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      */
     private class IncomingConnectionHandler implements Runnable {
 
+        /**
+         * Constructor.
+         */
         public IncomingConnectionHandler() {
 
         }
 
+        /**
+         * Continously listens for new peers.
+         */
         public void run() {
 
             logger.debug("Waiting for connections");
@@ -1937,17 +2297,44 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     }
 
+    /**
+     * Closes the index. Releases JXTA resources.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     */
     public void close() throws DatabaseException {
         manager.stopNetwork();
         getIndex().close();
-        // FIXME: stop all the threads
     }
 
+    /**
+     * Returns the database size of the underlying index.
+     * @return The database size.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     */
     public int databaseSize() throws DatabaseException {
         return getIndex().databaseSize();
     }
 
-    public int delete(O object) throws DatabaseException, OBException,
+    /**
+     * Deletes the given object form the database. The changes will be
+     * incrementally propagated to all the connected peers.
+     * @param object
+     *            The object to be deleted
+     * @return >= (the object ID) if the object was deleted or -1 if the object
+     *         was not deleted
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @since 0.0
+     */
+    public int delete(final O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         int res = getIndex().delete(object);
 
@@ -1963,17 +2350,40 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     }
 
-    public int getBox(O object) throws OBException {
+    public int getBox(final O object) throws OBException {
         return getIndex().getBox(object);
     }
 
-    public O getObject(int i) throws DatabaseException, IllegalIdException,
-            IllegalAccessException, InstantiationException, OBException {
+    public O getObject(final int i) throws DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBException {
         return getIndex().getObject(i);
     }
 
-    public int insert(O object) throws IllegalIdException, DatabaseException,
-            OBException, IllegalAccessException, InstantiationException {
+    /**
+     * Inserts the given object into the index. If the index is not frozen, you
+     * are expected to insert objects that are not duplicated OBSearch cannnot
+     * efficiently perform those checks for you at this stage (before freezing),
+     * so please be careful. The changes will be incrementally propagated to all
+     * the connected peers.
+     * @param object
+     *            The object to be added Identification number of the given
+     *            object. This number must be responsibly generated by someone
+     * @return The internal id of the object(>= 0) or -1 if the object exists in
+     *         the database
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @since 0.0
+     */
+    public int insert(final O object) throws IllegalIdException,
+            DatabaseException, OBException, IllegalAccessException,
+            InstantiationException {
 
         int res = getIndex().insert(object);
         boxesUpdated.set(true);
@@ -1988,7 +2398,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         return getIndex().totalBoxes();
     }
 
-    public void relocateInitialize(File dbPath) throws DatabaseException,
+    public void relocateInitialize(final File dbPath) throws DatabaseException,
             NotFrozenException, DatabaseException, IllegalAccessException,
             InstantiationException, OBException, IOException {
         getIndex().relocateInitialize(dbPath);
@@ -2001,13 +2411,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         return getIndex().toXML();
     }
 
-    public O readObject(TupleInput in) throws InstantiationException,
+    public O readObject(final TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException {
         return getIndex().readObject(in);
     }
 
-    public boolean exists(O object) throws DatabaseException, OBException,
-            IllegalAccessException, InstantiationException {
+    public boolean exists(final O object) throws DatabaseException,
+            OBException, IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }
 
@@ -2015,38 +2425,70 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * This class holds information used to process each query
      */
     protected abstract class QueryProcessing {
-        // last request performed
+        /**
+         * last request performed.
+         */
         protected long lastRequestId;
 
-        // last request timestamp (to perform timeouts)
+        /**
+         * Last request timestamp (to perform timeouts).
+         */
         protected long lastRequestTime;
 
-        // contains the remaining boxes
+        /**
+         * Contains the remaining boxes (to be processed)
+         */
         protected int[] remainingBoxes;
 
-        // holds the index that points the next boxes that have to be explored
+        /**
+         * Holds the index that points the next boxes that have to be explored.
+         */
         protected int boxIndex;
 
-        // contains the previous index just in case we have to re-send the
-        // request
+        /**
+         * Contains the previous index just in case we have to re-send the
+         * request.
+         */
         protected int prevIndex;
 
-        // tab obtained, implicit in the array but we keep because it is
-        // pysicologically
-        // more comfortable to have it (for me AJMM)
+        /**
+         * tab obtained, implicit in the array but we keep because it is
+         * pysicologically more comfortable to have it (for me AJMM)
+         */
         protected int tab;
 
+        /**
+         * The object that is being matched.
+         */
         protected O object;
 
+        /**
+         * @return The object being matched.
+         */
         public O getObject() {
             return object;
         }
 
-        public void setObject(O object) {
+        /**
+         * Sets the object being matched
+         * @param object
+         *            The object to be set.
+         */
+        public void setObject(final O object) {
             this.object = object;
         }
 
-        public QueryProcessing(int[] remainingBoxes, int tab, O object) {
+        /**
+         * Constructor.
+         * @param remainingBoxes
+         *            Remaining boxes to match
+         * @param tab
+         *            The obtained tab
+         * @param object
+         *            The object to be matched
+         */
+        public QueryProcessing(final int[] remainingBoxes, final int tab,
+                final O object) {
             super();
             this.remainingBoxes = remainingBoxes;
             boxIndex = 0;
@@ -2056,68 +2498,120 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             this.object = object;
         }
 
+        /**
+         * Return current box index.
+         * @return (box that we are matching)
+         */
         public int getBoxIndex() {
             return boxIndex;
         }
 
-        public void setBoxIndex(int boxIndex) {
+        /**
+         * Set box index.
+         * @param boxIndex
+         *            (box that we are matching)
+         */
+        public void setBoxIndex(final int boxIndex) {
             this.boxIndex = boxIndex;
         }
 
+        /**
+         * Return the last request id. Every time we query one peer, a request
+         * id is created.
+         * @return The request id.
+         */
         public long getLastRequestId() {
             return lastRequestId;
         }
 
-        public void setLastRequestId(long lastRequestId) {
+        /**
+         * Set last request id
+         * @param lastRequestId
+         *            (current request id)
+         */
+        public void setLastRequestId(final long lastRequestId) {
             this.lastRequestId = lastRequestId;
         }
 
+        /**
+         * Get the last time we performed a request
+         * @return The last request time.
+         */
         public long getLastRequestTime() {
             return lastRequestTime;
         }
 
-        public void setLastRequestTime(long lastRequestTime) {
+        /**
+         * Sets the last time we performed a request
+         * @param The
+         *            last request time.
+         */
+        public void setLastRequestTime(final long lastRequestTime) {
             this.lastRequestTime = lastRequestTime;
         }
 
+        /**
+         * @return the list of boxes that have to be matched.
+         */
         public int[] getRemainingBoxes() {
             return remainingBoxes;
         }
 
-        public void setRemainingBoxes(int[] remainingBoxes) {
+        /**
+         * Set the list of boxes that have to be matched
+         * @param remainingBoxes
+         */
+        public void setRemainingBoxes(final int[] remainingBoxes) {
             this.remainingBoxes = remainingBoxes;
         }
 
+        /**
+         * Prev index is the index of the previously sent box... for retry
+         * purposes *
+         * @return the prevIndex
+         */
         public int getPrevIndex() {
             return prevIndex;
         }
 
-        public void setPrevIndex(int prevIndex) {
+        /**
+         * Prev index is the index of the previously sent box... for retry
+         * purposes *
+         * @param the
+         *            prev index
+         */
+        public void setPrevIndex(final int prevIndex) {
             this.prevIndex = prevIndex;
         }
 
+        /**
+         * @return the tab for this query request
+         */
         public int getTab() {
             return tab;
         }
 
-        public void setTab(int tab) {
+        /**
+         * Sets the tab
+         * @param tab
+         */
+        public void setTab(final int tab) {
             this.tab = tab;
         }
 
-        /*
-         * (non-Javadoc)
-         * @see org.ajmm.obsearch.index.AsynchronousIndex#isFinished()
+        /**
+         * @return true if the matching is done.
          */
         protected boolean isFinished() {
             return this.remainingBoxes.length >= boxIndex;
         }
 
         /**
-         * Updates the remainingBoxes array Removes the boxes already processed
+         * Updates the remainingBoxes array. Removes the boxes already processed
          * @param newBoxes
          *            (this array is destroyed by this method)
          */
-        protected void updateRemainingBoxes(int[] newBoxes) {
+        protected void updateRemainingBoxes(final int[] newBoxes) {
             List < Integer > res = new LinkedList < Integer >();
             int i = 0;
             while (i < newBoxes.length) {
@@ -2143,9 +2637,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * @param x
          * @param array
          * @param max_index
-         * @return
+         * @return true if x is in array
          */
-        private boolean exists(int x, int[] array, int max_index) {
+        private boolean exists(final int x, final int[] array,
+                final int max_index) {
             int i = 0;
             assert array.length >= max_index;
             while (i < max_index) {
@@ -2161,11 +2656,27 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * Handles the result sent by the peer who answered the query internally
          * updates the state of the query result. If the match is complete, the
          * method releases the tab and leaves the space open for another entry.
+         * @param msg
+         *            The result message *
+         * @throws DatabaseException
+         *             If something goes wrong with the DB
+         * @throws OBException
+         *             User generated exception
+         * @throws IllegalAccessException
+         *             If there is a problem when instantiating objects O
+         * @throws InstantiationException
+         *             If there is a problem when instantiating objects O
          */
         public abstract void handleResult(Message msg)
                 throws InstantiationException, IllegalAccessException,
                 OBException, DatabaseException;
 
+        /**
+         * Balances the peers used to make queries.
+         * Finds the next peer that will match the box
+         * that we have to match.
+         * @return a peer that will match our next query.
+         */
         protected PipeHandler findNextPipeHandler() {
             int nextBox = remainingBoxes[boxIndex];
             List < PipeHandler > hl = handlersPerBox.get(nextBox);
@@ -2186,10 +2697,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
          * procedure favors Index efficiency instead of network bandwith this
          * means that we only match boxes that are in ph and that are continuous
          * to the current box.
-         * @param ph
-         * @return
+         * @param ph PipeHandler that will be queried
+         * @return A list of boxes that will be searched in this pipe handler.
          */
-        protected List < Integer > findBoxesToSearch(PipeHandler ph) {
+        protected List < Integer > findBoxesToSearch(final PipeHandler ph) {
             // get the boxes this pipe handler is serving and determine
             // which boxes will be matched in the given pipe handler
             // based on the current boxes to match.
@@ -2210,6 +2721,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             return res;
         }
 
+        /**
+         * @return True if the range has changed for this query
+         */
         protected abstract boolean rangeChanged();
 
         /**
@@ -2281,11 +2795,12 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         }
 
         /**
-         * Send query information Uses the current state of the object. Header:
+         * Creates a new query message. Uses the current state of the object. Header:
          * long (lastRequestId)| int (box #) | int (box id)...
+         * @param boxesToSearch Boxes that will be queried.
          */
         protected Message createCurrentQueryMessage(
-                List < Integer > boxesToSearch) {
+                final List < Integer > boxesToSearch) {
             // now we just have to send the query message
             lastRequestId = requestId.getAndIncrement();
             lastRequestTime = System.currentTimeMillis();
@@ -2317,20 +2832,20 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
         /**
          * Writes the K of the query.
-         * @param out
+         * @param out Byte stream where the k will be written.
          */
         protected abstract void writeK(TupleOutput out);
 
         /**
          * Writes down the current range employed in the search
-         * @param out
+         * @param out Byte stream where the range will be written
          */
         protected abstract void writeRange(TupleOutput out);
 
         /**
          * Writes the currently found objects and their respective ranges to the
          * message
-         * @param msg
+         * @param msg msg where to add the information
          */
         protected abstract void addResult(Message msg);
     }
@@ -2339,24 +2854,32 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * This method must obtain the object to be matched and other parameters
      * from the given message and search the underlying index. The returning
      * message is ready to be transmitted to the peer that requested the query.
-     * @param boxes
-     * @param msg
-     * @return
+     * @param boxes boxes that will be matched.
+     * @param msg Message that contains other query data besides boxes
+     * @return A new message (result) ready to be sent to the other end.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     protected abstract Message performMatch(int[] boxes, Message msg)
             throws InstantiationException, IllegalAccessException, OBException,
             DatabaseException;
 
     /**
-     * Extracts the message associated to the given namespace Assumes that the
+     * Extracts the message associated to the given namespace. Assumes that the
      * message only contains one element
-     * @param msg
-     * @param namespace
+     * @param msg The message to be extracted
+     * @param namespace The namespace to extract.
      * @return The ByteArrayMessageElement associated to the only MessageElement
      *         in this Message
      */
-    public final static ByteArrayMessageElement getMessageElement(Message msg,
-            MessageType namespace) {
+    public static final  ByteArrayMessageElement getMessageElement(
+            final Message msg, final MessageType namespace) {
         ByteArrayMessageElement res = (ByteArrayMessageElement) msg
                 .getMessageElement(namespace.toString(), "");
         assert res != null;
@@ -2365,13 +2888,14 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Extracts the message from msg with the given namespace and type
-     * @param msg
-     * @param namespace
-     * @param type
-     * @return
+     * @param msg Message that will be parsed
+     * @param namespace Namespace that will be extracted
+     * @param type Type (Message Element name) that will be extracted
+     * @return The Message element.
      */
     protected final static ByteArrayMessageElement getMessageElement(
-            Message msg, MessageType namespace, MessageElementType type) {
+            final Message msg, final MessageType namespace,
+            final MessageElementType type) {
         ByteArrayMessageElement res = (ByteArrayMessageElement) msg
                 .getMessageElement(namespace.toString(), type.toString());
         assert res != null;
@@ -2380,48 +2904,48 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * A convenience method to add a byte array to a message with the given
-     * namespace The element is added with the empty "" tag
-     * @param msg
-     * @param namespace
-     * @param b
-     * @throws IOException
+     * namespace. The element is added with the empty "" tag
+     * @param msg Message where we will add the bytes
+     * @param namespace Namespace to use
+     * @param b Byte array that will be employed.
      */
-    protected final static void addMessageElement(Message msg,
-            MessageType namespace, byte[] b) {
+    protected final static void addMessageElement(final Message msg,
+            final MessageType namespace, final byte[] b) {
         addMessageElement("", msg, namespace, b);
     }
 
     /**
      * Adds a message element of the type elem to the given message (adds such
      * tag to the message element)
-     * @param elem
-     * @param msg
-     * @param namespace
-     * @param b
-     * @throws IOException
+     * @param elem Element type to add
+     * @param msg Add the bytes to this message
+     * @param namespace And use this namespace
+     * @param b Bytes to add
      */
-    protected final static void addMessageElement(MessageElementType elem,
-            Message msg, MessageType namespace, byte[] b) {
+    protected final static void addMessageElement(
+            final MessageElementType elem, final Message msg,
+            final MessageType namespace, final byte[] b) {
         addMessageElement(elem.toString(), msg, namespace, b);
     }
 
     /**
      * A convenience method to add a byte array to a message with the given
-     * namespace The element is added with the given tag
-     * @param msg
-     * @param namespace
-     * @param b
-     * @throws IOException
+     * namespace. The element is added with the given tag
+     * @param tag The tag that will be added
+     * @param msg Message where we will add the bytes
+     * @param namespace Namespace to use
+     * @param b Bytes to add
      */
-    protected final static void addMessageElement(String tag, Message msg,
-            MessageType namespace, byte[] b) {
+    protected final static void addMessageElement(final String tag,
+            final Message msg, final MessageType namespace, final byte[] b) {
         msg.addMessageElement(namespace.toString(),
                 new ByteArrayMessageElement(tag, MimeMediaType.AOS, b, null));
     }
 
     /**
      * Receives a message that looks like: * And updates the result for the
-     * given query.
+     * given query. Will process a match result. If more matches
+     * have to be performed, this method will query again the peers.
      * 
      * <pre>
      * Header: |requestId| |tab|
@@ -2429,9 +2953,17 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * (multiple results) |distance| |object|
      * </pre>
      * 
-     * @param tab
-     * @param id
-     * @param msg
+     * @param tab Tab of the result
+     * @param id Id of the result
+     * @param msg Message with additional information.
+     *     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     protected abstract void processMatchResult(int tab, long id, Message msg)
             throws InstantiationException, IllegalAccessException, OBException,
