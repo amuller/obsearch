@@ -34,17 +34,7 @@ public class SliceParseException
      * Serial version of the class.
      */
     private static final long serialVersionUID = 3774865697155505953L;
-
-    /**
-     * The tree we tried to parse.
-     */
-    private String slice;
-
-    /**
-     * The exception generated
-     * when we tried to parse the tree.
-     */
-    private Exception e;
+   
 
     /**
      * Constructor.
@@ -52,16 +42,9 @@ public class SliceParseException
      * @param e Exception that was thrown
      */
     SliceParseException(final String x, final Exception e) {
-        slice = x;
-        this.e = e;
+       super(x,e);
     }
 
-    /**
-     * @return A string representation of the error.
-     */
-    @Override
-    public final String toString() {
-        return slice + e;
-    }
+   
 
 }
