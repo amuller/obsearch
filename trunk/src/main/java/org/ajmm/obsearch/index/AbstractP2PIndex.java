@@ -168,7 +168,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * necessary minimum number of peers to allow matching might be bigger than
      * this.
      */
-    public static final int minNumberOfPeers = 3;
+    public static final int minNumberOfPeers = 2;
 
     // JXTA variables
     /**
@@ -220,8 +220,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     /**
      * Maximum number of objects to query at the same time.
+     * (60)
      */
-    protected static final int maximumItemsToProcess = 60;
+    protected static final int maximumItemsToProcess = 15;
 
     /**
      * Maximum time to wait for a query to be answered.
@@ -743,7 +744,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         public void heartBeat6(final long count) throws PeerGroupException,
                 IOException, OBException, DatabaseException {
             if (count % 6 == 0) {
-                publishAdvertisements();
+               
             }
         }
 
@@ -769,7 +770,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
                 // check for timeouts in the sync process
                 syncAlive();
-
+                publishAdvertisements();
                 queryTimeoutCheck();
             }
         }

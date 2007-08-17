@@ -12,7 +12,7 @@
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value=".."/>
   
-	<property name="dbfolder" value="${user.home}/temp/PurpleTentacle7/"/>
+	<property name="dbfolder" value="${user.home}/temp/PurpleTentacleSMALL/"/>
 
 	<property name="name" value="seeder"/>
 
@@ -55,7 +55,7 @@
 
 	<!-- DB and QUERY datafiles -->
 
-	<property name="dbdata" value="${project.build.outputDirectory}/slices"/>
+	<property name="dbdata" value="${project.build.outputDirectory}/slices-small"/>
 	<property name="querydata" value="${project.build.outputDirectory}/slices-query"/>
 </target>
 
