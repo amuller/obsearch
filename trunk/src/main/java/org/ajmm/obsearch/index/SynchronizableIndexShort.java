@@ -33,7 +33,9 @@ import com.sleepycat.je.DatabaseException;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * Class: SynchronizableIndexShort
+ * This class wraps an standard index, and allows the user to obtain information
+ * regarding the most recent insertions and deletions. The idea is to used this
+ * index in a distributed environment.
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
@@ -67,9 +69,7 @@ public class SynchronizableIndexShort < O extends OBShort >
         return index;
     }
 
-    /**
-     * Returns the xml of the index embedded in this SynchronizedIndex.
-     */
+    
     public String toXML() {
         return getIndex().toXML();
     }
