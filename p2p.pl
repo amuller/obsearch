@@ -6,15 +6,15 @@
 
 # the database folder
 $dbRoot = "~/temp/";
-$dbFolder = "$dbRoot/PurpleTentacle7";
+$dbFolder = "$dbRoot/PurpleTentacleSMALL";
 # the location of the spore file
 $sporeFolder = "$dbFolder/std/";
 $spore = "$sporeFolder/PPTreeShort";
 
 # where we created the database
-$databaseCreated = "192.168.1.86";
+$databaseCreated = "192.168.1.81";
 # the servers that you will use
-@servers = ("192.168.1.86", "192.168.1.85", "192.168.1.81");
+@servers = ( "192.168.1.85", "192.168.1.81");
 # the search by default will be performed in the machine
 # this script is running
 
