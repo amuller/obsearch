@@ -42,8 +42,8 @@ import com.sleepycat.je.DatabaseException;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * Class: AbstractParallelIndex Wrapper class that allows to exploit all the
- * cpus of a computer with any OB index. :) yay!
+ * AbstractParallelIndex is a wrapper class that allows to exploit all the cpus
+ * of a computer with any OB index. :) yay!
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
@@ -58,30 +58,40 @@ import com.sleepycat.je.DatabaseException;
 // eating a lot of data. Another possibility is that the queue is too slow, that
 // the bottleneck is the creation of slices...
 // I will work on this in the future.
-// This class is officially suspended. I don't need it right now.
+// This class is officially suspended. We don't need it right now.
 public abstract class AbstractParallelIndex < O extends OB > implements
         Index < O >, ParallelIndex < O >, Runnable {
 
-    // # of threads to be used
+    /**
+     * # of threads to be used.
+     */
     protected int cpus;
 
-    // object that executes threads
+    /**
+     * Object that executes threads.
+     */
     protected Executor executor;
 
-    // keep track of an exception if it occurs
+    /**
+     * Keep track of an exception if it occurs.
+     */
     protected Exception recordedException;
 
-    // variable that holds the # of unprocessed elements
-    // a search increments it by one
-    // a completed search decrements it by one
+    /**
+     * variable that holds the # of unprocessed elements a search increments it
+     * by one a completed search decrements it by one.
+     */
     protected AtomicInteger counter;
 
+    /**
+     * Logger.
+     */
     private static transient final Logger logger = Logger
             .getLogger(AbstractParallelIndex.class);
 
     /**
-     * Initializes this parallel index with an Index, a paralellism level
-     * @param index
+     * Initializes this parallel index with an Index, a paralellism level.
+     * @param cpus number of cpus to use.
      */
     public AbstractParallelIndex(int cpus) {
         this.cpus = cpus;
@@ -92,7 +102,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
 
     /**
      * This method must be called by daughters of this class when they are ready
-     * to start matching
+     * to start matching.
      */
     protected void initiateThreads() {
         int i = 0;
@@ -102,8 +112,16 @@ public abstract class AbstractParallelIndex < O extends OB > implements
         }
     }
 
+    /**
+     * Returns this parallel index.
+     * @return This
+     */
     protected abstract ParallelIndex getMe();
 
+    /**
+     * Checks if an exception was registered and if so, throws it.
+     * @throws OBException
+     */
     protected void checkException() throws OBException {
         if (recordedException != null) {
             logger.fatal("Exception caught in Parallel Index",
@@ -113,7 +131,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
     }
 
     /**
-     * Returns the index that this class is parallelizing
+     * Returns the index that this class is parallelizing.
      * @return Internal index
      */
     public abstract Index < O > getIndex();
@@ -160,15 +178,16 @@ public abstract class AbstractParallelIndex < O extends OB > implements
     public abstract void run();
 
     /**
-     * Returns the elements found in this queue
-     * @return
+     * Returns the count of elements found in this queue.
+     * @return count of elements found in this queue.
      */
     public abstract int elementsInQueue();
 
     /**
      * Waits until there are no more items to be matched.
+     * @throws OBException if an error occurs during match.
      */
-    public void waitQueries() throws OBException {
+    public final void waitQueries() throws OBException {
         while (counter.get() != 0) {
             try {
                 checkException();
