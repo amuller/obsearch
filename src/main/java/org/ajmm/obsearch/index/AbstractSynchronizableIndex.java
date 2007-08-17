@@ -58,10 +58,13 @@ import com.sleepycat.je.Transaction;
 /**
  * This class wraps an standard index, and allows the user to obtain information
  * regarding the most recent insertions and deletions. The idea is to used this
- * index in a distributed environment
- * @author amuller
+ * index in a distributed environment.  the index stores OB objects whose distance
+ * functions generate shorts.
+ * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The type of object to be stored in the Index.
+ * @version %I%, %G%
+ * @since 0.0
  */
 public abstract class AbstractSynchronizableIndex < O extends OB > implements
         SynchronizableIndex < O > {
@@ -113,6 +116,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      * @param dbDir
      *            The directory of the index.
      * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
     public AbstractSynchronizableIndex(final Index < O > index, final File dbDir)
             throws DatabaseException {
@@ -230,7 +234,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return insert(object, System.currentTimeMillis());
     }
 
-    // FIXME time cannot be 0
+   
     public int insert(final O object, final long time)
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
@@ -264,7 +268,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     }
 
     /**
-     * Adds a time entry to the database Key: box + time Value: id
+     * Adds a time entry to the database Key: box + time Value: id.
      * @param box
      *            the box to add
      * @param time
@@ -276,7 +280,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      * @throws OBException
      *             User generated exception
      */
-    protected void insertInsertEntry(final int box, final long time,
+    protected final void insertInsertEntry(final int box, final long time,
             final int id) throws DatabaseException, OBException {
         DatabaseEntry keyEntry = new DatabaseEntry();
         DatabaseEntry dataEntry = new DatabaseEntry();
@@ -315,7 +319,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      * @throws OBException
      *             User generated exception
      */
-    protected void insertDeleteEntry(final int box, final long time,
+    protected final void insertDeleteEntry(final int box, final long time,
             final O object) throws DatabaseException, OBException {
         DatabaseEntry keyEntry = new DatabaseEntry();
         DatabaseEntry dataEntry = new DatabaseEntry();
@@ -383,7 +387,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      * @throws OBException
      *             User generated exception
      */
-    public long latestModification(final int box) throws DatabaseException,
+    public final long latestModification(final int box) throws DatabaseException,
             OBException {
         if (timeByBox.get(box) == 0) {
             // 0 is the unitialized value.
@@ -510,7 +514,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     }
 
     /**
-     * Validate that prev is <= next if cbox == box
+     * Validate that prev is <= next if cbox == box.
      * @param prev
      *            previous time
      * @param next

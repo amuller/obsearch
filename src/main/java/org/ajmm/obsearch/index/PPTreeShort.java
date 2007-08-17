@@ -52,8 +52,9 @@ import com.sleepycat.je.OperationStatus;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * PPTreeShort Implementation of a P+Tree that stores shorts. We take the burden
- * of maintaining one class per datatype for efficiency reasons.
+ * PPTreeShort Implementation of a P+Tree that stores OB objects whose distance
+ * functions generate shorts. We take the burden of maintaining one class per
+ * datatype for efficiency reasons.
  * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The type of object to be stored in the Index.
@@ -657,8 +658,8 @@ public class PPTreeShort < O extends OBShort >
      *             If the distance of any object to any other object exceeds the
      *             range defined by the user.
      */
-    protected final void readFromB(int id, float[] tuple) throws DatabaseException,
-            OutOfRangeException {
+    protected final void readFromB(int id, float[] tuple)
+            throws DatabaseException, OutOfRangeException {
         Cursor cursor = null;
         // check if the tuple is in cache
         float[] temp = this.bCache.get(id);
@@ -705,7 +706,8 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Normalize the given value This is a first pass normalization, any value
      * to [0,1].
-     * @param x value to be normalized
+     * @param x
+     *            value to be normalized
      * @return the normalized value
      * @throws OutOfRangeException
      *             If the distance of any object to any other object exceeds the
@@ -843,7 +845,8 @@ public class PPTreeShort < O extends OBShort >
 
     /**
      * Auxiliary insert operation.
-     * @param object object to insert.
+     * @param object
+     *            object to insert.
      * @return -1 if the object is already inserted, otherwise the object's id
      * @throws DatabaseException
      *             If something goes wrong with the DB
@@ -854,8 +857,8 @@ public class PPTreeShort < O extends OBShort >
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
      */
-    private int insertAux(final O object) throws DatabaseException, OBException,
-            IllegalAccessException, InstantiationException {
+    private int insertAux(final O object) throws DatabaseException,
+            OBException, IllegalAccessException, InstantiationException {
         // if the object is not in the database, we can insert it
 
         int resId = -1;
@@ -948,18 +951,19 @@ public class PPTreeShort < O extends OBShort >
     }
 
     /**
-    * Auxiliary delete operation.
-    * @param object object to delete.
-    * @return -1 if the object was not found, otherwise the object's id
-    * @throws DatabaseException
-    *             If something goes wrong with the DB
-    * @throws OBException
-    *             User generated exception
-    * @throws IllegalAccessException
-    *             If there is a problem when instantiating objects O
-    * @throws InstantiationException
-    *             If there is a problem when instantiating objects O
-    */
+     * Auxiliary delete operation.
+     * @param object
+     *            object to delete.
+     * @return -1 if the object was not found, otherwise the object's id
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     */
     protected final int deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
