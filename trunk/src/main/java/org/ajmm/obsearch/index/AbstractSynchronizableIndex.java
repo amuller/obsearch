@@ -70,6 +70,9 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      */
     private static final int CACHE_SIZE = 20 * 1024 * 1024;
 
+    /**
+     * Logger.
+     */
     private static final transient Logger logger = Logger
             .getLogger(AbstractSynchronizableIndex.class);
 
@@ -106,10 +109,12 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     /**
      * Initializes the index.
      * @param index
+     *            Index that will be wrapped into this index.
      * @param dbDir
+     *            The directory of the index.
      * @throws DatabaseException
      */
-    public AbstractSynchronizableIndex(Index < O > index, final File dbDir)
+    public AbstractSynchronizableIndex(final Index < O > index, final File dbDir)
             throws DatabaseException {
         this.dbDir = dbDir;
         initDB();
@@ -125,6 +130,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     /**
      * Initialize the databases.
      * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      */
     private void initDB() throws DatabaseException {
         initBerkeleyDB();
@@ -166,6 +172,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     /**
      * Initializes time database.
      * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      */
     private void initInsertTime() throws DatabaseException {
         timeDB = databaseEnvironment.openDatabase(null, "insertTime", dbConfig);
@@ -179,8 +186,9 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         getIndex().close();
     }
 
-    public int delete(O object) throws IllegalIdException, DatabaseException,
-            OBException, IllegalAccessException, InstantiationException {
+    public int delete(final O object) throws IllegalIdException,
+            DatabaseException, OBException, IllegalAccessException,
+            InstantiationException {
         // TODO: update the objects count array.
         return delete(object, System.currentTimeMillis());
     }
@@ -210,20 +218,22 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
                 + timeDB.count() + " the rest: " + getIndex().databaseSize();
     }
 
-    public O getObject(int i) throws DatabaseException, IllegalIdException,
-            IllegalAccessException, InstantiationException, OBException {
+    public O getObject(final int i) throws DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBException {
         return getIndex().getObject(i);
     }
 
-    public int insert(O object) throws IllegalIdException, DatabaseException,
-            OBException, IllegalAccessException, InstantiationException {
+    public int insert(final O object) throws IllegalIdException,
+            DatabaseException, OBException, IllegalAccessException,
+            InstantiationException {
         return insert(object, System.currentTimeMillis());
     }
 
     // FIXME time cannot be 0
-    public int insert(O object, long time) throws IllegalIdException,
-            DatabaseException, OBException, IllegalAccessException,
-            InstantiationException {
+    public int insert(final O object, final long time)
+            throws IllegalIdException, DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
         int id = getIndex().insert(object);
         if (id != -1) { // if we could insert the object
             if (isFrozen()) {
@@ -235,9 +245,9 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return id;
     }
 
-    public int delete(O object, long time) throws IllegalIdException,
-            DatabaseException, OBException, IllegalAccessException,
-            InstantiationException {
+    public int delete(final O object, final long time)
+            throws IllegalIdException, DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
         int id = getIndex().delete(object);
         if (id != -1) { // if we could delete the object
             if (isFrozen()) {
@@ -256,12 +266,18 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     /**
      * Adds a time entry to the database Key: box + time Value: id
      * @param box
+     *            the box to add
      * @param time
+     *            the time of the insertion
      * @param id
-     * @return
+     *            the internal id
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      */
-    protected void insertInsertEntry(int box, long time, int id)
-            throws DatabaseException, OBException {
+    protected void insertInsertEntry(final int box, final long time,
+            final int id) throws DatabaseException, OBException {
         DatabaseEntry keyEntry = new DatabaseEntry();
         DatabaseEntry dataEntry = new DatabaseEntry();
 
@@ -289,13 +305,18 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
      * time). In the case of insertTimeDB we insert only the internal object id,
      * but in the case of deletes, we store all the object
      * @param box
+     *            the box to add
      * @param time
+     *            the time of the insertion
      * @param object
+     *            the object that was deleted
      * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      * @throws OBException
+     *             User generated exception
      */
-    protected void insertDeleteEntry(int box, long time, O object)
-            throws DatabaseException, OBException {
+    protected void insertDeleteEntry(final int box, final long time,
+            final O object) throws DatabaseException, OBException {
         DatabaseEntry keyEntry = new DatabaseEntry();
         DatabaseEntry dataEntry = new DatabaseEntry();
 
@@ -318,7 +339,16 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
 
     }
 
-    private void incElementsPerBox(int box) throws DatabaseException,
+    /**
+     * Increase the number of elements per box.
+     * @param box
+     *            box that will be incremented
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    private void incElementsPerBox(final int box) throws DatabaseException,
             OBException {
         if (objectsByBox.get(box) == -1) {
             elementsPerBox(box);
@@ -326,7 +356,16 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         objectsByBox.incrementAndGet(box);
     }
 
-    private void decElementsPerBox(int box) throws DatabaseException,
+    /**
+     * Decrease the number of elements per box.
+     * @param box
+     *            box that will be decremented.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    private void decElementsPerBox(final int box) throws DatabaseException,
             OBException {
         if (objectsByBox.get(box) == -1) {
             elementsPerBox(box);
@@ -334,7 +373,17 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         objectsByBox.decrementAndGet(box);
     }
 
-    public long latestModification(int box) throws DatabaseException,
+    /**
+     * Obtain the most recent modification per box.
+     * @param box
+     *            The box that will be processed
+     * @return Latest modification
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    public long latestModification(final int box) throws DatabaseException,
             OBException {
         if (timeByBox.get(box) == 0) {
             // 0 is the unitialized value.
@@ -343,7 +392,18 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return timeByBox.get(box);
     }
 
-    public int elementsPerBox(int box) throws DatabaseException, OBException {
+    /**
+     * Obtain the number of objects per box.
+     * @param box
+     *            The box that will be processed
+     * @return number of objects per box
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    public int elementsPerBox(final int box) throws DatabaseException,
+            OBException {
         if (objectsByBox.get(box) == -1) {
             // this updates the box count.
             objectsByBox.set(box, objectsPerBoxAux(box));
@@ -352,12 +412,14 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     }
 
     /**
-     * Counts the number of objects for the given box
+     * Counts the number of objects for the given box.
      * @param box
      *            the box to be processed
-     * @return
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @return number of objects for the given box.
      */
-    private int objectsPerBoxAux(int box) throws DatabaseException {
+    private int objectsPerBoxAux(final int box) throws DatabaseException {
         Cursor cursor = null;
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -388,18 +450,34 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
 
     /**
      * Obtains the latest inserted item in the given box or -1 if there are no
-     * items. It also calculates the number of boxes available in the index
+     * items.
      * @param box
-     * @return
+     *            Box to process
+     * @return Latest inserted or deleted item timestamp from the database
      * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      * @throws OBException
+     *             User generated exception
      */
-    private long latestInsertedItemAux(int box) throws DatabaseException,
+    private long latestInsertedItemAux(final int box) throws DatabaseException,
             OBException {
         return latestInsertedItemAuxAux(box, this.timeDB);
     }
 
-    private long latestInsertedItemAuxAux(int box, Database db)
+    /**
+     * Obtains the latest inserted item in the given box or -1 if there are no
+     * items. Reads the data from the database.
+     * @param box
+     *            Box to process
+     * @param db
+     *            Database that will be queried.
+     * @return Latest inserted or deleted item timestamp from the database
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
+    private long latestInsertedItemAuxAux(final int box, final Database db)
             throws DatabaseException, OBException {
         Cursor cursor = null;
         DatabaseEntry key = new DatabaseEntry();
@@ -432,15 +510,19 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     }
 
     /**
-     * Method used to perform a validation from the assert only if prev is <=
-     * next when cbox == box we return true
+     * Validate that prev is <= next if cbox == box
      * @param prev
+     *            previous time
      * @param next
+     *            next time
      * @param cbox
+     *            current box
      * @param box
-     * @return
+     *            previous box
+     * @return true if prev is <= next when cbox == box
      */
-    private boolean validate(long prev, long next, int cbox, int box) {
+    private boolean validate(final long prev, final long next, final int cbox,
+            final int box) {
         if (cbox != box) {
             return true;
         } else {
@@ -448,22 +530,38 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         }
     }
 
-    private byte[] boxTimeToByteArray(int box, long time) {
+    /**
+     * Create a byte array out of appending box and time.
+     * @param box
+     *            Box to add
+     * @param time
+     *            Time to add
+     * @return a byte array with box + time encoded
+     */
+    private byte[] boxTimeToByteArray(final int box, final long time) {
         TupleOutput data = new TupleOutput();
         data.writeInt(box);
         data.writeLong(time);
         return data.getBufferBytes();
     }
 
-    public Iterator < TimeStampResult < O >> elementsNewerThan(int box,
-            long time) throws DatabaseException {
+    public Iterator < TimeStampResult < O >> elementsNewerThan(final int box,
+            final long time) throws DatabaseException {
         return new TimeStampIterator(box, time);
     }
 
-    public int getBox(O object) throws OBException {
+    public int getBox(final O object) throws OBException {
         return this.getIndex().getBox(object);
     }
 
+    /**
+     * Returns the boxes currently available in the index.
+     * @return boxes currently available in the index
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     */
     public int[] currentBoxes() throws DatabaseException, OBException {
         int i = 0;
         int max = this.totalBoxes();
@@ -484,42 +582,74 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return resultArray;
     }
 
+    /**
+     * This class is responsible of iterating the index when a
+     * elementsNewerThan() call is made.
+     */
     public class TimeStampIterator implements Iterator {
 
+        /**
+         * The internal cursor reference.
+         */
         private Cursor cursor = null;
 
-        private DatabaseEntry keyEntry = new DatabaseEntry();
+        /**
+         * The key currently extracted.
+         */
+        private final DatabaseEntry keyEntry = new DatabaseEntry();
+        
+        /**
+         * The value currently extracted.
+         */
+        private final DatabaseEntry dataEntry = new DatabaseEntry();
 
-        private DatabaseEntry dataEntry = new DatabaseEntry();
-
+        /**
+         * Operation results.
+         */
         private OperationStatus retVal;
 
+        /**
+         * Byte stream input used to parse data.
+         */
         private MyTupleInput in;
 
+        /**
+         * Box that was originally queried.
+         */
         private int box;
 
+        /**
+         * Current box.
+         */
         private int cbox = -1;
 
+        /**
+         * Previous time value.
+         */
         private long previous = Long.MIN_VALUE;
 
+        /**
+         * elements currently processed.
+         */
         private int count = 0;
 
+        /**
+         * Transaction employed (used because this iterator
+         * can be called from several threads).
+         */
         private Transaction txn;
-
-        private boolean closeForced = false;
 
         /**
          * Creates a new TimeStampIterator from the given database if the
          * parameter idFormat = true then the iterator will extract the objects
          * from the internal index. If the parameter is false, then the objects
          * are actually embeded in the record and will be read from there
-         * @param box
-         * @param from
-         * @param db
-         * @param idFormat
-         * @throws DatabaseException
+         * @param box Box to extract
+         * @param from From the given time
+         * @throws DatabaseException If somehing goes wrong with the DB
          */
-        public TimeStampIterator(int box, long from) throws DatabaseException {
+        public TimeStampIterator(final int box, final long from)
+                throws DatabaseException {
             this.box = box;
 
             CursorConfig config = new CursorConfig();
@@ -534,7 +664,9 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             goNextAux();
         }
 
-        // update the data from keyEntry and dataEntry
+        /**
+         * Update the data from keyEntry and dataEntry.
+         */
         private void goNextAux() {
             if (OperationStatus.SUCCESS == retVal) {
                 in.setBuffer(keyEntry.getData());
@@ -549,8 +681,12 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             }
         }
 
-        // validates some general conditions in the data
-        private boolean validate(long recent) {
+        /**
+         * Validates some general conditions in the data.
+         * @param recent  the latest time.
+         * @return true if previous <= recent when box == cbox
+         */
+        private boolean validate(final long recent) {
             if (box == cbox) {
                 return previous <= recent;
             } else {
@@ -558,15 +694,23 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             }
         }
 
+        /**
+         * Go to the next record.
+         * @throws DatabaseException If somehing goes wrong with the DB
+         */
         private void goNext() throws DatabaseException {
             retVal = cursor.getNext(keyEntry, dataEntry, LockMode.DEFAULT);
             goNextAux();
         }
 
+        /**
+         * Close this iterator.
+         * This method makes this iterator a bit different from standard
+         * iterators.
+         */
         public void close() {
             try {
                 cursor.close();
-                closeForced = true;
             } catch (DatabaseException e) {
                 // logger.fatal(e);
                 // if the cursor has been closed already ignore the error
@@ -574,6 +718,10 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             }
         }
 
+        /**
+         * If there are more elements in the iterator.
+         * @return true if there are more elements in the iterator.
+         */
         public boolean hasNext() {
             boolean res = (retVal == OperationStatus.SUCCESS) && cbox == box;
             if (!res) {
@@ -582,6 +730,9 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             return res;
         }
 
+        /**
+         * @return The next elements.
+         */
         public TimeStampResult next() {
             try {
                 if (hasNext()) {
@@ -616,19 +767,19 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
 
     }
 
-    public void relocateInitialize(File dbPath) throws DatabaseException,
+    public void relocateInitialize(final File dbPath) throws DatabaseException,
             NotFrozenException, DatabaseException, IllegalAccessException,
             InstantiationException, OBException, IOException {
         getIndex().relocateInitialize(dbPath);
     }
 
-    public O readObject(TupleInput in) throws InstantiationException,
+    public O readObject(final TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException {
         return getIndex().readObject(in);
     }
 
-    public boolean exists(O object) throws DatabaseException, OBException,
-            IllegalAccessException, InstantiationException {
+    public boolean exists(final O object) throws DatabaseException,
+            OBException, IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }
 }
