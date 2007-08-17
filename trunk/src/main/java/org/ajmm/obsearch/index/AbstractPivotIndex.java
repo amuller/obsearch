@@ -4,43 +4,29 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.AbstractOBPriorityQueue;
-import org.ajmm.obsearch.AbstractOBResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
-import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
-import com.sleepycat.bind.tuple.LongBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
-import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.SecondaryConfig;
-import com.sleepycat.je.SecondaryCursor;
-import com.sleepycat.je.SecondaryDatabase;
-import com.sleepycat.je.SecondaryKeyCreator;
 import com.sleepycat.je.StatsConfig;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -65,7 +51,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 /**
  * A Pivot index uses n pivots from the database to speed up search. The
- * following outlines the insertion workflow: 1) All insertions are copied into
+ * following outlines the insertion workflow: 1) All insertions are stored into
  * a temporary B-Tree A. 2) User freezes the database. 3) Pivot tuples are
  * calculated for each object and they are copied into a B-tree B. 4) Subclasses
  * can calculate additional values to be used by the index. 5) All the objects
@@ -75,13 +61,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * objects will be of the same type You should not mix types as the distance
  * function and the objects must be consistent. Also, Inserts are first added to
  * A, and then to C. This guarantees that there will be always objects to match.
- * Subclasses must populate correctly the timestamp B-tree. This B-tree contains
- * this information: key: <box><timestamp> value: <id> And the subclass has to
- * fill this in.
  * @param <O>
  *            The object type to be used
- * @param <D>
- *            The dimension type to be used
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 0.0
@@ -89,51 +70,89 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("AbstractPivotIndex")
 public abstract class AbstractPivotIndex < O extends OB > implements Index < O > {
 
+    /**
+     * Logger.
+     */
     private static transient final Logger logger = Logger
             .getLogger(AbstractPivotIndex.class);
 
+    /**
+     * Directory that will contain the index.
+     */
     private File dbDir;
 
+    /**
+     * Number of dimensions used to index objects.
+     */
     protected short pivotsCount;
 
+    /**
+     * If the index is frozen or not.
+     */
     private boolean frozen;
 
-    // we should not have to control this property after freezing. This is
-    // just
-    // used as a safeguard.
-    // It allows RandomPivotSelector to be implemented easily
+    /**
+     * We should not have to control this property after freezing. This is just
+     * used as a safeguard to make sure that every inserted item before freezing
+     * is a consecutive integer (always guaranteed because the user does not
+     * provide this id). It allows some PivotSelectors to be implemented easily.
+     */
     private transient int maxId;
 
-    private transient PivotSelector pivotSelector;
-
+    /**
+     * Berkeley DB database environment.
+     */
     protected transient Environment databaseEnvironment;
 
-    // database with the objects
+    /**
+     * Database with the objects. The index is a map of ids -> OB. We store the
+     * objects independently of the SMAP info. for efficiency reasons.
+     */
     protected transient Database aDB;
 
-    // database with the temporary pivots
+    /**
+     * Database with the temporary pivots. Used only during Freezing, after
+     * freezing this database can be erased.
+     */
     protected transient Database bDB;
 
+    /**
+     * Generic configuration object for the databases.
+     */
     protected transient DatabaseConfig dbConfig;
 
+    /**
+     * The pivots for this Tree. When we instantiate or de-serialize this object
+     * we load them from {@link #pivotsBytes}.
+     */
     protected transient O[] pivots;
 
+    /**
+     * Bytes of the pivots. From this array we can load the pivots into
+     * {@link #pivots}.
+     */
     protected byte[][] pivotsBytes;
 
+    /**
+     * Cache used for storing recently accessed objects O.
+     */
     protected transient OBCache < O > cache;
 
     /**
-     * Keeps track of the inserted ids.
+     * Keeps track of the ids for insertion. When we want to insert a new
+     * record, we increment this id.
      */
     protected transient AtomicInteger id;
 
-    // we keep this in order to be able to create objects of type O
+    /**
+     * We keep this in order to be able to create objects of type O.
+     */
     protected Class < O > type;
 
     /**
      * Size of the cache for the underlying db.
      */
-    private static int CACHE_SIZE = 300 * 1024 * 1024;
+    private static final int CACHE_SIZE = 300 * 1024 * 1024;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -142,13 +161,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *            Where all the databases will be stored.
      * @param pivots
      *            The number of pivots to be used.
-     * @param pivotSelector
-     *            The object that will choose a hopefully good set of pivots
-     *            from the DB.
-     * @param type
-     *            The type of the object the user will use. Has to match with O.
-     *            Do something like YourObj.class
      * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws IOException
+     *             If the databaseDirectory does not exist.
      */
     public AbstractPivotIndex(final File databaseDirectory, final short pivots)
             throws DatabaseException, IOException {
@@ -167,23 +183,28 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Creates an array with the pivots It has to be created like this because
-     * we are using generics
+     * Creates an array with the pivots. It has to be created like this because
+     * we are using generics.
      */
     protected void createPivotsArray() {
         this.pivots = emptyPivotsArray();
     }
 
+    /**
+     * Create an empty pivots array.
+     * @return an empty pivots array of size {@link #pivotsCount}.
+     */
     public O[] emptyPivotsArray() {
         return (O[]) Array.newInstance(type, pivotsCount);
     }
 
     /**
      * Initialization of all the databases involved Subclasses should override
-     * this method if they want to create new databases
+     * this method if they want to create new databases.
      * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
-    private final void initDB() throws DatabaseException {
+    private void initDB() throws DatabaseException {
         initBerkeleyDB();
         // way of creating a database
         initA();
@@ -191,6 +212,12 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         initC();
     }
 
+    /**
+     * Initializes database B. This database is only used during
+     * {@link #freeze()}.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     */
     private void initB() throws DatabaseException {
         final boolean duplicates = dbConfig.getSortedDuplicates();
         dbConfig.setSortedDuplicates(false);
@@ -200,23 +227,30 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
 
     /**
      * This method will be called by the super class Initializes the C *
-     * database(s)
+     * database(s).
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
     protected abstract void initC() throws DatabaseException;
 
     /**
      * This method is called by xstream when all the serialized fields have been
-     * populated
-     * @return
+     * populated. Used for de-serialization.
+     * @return Returns this.
      * @throws DatabaseException
-     * @throws NotFrozenException
-     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
      * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
      * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
      */
     protected Object initializeAfterSerialization() throws DatabaseException,
-            NotFrozenException, DatabaseException, IllegalAccessException,
-            InstantiationException, OBException {
+            NotFrozenException, IllegalAccessException, InstantiationException,
+            OBException {
         if (logger.isDebugEnabled()) {
             logger
                     .debug("Initializing transient fields after de-serialization");
@@ -230,7 +264,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return this.returnSelf();
     }
 
-    public void relocateInitialize(File dbPath) throws DatabaseException,
+    public void relocateInitialize(final File dbPath) throws DatabaseException,
             NotFrozenException, DatabaseException, IllegalAccessException,
             InstantiationException, OBException, IOException {
         if (dbPath != null) {
@@ -242,7 +276,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         initializeAfterSerialization();
     }
 
-    // private abstract Object readResolve() throws DatabaseException;
+    /**
+     * Initializes the object cache {@link #cache}.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB.
+     */
     protected void initCache() throws DatabaseException {
         if (cache == null) {
             int size = databaseSize();
@@ -255,9 +293,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Creates database A.
+     * Creates database A. This is the database where the actual objects O are
+     * stored.
      * @throws DatabaseException
-     *             if something goes wrong
+     *             if something goes wrong with the DB.
      */
     private void initA() throws DatabaseException {
         final boolean duplicates = dbConfig.getSortedDuplicates();
@@ -268,23 +307,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Class used to create the key that will be used to index the objects by
-     * time
-     */
-    private class TimeStampCreator implements SecondaryKeyCreator {
-        public boolean createSecondaryKey(SecondaryDatabase secondary,
-                DatabaseEntry key, DatabaseEntry data, DatabaseEntry result) {
-            TupleInput in = new TupleInput(data.getData());
-            LongBinding.longToEntry(in.readLong(), result);
-            return true;
-        }
-    }
-
-    /**
      * This method makes sure that all the databases are created with the same
-     * settings. TODO: Need to tweak these values
+     * settings.
      * @throws DatabaseException
-     *             Exception thrown by sleepycat
+     *             if something goes wrong with the DB.
      */
     private void initBerkeleyDB() throws DatabaseException {
         /* Open a transactional Oracle Berkeley DB Environment. */
@@ -304,6 +330,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         // dbConfig.setExclusiveCreate(true);
     }
 
+    /**
+     * Print some B-tree related stats.
+     * @throws DatabaseException
+     *             if something goes wrong with the DB.
+     */
     public void stats() throws DatabaseException {
         StatsConfig config = new StatsConfig();
         config.setClear(true);
@@ -320,10 +351,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *             if the given ID already exists or if isFrozen() = false and
      *             the ID's did not come in sequential order.
      * @throws DatabaseException
+     *             if something goes wrong with the DB.
      * @return 1 if the object was inserted
      */
-    protected byte insertUnFrozen(O object, int id) throws IllegalIdException,
-            DatabaseException {
+    protected byte insertUnFrozen(final O object, final int id)
+            throws IllegalIdException, DatabaseException {
         if (id != maxId) {
             throw new IllegalIdException();
         }
@@ -335,7 +367,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return 1;
     }
 
-    public int insert(O object) throws DatabaseException, OBException,
+    public int insert(final O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         int resId = -1;
         if (isFrozen()) {
@@ -356,8 +388,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * Inserts in database A the given Object. The timestamp of the object is
      * stored too.
      * @param object
+     *            The object to insert.
      * @param id
+     *            The id to employ.
      * @throws DatabaseException
+     *             if something goes wrong with the DB.
      */
     protected void insertA(final O object, final int id)
             throws DatabaseException {
@@ -371,7 +406,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Inserts the given object with the given Id in the database x
+     * Inserts the given object with the given Id in the database x.
      * @param object
      *            object to be inserted
      * @param id
@@ -379,9 +414,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @param x
      *            Database to be used
      * @throws DatabaseException
+     *             if something goes wrong with the DB.
      */
     protected void insertObjectInDatabase(final O object, final int id,
-            Database x) throws DatabaseException {
+            final Database x) throws DatabaseException {
         final DatabaseEntry keyEntry = new DatabaseEntry();
 
         // store the object in bytes
@@ -396,23 +432,29 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Inserts the given OBJECT in B.
      * @param id
+     *            Id of the object.
      * @param object
+     *            The object to insert.
      * @throws DatabaseException
+     *             if something goes wrong with the DB.
      */
     protected abstract void insertInB(int id, O object) throws OBException,
             DatabaseException;
 
-    /*
-     * protected void insertTupleInB(int id, D[] tuple) throws
-     * DatabaseException{ DatabaseEntry keyEntry = new DatabaseEntry();
-     * DatabaseEntry dataEntry = new DatabaseEntry(); TupleOutput out = new
-     * TupleOutput(); // write the tuple for (D d : tuple) { d.store(out); } //
-     * store the ID IntegerBinding.intToEntry(id, keyEntry);
-     * insertInDatabase(out, keyEntry, bDB); }
+    /**
+     * A general byte stream insertion procedure.
+     * @param out
+     *            Byte stream to insert.
+     * @param keyEntry
+     *            The key to use
+     * @param x
+     *            The database in which the item should be inserted.
+     * @throws DatabaseException
+     *             if something goes wrong with the DB.
      */
-
     protected void insertInDatabase(final TupleOutput out,
-            DatabaseEntry keyEntry, Database x) throws DatabaseException {
+            final DatabaseEntry keyEntry, final Database x)
+            throws DatabaseException {
         final DatabaseEntry dataEntry = new DatabaseEntry();
         dataEntry.setData(out.getBufferBytes());
         x.put(null, keyEntry, dataEntry);
@@ -420,22 +462,32 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
 
     /**
      * Utility method to insert data in C after freezing. Must be implemented by
-     * the subclasses It should not insert anything into A
+     * the subclasses It should not insert anything into A.
      * @param object
      *            The object to be inserted
      * @param id
      *            The id to be added
      * @throws IllegalIdException
      *             if the id already exists
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      * @return 1 if successful 0 otherwise
      */
     protected abstract byte insertFrozen(final O object, final int id)
             throws IllegalIdException, OBException, DatabaseException,
-            OBException, IllegalAccessException, InstantiationException;
+            IllegalAccessException, InstantiationException;
 
     /**
      * If the database is frozen returns silently if it is not throws
-     * NotFrozenException
+     * NotFrozenException.
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
      */
     protected void assertFrozen() throws NotFrozenException {
         if (!isFrozen()) {
@@ -446,7 +498,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Pivot selectors who use the cache (access the objects of the DB) should
      * call this method before calling freeze. Users do not have to worry about
-     * this method
+     * this method.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
     public void prepareFreeze() throws DatabaseException {
         initCache();
@@ -457,13 +511,29 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * deleted The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild de index. After the method returns,
      * searching is enabled.
-     * @param pivotSelector
-     *            The pivot selector to be used
      * @throws IOException
-     *             if the serialization process fails
+     *             if the index serialization process fails
      * @throws AlreadyFrozenException
      *             If the index was already frozen and the user attempted to
      *             freeze it again
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws UndefinedPivotsException
+     *             If the pivots of the index have not been selected before
+     *             calling this method.
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws IllegalIdException
+     *             This exception is left as a Debug flag. If you receive this
+     *             exception please report the problem to:
+     *             http://code.google.com/p/obsearch/issues/list
      */
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
@@ -504,6 +574,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
 
     }
 
+    /**
+     * Writes down the spore file of this index.
+     * @throws IOException
+     *             If the file cannot be written.
+     */
     protected void writeSporeFile() throws IOException {
         String xml = toXML();
         FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator
@@ -513,20 +588,29 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Returns the current maximum id
-     * @return
+     * Returns the current maximum id.
+     * @return The maximum id of this index.
      */
     public int getMaxId() {
         return this.maxId;
     }
 
     /**
-     * Must return "this" Used to serialize the object
+     * Must return "this" Used to serialize the object.
+     * @return This index.
      */
     protected abstract Index returnSelf();
 
     /**
-     * Inserts all the values already inserted in A into B
+     * Inserts all the values already inserted in A into B.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     private void insertFromAtoB() throws IllegalAccessException,
             InstantiationException, DatabaseException, OBException {
@@ -569,66 +653,66 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @param object
      * @return -1 if object was not found or 1 if it was found
      * @throws DatabaseException
+     *             If something goes wrong with the DB
      * @throws OBException
+     *             User generated exception
      * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
      * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     protected abstract int deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException;
 
     /**
-     * Inserts all the values already inserted in A into C
+     * Copies all the values already inserted in B into C. This is only for
+     * efficiency reasons as we could easily re-insert all the objects into C.
+     * But this takes some time.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
      */
     protected abstract void insertFromBtoC() throws DatabaseException,
             OutOfRangeException;
 
-    /*
-     * private void insertFromBtoC() throws IllegalAccessException,
-     * InstantiationException, DatabaseException, OBException { Cursor cursor =
-     * null; DatabaseEntry foundKey = new DatabaseEntry(); DatabaseEntry
-     * foundData = new DatabaseEntry(); try { int i = 0; cursor =
-     * aDB.openCursor(null, null); O obj = this.instantiateObject(); while
-     * (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) ==
-     * OperationStatus.SUCCESS) { int id = IntegerBinding.entryToInt(foundKey);
-     * assert i == id; TupleInput in = new TupleInput(foundData.getData());
-     * obj.load(in); insertFrozen(obj, id); i++; } // should be the same }
-     * finally { cursor.close(); } }
-     */
-
     /**
      * Children of this class have to implement this method if they want to
-     * calculate extra parameters
+     * calculate parameters based on the data in B.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
      */
     protected abstract void calculateIndexParameters()
             throws DatabaseException, IllegalAccessException,
             InstantiationException, OutOfRangeException, OBException;
 
     /**
-     * Inserts the given tuple in the database B using the given id B database
-     * will hold tuples of floats (they have been normalized)
+     * Returns the given object from DB A.
      * @param id
-     *            the id to use for the insertion
-     * @param tuple
-     *            The tuple to be inserted
-     */
-    /*
-     * protected void insertPivotTupleInBDB(int id, D[] tuple) throws
-     * DatabaseException { TupleOutput out = new TupleOutput(); int i = 0;
-     * assert tuple.length == pivotsCount; // first encode all the dimensions in
-     * an array while (i < tuple.length) { tuple[i].store(out); // stores the
-     * given pivot i++; } // now we can store it in the database DatabaseEntry
-     * keyEntry = new DatabaseEntry(); IntegerBinding.intToEntry(id, keyEntry);
-     * this.insertInDatabase(out, keyEntry, bDB); }
-     */
-
-    /**
-     * returns the given object from DB A
-     * @param id
+     *            The internal id of the object.
      * @return the object
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
-    // TODO: need to implement a cache here
-    public O getObject(int id) throws DatabaseException, IllegalIdException,
-            IllegalAccessException, InstantiationException, OBException {
+    public O getObject(final int id) throws DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBException {
         O res = cache.get(id);
         if (res == null) {
             res = getObject(id, aDB);
@@ -638,24 +722,22 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Calculates the tuple vector for the given object
-     * @param obj
-     *            object to be processed
-     * @param tuple
-     *            The resulting tuple will be stored here
-     */
-    /*
-     * protected void calculatePivotTuple(final O obj, D[] tuple) throws
-     * OBException { assert tuple.length == this.pivotsCount; int i = 0; while
-     * (i < tuple.length) { obj.distance(this.pivots[i], tuple[i]); i++; } }
-     */
-
-    /**
-     * Stores the given pivots
+     * Stores the given pivots in a local array. Takes the pivots from the
+     * database using the given ids.
+     * @param ids
+     *            Ids of the pivots that will be stored.
      * @throws IllegalIdException
      *             If the pivot selector generates invalid ids
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
-    public void storePivots(int[] ids) throws IllegalIdException,
+    public void storePivots(final int[] ids) throws IllegalIdException,
             IllegalAccessException, InstantiationException, DatabaseException,
             OBException {
         if (logger.isDebugEnabled()) {
@@ -675,9 +757,18 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Loads the pivots from the database
+     * Loads the pivots from the pivots array {@link #pivotsBytes} and puts them
+     * in {@link #pivots}.
      * @throws NotFrozenException
      *             if the freeze method has not been invoqued.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     protected void loadPivots() throws NotFrozenException, DatabaseException,
             IllegalAccessException, InstantiationException, OBException {
@@ -706,7 +797,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Generates the name of the file to be used to store the serialized version
      * of this Index.
-     * @return
+     * @return The serialized file name where the index will store the "spore
+     *         file"
      */
     public abstract String getSerializedName();
 
@@ -714,28 +806,32 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * Gets the object with the given id from the database.
      * @param id
      *            The id to be extracted
-     * @param DB
+     * @param db
      *            the database to be accessed the object will be returned here
      * @return the object the user asked for
-     * @throws DatabaseException
      * @throws IllegalIdException
      *             if the given id does not exist in the database
+     *  @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
-    private O getObject(int id, Database DB) throws DatabaseException,
-            IllegalIdException, IllegalAccessException, InstantiationException,
-            OBException {
-        // TODO: put these two objects in the class so that they don't have to
+    private O getObject(final int id, final Database db)
+            throws DatabaseException, IllegalIdException,
+            IllegalAccessException, InstantiationException, OBException {
+        // TODO: Optimization: put these two objects in the class so that they don't have to
         // be created over and over again
-        // TODO: add an OB cache
         DatabaseEntry keyEntry = new DatabaseEntry();
         DatabaseEntry dataEntry = new DatabaseEntry();
         IntegerBinding.intToEntry(id, keyEntry);
 
         O object;
 
-        if (DB.get(null, keyEntry, dataEntry, null) == OperationStatus.SUCCESS) {
-            // TODO: Extend TupleInput so that we don't have to create the
-            // object over and over again
+        if (db.get(null, keyEntry, dataEntry, null) == OperationStatus.SUCCESS) {
             TupleInput in = new TupleInput(dataEntry.getData());
             object = this.readObject(in);
         } else {
@@ -744,6 +840,14 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return object;
     }
 
+    /**
+     * Creates a new object empty O object.
+     * @return A new empty object of type O
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     */
     protected O instantiateObject() throws IllegalAccessException,
             InstantiationException {
         // Find out if java can give us the type information directly from the
@@ -751,20 +855,24 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return type.newInstance();
     }
 
+    /**
+     * Returns the pivots array {@link #pivots}.
+     * @return The pivots of the index.
+     */
     public O[] getPivots() {
         return this.pivots;
     }
 
     /**
-     * Returns the current amount of pivots
-     * @return
+     * Returns the current amount of pivots.
+     * @return The number of pivots used.
      */
     public short getPivotsCount() {
         return this.pivotsCount;
     }
 
     /**
-     * Returns true if the database has been frozen
+     * Returns true if the database has been frozen.
      * @return true if the database has been frozen
      */
     public boolean isFrozen() {
@@ -772,12 +880,16 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Closes database C
+     * Closes database C.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
     protected abstract void closeC() throws DatabaseException;
 
     /**
-     * Closes all the databases and the database environment
+     * Closes all the databases and the database environment.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
      */
     public void close() throws DatabaseException {
         aDB.close();
@@ -788,11 +900,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Reads an object from the given tupleinput
-     * @param in
-     * @return
+     * Reads an object from the given tupleinput.
+     * @param in Byte stream where the object will be read from
+     * @return An object O generated from in.
      */
-    public O readObject(TupleInput in) throws InstantiationException,
+    public O readObject(final TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException {
         O result = this.instantiateObject();
         result.load(in);
