@@ -1490,10 +1490,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
             pipe = new JxtaBiDiPipe();
 
             // pipe.setReliable(true);
-            synchronized (pipe) {
+            
                 pipe.connect(netPeerGroup, null, p, globalTimeout, this);
                 peerID = pipe.getRemotePeerAdvertisement().getPeerID().toURI();
-            }
         }
 
         /**
@@ -1865,7 +1864,6 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
                 InstantiationException, IllegalAccessException, OBException,
                 DatabaseException {
             // searchThreads.acquireUninterruptibly();
-            long t = System.currentTimeMillis();
             ByteArrayMessageElement m = getMessageElement(msg, MessageType.SQ,
                     MessageElementType.SH);
             TupleInput in = new TupleInput(m.getBytes());

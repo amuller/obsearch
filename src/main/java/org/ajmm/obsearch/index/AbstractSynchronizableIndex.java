@@ -193,7 +193,6 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
     public int delete(final O object) throws IllegalIdException,
             DatabaseException, OBException, IllegalAccessException,
             InstantiationException {
-        // TODO: update the objects count array.
         return delete(object, System.currentTimeMillis());
     }
 

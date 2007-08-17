@@ -9,8 +9,6 @@ import java.util.Properties;
 
 import org.apache.log4j.PropertyConfigurator;
 
-import junit.framework.TestCase;
-
 
 /**
  * Class: TestOB Test utils class
@@ -21,7 +19,7 @@ import junit.framework.TestCase;
 
 public class TUtils {
 
-    public static Properties testProperties = null;
+    private static Properties testProperties = null;
 
     public static Properties getTestProperties() throws IOException {
         if (testProperties == null) { // load the properties only once

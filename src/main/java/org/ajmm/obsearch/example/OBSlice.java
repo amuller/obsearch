@@ -83,7 +83,6 @@ public class OBSlice implements OBShort {
      * @return A short that indicates how similar or different the trees are.
      */
     public final short distance(final OB object) throws OBException {
-        // TODO Auto-generated method stub
         OBSlice b = (OBSlice) object;
         updateTree();
         b.updateTree();

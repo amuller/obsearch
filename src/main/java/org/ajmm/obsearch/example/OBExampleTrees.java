@@ -287,17 +287,27 @@ public final class OBExampleTrees {
         final Option search = new Option("search", "Search mode");
         create.setRequired(false);
 
-        final Option in = OptionBuilder.create("db");
+	final Option in = OptionBuilder.withArgName("dir").hasArg().isRequired(
+		true).withDescription("Database Directory").create("db");
 
-        final Option out = OptionBuilder.create("data");
+	final Option out = OptionBuilder
+		.withArgName("dir")
+		.hasArg()
+		.isRequired(true)
+		.withDescription(
+			"Data File (new-line separated list of trees). Used for create or for search mode.")
+		.create("data");
 
-        final Option range = OptionBuilder.create("r");
+	final Option range = OptionBuilder.withArgName("dir").hasArg()
+		.withDescription("The range to be used").create("r");
 
-        final Option k = OptionBuilder.create("k");
+	final Option k = OptionBuilder.withArgName("dir").hasArg()
+		.withDescription("K to be used").create("k");
 
-        final Option od = OptionBuilder.create("od");
+	final Option od = OptionBuilder.withArgName("#").hasArg()
+		.withDescription("# of partitions for P+Tree").create("od");
 
-        final Options options = new Options();
+	Options options = new Options();
         options.addOption(in);
         options.addOption(out);
         options.addOption(range);

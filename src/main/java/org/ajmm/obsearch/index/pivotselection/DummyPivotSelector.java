@@ -1,7 +1,6 @@
 package org.ajmm.obsearch.index.pivotselection;
 
 import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
 import org.ajmm.obsearch.index.PivotSelector;
 

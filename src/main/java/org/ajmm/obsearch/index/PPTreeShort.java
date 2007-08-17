@@ -2,15 +2,12 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -20,7 +17,6 @@ import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
@@ -157,7 +153,6 @@ public class PPTreeShort < O extends OBShort >
 
     @Override
     public String getSerializedName() {
-        // TODO Auto-generated method stub
         return "PPTreeShort";
     }
 
@@ -259,7 +254,6 @@ public class PPTreeShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-        int max = super.totalBoxes();
 
         // calculate the vector for the object
         short[] t = new short[pivotsCount];
@@ -658,6 +652,7 @@ public class PPTreeShort < O extends OBShort >
      *             If the distance of any object to any other object exceeds the
      *             range defined by the user.
      */
+    @Override
     protected final void readFromB(int id, float[] tuple)
             throws DatabaseException, OutOfRangeException {
         Cursor cursor = null;
@@ -831,6 +826,7 @@ public class PPTreeShort < O extends OBShort >
     }
 
     // re-implemented here to improve performance
+    @Override
     public int insert(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         int resId = -1;
@@ -964,6 +960,7 @@ public class PPTreeShort < O extends OBShort >
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
      */
+    @Override
     protected final int deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;

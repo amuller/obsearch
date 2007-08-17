@@ -12,7 +12,8 @@ import org.junit.Before;
 
 public class TestSynchronizableIndex extends TestCase{
 
-	@Before
+	@Override
+    @Before
 	public void setUp() throws Exception {
 	}
 	

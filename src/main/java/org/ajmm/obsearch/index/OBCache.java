@@ -3,11 +3,6 @@ package org.ajmm.obsearch.index;
 import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cern.colt.map.AbstractIntDoubleMap;
-import cern.colt.map.AbstractIntObjectMap;
-import cern.colt.map.OpenIntDoubleHashMap;
-import cern.colt.map.OpenIntObjectHashMap;
-
 /*
  OBSearch: a distributed similarity search engine
  This project is to similarity search what 'bit-torrent' is to downloads.
