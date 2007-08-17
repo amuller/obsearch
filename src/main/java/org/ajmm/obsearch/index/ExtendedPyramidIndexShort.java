@@ -86,7 +86,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     }
 
     /**
-     * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
+     * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this index
      * will be defined by the user. We recommend the use of this constructor. We
      * believe it will give better resolution to the float transformation. The
      * values returned by the distance function must be within [minInput,
@@ -254,7 +254,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     /**
      * This method reads from the B-tree appies l-infinite to discard false
-     * positives Calculates the real distance and updates the result priority
+     * positives. This technique is called SMAP. Calculates the real distance and updates the result priority
      * queue It is left public so that junit can perform validations on it
      * Performance-wise this is one of the most important methods
      * @param object

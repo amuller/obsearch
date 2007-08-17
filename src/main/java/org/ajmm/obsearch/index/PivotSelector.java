@@ -29,17 +29,29 @@ import com.sleepycat.je.DatabaseException;
  * Implementations of this class have the task of selecting a subset of the
  * objects before freezing to be used as pivots. How the pivot access the
  * objects depends largely on theIndex implementation.
+ * @param <O>
+ *            Object that is stored inside the index we want to process.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 0.0
  */
-// TODO: This class needs to have a consistent access to all the elements.
-// Figure this out later as the RandomPivot doesn't need this data.
 public interface PivotSelector < O extends OB > {
     /**
-     * Generates n (n = pivots) from the database The resulting array is a list
+     * Generates n (n = pivots) from the database. The resulting array is a list
      * of ids from the database The method will modify the pivot index and
      * update the information of the selected new pivots
+     * @param x
+     *            Pivot index to process
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws PivotsUnavailableException
+     *             If no pivots were found.
      */
     void generatePivots(AbstractPivotIndex < O > x) throws OBException,
             IllegalAccessException, InstantiationException, DatabaseException,
