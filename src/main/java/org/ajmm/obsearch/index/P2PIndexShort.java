@@ -2,23 +2,17 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Iterator;
-import java.util.List;
-
 import net.jxta.endpoint.ByteArrayMessageElement;
 import net.jxta.endpoint.Message;
 import net.jxta.endpoint.Message.ElementIterator;
 import net.jxta.exception.PeerGroupException;
 
-import org.ajmm.obsearch.AsynchronousIndex;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.AbstractP2PIndex.PipeHandler;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
@@ -47,7 +41,7 @@ import com.sleepycat.je.DatabaseException;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * Class: P2PIndexShort
+ * A P2P index for distance functions that return short values.
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
@@ -58,33 +52,55 @@ import com.sleepycat.je.DatabaseException;
 public class P2PIndexShort < O extends OBShort >
         extends AbstractP2PIndex < O > implements IndexShort < O > {
 
+    /**
+     * Logger.
+     */
     private static final transient Logger logger = Logger
             .getLogger(P2PIndexShort.class);
 
-    // we keep two different references of the same object
-    // to avoid casts
-    IndexShort < O > index;
+    /**
+     * we keep two different references of the same object to avoid casts.
+     */
+    private IndexShort < O > index;
 
-    SynchronizableIndex < O > syncIndex;
+    /**
+     * we keep two different references of the same object to avoid casts.
+     */
+    private SynchronizableIndex < O > syncIndex;
 
-    // stores the queries to be used
-    protected QueryProcessingShort[] queries;
+    /**
+     * Stores the queries to be used.
+     */
+    private QueryProcessingShort[] queries;
 
     /**
      * Creates a P2P Index short The provided index must be SynchronizableIndex
      * and also implement IndexShort. The index must be frozen. The number of
      * boxes served will be the maximum number of boxes serviced by the index
      * @param index
+     *            The index that will be wrapped into this index.
      * @param dbPath
      *            place were to put p2p related data
      * @param clientName
      *            the name
-     * @throws IOException
-     * @throws PeerGroupException
+     * @param maximumServerThreads
+     *            Max number of threads the index will use (currently it has no
+     *            effect)
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      * @throws OBException
+     *             User generated exception
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
+     * @throws IOException
+     *             if dbPath points to an invalid path or the directory cannot
+     *             be created.
+     * @throws PeerGroupException
+     *             JXTA network exception
      */
-    public P2PIndexShort(SynchronizableIndex < O > index, File dbPath,
-            String clientName, int maximumServerThreads) throws IOException,
+    public P2PIndexShort(final SynchronizableIndex < O > index,
+            final File dbPath, final String clientName,
+            final int maximumServerThreads) throws IOException,
             PeerGroupException, OBException, NotFrozenException,
             DatabaseException {
         this(index, dbPath, clientName, index.totalBoxes(),
@@ -92,7 +108,8 @@ public class P2PIndexShort < O extends OBShort >
         queries = new QueryProcessingShort[maximumItemsToProcess];
     }
 
-    protected void queryTimeoutCheckEntry(int tap, long time) {
+    @Override
+    protected void queryTimeoutCheckEntry(final int tap, final long time) {
         if (queries[tap] == null) {
             return;
         }
@@ -114,22 +131,36 @@ public class P2PIndexShort < O extends OBShort >
 
     /**
      * Creates a P2P Index short The provided index must be SynchronizableIndex
-     * and also implement IndexShort. The index must be frozen.
+     * and also implement IndexShort. The index must be frozen. The number of
+     * boxes served will be the maximum number of boxes serviced by the index
      * @param index
+     *            The index that will be wrapped into this index.
      * @param dbPath
      *            place were to put p2p related data
+     * @param boxesToServe
+     *            The number of boxes that will be served
      * @param clientName
      *            the name
-     * @param boxesToServe #
-     *            of boxes that will be served
-     * @throws IOException
-     * @throws PeerGroupException
+     * @param maximumServerThreads
+     *            Max number of threads the index will use (currently it has no
+     *            effect)
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
      * @throws OBException
+     *             User generated exception
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
+     * @throws IOException
+     *             if dbPath points to an invalid path or the directory cannot
+     *             be created.
+     * @throws PeerGroupException
+     *             JXTA network exception
      */
-    public P2PIndexShort(SynchronizableIndex < O > index, File dbPath,
-            String clientName, int boxesToServe, int maximumServerThreads)
-            throws IOException, PeerGroupException, OBException,
-            NotFrozenException, DatabaseException {
+    public P2PIndexShort(final SynchronizableIndex < O > index,
+            final File dbPath, final String clientName, final int boxesToServe,
+            final int maximumServerThreads) throws IOException,
+            PeerGroupException, OBException, NotFrozenException,
+            DatabaseException {
         super(index, dbPath, clientName, boxesToServe, maximumServerThreads);
         if (!(index instanceof IndexShort)) {
             throw new OBException("Expecting an IndexShort");
@@ -142,27 +173,44 @@ public class P2PIndexShort < O extends OBShort >
 
     }
 
+    @Override
     protected SynchronizableIndex < O > getIndex() {
         return syncIndex;
     }
 
     /**
-     * Perform a distributed search in the network
+     * Perform a distributed search in the network. This search method will
+     * inmediately return. Que query will be searched in background. Users
+     * should then check the method {@link #isProcessingQueries()}. When this
+     * method returns true, all the pending queries will have been completed.
      * @param object
+     *            The object that has to be searched
      * @param r
+     *            The range to be used
      * @param result
-     * @throws NotFrozenException
+     *            A priority queue that will hold the result
      * @throws DatabaseException
-     * @throws InstantiationException
-     * @throws IllegalIdException
-     * @throws IllegalAccessException
-     * @throws OutOfRangeException
+     *             If something goes wrong with the DB
      * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws NotFrozenException
+     *             if the index has not been frozen.
+     * @throws IllegalIdException
+     *             This exception is left as a Debug flag. If you receive this
+     *             exception please report the problem to:
+     *             http://code.google.com/p/obsearch/issues/list
      */
-    public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
-            throws NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException,
-            OutOfRangeException, OBException {
+    public final void searchOB(final O object, final short r,
+            final OBPriorityQueueShort < O > result) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
         // 1) get a <tab> (from super. takeATab)
         boolean interrupted = true;
         int tab = -1;
@@ -210,14 +258,14 @@ public class P2PIndexShort < O extends OBShort >
         }
     }
 
-    public boolean intersects(O object, short r, int box)
+    public boolean intersects(final O object, final short r, final int box)
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
         return index.intersects(object, r, box);
     }
 
-    public int[] intersectingBoxes(O object, short r)
+    public int[] intersectingBoxes(final O object, final short r)
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
@@ -225,10 +273,11 @@ public class P2PIndexShort < O extends OBShort >
     }
 
     /**
-     * This method is not supported for P2P indexes
+     * <b>This method is not supported for P2P indexes.</b>
      */
-    public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
-            int[] boxes) throws NotFrozenException, DatabaseException,
+    public void searchOB(final O object, final short r,
+            final OBPriorityQueueShort < O > result, final int[] boxes)
+            throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
 
@@ -236,42 +285,87 @@ public class P2PIndexShort < O extends OBShort >
 
     }
 
+    /**
+     * Utility class that keeps control of query results.
+     * @param <T>
+     *            Dummy parameter.
+     */
     private class QueryProcessingShort < T >
             extends QueryProcessing {
 
+        /**
+         * Query result.
+         */
         private OBPriorityQueueShort < O > result;
 
+        /**
+         * Range to be employed.
+         */
         private short range;
 
+        /**
+         * Default constructor.
+         */
         public QueryProcessingShort() {
             this(null, null, (short) -1, -1, null);
         }
 
-        public QueryProcessingShort(int[] x, OBPriorityQueueShort < O > result,
-                short range, int tab, O object) {
+        /**
+         * Constructor.
+         * @param x
+         *            Boxes to process
+         * @param result
+         *            Result object
+         * @param range
+         *            Range
+         * @param tab
+         *            Tab number from the take-a-tab
+         * @param object
+         *            the object that we will match.
+         */
+        public QueryProcessingShort(final int[] x,
+                final OBPriorityQueueShort < O > result, final short range,
+                final int tab, final O object) {
             super(x, tab, object);
             this.result = result;
             this.range = range;
         }
 
+        /**
+         * @return current range
+         */
         public short getRange() {
             return range;
         }
 
-        public void setRange(short range) {
+        /**
+         * Sets the range.
+         * @param range
+         */
+        public void setRange(final short range) {
             this.range = range;
         }
 
+        /**
+         * @return the current result.
+         */
         public OBPriorityQueueShort < O > getResult() {
             return result;
         }
 
-        public void setResult(OBPriorityQueueShort < O > result) {
+        /**
+         * Sets the current result.
+         * @param result
+         *            The result to set.
+         */
+        public void setResult(final OBPriorityQueueShort < O > result) {
             this.result = result;
         }
 
-        public void handleResult(Message msg) throws InstantiationException,
-                IllegalAccessException, OBException, DatabaseException {
+        @Override
+        public void handleResult(final Message msg)
+                throws InstantiationException, IllegalAccessException,
+                OBException, DatabaseException {
             // basically add the MessageElementType.SSR
             // to the results. Find out if the range changed...
             // if it changed, start checking check each box to see
@@ -296,7 +390,7 @@ public class P2PIndexShort < O extends OBShort >
                     // boxes we have explored so far.
                     // those are the boxes to the left of boxIndex
                     this.range = newRange;
-                    int[] newBoxes = intersectingBoxes(this.object, newRange);
+                    int[] newBoxes = intersectingBoxes(object, newRange);
                     updateRemainingBoxes(newBoxes);
                 }
                 performNextMatch();
@@ -306,19 +400,23 @@ public class P2PIndexShort < O extends OBShort >
             // }
         }
 
-        protected void writeRange(TupleOutput out) {
+        @Override
+        protected void writeRange(final TupleOutput out) {
             out.writeShort(range);
         }
 
-        protected void addResult(Message msg) {
+        @Override
+        protected void addResult(final Message msg) {
             addResultAux(result, msg, MessageType.SQ);
         }
 
+        @Override
         protected boolean rangeChanged() {
             return result.updateRange(range) != range;
         }
 
-        protected void writeK(TupleOutput out) {
+        @Override
+        protected void writeK(final TupleOutput out) {
             assert result != null;
             out.writeByte(result.getK());
         }
@@ -334,8 +432,22 @@ public class P2PIndexShort < O extends OBShort >
      * Query: |range| |k| |object| 
      * Result: (multiple results) |distance| |object|
      * </pre>
+     * 
+     * @param boxes
+     *            Perform match on the given boxes.
+     * @param msg
+     *            Use the given message to retrieve additional parameters.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
-    protected Message performMatch(int[] boxes, Message msg)
+    @Override
+    protected Message performMatch(final int[] boxes, final Message msg)
             throws InstantiationException, IllegalAccessException, OBException,
             DatabaseException {
         // get the object and the parameters
@@ -364,20 +476,32 @@ public class P2PIndexShort < O extends OBShort >
     }
 
     /**
-     * Loads the packages that look like
+     * Loads object lists and puts them into result.
      * 
      * <pre>
      * Result: (multiple results) |distance| |object|
      * </pre>
      * 
-     * from msg to the priority queue result
+     * from msg and puts them into priority queue result
      * @param msg
+     *            The msg from which we will extract the results
      * @param type
+     *            The type of message (query or query response)
      * @param result
+     *            The matcheswill be stored in result.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
-    protected void fillResultsFromMessage(Message msg, MessageType type,
-            OBPriorityQueueShort < O > result) throws InstantiationException,
-            IllegalAccessException, OBException, DatabaseException {
+    protected final void fillResultsFromMessage(final Message msg,
+            final MessageType type, final OBPriorityQueueShort < O > result)
+            throws InstantiationException, IllegalAccessException, OBException,
+            DatabaseException {
         ElementIterator it = msg.getMessageElements(type.toString(),
                 MessageElementType.SSR.toString());
         while (it.hasNext()) {
@@ -390,8 +514,20 @@ public class P2PIndexShort < O extends OBShort >
         }
     }
 
-    protected void addResultAux(OBPriorityQueueShort < O > result, Message msg,
-            MessageType x) {
+    /**
+     * Aux function for
+     * {@link #fillResultsFromMessage(Message, org.ajmm.obsearch.index.AbstractP2PIndex.MessageType, OBPriorityQueueShort)}.
+     * Extracts from msg elements of type x and loads the objects putting them
+     * into result.
+     * @param result
+     *            Where the objects will be stored
+     * @param msg
+     *            Extract the elements from this message
+     * @param x
+     *            Use the given message type.
+     */
+    protected void addResultAux(OBPriorityQueueShort < O > result,
+            final Message msg, final MessageType x) {
         Iterator < OBResultShort < O >> it = result.iterator();
         while (it.hasNext()) {
             OBResultShort < O > t = it.next();
@@ -403,9 +539,10 @@ public class P2PIndexShort < O extends OBShort >
         }
     }
 
-    protected void processMatchResult(int tab, long id, Message msg)
-            throws InstantiationException, IllegalAccessException, OBException,
-            DatabaseException {
+    @Override
+    protected void processMatchResult(final int tab, final long id,
+            final Message msg) throws InstantiationException,
+            IllegalAccessException, OBException, DatabaseException {
         // There can be multiple calls to this tab at any given time
         synchronized (this.queries[tab]) {
             QueryProcessingShort q = this.queries[tab];
@@ -422,7 +559,12 @@ public class P2PIndexShort < O extends OBShort >
         }
     }
 
-    protected QueryProcessing returnQuery(int tab) {
+    /**
+     * Return the given query (a tab from take-a-tab).
+     * @param tab The tab we want
+     * @return  The object associated to the given tab.
+     */
+    protected QueryProcessing returnQuery(final int tab) {
         return (QueryProcessing) queries[tab];
     }
 }
