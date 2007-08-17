@@ -4,7 +4,6 @@ import hep.aida.bin.MightyStaticBin1D;
 
 import java.util.Random;
 
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
 import org.ajmm.obsearch.ob.OBShort;
@@ -33,7 +32,6 @@ public class TentaclePivotSelectorShort < O extends OBShort >
 
     @Override
     protected boolean easifyD() {
-        // TODO Auto-generated method stub
         if (d > minD) {
             d--;
             if (logger.isDebugEnabled()) {
@@ -79,8 +77,6 @@ public class TentaclePivotSelectorShort < O extends OBShort >
 
     @Override
     protected boolean withinRange(O a, O b) throws OBException {
-        // TODO Auto-generated method stub
-        // return Math.abs(a.distance(b) - d) <= minD;
         return Math.abs(a.distance(b) - d) <= minD;
     }
 

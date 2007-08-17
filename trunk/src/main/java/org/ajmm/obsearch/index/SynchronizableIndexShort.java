@@ -1,8 +1,6 @@
 package org.ajmm.obsearch.index;
 
 import java.io.File;
-import java.util.BitSet;
-
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -11,7 +9,6 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 
-import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.DatabaseException;
 
 /*
@@ -65,6 +62,7 @@ public class SynchronizableIndexShort < O extends OBShort >
         index.searchOB(object, r, result);
     }
 
+    @Override
     public Index < O > getIndex() {
         return index;
     }

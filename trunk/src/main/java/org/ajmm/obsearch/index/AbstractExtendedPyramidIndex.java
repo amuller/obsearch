@@ -5,34 +5,19 @@ import hep.aida.bin.QuantileBin1D;
 import java.io.File;
 import java.io.IOException;
 
-import org.ajmm.obsearch.SynchronizableIndex;
-import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.AbstractOBPriorityQueue;
-import org.ajmm.obsearch.AbstractOBResult;
-
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.IllegalKException;
-import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.apache.log4j.Logger;
 
-import com.sleepycat.bind.tuple.FloatBinding;
 import com.sleepycat.bind.tuple.IntegerBinding;
-import com.sleepycat.bind.tuple.LongBinding;
-import com.sleepycat.bind.tuple.SortedFloatBinding;
 import com.sleepycat.bind.tuple.TupleInput;
-import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.SecondaryConfig;
-import com.sleepycat.je.SecondaryDatabase;
-import com.sleepycat.je.SecondaryKeyCreator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /*
@@ -123,6 +108,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * @throws DatabaseException
      *             If a database error occurs.
      */
+    @Override
     protected final void initC() throws DatabaseException {
         final boolean duplicates = dbConfig.getSortedDuplicates();
         final boolean trans = dbConfig.getTransactional();
@@ -508,6 +494,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * @throws DatabaseException
      *             If something goes wrong with the DB
      */
+    @Override
     protected final void closeC() throws DatabaseException {
         this.cDB.close();
     }

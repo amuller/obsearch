@@ -3,31 +3,11 @@
  */
 package org.ajmm.obsearch.index;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
-
-import org.ajmm.obsearch.AbstractOBPriorityQueue;
-import org.ajmm.obsearch.AbstractOBResult;
-import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
-import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
-import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
-import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.index.utils.Directory;
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-import org.junit.Before;
-
 import junit.framework.TestCase;
 
 

@@ -25,7 +25,6 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -194,7 +193,6 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         generateRectangle(t, myr, qorig);
         int i = 0;
         float[] lowHighResult = new float[2];
-        // TODO: select the pyramids randomly just like quicksort
         while (i < pyramidCount) {
             copyQuery(qorig, q);
             if (intersect(q, i, lowHighResult)) {

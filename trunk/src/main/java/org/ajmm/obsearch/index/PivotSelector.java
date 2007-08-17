@@ -3,8 +3,6 @@ package org.ajmm.obsearch.index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
-import org.apache.log4j.Logger;
-
 import com.sleepycat.je.DatabaseException;
 
 /*

@@ -8,13 +8,12 @@ package org.ajmm.obsearch.index;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.ob.OB${Type};
 import org.ajmm.obsearch.result.OBPriorityQueue${Type};
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import com.sleepycat.je.DatabaseException;
-import java.util.BitSet;
+
 
 /*
     OBSearch: a distributed similarity search engine

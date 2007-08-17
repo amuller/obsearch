@@ -4,7 +4,7 @@ import com.sleepycat.bind.tuple.TupleInput;
 
 public class MyTupleInput
         extends TupleInput {
-    public static final byte[] t = { 1 };
+    private static final byte[] t = { 1 };
 
     /**
      * Creates a new tuple input

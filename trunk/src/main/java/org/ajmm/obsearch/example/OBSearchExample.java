@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,9 +18,6 @@ import org.ajmm.obsearch.index.SynchronizableIndexShort;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -139,8 +135,8 @@ public final class OBSearchExample {
                 // OBExampleTrees.shouldProcessSlice(s)
                 // is a better and cleaner approach that helps to validate your
                 // distance function.
-                pp = new PPTreeShort < OBSlice >(stdFolder, (short) d,
-                        (byte) od, (short) 0, (short) 1000);
+                pp = new PPTreeShort < OBSlice >(stdFolder, d,
+                        od, (short) 0, (short) 1000);
                 SynchronizableIndexShort < OBSlice > index = new SynchronizableIndexShort < OBSlice >(
                         pp, syncFolder);
 

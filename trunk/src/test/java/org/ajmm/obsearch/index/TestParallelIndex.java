@@ -1,19 +1,16 @@
 package org.ajmm.obsearch.index;
 
 
-import java.io.File;
-
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
-import org.ajmm.obsearch.example.OBSlice;
 import org.junit.Before;
 import org.junit.Test;
 
 
 public class TestParallelIndex extends TestCase{
 
-	@Before
+	@Override
+    @Before
 	public void setUp() throws Exception {
 	}
 	@Test

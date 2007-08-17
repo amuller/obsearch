@@ -510,7 +510,7 @@ public class P2PIndexShort < O extends OBShort >
             short distance = in.readShort();
             O o = this.index.readObject(in);
             // FIXME: remove ids from OBPriorityQueue*
-            result.add(-1, null, distance);
+            result.add(-1, o, distance);
         }
     }
 
@@ -561,8 +561,9 @@ public class P2PIndexShort < O extends OBShort >
 
     /**
      * Return the given query (a tab from take-a-tab).
-     * @param tab The tab we want
-     * @return  The object associated to the given tab.
+     * @param tab
+     *            The tab we want
+     * @return The object associated to the given tab.
      */
     protected QueryProcessing returnQuery(final int tab) {
         return (QueryProcessing) queries[tab];

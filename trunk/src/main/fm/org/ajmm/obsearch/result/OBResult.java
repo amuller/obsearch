@@ -70,7 +70,17 @@ public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
         return res;
 		}
 
+		public int hashCode(){
+				return object.hashCode() + (int) distance;
+		}
+
     public boolean equals(Object obj){        
+				if(obj == null){
+						return false;
+				}
+				if(! (obj instanceof OBResult${Type})){
+						return false;
+				}
 				OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
 				// a result object is the same if the distance is the same
 				// we do not care about the id.

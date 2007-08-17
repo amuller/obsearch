@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,12 +19,10 @@ import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
-import org.ajmm.obsearch.index.pivotselection.RandomPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 public class IndexSmokeTUtil {
 
@@ -42,7 +38,6 @@ public class IndexSmokeTUtil {
     public void initIndex(IndexShort < OBSlice > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File db = new File(testProperties.getProperty("test.db.input"));
-        File dbFolder = new File(testProperties.getProperty("test.db.path"));
         logger.debug("query file: " + query);
         logger.debug("db file: " + db);
 
@@ -62,6 +57,7 @@ public class IndexSmokeTUtil {
             re = r.readLine();
 
         }
+        r.close();
         // logger.info("Inserted elements: " + realIndex);
         // select the pivots
         // TentaclePivotSelectorShort<OBSlice> ps = new
@@ -107,6 +103,7 @@ public class IndexSmokeTUtil {
             re = r.readLine();
         }
         assertEquals(realIndex, index.databaseSize());
+        r.close();
     }
 
     /**
@@ -118,9 +115,7 @@ public class IndexSmokeTUtil {
     protected void tIndex(IndexShort < OBSlice > index) throws Exception {
 
         File query = new File(testProperties.getProperty("test.query.input"));
-        File db = new File(testProperties.getProperty("test.db.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
-        long currentTime = System.currentTimeMillis();
         int cx = 0;
         int querySize = 1642; // amount of elements to read from the query
         String re = null;
@@ -169,6 +164,7 @@ public class IndexSmokeTUtil {
         // index.stats();
         // now we compare the results we got with the real thing!
         Iterator < OBPriorityQueueShort < OBSlice >> it = result.iterator();
+        r.close();        
         r = new BufferedReader(new FileReader(query));
         re = r.readLine();
         i = 0;
@@ -179,7 +175,7 @@ public class IndexSmokeTUtil {
                     logger.info("Matching " + i + " of " + maxQuery);
                 }
                 OBSlice s = new OBSlice(line);
-                if (this.shouldProcessSlice(s)) {
+                if (IndexSmokeTUtil.shouldProcessSlice(s)) {
                     OBPriorityQueueShort < OBSlice > x2 = new OBPriorityQueueShort < OBSlice >(
                             k);
                     searchSequential(realIndex, s, x2, index, range);
@@ -214,6 +210,7 @@ public class IndexSmokeTUtil {
             }
             re = r.readLine();
         }
+        r.close();
         logger.info("Finished  matching...");
         assertFalse(it.hasNext());
         // now check that times make sense.
