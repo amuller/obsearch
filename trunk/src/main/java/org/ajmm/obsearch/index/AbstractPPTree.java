@@ -166,10 +166,13 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Calculates the parameters for the leaf based on minMax, and the center
+     * Calculates the parameters for the leaf based on minMax, and the center.
      * @param x
+     *            The leaf to be processed
      * @param minMax
+     *            a 2 item array.
      * @param center
+     *            the center of the space that the leaf is going to represent.
      */
     protected void calculateLeaf(SpaceTreeLeaf x, float[][] minMax,
             float[] center) {
@@ -190,10 +193,7 @@ public abstract class AbstractPPTree < O extends OB >
             assert (Math.log(min[i] * center[i] - width[i]) / Math.log(2)) != 0;
 
             min[i] = minMax[i][MIN];
-            // TODO: doing 1/width[i] might be cheaper as later only a
-            // multiplication
-            // has to be made... but the tests broke! so I guess we should play
-            // safe.
+
             width[i] = (minMax[i][MAX] - minMax[i][MIN]);
             exp[i] = -(1 / (Math.log((center[i] - min[i]) / width[i]) / Math
                     .log(2)));
@@ -216,11 +216,12 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * validates that the properties of function T are preserved in x
+     * validates that the properties of function T are preserved in x.
      * @param x
      *            (initialized leaf)
      * @param center
-     * @return
+     *            The center of the leaf
+     * @return true if the leaf is valid.
      */
     protected final boolean validateT(SpaceTreeLeaf x, float[] center) {
         int i = 0;
@@ -235,11 +236,13 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Converts a tuple that has been normalized from 1 to 0 (fist pass) into
-     * one value that is n * 2 * d pv(norm(tuple)) where: n is the space where
-     * the tuple is d is the # of pivots of this index pv is the pyramid value
-     * for a tuple norm() is the normalization applied in the given space
+     * Calculates a P+Tree value for the given tuple. Converts a tuple that has
+     * been normalized from 1 to 0 (fist pass) into one value that is n * 2 * d
+     * pv(norm(tuple)) where: n is the space where the tuple is d is the # of
+     * pivots of this index pv is the pyramid value for a tuple norm() is the
+     * normalization applied in the given space.
      * @param tuple
+     *            The tuple that will be processed
      * @return the P+Tree value
      */
     protected final float ppvalue(final float[] tuple) {
@@ -250,21 +253,37 @@ public abstract class AbstractPPTree < O extends OB >
         return n.getSNo() * 2 * pivotsCount + super.pyramidValue(result);
     }
 
+    /**
+     * Calculate a space number for the given tuple.
+     * @param tuple
+     *            Tuple to be processed.
+     * @return space number for the given tuple.
+     */
     protected int spaceNumber(final float[] tuple) {
         SpaceTreeLeaf n = (SpaceTreeLeaf) this.spaceTree.search(tuple);
         return n.getSNo();
     }
 
     /**
-     * A recursive version of the space division algorithm It will use much more
-     * memory
+     * A recursive version of the space division algorithm.
      * @param node
      *            Current node of the tree to be processed
      * @param currentLevel
      *            Current depth
      * @param minMax
+     *            The current min and maximum values for each of the dimensions
+     *            of the current space.
      * @param data
+     *            All the data that is going to be processed
      * @param SNo
+     *            The current space number (used as an array of 1 elmenet so
+     *            that it can be seen by all the other recursion branches)
+     * @param ran
+     *            A random number generator
+     * @param center
+     *            Calculated center of the space.
+     * @throws OBException
+     *             User generated exception
      */
     protected void spaceDivision(SpaceTree node, final int currentLevel,
             final float[][] minMax, final BitSet data, int[] SNo, Random ran,
@@ -373,7 +392,16 @@ public abstract class AbstractPPTree < O extends OB >
      *            Each turned bit of the given cluster is an object ID in B
      * @param k
      *            the number of clusters to generate
+     * @param ran
+     *            Random number generator
      * @return The centroids of the clusters
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws KMeansException
+     *             If k-means++ fails to find clusters
      */
     private float[][] kMeans(final BitSet cluster, byte k, Random ran)
             throws DatabaseException, OutOfRangeException, KMeansException {
@@ -383,7 +411,24 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Executes k-means, keeps a count of the number of iterations performed...
      * if clustering cannot converge properly, then we execute the randomized
-     * initialization procedure
+     * initialization procedure.
+     * @param cluster
+     *            BitSet with the elements of the current data set
+     * @param k
+     *            Number of clusters to generate
+     * @param ran
+     *            Random function
+     * @param iteration
+     *            Number of iterations
+     * @return The centers of the cluster.
+     * @throws KMeansException
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws KMeansException
+     *             If k-means++ fails to find clusters
      */
     private float[][] kMeansAux(final BitSet cluster, byte k, Random ran,
             int iteration) throws DatabaseException, OutOfRangeException,
@@ -450,8 +495,10 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Returns true if any of the given clusters is empty
+     * Returns true if any of the given clusters is empty.
      * @param selection
+     *            set of clusters to analyze
+     * @return true if any of the given clusters is empty
      */
     private boolean someoneEmpty(BitSet[] selection) {
         byte i = 0;
@@ -464,6 +511,15 @@ public abstract class AbstractPPTree < O extends OB >
         return false;
     }
 
+    /**
+     * Find the centroids.
+     * @param centroids
+     *            Result is left here...
+     * @param averages
+     *            Average for each dimension
+     * @param selection
+     *            Current list of clusters
+     */
     private void centerClusters(float[][] centroids, float[][] averages,
             BitSet selection[]) {
         byte i = 0;
@@ -480,10 +536,13 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Adds the contents of tuple to averages[cluster]
+     * Adds the contents of tuple to averages[cluster].
      * @param cluster
+     *            Cluster to process
      * @param tuple
+     *            Tuple to add
      * @param averages
+     *            The result will be stored here.
      */
     private void updateAveragesInfo(byte cluster, float[] tuple,
             float[][] averages) {
@@ -498,8 +557,11 @@ public abstract class AbstractPPTree < O extends OB >
      * Sets the ith element in selection[cluster] and set the ith bit in the
      * other clusters to 0.
      * @param cluster
+     *            The cluster that will be set
      * @param element
+     *            Elemenet id
      * @param selection
+     *            The cluster we will set.
      */
     private void updateClusterInfo(byte cluster, BitSet[] selection, int element) {
         byte i = 0;
@@ -513,6 +575,15 @@ public abstract class AbstractPPTree < O extends OB >
         }
     }
 
+    /**
+     * Finds the centroid which is closest to tuple.
+     * @param tuple
+     *            The tuple to process
+     * @param centroids
+     *            A list of centroids
+     * @return A byte indicating which is the closest centroid to the given
+     *         tuple.
+     */
     private byte closest(float[] tuple, float[][] centroids) {
         byte i = 0;
         byte res = 0;
@@ -529,10 +600,12 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Computes the euclidean distance for the given tuples
+     * Computes the euclidean distance for the given tuples.
      * @param a
+     *            tuple
      * @param b
-     * @return
+     *            tuple
+     * @return euclidean distance
      */
     private float euclideanDistance(float[] a, float[] b) {
         int i = 0;
@@ -545,6 +618,14 @@ public abstract class AbstractPPTree < O extends OB >
         return (float) Math.sqrt(res);
     }
 
+    /**
+     * Initializes k cluster based on cluster
+     * @param cluster
+     *            Reference cluster
+     * @param k
+     *            number of clusters to generate
+     * @return An array of clusters with the size of cluster
+     */
     private BitSet[] initSubClusters(BitSet cluster, byte k) {
         BitSet[] res = new BitSet[k];
         byte i = 0;
@@ -560,10 +641,20 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Initializes k centroids (Default method)
+     * Initializes k centroids (Default method).
      * @param cluster
+     *            original cluster
      * @param k
+     *            number of clusters
      * @param centroids
+     *            Centroids that will be generated
+     * @param r
+     *            A random function
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB.
      */
     private void initializeKMeans(BitSet cluster, byte k, float[][] centroids,
             Random r) throws DatabaseException, OutOfRangeException {
@@ -585,6 +676,15 @@ public abstract class AbstractPPTree < O extends OB >
         }
     }
 
+    /**
+     * Calculates a distance used by kmeans++
+     * @param a
+     *            A tuple
+     * @param b
+     *            B tuple
+     * @return The distance as calculated by kmeans++. Please refer to the
+     *         paper.
+     */
     float kMeansPPDistance(float[] a, float[] b) {
         assert a.length == b.length;
         float res = 0;
@@ -604,8 +704,18 @@ public abstract class AbstractPPTree < O extends OB >
      * This method was inspired from the source code provided by the authors
      * This paper
      * @param cluster
+     *            Cluster to initialize
      * @param k
+     *            Number of centroids
      * @param centroids
+     *            The resulting centroids
+     * @param r
+     *            A random number generator.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
      */
     private void initializeKMeansPP(BitSet cluster, byte k,
             float[][] centroids, Random r) throws DatabaseException,
@@ -696,10 +806,12 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Returns the ith set bit of the given vector
+     * Returns the ith set bit of the given cluster.
      * @param cluster
+     *            the cluster to be processed
      * @param i
-     * @return
+     *            the ith set bit
+     * @return the ith set bit of the cluster
      */
     private int returnIth(BitSet cluster, int i) {
         int cx = 0;
@@ -718,11 +830,14 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * returns true if id is in the array ids performs the operation up to max
-     * (inclusive) if max is 0 this function always returns false
+     * Returns true if id is in the array ids performs the operation up to max
+     * (inclusive) if max is 0 this function always returns false.
      * @param id
+     *            an identification
      * @param ids
+     *            a list of numbers
      * @param max
+     *            the maximum point that we will process
      * @return true if id is in the array ids
      */
     private boolean contains(int id, int[] ids, int max) {
@@ -742,16 +857,31 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Read the given tuple from B database and load it into the given tuple
      * @param id
+     *            object internal id
      * @param tuple
+     *            store the corresponding tuple here.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
      */
     protected abstract void readFromB(int id, float[] tuple)
             throws DatabaseException, OutOfRangeException;
 
     /**
      * Verifies that all the data that is going to be inserted in this leaf
-     * belongs to the given leaf
+     * belongs to the given leaf.
      * @param instances
+     *            Set if data that will be verified
      * @param n
+     *            Leaf that will be processed.
+     * @throws OutOfRangeException
+     *             If the distance of any object to any other object exceeds the
+     *             range defined by the user.
+     * @throws DatabaseException
+     *             If somehing goes wrong with the DB
+     * @return if the data is valid
      */
     protected boolean verifyData(BitSet instances, SpaceTreeLeaf n)
             throws OutOfRangeException, DatabaseException {
@@ -771,8 +901,9 @@ public abstract class AbstractPPTree < O extends OB >
 
     /**
      * Calculates the center of the given data based on medians (just like the
-     * extended pyramid technique)
+     * extended pyramid technique).
      * @param data
+     *            data to be processed
      * @return the center of the given data
      */
     protected final float[] calculateCenter(BitSet data)
@@ -805,16 +936,12 @@ public abstract class AbstractPPTree < O extends OB >
         return res;
     }
 
-    private final float[] convertDoubleToFloat(double[] arr) {
-        float[] res = new float[arr.length];
-        int i = 0;
-        while (i < arr.length) {
-            res[i] = (float) arr[i];
-            i++;
-        }
-        return res;
-    }
-
+    /**
+     * Clone the given float[][] array.
+     * @param minMax
+     *            Input array
+     * @return a clone of minMax
+     */
     private final float[][] cloneMinMax(float[][] minMax) {
         float[][] res = new float[pivotsCount][2];
         int i = 0;
@@ -827,10 +954,11 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Initializes minMax bouding values
+     * Initializes minMax bouding values.
      * @param data
+     *            float[][] vector that will be initialized.
      */
-    private final void initMinMax(float[][] data) {
+    private void initMinMax(float[][] data) {
         int cx = 0;
         assert data.length == pivotsCount;
         while (cx < data.length) {
@@ -844,12 +972,15 @@ public abstract class AbstractPPTree < O extends OB >
      * Divides original space. For each v that belongs to "original" if v_DD <
      * DV then v belongs to "left". Otherwise v belongs to "right"
      * @param original
+     *            original data set
      * @param left
-     *            (output argument)
+     *            items to the left of the division (output argument)
      * @param right
-     *            (output argument)
+     *            items to the right of the division (output argument)
      * @param DD
+     *            See the P+tree paper
      * @param DV
+     *            See the P+tree paper
      */
     protected final void divideSpace(BitSet original, BitSet left,
             BitSet right, int DD, double DV) throws OutOfRangeException,
@@ -876,9 +1007,9 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Calculate the dividing dimension for cl and cr
-     * @param cl
-     * @param cr
+     * Calculate the dividing dimension for cl and cr.
+     * @param cl left center
+     * @param cr right center
      * @return the dimension that has the biggest gap between cl and cr
      */
     protected final short dividingDimension(float[] cl, float[] cr) {

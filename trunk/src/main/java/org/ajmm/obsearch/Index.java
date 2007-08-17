@@ -109,7 +109,7 @@ public interface Index < O extends OB > {
      *             If the index was already frozen and the user attempted to
      *             freeze it again
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *             If somehing goes wrong with the DB
      * @throws OBException
      *             User generated exception
      * @throws IllegalAccessException
