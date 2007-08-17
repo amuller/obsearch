@@ -31,6 +31,8 @@ import cern.colt.map.OpenIntObjectHashMap;
  * By using soft references, an OB cache is implemented The garbage collector
  * decides based on the access patterns of each reference, which elements are
  * released and which are kept.
+ * @param <O>
+ *            The type of object that will be stored in the Cache.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
@@ -38,39 +40,46 @@ import cern.colt.map.OpenIntObjectHashMap;
 
 public class OBCache < O > {
 
-    ConcurrentHashMap < Integer, SoftReference < O >> map;
+    /**
+     * The map that stores the cache.
+     */
+    private ConcurrentHashMap < Integer, SoftReference < O > > map;
 
-    public OBCache(int currentDBSize) {
+    /**
+     * Initialize the cache with the given amount of elements.
+     * @param size
+     *            Number of elements that the internal hash table will be
+     *            initialized with.
+     */
+    public OBCache(final int size) {
         // using open addressing because it is cheaper
         // map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
-        map = new ConcurrentHashMap < Integer, SoftReference < O >>(
-                currentDBSize);
+        map = new ConcurrentHashMap < Integer, SoftReference < O >>(size);
     }
 
     /**
-     * Stores the object in the cache
+     * Stores the object in the cache.
      * @param id
+     *            Internal id of the object
      * @param object
+     *            Object to store
      */
-    public void put(int id, O object) {
+    public final void put(final int id, final O object) {
         map.put(Integer.valueOf(id), new SoftReference < O >(object));
     }
 
     /**
-     * Gets the given object, returns null if the object is not found
+     * Gets the given object, returns null if the object is not found.
      * @param id
+     *            internal id.
      * @return null if no object is found
      */
-    public O get(int id) {
+    public final O get(final int id) {
         SoftReference < O > ref = map.get(id);
         if (ref == null) {
             return null; // the object is not here.
         }
         O result = ref.get();
-        /*
-         * if(result == null){ map.removeKey(id); // do we really need to remove
-         * the object? }
-         */
         return result;
     }
 
