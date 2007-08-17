@@ -190,8 +190,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
     /**
      * Extracts the tuple values from in and returns a normalized vector from 1
-     * to 0. Note that this is first level normalization. Extended pyramid
-     * normalization performs further analysis.
+     * to 0. Note that this is first level normalization. The extended pyramid
+     * technique algorithm performs another normalization on top of this one.
      * @param in
      *            Extracts a tuple from the given byte stream.
      * @throws OutOfRangeException
