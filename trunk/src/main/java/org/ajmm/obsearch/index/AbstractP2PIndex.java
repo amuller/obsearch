@@ -2944,10 +2944,10 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     }
 
     /**
-     * Receives a message that looks like: * And updates the result for the
+     * Receives a message with objects. Updates the result for the
      * given query. Will process a match result. If more matches
      * have to be performed, this method will query again the peers.
-     * 
+     * The message received looks like:
      * <pre>
      * Header: |requestId| |tab|
      * Result:
