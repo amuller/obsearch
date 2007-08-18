@@ -73,7 +73,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Logger.
      */
-    private static transient final Logger logger = Logger
+    private static final transient  Logger logger = Logger
             .getLogger(AbstractPivotIndex.class);
 
     /**

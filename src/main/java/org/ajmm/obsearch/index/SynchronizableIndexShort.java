@@ -43,8 +43,17 @@ import com.sleepycat.je.DatabaseException;
 public class SynchronizableIndexShort < O extends OBShort >
         extends AbstractSynchronizableIndex < O > implements IndexShort < O > {
 
+    /**
+     * Internal index that actually stores the objects.
+     */
     protected IndexShort < O > index;
 
+    /**
+     * Constructor.
+     * @param source internal index
+     * @param dbDir database were to put the sync index
+     * @throws DatabaseException If something goes wrong with the DB
+     */
     public SynchronizableIndexShort(IndexShort < O > source, File dbDir)
             throws DatabaseException {
         super(source, dbDir);

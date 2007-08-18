@@ -54,6 +54,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 public final class OBExampleTrees {
 
+    /**
+     * Logger.
+     */
     private static final Logger logger = Logger.getLogger(OBExampleTrees.class);
 
     /**
@@ -88,10 +91,9 @@ public final class OBExampleTrees {
             final File data = new File(cline.getOptionValue("data"));
             if (cline.hasOption("create")) {
 
-                // create the database
-
                 final File dbFolder = new File(cline.getOptionValue("db"));
                 final byte od = Byte.parseByte(cline.getOptionValue("od"));
+                // create the index
                 /*
                  * 30 is the number of pivots to use. 0 and 1000 are the minimum
                  * and maximum expected values that the function distance in
@@ -106,7 +108,9 @@ public final class OBExampleTrees {
                         new FileReader(data));
                 String re = r.readLine();
                 int realIndex = 0;
+                // read the trees file
                 while (re != null) {
+                    // if this returns null then we read a comment
                     final String l = parseLine(re);
                     if (l != null) {
                         final OBSlice s = new OBSlice(l);
@@ -287,27 +291,27 @@ public final class OBExampleTrees {
         final Option search = new Option("search", "Search mode");
         create.setRequired(false);
 
-	final Option in = OptionBuilder.withArgName("dir").hasArg().isRequired(
-		true).withDescription("Database Directory").create("db");
+        final Option in = OptionBuilder.withArgName("dir").hasArg().isRequired(
+                true).withDescription("Database Directory").create("db");
 
-	final Option out = OptionBuilder
-		.withArgName("dir")
-		.hasArg()
-		.isRequired(true)
-		.withDescription(
-			"Data File (new-line separated list of trees). Used for create or for search mode.")
-		.create("data");
+        final Option out = OptionBuilder
+                .withArgName("dir")
+                .hasArg()
+                .isRequired(true)
+                .withDescription(
+                        "Data File (new-line separated list of trees). Used for create or for search mode.")
+                .create("data");
 
-	final Option range = OptionBuilder.withArgName("dir").hasArg()
-		.withDescription("The range to be used").create("r");
+        final Option range = OptionBuilder.withArgName("dir").hasArg()
+                .withDescription("The range to be used").create("r");
 
-	final Option k = OptionBuilder.withArgName("dir").hasArg()
-		.withDescription("K to be used").create("k");
+        final Option k = OptionBuilder.withArgName("dir").hasArg()
+                .withDescription("K to be used").create("k");
 
-	final Option od = OptionBuilder.withArgName("#").hasArg()
-		.withDescription("# of partitions for P+Tree").create("od");
+        final Option od = OptionBuilder.withArgName("#").hasArg()
+                .withDescription("# of partitions for P+Tree").create("od");
 
-	Options options = new Options();
+        Options options = new Options();
         options.addOption(in);
         options.addOption(out);
         options.addOption(range);

@@ -51,6 +51,7 @@ import com.sleepycat.je.OperationStatus;
  * PPTreeShort Implementation of a P+Tree that stores OB objects whose distance
  * functions generate shorts. We take the burden of maintaining one class per
  * datatype for efficiency reasons.
+ * The spore file name is: PPTreeShort
  * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The type of object to be stored in the Index.
@@ -85,7 +86,7 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Size of the cache of {@link #resultCache}.
      */
-    protected final static int resultCacheSize = 3000;
+    protected  static final int resultCacheSize = 3000;
 
     /**
      * Cache used for getting objects from B. Only used before freezing

@@ -3,6 +3,35 @@ package org.ajmm.obsearch.index.pptree;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * A SpaceTreeLeaf stores the minimum and maximum values of a hyperrectangle.
+ * All the space is divided in subspaces and a SpaceTreeLeaf is one of them. The
+ * {@link #SNo} property holds the identification number of the subspace. A
+ * SpaceTreeLeaf can normalize a value and a query in terms of the subspace.
+ * Inside this subspace we apply the extended pyramid technique.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
+ */
+
 public class SpaceTreeLeaf implements SpaceTree {
 
     /**
@@ -28,7 +57,7 @@ public class SpaceTreeLeaf implements SpaceTree {
     /**
      * @return A human readable representation of the object.
      */
-    public String toString() {
+    public final String toString() {
         return "leaf(" + SNo + " " + Arrays.deepToString(minMax) + ")";
     }
 
@@ -42,7 +71,7 @@ public class SpaceTreeLeaf implements SpaceTree {
     /**
      * @return the min max values of this hyper rectangle.
      */
-    public float[][] getMinMax() {
+    public final float[][] getMinMax() {
         return minMax;
     }
 
@@ -51,14 +80,14 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param minMax
      *            new min max values of this hyper rectangle.
      */
-    public void setMinMax(float[][] minMax) {
+    public final void setMinMax(float[][] minMax) {
         this.minMax = minMax;
     }
 
     /**
      * @return min
      */
-    public double[] getA() {
+    public final double[] getA() {
         return min;
     }
 
@@ -67,14 +96,14 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param a
      *            new min
      */
-    public void setA(double[] a) {
+    public final void setA(double[] a) {
         this.min = a;
     }
 
     /**
      * @return width
      */
-    public double[] getB() {
+    public final double[] getB() {
         return width;
     }
 
@@ -83,14 +112,14 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param b
      *            new width
      */
-    public void setB(double[] b) {
+    public final void setB(double[] b) {
         this.width = b;
     }
 
     /**
      * @return exp values for all dimensions
      */
-    public double[] getExp() {
+    public final double[] getExp() {
         return exp;
     }
 
@@ -99,38 +128,39 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param e
      *            new exp values for the dimensions
      */
-    public void setExp(double[] e) {
+    public final void setExp(double[] e) {
         this.exp = e;
     }
 
     /**
      * @return gets the space number
      */
-    public int getSNo() {
+    public final int getSNo() {
         return SNo;
     }
 
     /**
-     * Sets the space number of this method
+     * Sets the space number of this method.
      * @param no
      *            new space number
      */
-    public void setSNo(int no) {
+    public final void setSNo(int no) {
         SNo = no;
     }
 
     /**
      * @return always returns true because this is a leaf node.
      */
-    public boolean isLeafNode() {
+    public final boolean isLeafNode() {
         return true;
     }
 
     /**
-     * @param value Point to search
+     * @param value
+     *            Point to search
      * @return this if the given value is inside this space
      */
-    public SpaceTreeLeaf search(final float[] value) {
+    public final SpaceTreeLeaf search(final float[] value) {
         assert pointInside(value);
         // we are in the leaf, we are done
         return this;
@@ -143,7 +173,7 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param result
      *            (the resulting tuple)
      */
-    public void normalize(final float[] value, final float[] result) {
+    public final void normalize(final float[] value, final float[] result) {
         assert pointInside(value);
         int i = 0;
         while (i < value.length) {
@@ -153,13 +183,16 @@ public class SpaceTreeLeaf implements SpaceTree {
             i++;
         }
     }
-/**
- * Normalizes the given value in dimension i
- * @param value Value to normalize.
- * @param i Dimension
- * @return Normalized version of the value in dimension i.
- */
-    public float normalizeAux(float value, int i) {
+
+    /**
+     * Normalizes the given value in dimension i.
+     * @param value
+     *            Value to normalize.
+     * @param i
+     *            Dimension
+     * @return Normalized version of the value in dimension i.
+     */
+    public final float normalizeAux(float value, int i) {
         return (float) Math.pow((value - min[i]) / width[i], exp[i]);
     }
 
@@ -171,7 +204,8 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param result
      *            will hold all the spaces that intersect with the query
      */
-    public void searchRange(float[][] query, List < SpaceTreeLeaf > result) {
+    public final void searchRange(final float[][] query,
+            List < SpaceTreeLeaf > result) {
         assert intersects(query); // this has to be true
         // if (intersects(query)) {
         result.add(this);
@@ -183,7 +217,7 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param query
      * @return true if the given query intersects with this hyperrectangle
      */
-    public boolean intersects(float[][] query) {
+    public final boolean intersects(float[][] query) {
         boolean res = true;
         assert query.length == minMax.length;
         int i = 0;
@@ -195,10 +229,12 @@ public class SpaceTreeLeaf implements SpaceTree {
     }
 
     /**
-     * Function used by {@link #intersects(float[][])} to find
-     * if any two dimension ranges are overlapping or not.
-     * @param space the dimension range of the space
-     * @param query the dimension range of the query
+     * Function used by {@link #intersects(float[][])} to find if any two
+     * dimension ranges are overlapping or not.
+     * @param space
+     *            the dimension range of the space
+     * @param query
+     *            the dimension range of the query
      * @return true if space and query intersect
      */
     private boolean intersectsAux(float[] space, float[] query) {
@@ -210,10 +246,11 @@ public class SpaceTreeLeaf implements SpaceTree {
 
     /**
      * Returns true if the given point is inside this space.
-     * @param point point to be tested
+     * @param point
+     *            point to be tested
      * @return true if the given point is inside
      */
-    public boolean pointInside(float[] point) {
+    public final boolean pointInside(final float[] point) {
         int i = 0;
         assert point.length == minMax.length;
         boolean res = true;
@@ -228,10 +265,13 @@ public class SpaceTreeLeaf implements SpaceTree {
      * Normalizes the given query to this hyperrectangle Parts of the query
      * might return values that are greater than 1 or 0. In those cases, we
      * "cut" the query so that this is not performed
-     * @param firstPassQuery query first pass-normalized
-     * @param result The resulting normalized query for this space.
+     * @param firstPassQuery
+     *            query first pass-normalized
+     * @param result
+     *            The resulting normalized query for this space.
      */
-   public void generateRectangle(float[][] firstPassQuery, float[][] result) {
+    public final void generateRectangle(final float[][] firstPassQuery,
+            float[][] result) {
         int i = 0;
         while (i < firstPassQuery.length) {
 
@@ -261,12 +301,14 @@ public class SpaceTreeLeaf implements SpaceTree {
             i++;
         }
     }
-/**
- * @param spaceNumber SNo to search.
- * @return If this object's SNo == spaceNumber we return this, otherwise we
- * return null.
- */
-    public SpaceTreeLeaf searchSpace(int spaceNumber) {
+
+    /**
+     * @param spaceNumber
+     *            SNo to search.
+     * @return If this object's SNo == spaceNumber we return this, otherwise we
+     *         return null.
+     */
+    public final SpaceTreeLeaf searchSpace(final int spaceNumber) {
         if (this.SNo == spaceNumber) {
             return this;
         } else {

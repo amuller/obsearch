@@ -72,6 +72,9 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      */
     protected static final int HHIGH = 1;
 
+    /**
+     * Logger.
+     */
     private static final transient Logger logger = Logger
             .getLogger(AbstractExtendedPyramidIndex.class);
 

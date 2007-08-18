@@ -13,9 +13,9 @@ import com.sleepycat.je.DatabaseException;
  This project is to similarity search what 'bit-torrent' is to downloads.
  Copyright (C)  2007 Arnoldo Jose Muller Molina
 
- This program is free software; you can redistribute it and/or modify
+ This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
@@ -23,13 +23,11 @@ import com.sleepycat.je.DatabaseException;
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License along
- with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * This class receives the maximum ID available in the database (before freeze)
- * and generates random pivot numbers that are inside this range
+ * This class selects n random pivots from the database.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
@@ -38,13 +36,20 @@ import com.sleepycat.je.DatabaseException;
 public class RandomPivotSelector implements PivotSelector {
 
     /**
-     * Selects a number of pivots from the database.
-     * @param pivots
-     *            The number of pivots to be selected
-     * @return A list of object ids from the database
+     * Selects n random pivots from the database.
+     * @param index
+     *            The index that will be processed.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      * @see org.ajmm.obsearch.index.PivotSelector#generatePivots(short)
      */
-    public void generatePivots(AbstractPivotIndex index) throws OBException,
+    public final void generatePivots(AbstractPivotIndex index) throws OBException,
             IllegalAccessException, InstantiationException, DatabaseException {
         short pivots = index.getPivotsCount();
         int maxIdAvailable = index.getMaxId();
