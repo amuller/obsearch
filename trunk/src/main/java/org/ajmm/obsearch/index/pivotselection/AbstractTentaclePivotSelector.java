@@ -34,14 +34,19 @@ import com.sleepycat.je.DatabaseException;
  * pivots that are all at least d units away of each other. Note that it might
  * happen that the algorithm will have to try with a smaller d if there are no
  * such pivots in the database.
+ * @param <O>
+ *            Type of object of the index to be analyzed.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
- * @since 1.0
+ * @since 0.0
  */
 
 public abstract class AbstractTentaclePivotSelector < O extends OB > implements
         PivotSelector < O > {
 
+    /**
+     * Logger.
+     */
     private static transient final Logger logger = Logger
             .getLogger(AbstractTentaclePivotSelector.class);
 
@@ -49,10 +54,22 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
      * Generates n (n = pivots) from the database The resulting array is a list
      * of ids from the database The method will modify the pivot index and
      * update the information of the selected new pivots
+     * @param x
+     *            Generate pivots from this index
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws PivotsUnavailableException
+     *             If the pivots could not be found
      */
-    public void generatePivots(AbstractPivotIndex < O > x) throws OBException,
-            IllegalAccessException, InstantiationException, DatabaseException,
-            PivotsUnavailableException {
+    public void generatePivots(final AbstractPivotIndex < O > x)
+            throws OBException, IllegalAccessException, InstantiationException,
+            DatabaseException, PivotsUnavailableException {
         x.prepareFreeze();
         O prev = obtainD(x);
         int m = x.getMaxId();
@@ -93,18 +110,24 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
 
     /**
      * Decreases the current value of D (makes it potentially easier to find
-     * pivots to satisfy)
+     * pivots to satisfy).
      * @return true if easification was succesful
-     * @return false if easification was un
      */
     protected abstract boolean easifyD();
 
     /**
      * Return true if the given object (current) is withinRange from 0 to i - 1
      * @param current
+     *            object to process
+     * @param obs
+     *            pivot candidates
+     * @param i
+     *            process the pivots up to i
      * @return true if the given object is within range
+     * @throws OBException
+     *             User generated exception
      */
-    protected boolean withinRangeAll(O current, O[] obs, int i)
+    protected boolean withinRangeAll(final O current, final O[] obs, final int i)
             throws OBException {
         int cx = 0;
         while (cx < i) {
@@ -122,16 +145,29 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
      * @param x
      *            The index that will be processed
      * @return The object used as "seed"
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      */
     protected abstract O obtainD(AbstractPivotIndex < O > x)
             throws InstantiationException, IllegalAccessException,
             DatabaseException, OBException;
 
     /**
-     * Returns true if a and b are within range
+     * Returns true if a and b are within range.
      * @param a
+     *            object
      * @param b
-     * @return
+     *            object
+     * @return true if the distance between the objects is greater or equal than
+     *         the minimum distance accepted.
+     * @throws OBException
+     *             User generated exception
      */
     protected abstract boolean withinRange(O a, O b) throws OBException;
 }
