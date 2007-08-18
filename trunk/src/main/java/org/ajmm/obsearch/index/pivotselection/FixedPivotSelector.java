@@ -26,15 +26,18 @@ import com.sleepycat.je.DatabaseException;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /**
- * From a database, takes the first n pivots This pivot selector is only for
- * testing purposes
+ * Selects the pivots whose ids are in the array {@link #pivotArray}. This
+ * pivot selector is only for testing purposes.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
- * @since 1.0
+ * @since 0.0
  */
 
 public class FixedPivotSelector implements PivotSelector {
 
+    /**
+     * Internal db ids that will be extracted from the index.
+     */
     int[] pivotArray = { 143410, 3400, 308101, 132807, 146392, 322786, 37130,
             284923, 241765, 234087, 209606, 46464, 5242, 321523, 317796, 69782,
             176869, 27139, 188754, 73739, 109576, 229099, 153514, 163651,
@@ -47,15 +50,23 @@ public class FixedPivotSelector implements PivotSelector {
             218668, 10592, 218178, 47988 };
 
     /**
-     * Selects the first n pivots in the included array. This class is only for
-     * testing purposes n = pivots
-     * @param pivots
-     *            The number of pivots to be selected
-     * @return A list of object ids from the database
+     * Selects the pivots whose ids are in the array {@link #pivotArray}. This
+     * pivot selector is only for testing purposes.
+     * @param index
+     *            The index that will be processed.
+     * @throws DatabaseException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
      * @see org.ajmm.obsearch.index.PivotSelector#generatePivots(short)
      */
-    public void generatePivots(AbstractPivotIndex index) throws OBException,
-            IllegalAccessException, InstantiationException, DatabaseException {
+    public final void generatePivots(AbstractPivotIndex index)
+            throws OBException, IllegalAccessException, InstantiationException,
+            DatabaseException {
         short pivots = index.getPivotsCount();
         int maxIdAvailable = index.getMaxId();
         assert pivots <= maxIdAvailable;

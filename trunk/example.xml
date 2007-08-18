@@ -127,6 +127,9 @@
 				<arg value="-searchThreads"/>
 				<arg value="${threads}"/>
 			</java>
+<copy todir="${dbfolder}BKP">
+    <fileset dir="${dbfolder}"/>
+  </copy>
 </target>
 
 

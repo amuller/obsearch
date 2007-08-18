@@ -83,7 +83,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
     /**
      * Logger.
      */
-    private static transient final Logger logger = Logger
+    private static final transient  Logger logger = Logger
             .getLogger(AbstractParallelIndex.class);
 
     /**

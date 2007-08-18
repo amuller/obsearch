@@ -34,17 +34,16 @@ public class SliceParseException
      * Serial version of the class.
      */
     private static final long serialVersionUID = 3774865697155505953L;
-   
 
     /**
      * Constructor.
-     * @param x Original slice
-     * @param e Exception that was thrown
+     * @param x
+     *            Original slice
+     * @param e
+     *            Exception that was thrown
      */
     SliceParseException(final String x, final Exception e) {
-       super(x,e);
+        super(x, e);
     }
-
-   
 
 }

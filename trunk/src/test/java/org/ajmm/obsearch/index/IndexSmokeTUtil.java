@@ -24,17 +24,62 @@ import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
+/*
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * Main class that performs all sorts of tests on the indexes. Objects are
+ * inserted deleted verified for existence. Searches are always compared against
+ * sequential search.
+ * @author Arnoldo Jose Muller Molina
+ * @version %I%, %G%
+ * @since 0.0
+ */
+
 public class IndexSmokeTUtil {
 
+    /**
+     * Properties for the test.
+     */
     Properties testProperties;
 
+    /**
+     * Logger.
+     */
     private static transient final Logger logger = Logger
             .getLogger(IndexSmokeTUtil.class);
 
+    /**
+     * Creates a new smoke tester. Loads test properties.
+     * @throws IOException
+     *             If the properties file cannot be found.
+     */
     public IndexSmokeTUtil() throws IOException {
         testProperties = TUtils.getTestProperties();
     }
 
+    /**
+     * Initialize the index.
+     * @param index
+     *            Index to be initialized.
+     * @throws Exception
+     *             If something goes wrong.
+     */
     public void initIndex(IndexShort < OBSlice > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File db = new File(testProperties.getProperty("test.db.input"));
@@ -63,6 +108,7 @@ public class IndexSmokeTUtil {
         // TentaclePivotSelectorShort<OBSlice> ps = new
         // TentaclePivotSelectorShort<OBSlice>((short)5);
         // RandomPivotSelector ps = new RandomPivotSelector();
+        // select some pivots.
         DummyPivotSelector ps = new DummyPivotSelector();
         if (index instanceof ParallelIndex) {
             ps.generatePivots((AbstractPivotIndex) ((ParallelIndex) index)
@@ -74,12 +120,11 @@ public class IndexSmokeTUtil {
         } else {
             ps.generatePivots((AbstractPivotIndex) index);
         }
-        // the pyramid values are created
+        // "learn the data".
         logger.info("freezing");
         index.freeze();
 
         // we should test that the exists method works well
-
         r = new BufferedReader(new FileReader(db));
         re = r.readLine();
 
@@ -109,8 +154,12 @@ public class IndexSmokeTUtil {
     /**
      * Test method for
      * {@link org.ajmm.obsearch.index.AbstractPivotIndex#insertObjectInDatabase(org.ajmm.obsearch.OB, int, com.sleepycat.je.Database)}.
-     * Creates a database, fills it with a bunch of rows performs a query and
+     * Creates a database, fills it with data. Performs several queries and
      * compares the result with the sequential search.
+     * @param index
+     *            The index that will be tested
+     * @exception If
+     *                something goes wrong.
      */
     protected void tIndex(IndexShort < OBSlice > index) throws Exception {
 
@@ -160,11 +209,12 @@ public class IndexSmokeTUtil {
             ((ParallelIndex) index).waitQueries();
         }
         int maxQuery = i;
-        logger.info("Pyramid matching ends... Stats follow:");
+        // logger.info("Matching ends... Stats follow:");
         // index.stats();
-        // now we compare the results we got with the real thing!
+
+        // now we compare the results we got with the sequential search
         Iterator < OBPriorityQueueShort < OBSlice >> it = result.iterator();
-        r.close();        
+        r.close();
         r = new BufferedReader(new FileReader(query));
         re = r.readLine();
         i = 0;
@@ -183,7 +233,7 @@ public class IndexSmokeTUtil {
                     assertEquals("Error in query line: " + i + " slice: "
                             + line, x2, x1);
 
-                    // test the other search methods
+                    // test the other search method
                     OBPriorityQueueShort < OBSlice > x3 = new OBPriorityQueueShort < OBSlice >(
                             k);
                     int[] inter = index.intersectingBoxes(s, range);
@@ -211,10 +261,11 @@ public class IndexSmokeTUtil {
             re = r.readLine();
         }
         r.close();
-        logger.info("Finished  matching...");
+        logger.info("Finished  matching validation.");
         assertFalse(it.hasNext());
-        // now check that times make sense.
 
+        // test special methods that only apply to
+        // SynchronizableIndex
         if (index instanceof SynchronizableIndex) {
             logger.info("Testing timestamp index");
             SynchronizableIndex < OBSlice > index2 = (SynchronizableIndex < OBSlice >) index;
@@ -229,11 +280,10 @@ public class IndexSmokeTUtil {
                     TimeStampResult < OBSlice > t = it2.next();
                     OBSlice o = t.getObject();
                     assert o != null;
+                    // extract the object returned by the timestamp
+                    // iterator and confirm that it is in the database.
                     OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
                             (byte) 1);
-                    // TODO: for r=0 p+tree is failing here but pyramid is
-                    // not.
-                    // why?
                     index.searchOB(o, (short) 1, x);
                     Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
                     assertTrue(" Size found:" + x.getSize() + " item # " + cx
@@ -270,7 +320,14 @@ public class IndexSmokeTUtil {
         Directory.deleteDirectory(dbFolder);
     }
 
-    // if x is in j
+    /**
+     * if x is in j.
+     * @param x
+     *            item to search.
+     * @param j
+     *            array to search.
+     * @return true if x is in j.
+     */
     public static boolean isIn(int x, int[] j) {
         for (int k : j) {
             if (k == x) {
@@ -280,10 +337,25 @@ public class IndexSmokeTUtil {
         return false;
     }
 
+    /**
+     * We only process slices of this size.
+     * @param x
+     *            Slice
+     * @return true if the slice is within the size we want.
+     * @throws Exception
+     *             If something goes wrong.
+     */
     public static boolean shouldProcessSlice(OBSlice x) throws Exception {
         return x.size() <= 100;
     }
 
+    /**
+     * Parse a line in the slices file.
+     * @param line
+     *            A line in the file
+     * @return null if the line is a comment or a String if the line is a valid
+     *         tree representation
+     */
     public static String parseLine(String line) {
         if (line.startsWith("//") || "".equals(line.trim())
                 || (line.startsWith("#") && !line.startsWith("#("))) {
@@ -302,12 +374,19 @@ public class IndexSmokeTUtil {
     }
 
     /**
+     * Sequential search.
      * @param max
+     *            Search all the ids in the database until max
      * @param o
+     *            The object to search
      * @param result
+     *            The queue were the results are stored
      * @param index
+     *            the index to search
      * @param range
+     *            The range to employ
      * @throws Exception
+     *             If something goes really bad.
      */
     public void searchSequential(int max, OBSlice o,
             OBPriorityQueueShort < OBSlice > result,

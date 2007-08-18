@@ -20,23 +20,32 @@ package org.ajmm.obsearch.exception;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * Class: OutOfRangeException
+ * Class: OutOfRangeException. For each value, we convert it in [0,1] (so that
+ * we can handle it inside the pyramid technique). If the distance returns a
+ * value that is beyond the limits specified by the user.
  * @author Arnoldo Jose Muller Molina
  * @version %I%, %G%
  * @since 1.0
  */
-
 public class OutOfRangeException
         extends OBException {
     private String message;
 
+    /**
+     * Default Constructor.
+     */
     public OutOfRangeException() {
         super("N/A");
     }
 
+    /**
+     * Constructor.
+     * @param min min value specified by the user
+     * @param max max value specified by the user
+     * @param obtained value obtained from the distance function
+     */
     public OutOfRangeException(String min, String max, String obtained) {
-        super( " min: " + min + " max: " + max + " obtained: " + obtained);
+        super(" min: " + min + " max: " + max + " obtained: " + obtained);
     }
 
-   
 }

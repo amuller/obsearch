@@ -47,11 +47,12 @@ import com.sleepycat.je.OperationStatus;
 /**
  * ExtendedPyramidIndexShort is an index that uses the pyramid technique. The
  * distance function used must return short values.
+ * The spore file name is: ExtendedPyramidTechniqueShort
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
  * @since 0.0
+ * @ver
  */
 public class ExtendedPyramidIndexShort < O extends OBShort >
         extends AbstractExtendedPyramidIndex < O > implements IndexShort < O > {

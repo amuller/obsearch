@@ -47,7 +47,7 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
     /**
      * Logger.
      */
-    private static transient final Logger logger = Logger
+    private static final transient  Logger logger = Logger
             .getLogger(AbstractTentaclePivotSelector.class);
 
     /**

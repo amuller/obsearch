@@ -151,7 +151,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     /**
      * Class logger.
      */
-    private transient final Logger logger;
+    private final transient  Logger logger;
 
     /**
      * Messages bigger than this one have problems.
@@ -194,29 +194,29 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     /**
      * OBSearch's pipe name.
      */
-    private final static String pipeName = "OBSearchPipe";
+    private static final String pipeName = "OBSearchPipe";
 
     /**
      * Maximum number of peers to use.
      */
-    private final static int maxNumberOfPeers = 100;
+    private static final  int maxNumberOfPeers = 100;
 
     /**
      * Interval for each heartbeat (in miliseconds) heartbeats check for missing
      * resources and make sure we are all well connected all the time.
      */
-    private final static int heartBeatInterval = 10000;
+    private static final  int heartBeatInterval = 10000;
 
     /**
      * General timeout used for most p2p operations.
      */
-    private final static int globalTimeout = 30 * 1000;
+    private static final  int globalTimeout = 30 * 1000;
 
     /**
      * Maximum time difference between the peers. peers that have bigger time
      * differences will be dropped.
      */
-    private final static int maxTimeDifference = 3600000;
+    private static final  int maxTimeDifference = 3600000;
 
     /**
      * Maximum number of objects to query at the same time.

@@ -39,7 +39,7 @@ public class ParallelIndexShort < O extends OBShort >
     /**
      * Logger.
      */
-    private static transient final Logger logger = Logger
+    private static final transient  Logger logger = Logger
             .getLogger(ParallelIndexShort.class);
 
     /**
