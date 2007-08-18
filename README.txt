@@ -40,4 +40,12 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
              https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix \
              -m "I will change the way values are mapped, to reduce precision loss... this may be the problem I have"  --username <you>
 
-It took 30 min!
+It takes around 30 min!
+
+
+
+--- 
+
+TODO: Comments for test bed.
+TODO: Fix version thingy for javadoc.
+TODO: Create a tutorial.
