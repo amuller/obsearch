@@ -26,8 +26,7 @@ import junit.framework.TestCase;
 /**
  * Tests on the pyramid technique.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class TestExtentedPyramidIndex

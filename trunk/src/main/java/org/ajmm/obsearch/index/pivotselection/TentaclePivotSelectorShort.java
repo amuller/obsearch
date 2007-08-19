@@ -38,8 +38,7 @@ import com.sleepycat.je.DatabaseException;
  * @param <O>
  *            The object that is stored in the index we want to process.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 public class TentaclePivotSelectorShort < O extends OBShort >
         extends AbstractTentaclePivotSelector < O > {

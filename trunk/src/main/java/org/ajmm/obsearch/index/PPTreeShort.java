@@ -55,8 +55,7 @@ import com.sleepycat.je.OperationStatus;
  * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The type of object to be stored in the Index.
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class PPTreeShort < O extends OBShort >

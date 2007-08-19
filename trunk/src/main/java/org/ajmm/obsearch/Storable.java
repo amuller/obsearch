@@ -25,8 +25,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * Interface that abstracts the general storage and loading methods used to
  * persist objects.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public interface Storable {

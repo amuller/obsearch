@@ -25,8 +25,7 @@ package org.ajmm.obsearch;
  * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The object that was added into the result.
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public abstract class AbstractOBResult < O extends OB > implements Comparable {
@@ -86,7 +85,7 @@ public abstract class AbstractOBResult < O extends OB > implements Comparable {
 
     /**
      * Sets the internal id of the result.
-     * @param identification
+     * @param identification The identification number of this result's object.
      */
     public final void setId(final int identification) {
         this.id = identification;

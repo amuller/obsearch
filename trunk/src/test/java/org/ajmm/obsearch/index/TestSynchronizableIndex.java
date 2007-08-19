@@ -30,8 +30,7 @@ import org.junit.Before;
 /**
  * Test SynchronizableIndex.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class TestSynchronizableIndex

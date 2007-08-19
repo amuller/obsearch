@@ -25,39 +25,59 @@ import org.ajmm.obsearch.result.OBPriorityQueue${Type};
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-	  Class: OBQuery
-	  
-    @author      Arnoldo Jose Muller Molina    
-    @version     %I%, %G%
-    @since       1.0
-*/
+ */
+/**
+ * Object used to store a query request.
+ * @author Arnoldo Jose Muller Molina
+ * @since 0.7
+ */
 
 
 public class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
-		
-		
-		
-		protected OBPriorityQueue${Type}<O> result;
 
-		public OBQuery${Type}(){
-		}
 
-		public OBQuery${Type}(O object, ${type} distance, OBPriorityQueue${Type}<O> result){
+    /**
+     * Holds the results for the query.
+     */
+    protected OBPriorityQueue${Type}<O> result;
 
-				super(object,-1,distance);
-				this.result = result;
-		}
+    /**
+     * Constructor.
+     */
+    public OBQuery${Type}(){
+    }
 
-		public OBPriorityQueue${Type}<O> getResult(){
-				return result;
-		}
+    /**
+     * Creates a new OBQuery${Type} object.
+     * @param object
+     *            The object that will be matched.
+     * @param distance
+     *            The distance to be used for the match.
+     * @param result
+     *            The priority queue were the results will be stored.
+     */
+    public OBQuery${Type}(O object, ${type} distance, OBPriorityQueue${Type}<O> result){
 
-		public void setResult(OBPriorityQueue${Type}<O> result){
-				this.result = result;
-		}
-		
+        super(object,-1,distance);
+        this.result = result;
+    }
+
+    /**
+     * @return The current results of the matching.
+     */
+    public OBPriorityQueue${Type}<O> getResult(){
+        return result;
+    }
+
+    /**
+     * Set the results of the matching to a new object.
+     * @param result
+     *            The new result.
+     */
+    public void setResult(OBPriorityQueue${Type}<O> result){
+        this.result = result;
+    }
+
 }
 
 </#list>

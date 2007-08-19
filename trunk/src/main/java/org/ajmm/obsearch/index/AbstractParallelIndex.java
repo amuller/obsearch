@@ -40,12 +40,12 @@ import com.sleepycat.je.DatabaseException;
  */
 /**
  * AbstractParallelIndex is a wrapper class that allows to exploit all the cpus
- * of a computer with any OB index. :) yay!
+ * of a computer with any OB index. Currently this class
+ * is not ready to be used. This class is not related to the GSOC goals.
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 // TODO: There is a performance bottleneck in this class. CPU usage for a quad
 // core machine gets
@@ -55,7 +55,7 @@ import com.sleepycat.je.DatabaseException;
 // eating a lot of data. Another possibility is that the queue is too slow, that
 // the bottleneck is the creation of slices...
 // I will work on this in the future.
-// This class is officially suspended. We don't need it right now.
+// This class is officially suspended. We don't need it right now anyway.
 public abstract class AbstractParallelIndex < O extends OB > implements
         Index < O >, ParallelIndex < O >, Runnable {
 

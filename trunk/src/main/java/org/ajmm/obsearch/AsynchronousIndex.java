@@ -24,8 +24,7 @@ package org.ajmm.obsearch;
  * isProcessingQueries() can be used to detect if there is any query still being
  * processed in background.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public interface AsynchronousIndex {

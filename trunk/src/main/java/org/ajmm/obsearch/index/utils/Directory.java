@@ -24,8 +24,7 @@ import java.io.IOException;
 /**
  * Utility class to manipulate directories.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public final class Directory {

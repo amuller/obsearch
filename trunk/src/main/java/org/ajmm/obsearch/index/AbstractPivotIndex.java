@@ -64,8 +64,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @param <O>
  *            The object type to be used
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 @XStreamAlias("AbstractPivotIndex")
 public abstract class AbstractPivotIndex < O extends OB > implements Index < O > {
@@ -156,7 +155,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
-     * arbitrarily hardcoded to 256.
+     * arbitrarily hardcoded to the size of short.
      * @param databaseDirectory
      *            Where all the databases will be stored.
      * @param pivots
@@ -430,7 +429,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Inserts the given OBJECT in B.
+     * Inserts the given object in B.
      * @param id
      *            Id of the object.
      * @param object
@@ -510,7 +509,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * Freezes the index. From this point data can be inserted, searched and
      * deleted The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild de index. After the method returns,
-     * searching is enabled.
+     * searching and additional insertions or deletions can be performed
+     * on the index.
      * @throws IOException
      *             if the index serialization process fails
      * @throws AlreadyFrozenException
@@ -841,7 +841,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Creates a new object empty O object.
+     * Creates a new and empty O object.
      * @return A new empty object of type O
      * @throws IllegalAccessException
      *             If there is a problem when instantiating objects O

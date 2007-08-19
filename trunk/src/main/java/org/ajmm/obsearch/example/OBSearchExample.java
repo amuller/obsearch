@@ -26,17 +26,41 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+/*
+ OBSearch: a distributed similarity search engine
+ This project is to similarity search what 'bit-torrent' is to downloads.
+ Copyright (C)  2007 Arnoldo Jose Muller Molina
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /**
  * This class shows how OBSearch can be used. The example is a P2P application.
  * The index consists of trees and some distance function. The initial data
  * input is provided by a plain text file with string representations of the
- * trees separated by newlines. A definition Spore: An xml file used to create
- * an index. This file does not contain data. It contains all the data necessary
- * to store objects into an Index. Before reviewing this example please review
- * the example in {@link #OBExampleTrees}.
- * When the "-server" flag is given, the peer becomes a rendezvous peer.
- * Please check JXTA's documentation for more information.
+ * trees separated by newlines. A definition:
+ * <p>
+ * Spore: An xml file used to create an index. This file does not contain data.
+ * It contains all the data necessary to store objects into an Index.
+ * </p>
+ * Before reviewing this example please review the example in
+ * {@link #OBExampleTrees}. When the "-server" flag is given, the peer becomes
+ * a rendezvous peer. Please check JXTA's documentation for more information on
+ * rendezvous peers.
+ * @author Arnoldo Jose Muller Molina
+ * @since 0.7
  */
+
 public final class OBSearchExample {
 
     /**
@@ -135,8 +159,8 @@ public final class OBSearchExample {
                 // OBExampleTrees.shouldProcessSlice(s)
                 // is a better and cleaner approach that helps to validate your
                 // distance function.
-                pp = new PPTreeShort < OBSlice >(stdFolder, d,
-                        od, (short) 0, (short) 1000);
+                pp = new PPTreeShort < OBSlice >(stdFolder, d, od, (short) 0,
+                        (short) 1000);
                 SynchronizableIndexShort < OBSlice > index = new SynchronizableIndexShort < OBSlice >(
                         pp, syncFolder);
 
@@ -236,7 +260,7 @@ public final class OBSearchExample {
                 }
                 long time = System.currentTimeMillis() - start;
                 logger.info("Matched in: " + ((time / 1000) - 1) + " seconds");
-                p2p.close();
+               // p2p.close();
             } else if (cline.hasOption("tentacle")) {
                 logger.debug("Doing tentacle");
                 // just load the index and stay online indefinitely
@@ -272,13 +296,7 @@ public final class OBSearchExample {
             e.printStackTrace();
         }
 
-        if (p2pRef != null) {
-            try {
-                p2pRef.close();
-            } catch (Exception e) {
-                logger.fatal("Error while trying to close the index");
-            }
-        }
+        
         LogManager.shutdown();
         System.exit(returnValue);
     }

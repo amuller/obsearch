@@ -28,8 +28,7 @@ import java.util.List;
  * SpaceTreeLeaf can normalize a value and a query in terms of the subspace.
  * Inside this subspace we apply the extended pyramid technique.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class SpaceTreeLeaf implements SpaceTree {

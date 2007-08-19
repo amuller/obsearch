@@ -29,8 +29,7 @@ import org.ajmm.obsearch.exception.OBException;
  * submitted queries have completed
  * @param <O> The object that is stored in the index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public interface ParallelIndex < O extends OB > extends Runnable {

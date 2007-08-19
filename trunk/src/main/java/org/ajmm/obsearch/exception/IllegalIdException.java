@@ -21,9 +21,11 @@ package org.ajmm.obsearch.exception;
  */
 /**
  * Occurs when an internal id requested but the id is not available.
+ * This Exception is kept as a debugging aid. Normally you should
+ * not receive it. If you do, please report the problem to:
+ * http://code.google.com/p/obsearch/issues/list
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class IllegalIdException

@@ -45,8 +45,7 @@ import com.sleepycat.je.DatabaseException;
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class P2PIndexShort < O extends OBShort >

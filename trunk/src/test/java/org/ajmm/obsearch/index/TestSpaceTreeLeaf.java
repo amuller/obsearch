@@ -27,8 +27,7 @@ import org.junit.Test;
 /**
  * Test the SpaceTreeLeaf object.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class TestSpaceTreeLeaf {

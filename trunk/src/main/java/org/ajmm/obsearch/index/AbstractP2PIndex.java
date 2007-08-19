@@ -88,13 +88,11 @@ import com.sleepycat.je.DatabaseException;
  */
 /**
  * AbstractP2PIndex holds common functionality of indexes that span several
- * computers. The current implementation uses the JXTA library as network
- * infraestructure.
+ * computers. The current implementation uses the JXTA library.
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
@@ -230,9 +228,8 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
     protected static final int queryTimeout = 30000;
 
     /**
-     * Internally gives ids that can be used to get a space in the queries
-     * array. This "tab" can be used to refer to the result until it is
-     * completed.
+     * Internally gives ids that can be used to wait for the
+     * processing of a query.
      */
     protected BlockingQueue < Integer > takeATab;
 

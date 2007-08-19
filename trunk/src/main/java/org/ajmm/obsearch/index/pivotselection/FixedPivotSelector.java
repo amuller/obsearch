@@ -29,8 +29,7 @@ import com.sleepycat.je.DatabaseException;
  * Selects the pivots whose ids are in the array {@link #pivotArray}. This
  * pivot selector is only for testing purposes.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class FixedPivotSelector implements PivotSelector {

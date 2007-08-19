@@ -30,8 +30,7 @@ import java.util.PriorityQueue;
  * @param <O>
  *            Result object to be used by the queue
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {

@@ -51,8 +51,7 @@ import com.sleepycat.je.OperationStatus;
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @since 0.0
- * @ver
+ * @since 0.7
  */
 public class ExtendedPyramidIndexShort < O extends OBShort >
         extends AbstractExtendedPyramidIndex < O > implements IndexShort < O > {

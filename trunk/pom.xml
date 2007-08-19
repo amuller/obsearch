@@ -142,7 +142,9 @@ This project is being developed as part of Google Summer of Code 2007
    <reporting>
     <plugins>
 
-<!--
+
+
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
@@ -152,11 +154,11 @@ This project is being developed as part of Google Summer of Code 2007
         <artifactId>maven-checkstyle-plugin</artifactId>
 				<configuration>
           <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-						<excludes>**/generated/*.java</excludes>
+						<excludes>**/generated/**/*.java</excludes>
         </configuration>
 			
       </plugin>
--->
+
 
 <!--			   		<plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -260,9 +262,9 @@ Would be cool to use this.
 			 <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-          <filters>
+          <!--<filters>
             <filter>src/assemble/filter.properties</filter>
-          </filters>
+          </filters>-->
           <descriptors>
             <descriptor>src/assemble/dep.xml</descriptor>
           </descriptors>

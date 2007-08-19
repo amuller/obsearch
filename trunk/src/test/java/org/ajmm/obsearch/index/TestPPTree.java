@@ -31,8 +31,7 @@ import org.apache.log4j.Logger;
 /**
  * Tests on the P+Tree.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public class TestPPTree
         extends TestCase {

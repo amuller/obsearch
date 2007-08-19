@@ -21,8 +21,7 @@ package org.ajmm.obsearch.exception;
 /**
  * Error thrown when not enough pivots can be found.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class PivotsUnavailableException

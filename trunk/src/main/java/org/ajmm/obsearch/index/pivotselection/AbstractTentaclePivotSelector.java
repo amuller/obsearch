@@ -31,14 +31,13 @@ import com.sleepycat.je.DatabaseException;
 /**
  * This pivot selector first finds a random element, gets the average distance d
  * of the element and all the objects in the database. Then it will find random
- * pivots that are all at least d units away of each other. Note that it might
- * happen that the algorithm will have to try with a smaller d if there are no
- * such pivots in the database.
+ * pivots that are all at least d units away of each other. The algorithm might
+ * have to try with a smaller d if there are no pivots that satisfy the previous
+ * condition.
  * @param <O>
  *            Type of object of the index to be analyzed.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public abstract class AbstractTentaclePivotSelector < O extends OB > implements
@@ -47,7 +46,7 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
     /**
      * Logger.
      */
-    private static final transient  Logger logger = Logger
+    private static final transient Logger logger = Logger
             .getLogger(AbstractTentaclePivotSelector.class);
 
     /**
