@@ -1,0 +1,32 @@
+<assembly>
+  <id>jar-with-dependencies</id>
+  <formats>
+    <format>tar.gz</format>
+    <format>tar.bz2</format>
+    <format>zip</format>
+  </formats>
+
+<fileSets>
+    <fileSet>
+      <directory>${basedir}</directory>
+      <includes>*.txt</includes>
+      <excludes>
+        <exclude>README.txt</exclude>
+        <exclude>NOTICE.txt</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>README.txt</source>
+      <outputDirectory>/</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+    <file>
+      <source>NOTICE.txt</source>
+      <outputDirectory>/</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
+
+</assembly>
