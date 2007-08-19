@@ -36,8 +36,7 @@ import com.sleepycat.je.DatabaseException;
  * @param <O>
  *            The object that will be indexed
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public interface SynchronizableIndex < O extends OB > extends Index < O > {
 

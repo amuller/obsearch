@@ -21,8 +21,7 @@ package org.ajmm.obsearch.exception;
 /**
  * OBException, the mother of all Exceptions in OBSearch.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public class OBException
         extends Exception {

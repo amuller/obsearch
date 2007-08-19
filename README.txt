@@ -92,8 +92,11 @@ Ranges > 0 for PPTreeShort are working properly.
 Running the Examples
 ********************
 
+
 First you have to make sure that "mvn test" works properly.
-If it doesn't please post an error on the mailing lists.
+If it doesn't please post an error on the mailing lists. It is normal
+to see many files being downloaded by maven the first times
+you run the examples or compile the program.
 
  Single Computer:
 
@@ -109,23 +112,59 @@ parameters!
  P2P Module:
 
 Requires that all the machines have ssh with rsync installed.
+You should have ssh-agent configured or you will have to type
+your password many times. You also need ant and maven installed.
 
-mvn compile
+Preparation:
+
 
 You have to create the database in one machine. This machine's
 ip address will be "CIP".
+0) mvn test 
 1) (In CPIP) ant -buildfile example.xml p2pcreate
------- only to be performed the first time --------
-1.a) Edit the file src/main/resources/seeds.txt
+2) Edit the file src/main/resources/seeds.txt
    Put replace the ip that is written there with CPIP
-1.b) mvn compile
------- end of only to be performed the first time -
-2) Edit p2p.pl
-   Find the variable: $databaseCreated
+3) mvn compile
+4) Edit p2p.pl
+4.1) Find the variable: $databaseCreated
 	 Its assignment must look like $databaseCreated = CPIP;
-	 Find the variable: @servers
+4.2) Find the variable: @servers
 	 Put all the ips of the machines involved including CPIP;
-3) Run perl p2p.pl
+5) Copy all the files from the current directory into
+		 the folder ~/gsoc/obsearch of all the machines that will be
+		 used in the test. Run ./install.sh on each of the machines.
+
+Running the example:
+WARNING: Because some java processes stay alive even after
+killing the calling processing (when using ssh) this Perl script
+will kill all the Java processes in the host machine before and
+after executing.
+
+Running:
+
+perl p2p.pl
+
+You have to wait until the peers find each other, and synchronize the
+data. When the data is synchronized a search will be performed.
+
+Running again p2p.pl will load the peers, but because the sync has
+been performed, then no data transfer will be done and the search
+will be executed immediately.
+
+If you want to see the sync process again: 
+
+perl p2p.pl empty
+
+This will delete all the data in all the peers except the 
+peer in CPIP.
+
+Note:
+If you want to change the base directory in which the
+databases will be stored you have to modify the following:
+Property dbfolder in example.xml
+Variable $dbFolder in p2p.pl
+You have to make sure that both have the same value. Sorry for the
+inconvenience.
 
 
 ---------------- Information for Developers ----------------------------

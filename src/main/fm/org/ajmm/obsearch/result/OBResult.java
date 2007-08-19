@@ -24,72 +24,116 @@ import org.ajmm.obsearch.ob.OB${Type};
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-	  Class: OBResult
-	  
-    @author      Arnoldo Jose Muller Molina    
-    @version     %I%, %G%
-    @since       1.0
-*/
+ */
+/**
+ * This class is used to store a single match result. A single result consists
+ * of the object found, the distance of this object with the query and an
+ * internal id.
+ * @author Arnoldo Jose Muller Molina
+ * @since 0.7
+ */
 
 
 public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
-		
-		
-		
-		protected ${type} distance;
 
-		public OBResult${Type}(){
-		}
 
-		public OBResult${Type}(O object, int id, ${type} distance){
+    /**
+     * Distance of the object found and the query.
+     */ 
+    protected ${type} distance;
 
-				super(object,id);
-				this.distance = distance;
-				
-		}
-		
-		public ${type} getDistance(){
-				return distance;
-		}
-		
-		public void setDistance(${type} x){
-				this.distance = x;
-		}
+    /**
+     * Default constructor. Used mostly to minimize the amount of object
+     * creations.
+     */
+    public OBResult${Type}(){
+    }
 
-		public int compareTo(Object o) {
-				assert o instanceof OBResult${Type};
-				int res = 0;
-				OBResult${Type}<O> comp = (OBResult${Type}<O>) o;
+    /**
+     * Create a new OBResult${Type}.
+     * @param object
+     *            the result found.
+     * @param id
+     *            The internal id of the result.
+     * @param distance
+     *            Distance of the result and the original query.
+     */
+    public OBResult${Type}(O object, int id, ${type} distance){
+
+        super(object,id);
+        this.distance = distance;
+
+    }
+
+    /**
+     * @return The distance of the result and the original query.
+     */
+    public ${type} getDistance(){
+        return distance;
+    }
+
+    /**
+     * Sets the distance to a new value x.
+     * @param x
+     *            The new value to set.
+     */
+    public void setDistance(${type} x){
+        this.distance = x;
+    }
+
+    /**
+     * We implement the interface comparable so we provide this method. The
+     * only difference is that we return bigger objects first. (The
+     * comparable contract is multiplied by -1)
+     * @param o
+     *            The object that will be compared.
+     * @return 1 if this object is smaller than o 0 if this object is equal
+     *         than o -1 if this object is greater than o
+     */
+    public int compareTo(Object o) {
+        assert o instanceof OBResult${Type};
+        int res = 0;
+        OBResult${Type}<O> comp = (OBResult${Type}<O>) o;
         if (distance < comp.distance) {
             res = 1;
         } else if (distance > comp.distance) {
             res = -1;
         }
         return res;
-		}
+    }
 
-		public int hashCode(){
-				return object.hashCode() + (int) distance;
-		}
+    /**
+     * @return the hash code of this object.
+     */
+    public int hashCode(){
+        return  (int) distance;
+    }
 
+    /**
+     * We do not care about the object itself, just that both objects are at
+     * the same distance from the query.
+     * @return true if both distances are the same.
+     */
     public boolean equals(Object obj){        
-				if(obj == null){
-						return false;
-				}
-				if(! (obj instanceof OBResult${Type})){
-						return false;
-				}
-				OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
-				// a result object is the same if the distance is the same
-				// we do not care about the id.
-				return distance == comp.distance;
-		}
+        if(obj == null){
+            return false;
+        }
+        if(! (obj instanceof OBResult${Type})){
+            return false;
+        }
+        OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
+        // a result object is the same if the distance is the same
+        // we do not care about the id.
+        return distance == comp.distance;
+    }
 
-		public String toString(){				
-				return "<" + id + " " + distance + ">";
-		}
+    /**
+     * Return a human readable representation of the object.
+     * @return a human readable representation of the object.
+     */
+    public String toString(){				
+        return "<" + id + " " + distance + ">";
+    }
 }
 
 </#list>

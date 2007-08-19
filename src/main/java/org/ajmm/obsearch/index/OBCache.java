@@ -29,8 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <O>
  *            The type of object that will be stored in the Cache.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public class OBCache < O > {

@@ -6,7 +6,7 @@
 
 # the database folder
 $dbRoot = "~/temp/";
-$dbFolder = "$dbRoot/PurpleTentacleSMALL";
+$dbFolder = "$dbRoot/PurpleTentacleX";
 # the location of the spore file
 $sporeFolder = "$dbFolder/std/";
 $spore = "$sporeFolder/PPTreeShort";
@@ -19,9 +19,7 @@ $databaseCreated = "192.168.1.81";
 # this script is running
 
 if($ARGV[0] eq "clean"){
-		foreach my $x (@servers){
-				killJava($x);
-		}
+		killJava();
 		exit;
 }
 
@@ -31,6 +29,7 @@ if($ARGV[0] eq "empty"){
 						empty($x);
 				}
 		}
+		shell("rm -fdr $dbFolder");
 		exit;
 }
 
@@ -68,15 +67,16 @@ foreach $x (@servers){
 
 # now we just have to run the search algorithm
 
-shell("ant -buildfile example.xml p2psearch");
+shell("ant -DdbFolder=$dbFolder -buildfile example.xml p2psearch");
 
+killJava();
 
 # now we can call our searcher
 # the searcher will wait and connect until all the data has been transfered
 #shell(mkCommand("local", 16, "p2psearch"));
 
-
-sub killJava{
+# kills all the java processes in the given ip
+sub killJavaAux{
 		my($ip) = @_;
 		`ssh $ip \"killall java\"`;
 }
@@ -84,6 +84,16 @@ sub killJava{
 sub empty {
 		my($ip) = @_;
 		ssh($ip, "rm -fdr $dbFolder");
+}
+
+
+
+# kills all the java processes
+# in all the machines.
+sub killJava {
+		foreach my $x (@servers){
+				killJavaAux($x);
+		}
 }
 
 # copy the spore first by transfering it to our machine and
@@ -135,7 +145,7 @@ sub p2pAux{
 # makes the ant command
 sub mkCommand{
 		my($ip, $threads, $cmd) = @_;
-		return "ant -buildfile example.xml $cmd -Dname=${ip}' -Dthreads=$threads";
+		return "ant -DdbFolder=$dbFolder -buildfile example.xml $cmd -Dname=${ip}' -Dthreads=$threads";
 }
 
 # exec a command via ssh

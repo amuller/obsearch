@@ -45,8 +45,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 @XStreamAlias("ExtendedPyramidIndex")
 public abstract class AbstractExtendedPyramidIndex < O extends OB >
@@ -106,7 +105,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * This method will be called by the super class Initializes the C
+     * This method will be called by the super class. Initializes the C
      * database(s).
      * @throws DatabaseException
      *             If a database error occurs.
@@ -124,10 +123,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * Calculates the pyramid's median values We basically have to get the
+     * Calculates the pyramid's median values. We basically have to get the
      * median from each dimension and use the median to approximate the center
      * of the data Using Colt's QuantileBin1D to extract the median. It allows
-     * an approximate but very fast and memory friendly processing! :)
+     * an approximate but memory friendly processing! :)
      * @throws DatabaseException
      *             If a database error occurs.
      * @throws IllegalAccessException
@@ -141,7 +140,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *             User generated exception
      */
     @Override
-    protected  void calculateIndexParameters() throws DatabaseException,
+    protected void calculateIndexParameters() throws DatabaseException,
             IllegalAccessException, InstantiationException,
             OutOfRangeException, OBException {
         long count = super.bDB.count();
@@ -178,9 +177,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * Extracts the tuple values from in and returns a normalized vector from 1
-     * to 0. Note that this is first level normalization. The extended pyramid
-     * technique algorithm performs another normalization on top of this one.
+     * Extracts the tuple values from in and returns a normalized vector with
+     * values ranging from 1 to 0. Note that this is first level normalization.
+     * The extended pyramid technique algorithm performs another normalization
+     * on top of this one.
      * @param in
      *            Extracts a tuple from the given byte stream.
      * @throws OutOfRangeException
@@ -233,7 +233,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
     /**
      * Normalizes a value in the given dimension. The value must have been
-     * converted into a float [0,1.0] before using this method
+     * converted into a float [0,1] before using this method
      * @param norm
      *            Normalizes the value in the given dimension
      * @param i
@@ -290,12 +290,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * Is the actual calculator of the pyramid For the given tuple, returns the
-     * pyramid # for the tuple.
+     * For the given tuple, returns the pyramid # for the tuple.
      * @param tuple
      *            Normalized tuple (first pass)
      * @return pyramid # for the given tuple
-     * @throws CatastrophicError
      */
     protected final int pyramidOfPointAux(final float[] tuple) {
         int j = 0;
@@ -442,10 +440,11 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Returns true if the query is an easy case. Please see the paper on the
      * pyramid technique.
-     * @param q A query rectangle
+     * @param q
+     *            A query rectangle
      * @return True if this query is an "easy case" query.
      */
-    private  boolean isEasyCase(final float[][] q) {
+    private boolean isEasyCase(final float[][] q) {
         int i = 0;
         while (i < q.length) {
             if (!((q[i][MIN] <= 0) && (0 <= q[i][MAX]))) {
@@ -458,7 +457,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
     /**
      * Calculates min for the given 2 element array.
-     * @param minMax 2 element array.
+     * @param minMax
+     *            2 element array.
      * @return min
      */
     private float min(final float[] minMax) {
@@ -471,7 +471,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
     /**
      * Calculates max for the given 2 element array.
-     * @param minMax 2 element array.
+     * @param minMax
+     *            2 element array.
      * @return max
      */
     private final float max(final float[] minMax) {
@@ -479,9 +480,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * Queries are aligned to the center of the space.
-     * Aligns the given query to the center of the space.
-     * @param q query.
+     * Queries are aligned to the center of the space. Aligns the given query to
+     * the center of the space.
+     * @param q
+     *            query.
      */
     protected final void centerQuery(final float[][] q) {
         int i = 0;

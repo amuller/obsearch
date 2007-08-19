@@ -11,8 +11,9 @@
 	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value=".."/>
-  
-	<property name="dbfolder" value="${user.home}/temp/PurpleTentacleYAY/"/>
+	
+	<!--WARNING:  do not put a slash at the end of this property -->
+	<property name="dbfolder" value="${user.home}/temp/PurpleTentacleX"/>
 
 	<property name="name" value="seeder"/>
 
@@ -127,9 +128,11 @@
 				<arg value="-searchThreads"/>
 				<arg value="${threads}"/>
 			</java>
-<copy todir="${dbfolder}BKP">
-    <fileset dir="${dbfolder}"/>
-  </copy>
+
+			<copy todir="${dbfolder}BKP">
+				<fileset dir="${dbfolder}"/>
+			</copy>
+
 </target>
 
 

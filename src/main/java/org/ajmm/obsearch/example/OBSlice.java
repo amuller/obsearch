@@ -38,8 +38,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * representations of trees and calcualtes the distance between the objects by
  * using a tree distance function.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public class OBSlice implements OBShort {

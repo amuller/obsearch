@@ -26,8 +26,7 @@ import com.sleepycat.bind.tuple.TupleInput;
 /**
  * Class used to sort the B-tree of a SynchronizableIndex.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public class IntLongComparator implements Comparator, Serializable {
 

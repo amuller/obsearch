@@ -28,8 +28,7 @@ package org.ajmm.obsearch;
  * distance returns 0.  Equals is only used when the database is queried
  * for the existence of an object.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public interface OB extends Storable {

@@ -29,8 +29,7 @@ import com.sleepycat.je.DatabaseException;
 /**
  * This class selects n random pivots from the database.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public class RandomPivotSelector implements PivotSelector {

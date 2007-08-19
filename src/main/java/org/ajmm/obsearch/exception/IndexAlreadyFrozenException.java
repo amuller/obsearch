@@ -22,8 +22,7 @@ package org.ajmm.obsearch.exception;
 /**
  * When a freeze invocation is performed and the database was already frozen.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 
 public class IndexAlreadyFrozenException

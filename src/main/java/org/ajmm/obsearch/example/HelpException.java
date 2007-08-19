@@ -22,8 +22,7 @@ package org.ajmm.obsearch.example;
  * Exception used when the program receives the "help" command line.
  * This is used so that the code in "main" is cleaner.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public class HelpException
         extends Exception {

@@ -25,33 +25,30 @@ import org.ajmm.obsearch.OB;
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-		Any Object whose distance function returns ${type}s must implement
-		this interface.
-		WARNING: The equals method *must* be implemented.
-		The equals does not have to be true when the distance returns 0.
-    Note however that at search time, elements of distance 0 are
-    treated in the same way. Equals is only used when the database
-    is queried for the existence of an object.
-	  
-    @author      Arnoldo Jose Muller Molina    
-    @version     %I%, %G%
-    @since       1.0
-*/
+ */
+/**
+ * Any Object whose distance function returns ${type}s must implement this
+ * interface. WARNING: The equals method *must* be implemented. The equals does
+ * not have to be true when the distance returns 0. Note however that at search
+ * time, elements of distance 0 are treated in the same way. Equals is only used
+ * when the database is queried for the existence of an object.
+ * @author Arnoldo Jose Muller Molina
+ * @since 0.7
+ */
 
 
 public interface OB${Type} extends OB{
 
-		/**
-     * Calculates the similarity of "this" and "object". The function
-     * must satisfy the triangular inequality and return a ${type}.
-     * 
+    /**
+     * Calculates the similarity of "this" and "object". The function must
+     * satisfy the triangular inequality and return a ${type}.
      * @param object
      *            The object to be compared
      * @param result
      *            The resulting distance
-     * @since 0.0
+     * @since 0.7
+     * @throws OBException
+     *             User generated exception
      */
     ${type} distance(OB object) throws OBException;
 }

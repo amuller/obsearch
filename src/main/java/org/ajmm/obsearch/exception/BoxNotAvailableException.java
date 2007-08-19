@@ -21,8 +21,7 @@ package org.ajmm.obsearch.exception;
 /**
  * Exception thrown when a box is required but it is not provided by the index.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class BoxNotAvailableException

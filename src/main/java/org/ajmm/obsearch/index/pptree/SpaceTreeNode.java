@@ -24,8 +24,7 @@ import java.util.List;
  * SpaceTreeNode are non-leaf nodes of the Space Tree.
  * Please see the paper on the P+tree to understand more about this.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class SpaceTreeNode implements SpaceTree {

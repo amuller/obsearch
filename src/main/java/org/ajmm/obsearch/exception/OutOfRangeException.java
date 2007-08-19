@@ -24,8 +24,7 @@ package org.ajmm.obsearch.exception;
  * we can handle it inside the pyramid technique). If the distance returns a
  * value that is beyond the limits specified by the user.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 public class OutOfRangeException
         extends OBException {

@@ -26,12 +26,11 @@ import com.sleepycat.je.DatabaseException;
 /**
  * Implementations of this class have the task of selecting a subset of the
  * objects before freezing to be used as pivots. How the pivot access the
- * objects depends largely on theIndex implementation.
+ * objects depends largely on the index implementation.
  * @param <O>
  *            Object that is stored inside the index we want to process.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public interface PivotSelector < O extends OB > {
     /**

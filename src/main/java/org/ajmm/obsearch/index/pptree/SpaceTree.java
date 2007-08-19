@@ -24,8 +24,7 @@ import java.util.List;
  * A Space Tree is like a KDB-tree. It is used to partition the space and
  * improve the efficiency of the pyramid technique.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public interface SpaceTree {
 

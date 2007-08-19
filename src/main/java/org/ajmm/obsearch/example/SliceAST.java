@@ -29,8 +29,7 @@ import antlr.collections.AST;
  * This class provides extra functionality required by tree edit distance
  * algorithms and the like.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class SliceAST

@@ -25,10 +25,9 @@ import com.sleepycat.je.DatabaseException;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * Selects t he first n pivots from the database.
+ * Selects the first n pivots from the database.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public class DummyPivotSelector implements PivotSelector {
 

@@ -63,8 +63,7 @@ import com.sleepycat.je.Transaction;
  * @author Arnoldo Jose Muller Molina
  * @param <O>
  *            The type of object to be stored in the Index.
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 public abstract class AbstractSynchronizableIndex < O extends OB > implements
         SynchronizableIndex < O > {

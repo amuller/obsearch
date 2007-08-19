@@ -23,8 +23,7 @@ import org.ajmm.obsearch.exception.OBException;
 /**
  * Class used to generate an error when a Tree cannot be parsed properly.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class SliceParseException

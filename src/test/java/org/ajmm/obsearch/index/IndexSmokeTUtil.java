@@ -47,8 +47,7 @@ import org.apache.log4j.Logger;
  * inserted deleted verified for existence. Searches are always compared against
  * sequential search.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public class IndexSmokeTUtil {

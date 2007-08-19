@@ -43,8 +43,7 @@ import com.sleepycat.je.DatabaseException;
  * @param <O>
  *            The object that will be indexed in the database
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 1.0
+ * @since 0.7
  */
 public interface Index < O extends OB > {
 

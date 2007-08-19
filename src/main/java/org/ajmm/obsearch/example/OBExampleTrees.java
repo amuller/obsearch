@@ -48,8 +48,7 @@ import org.apache.log4j.PropertyConfigurator;
  * the ant file example.xml (targets "create" and "search") for an example on
  * how to invocate this program.
  * @author Arnoldo Jose Muller Molina
- * @version %I%, %G%
- * @since 0.0
+ * @since 0.7
  */
 
 public final class OBExampleTrees {
