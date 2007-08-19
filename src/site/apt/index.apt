@@ -7,9 +7,7 @@
 Welcome!
 ~~~~~~~~
 
-  OBSearch is a distributed index for high dimensional spaces.
- Examples of things you can do with it once you have a similarity function that
- satisfies the triangular inequality:
+  OBSearch is a distributed similarity search index.  Examples of things you can do with it once you have a similarity function that satisfies the triangular inequality:
 
 
   * Match programs and help to detect Open Source/Libre license violations.
@@ -19,7 +17,13 @@ Welcome!
   * Find music that sounds like Sisters of Mercy.
 
   * Match huge vectors of randomly generated integers just for fun.
+
+  []
+
+
+[OBSearchPoster.jpg]  
+
+
  
- OBSearch is being developed for {{{http://code.google.com/soc/}Google Summer of Code 2007}}.
-  OBSearch is a work in progress. If you want to see the current status,
- click on "GSOC Plan" on the left panel.
+ This project started as part of {{{http://code.google.com/soc/}Google Summer of Code 2007}}. The mentoring organization was Portland State University. 
+  PS. OBSearch can also work in a non-distributed way.

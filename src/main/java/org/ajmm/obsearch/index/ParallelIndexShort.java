@@ -36,8 +36,7 @@ import com.sleepycat.je.DatabaseException;
  */
 /**
  * This class has to be improved, please do not use it. It is not related to
- * OBSearch's p2p module. This class is not related to my GSOC goals.
- * @author amuller
+ * OBSearch's p2p module. This class is not related to GSOC goals.
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina

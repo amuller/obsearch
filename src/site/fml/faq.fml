@@ -15,9 +15,9 @@
       <question>Why should I use OBSearch?</question>
       <answer>
         <p>
-        Because it is the only  distributed high-dimensional index	available
-				in the open source market right now. 
-				For non-distributed solutions please check other MAMs (Metric Access Methods):
+        Because it is the only distributed MAM (Metric Access Methods) index available
+				in the open source market right now. Because it uses SMAP, a simple but effective technique for indexing any type of object. 
+				For other non-distributed solutions please check other MAMs :
 				</p>
 				<p>
 				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>
