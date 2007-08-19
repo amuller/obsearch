@@ -8,16 +8,15 @@
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description>  
-	
-	Similarity searches are required in many areas. Examples are sequences matching, music matching and program matching. In the case where an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject of similarity searching and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits the amount of clients a server can hold.
+	Similarity search is required in many areas. Examples are DNA sequences, music and program matching. When an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits considerably the amount of clients a server can hold.
 
-Among these indexing techniques, the pyramid technique is of special interest. In this approach, all the data is divided into an i number of pyramids (the user specifies i). A query can be answered by looking only at the pyramids that intersect it. It is very natural then to separate each pyramid into a client and apply a distributed approach for answering queries. The pyramid technique can only match vectors. In order to be able to match any kind of object, a dimension reduction technique called SMAP (Simple Map) is being employed.
+Individuals or small companies who want to provide similarity search services cannot afford the infrastructure required to support such indexes. OBSearch can be used to distribute the workload among the users and reduce the investment to a few "seeder" servers.
 
-This project could benefit different communities that require similarity matching services just as audio, source code, video, biology, weather forecasts, etc.
+OBSearch achieves this by dividing the search space into n "boxes". Each client that joins the network will support m boxes (where m is much smaller than n). Additionally, OBsearch can determine for any query which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches. The library is modular, so you can also use OBSearch in a single computer. It is very fast! http://planet-soc.com/node/1527
 
-By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Monetary cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality. Also they could provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality.
+This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc.
 
-This project is being developed as part of Google Summer of Code 2007 
+By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality.
 	</description>
   <url>http://code.google.com/p/obsearch/</url>
 
@@ -150,7 +149,7 @@ This project is being developed as part of Google Summer of Code 2007
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 			</plugin>
 
-      <plugin>
+<!--      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
 				<configuration>
@@ -158,7 +157,7 @@ This project is being developed as part of Google Summer of Code 2007
 						<excludes>**/generated/**/*.java</excludes>
         </configuration>
 			
-      </plugin>
+      </plugin>-->
 
 
 <!--			   		<plugin>
@@ -192,17 +191,15 @@ This project is being developed as part of Google Summer of Code 2007
       </plugin>
 
 
-			<plugin>
+<!--			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
 				<configuration>
 					<argLine>-Xmx1200M</argLine>
 					<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
-					 <!--<effort>Max</effort>
-					 
-					 <relaxed>true</relaxed>-->
+					 <relaxed>true</relaxed>
 				</configuration>
-			</plugin>
+			</plugin>-->
 
 
 <!--			<plugin>
@@ -256,11 +253,8 @@ Would be cool to use this.
 			 <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-          <!--<filters>
-            <filter>src/assemble/filter.properties</filter>
-          </filters>-->
           <descriptors>
-            <descriptor>src/assemble/dep.xml</descriptor>
+            <descriptor>src/assembly/dep.xml</descriptor>
           </descriptors>
         </configuration>
         </plugin>
