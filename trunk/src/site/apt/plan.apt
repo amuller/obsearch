@@ -2,32 +2,24 @@ OBSearch's plan
 ~~~~~~~~~~~~~~~
 
 	The following describes the planned schedule for OBSearch.
-
-	Note: some items marked as "done" have to be approved by my mentor.
-
+	
 * Before May 28:
        
        * Creating a registry  to store pyramid meta data using Xstream. [done]
        
        * Repository creation (svn) and environment preparations. [done]
 
-       * Current static analyzers: PMD, findbugs, JDepend, Cobertura and lint4j (eclipse). [done]
-
        * Redesigning the pivotting abstraction (this is actually the main core of OBSearch). [done]
 			
-       * Designed the data workflow (pre-freezing) -> (freeze) -> (post-freezing). [done]
-
-       		* Once the data is frozen, pivots are selected, and data can be searched, after freezing it is possible to insert data). [done]
+       * Designed the data workflow (pre-freezing) -> (freeze) -> (play!). [done]
 
 * May 28: Design (1 week) [all required]
 
-       * Distributed programming approach design and selection.
+       * Distributed programming approach design and selection. [done]
 
        * Program design starts. [done]
 
-       * Protocol design. [wip]
-         Do we need versions of the data? to keep consistency? If an user inserts a record do we want to make sure that all the peers have the data until we make it visible?
-         Since we are a writing an approximate database I don't think it is necessary.  What do you think?
+       * Protocol design. [done]
 	
        * Database creation work-flow design[done].
 
@@ -36,17 +28,17 @@ OBSearch's plan
 
 * June 4: P+tree implementation (3 weeks) [all required]
 
-       * Implement a P+tree (one computer).
+       * Implement a P+tree (one computer). [done]
 
-       * Write a test-bed so that the query results are always verified against the sequential result. 
-    
+       * Write a test-bed so that the query results are always verified against the sequential result. [done]
+     
     Expected results: The p+tree works, and its output is correct. The test-bed is finished.
 
 * June 25: Distributed Module (4 weeks) [all required]
 
-       * Coding of the distributed module.
-
-       * Documentation.
+       * Coding of the distributed module. [done]
+ 
+       * Documentation. [done]
 
     Expected results: multiple clients can match correctly in a distributed environment. Documentation for the project.
 
@@ -54,15 +46,15 @@ OBSearch's plan
 
 * July 23: Performance Tuning & Dissemination (4 weeks) [all required]
     
-       * Write an automatic test-bed for performance tuning.
+       * Write an automatic test-bed for performance tuning. [done]
 
-       * The program works at this point.
+       * The program works at this point. [done]
 
-       * Create tuning tests.
+       * Create tuning tests. [done]
 
        * Create the website for the project [done].
 
-       * Register the project in www.freshmeat.net.
+       * Register the project in www.freshmeat.net. [pending].
     
     Expected results: performance documentation, performance test-bed, project's website.
 

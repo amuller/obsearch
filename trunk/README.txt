@@ -88,6 +88,30 @@ with range 0.
 
 Ranges > 0 for PPTreeShort are working properly.
 
+
+**************************
+Information for Developers
+**************************
+
+ Requirements:
+ -------------
+
+* You need a JDK (We have tested OBSearch with Java 1.6.0_01).
+* You need to have a recent version Maven and ANT installed and working
+  (We have tested OBSearch with Maven 2.0.6 and ANT 1.7.0).
+
+The first time you download OBSearch do a:
+./install.sh 
+
+This will download and install all the necessary dependencies.
+
+ Compiling:
+ ----------
+
+mvn compile
+
+
+
 ********************
 Running the Examples
 ********************
@@ -155,7 +179,7 @@ If you want to see the sync process again:
 
 perl p2p.pl empty
 
-This will delete all the data in all the peers except the 
+This will delete the indexes in all the peers except the 
 peer in CPIP.
 
 Note:
@@ -167,24 +191,6 @@ You have to make sure that both have the same value. Sorry for the
 inconvenience.
 
 
----------------- Information for Developers ----------------------------
-
- Requirements:
- -------------
-
-* You need a JDK (We have tested OBSearch with Java 1.6.0_01).
-* You need to have a recent version Maven and ANT installed and working
-  (We have tested OBSearch with Maven 2.0.6 and ANT 1.7.0).
-
-The first time you download OBSearch do a:
-./install.sh 
-
-This will download and install all the necessary dependencies.
-
- Compiling:
- ----------
-
-mvn compile
 
  Using maven with Eclipse:
  -------------------------
@@ -227,12 +233,8 @@ It takes around 30 min!
 
 --- 
 
-TODO: Fix version thingy for javadoc.
-TODO: Fix since
-TODO: Create a tutorial.
+
+
+
 TODO: package descriptions
-TODO: check generated files
 TODO: Add the project to www.freshmeat.net
-TODO: Fix the error in p2p.pl
-TODO: Add OBSearch to a maven repository
-TODO: Put an explanation on how to run the examples.
