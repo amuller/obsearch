@@ -296,7 +296,6 @@ public final class OBSearchExample {
             e.printStackTrace();
         }
 
-        
         LogManager.shutdown();
         System.exit(returnValue);
     }
@@ -331,7 +330,7 @@ public final class OBSearchExample {
                 + spore.getAbsoluteFile());
         String sp = OBExampleTrees.readString(spore);
         // OBSearch works like a matryoshka doll, you wrap an index with another
-        // to get extended functionality!
+        // to get extended functionality.
         // 1) The smallest index is the P+Tree
         PPTreeShort < OBSlice > pp = (PPTreeShort < OBSlice >) IndexFactory
                 .createFromXML(sp);

@@ -126,7 +126,7 @@ public class OBSlice implements OBShort {
      * Internal method that updates the Tree from the String
      * @throws OBException
      */
-    protected void updateTree() throws OBException {
+    protected final void updateTree() throws OBException {
         if (tree == null) {
             try {
                 synchronized (slice) {
