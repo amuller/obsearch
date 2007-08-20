@@ -12,7 +12,7 @@ Synopsis:
 *********
 
 This project is to similarity search what 'bit-torrent' is to
-downloads. All the clients will share the workload when performing
+downloads. All the clients share the workload when performing
 queries.
 
 ********
@@ -37,6 +37,27 @@ Among similarity search indexing techniques, the pyramid technique is of special
 
 (1) Also the users can provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality.
 
+**************************
+Information for Developers
+**************************
+
+ Requirements:
+ -------------
+
+* You need a JDK (We have tested OBSearch with Java 1.6.0_01).
+* You need to have a recent version Maven and ANT installed and working
+  (We have tested OBSearch with Maven 2.0.6 and ANT 1.7.0).
+
+The first time you checkout OBSearch do a:
+./install.sh 
+
+This will download and install all the necessary dependencies.
+
+ Compiling:
+ ----------
+
+mvn compile
+
 
 *********************
 Information for Users
@@ -46,9 +67,9 @@ Learning how to use OBSearch:
 
 The easiest way is to check the tutorial in the website.
 You can base your code on:
-src/main/java/org/ajmm/obsearch/example/OBExampleTrees.java
+org.ajmm.obsearch.example.OBExampleTrees.java
 For single computer users, and on:
-src/main/java/org/ajmm/obsearch/example/OBSearchExample.java
+org.ajmm.obsearch.example.OBSearchExample.java
 For p2p users.
 We highly recommend you to start with the single computer tutorial.
 
@@ -89,29 +110,6 @@ with range 0.
 Ranges > 0 for PPTreeShort are working properly.
 
 
-**************************
-Information for Developers
-**************************
-
- Requirements:
- -------------
-
-* You need a JDK (We have tested OBSearch with Java 1.6.0_01).
-* You need to have a recent version Maven and ANT installed and working
-  (We have tested OBSearch with Maven 2.0.6 and ANT 1.7.0).
-
-The first time you download OBSearch do a:
-./install.sh 
-
-This will download and install all the necessary dependencies.
-
- Compiling:
- ----------
-
-mvn compile
-
-
-
 ********************
 Running the Examples
 ********************
@@ -143,11 +141,13 @@ Preparation:
 
 
 You have to create the database in one machine. This machine's
-ip address will be "CIP".
+ip address will be "CIP". You should also run the p2p.pl script
+from a computer that is not CIP.
+
 0) mvn test 
-1) (In CPIP) ant -buildfile example.xml p2pcreate
-2) Edit the file src/main/resources/seeds.txt
+1) Edit the file src/main/resources/seeds.txt
    Put replace the ip that is written there with CPIP
+2) (In CPIP) ant -buildfile example.xml p2pcreate
 3) mvn compile
 4) Edit p2p.pl
 4.1) Find the variable: $databaseCreated
@@ -190,7 +190,9 @@ Variable $dbFolder in p2p.pl
 You have to make sure that both have the same value. Sorry for the
 inconvenience.
 
-
+*******************************
+Additional notes for developers
+*******************************
 
  Using maven with Eclipse:
  -------------------------
@@ -233,10 +235,8 @@ It takes around 30 min!
 
 --- 
 
+ Packaging:
+ ----------
+ 
+ mvn assembly:assembly
 
-
-
-TODO: package descriptions
-TODO: Add the project to www.freshmeat.net
-TODO: packing
-TODO: 

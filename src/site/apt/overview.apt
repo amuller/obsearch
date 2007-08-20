@@ -4,7 +4,7 @@ OBSearch
 * Synopsis
 ~~~~~~~~~~~
 
-	This project is to similarity search what 'bit-torrent' is to downloads. All the clients will share the workload when performing queries.
+	This project is to similarity search what 'bit-torrent' is to downloads. All the clients share the workload when performing queries.
 
 * Details
 ~~~~~~~~~~

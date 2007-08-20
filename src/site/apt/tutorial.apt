@@ -6,13 +6,8 @@ A 15 minute tutorial
 	What you need first is to know the object you want to store.
 You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other.
 
-	So we will store vectors of 20000 shorts, and we will calculate the
+	So we will store vectors of 100 shorts, and we will calculate the
 {{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
-
-
- 		[Note:] If you were using an M-tree this might seem like too much, but OBSearch is 
-		designed to work well even with heavy objects (trees or graphs with distance 
-		functions). This is thanks to the {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}} technique.
 
 	The following code shows 7 things that OBSearch needs in order to be able to retrieve and compare objects. 
 
@@ -29,7 +24,7 @@ public class OBVectorExample implements OBShort {
     /**
      * Total number of elements to store.
      */
-    private static final int VECTOR_SIZE = 20000;
+    private static final int VECTOR_SIZE = 100;
 
     /**
      * 1) Actual data.
@@ -137,13 +132,13 @@ public class OBVectorExample implements OBShort {
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ---
-	// dbFolder: Folder where the database will be created.
-	// 30: Number of pivots used by SMAP. 
-	// Depending on the distance function a greater number might improve performance.  
-	// You might want to spend some time tweaking your function.
-	// od: Partitions of the P+Tree. A value of 6 usually works well :).
-	PPTreeShort < OBVectorExample > index = 
-		new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
+// dbFolder: Folder where the database will be created.
+// 30: Number of pivots used by SMAP. 
+// Depending on the distance function a greater number might improve performance.  
+// You might want to spend some time tweaking your function.
+// od: Partitions of the P+Tree. A value of 6 usually works well :).
+PPTreeShort < OBVectorExample > index = 
+	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
 ---
 
 
@@ -153,11 +148,11 @@ public class OBVectorExample implements OBShort {
 	
 
 ---
-	// Create your object (load it from a file)
-	// using your constructor
-	OBVectorExample o = new OBVectorExample(mydata);
-	// insert the object
-	index.insert(o);
+// Create your object (load it from a file)
+// using your constructor
+OBVectorExample o = new OBVectorExample(mydata);
+// insert the object
+index.insert(o);
 ---
 
 * To select the pivots of an index:
@@ -170,9 +165,9 @@ from each other. The bigger this number is the better. After the pivots are sele
  we can freeze the index.
 
 ---
-	TentaclePivotSelectorShort < OBVectorExample > ps = 
-  			new TentaclePivotSelectorShort < OBVectorExample > ( (short) 10);
-	ps.generatePivots(index);
+TentaclePivotSelectorShort < OBVectorExample > ps = 
+ 			new TentaclePivotSelectorShort < OBVectorExample > ( (short) 10);
+ps.generatePivots(index);
 ---
 
 * To freeze an index:
@@ -185,17 +180,17 @@ selected, you can freeze the index. Note that after a freeze you can still inser
 delete items. After a freeze you can start searching the index.
 
 ---
-	index.freeze();
+index.freeze();
 ---
 
 * To delete an object:
 ~~~~~~~~~~~~~~~~~~~~~~
 
 ---
-	// Create your object (load it from a file)
-	// using your constructor
-	OBVectorExample d = new OBVectorExample(mydata);
-	index.delete(d);
+// Create your object (load it from a file)
+// using your constructor
+OBVectorExample d = new OBVectorExample(mydata);
+index.delete(d);
 ---
 
 * Search for similar objects:
@@ -207,8 +202,8 @@ For objects a,b if d(a,b) > r then the pairs will not be returned.
 ---
 // This result object will hold the result of the search process.
 // note that it is here where you define k
-	OBPriorityQueueShort < OBVectorExample > result = 
-		new OBPriorityQueueShort < OBVectorExample > (k);
+OBPriorityQueueShort < OBVectorExample > result = 
+	new OBPriorityQueueShort < OBVectorExample > (k);
 
 // now you can search the closest elements to o within a range r
 // the result will be stored in "result"
@@ -219,5 +214,5 @@ For objects a,b if d(a,b) > r then the pairs will not be returned.
 * Next steps!
 ~~~~~~~~~~~~~
 
-	If you want to learn how to use the P2P version of OBSearch, please click {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}here}}.
+	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}.
 
