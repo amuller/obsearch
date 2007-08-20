@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="OBSearch">
+<!--
+  <bannerLeft>
+    <name>Maven</name>
+    <src>http://maven.apache.org/images/apache-maven-project.png</src>
+    <href>http://maven.apache.org/</href>
+  </bannerLeft>
+  <bannerRight>
+		<src>http://maven.apache.org/images/maven-small.gif</src>
+  </bannerRight>
+-->
+  <body>
+    <links>     
+      <item name="GSOC" href="http://code.google.com/soc/"/>
+    </links>
+		<menu name="Main">
+			<item name="Welcome" href="index.html"/>
+		</menu>
+
+    <menu name="About OBSearch">
+			<item name="Overview" href="overview.html"/>
+			<item name="Features" href="features.html"/>
+			<item name="GSOC Plan" href="plan.html"/>			
+			<item name="15 Min. Tutorial" href="tutorial.html"/>
+      <item name="FAQ" href="faq.html"/>
+    </menu>
+		
+		<menu name="Get OBSearch">
+			<item name="Downloads" href="download.html"/>
+		</menu>
+
+		<menu ref="reports"/>
+
+  </body>
+</project>

@@ -1,0 +1,65 @@
+OBSearch's plan
+~~~~~~~~~~~~~~~
+
+	The following describes the planned schedule for OBSearch.
+	
+* Before May 28:
+       
+       * Creating a registry  to store pyramid meta data using Xstream. [done]
+       
+       * Repository creation (svn) and environment preparations. [done]
+
+       * Redesigning the pivotting abstraction (this is actually the main core of OBSearch). [done]
+			
+       * Designed the data workflow (pre-freezing) -> (freeze) -> (play!). [done]
+
+* May 28: Design (1 week) [all required]
+
+       * Distributed programming approach design and selection. [done]
+
+       * Program design starts. [done]
+
+       * Protocol design. [done]
+	
+       * Database creation work-flow design[done].
+
+
+    Expected results: We are ready to start coding.
+
+* June 4: P+tree implementation (3 weeks) [all required]
+
+       * Implement a P+tree (one computer). [done]
+
+       * Write a test-bed so that the query results are always verified against the sequential result. [done]
+     
+    Expected results: The p+tree works, and its output is correct. The test-bed is finished.
+
+* June 25: Distributed Module (4 weeks) [all required]
+
+       * Coding of the distributed module. [done]
+ 
+       * Documentation. [done]
+
+    Expected results: multiple clients can match correctly in a distributed environment. Documentation for the project.
+
+* July 16:(Mid-term evaluation)
+
+* July 23: Performance Tuning & Dissemination (4 weeks) [all required]
+    
+       * Write an automatic test-bed for performance tuning. [done]
+
+       * The program works at this point. [done]
+
+       * Create tuning tests. [done]
+
+       * Create the website for the project [done].
+
+       * Register the project in www.freshmeat.net. [done].
+    
+    Expected results: performance documentation, performance test-bed, project's website.
+
+* Aug 20: Code is Uploaded
+    
+       * Mentors begin evaluations.
+
+* Aug 31: Final evaluation day
