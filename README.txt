@@ -228,10 +228,15 @@ mvn site
  ---------------------
 
 svn copy https://obsearch.googlecode.com/svn/trunk/ \
-             https://obsearch.googlecode.com/svn/branches/obsearch-floating-fix \
-             -m "I will change the way values are mapped, to reduce precision loss... this might be the problem I have"  --username <you>
+             https://obsearch.googlecode.com/svn/branches/mynewbranch \
+             -m "my new branch"  --username <you>
 
-It takes around 30 min!
+ How to make a tag (label):
+ --------------------------
+
+svn copy https://obsearch.googlecode.com/svn/trunk/ \
+             https://obsearch.googlecode.com/svn/tags/0.7-GSOC \
+             -m "initial release"  --username <you>
 
 --- 
 
