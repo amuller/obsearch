@@ -145,7 +145,9 @@ PPTreeShort < OBVectorExample > index =
 * To insert an object:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-	
+You will have to give OBSearch a bunch of objects. OBSearch will "learn"
+from these objects and optimize its index when enough data has been
+presented to him.	
 
 ---
 // Create your object (load it from a file)
@@ -162,7 +164,7 @@ index.insert(o);
 We have to first select a set of n pivots (in the example 30) from the database.
 There are several selection strategies. Currently we only provide a TentaclePivotSelector. The 10 means that we want pivots that at least are separated 10 units away
 from each other. The bigger this number is the better. After the pivots are selected,
- we can freeze the index.
+ we can freeze the index. This is the heart of OBSearch, this technique is called SMAP.
 
 ---
 TentaclePivotSelectorShort < OBVectorExample > ps = 
@@ -208,6 +210,7 @@ OBPriorityQueueShort < OBVectorExample > result =
 // now you can search the closest elements to o within a range r
 // the result will be stored in "result"
 	index.searchOB(o, r, result);
+// You can iterate "result".
 ---
 
 

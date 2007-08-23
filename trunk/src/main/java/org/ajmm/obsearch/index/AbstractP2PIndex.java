@@ -2226,6 +2226,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
                         pipe.close();
                         pipe = null;
                         removeFromHandler();
+                        this.insertIterator.close();
                     }
                 }
             }
