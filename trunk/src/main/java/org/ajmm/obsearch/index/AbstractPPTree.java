@@ -198,7 +198,7 @@ public abstract class AbstractPPTree < O extends OB >
             i++;
         }
         x.setA(min);
-        x.setB(width);
+        x.setWidth(width);
         x.setExp(exp);
         x.setMinMax(minMax);
         assert validateT(x, center);

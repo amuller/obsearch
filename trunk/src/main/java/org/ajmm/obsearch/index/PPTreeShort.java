@@ -72,6 +72,11 @@ public class PPTreeShort < O extends OBShort >
     private short maxInput;
 
     /**
+     * Optimization value for minInput and maxInput.
+     */
+    private float opt;
+
+    /**
      * Logger.
      */
     private static final transient Logger logger = Logger
@@ -136,6 +141,9 @@ public class PPTreeShort < O extends OBShort >
         assert minInput < maxInput;
         this.minInput = minInput;
         this.maxInput = maxInput;
+        // this optimization reduces the computations required
+        // for the first level normalization.
+				this.opt = 1 / ((float) (maxInput - minInput));
         resultCache = new HashMap < O, OBQueryShort < O >>(3000);
         bCache = new OBCache < float[] >(this.databaseSize());
     }
@@ -712,7 +720,7 @@ public class PPTreeShort < O extends OBShort >
         if (x < minInput || x > maxInput) {
             throw new OutOfRangeException(minInput + "", maxInput + "", "" + x);
         }
-        return ((float) (x - minInput)) / ((float) (maxInput - minInput));
+        return ((float) (x - minInput)) * opt;
     }
 
     @Override

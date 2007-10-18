@@ -102,7 +102,7 @@ public class SpaceTreeLeaf implements SpaceTree {
     /**
      * @return width
      */
-    public final double[] getB() {
+    public final double[] getWidth() {
         return width;
     }
 
@@ -111,8 +111,13 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @param b
      *            new width
      */
-    public final void setB(double[] b) {
-        this.width = b;
+    public final void setWidth(double[] b) {
+        this.width =  b;
+        int i = 0;
+        while(i < b.length){
+						width[i] = 1 / width[i];
+						i++;
+				}
     }
 
     /**
@@ -192,7 +197,7 @@ public class SpaceTreeLeaf implements SpaceTree {
      * @return Normalized version of the value in dimension i.
      */
     public final float normalizeAux(float value, int i) {
-        return (float) Math.pow((value - min[i]) / width[i], exp[i]);
+        return (float) Math.pow((value - min[i]) * width[i], exp[i]);
     }
 
     /**
