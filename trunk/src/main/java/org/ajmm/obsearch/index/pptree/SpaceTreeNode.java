@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index.pptree;
 
 import java.util.List;
+import java.util.Random;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -21,8 +22,8 @@ import java.util.List;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * SpaceTreeNode are non-leaf nodes of the Space Tree.
- * Please see the paper on the P+tree to understand more about this.
+ * SpaceTreeNode are non-leaf nodes of the Space Tree. Please see the paper on
+ * the P+tree to understand more about this.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
@@ -49,6 +50,7 @@ public class SpaceTreeNode implements SpaceTree {
      */
     private SpaceTree right;
 
+
     /**
      * @return a string representation of this node.
      */
@@ -73,7 +75,8 @@ public class SpaceTreeNode implements SpaceTree {
 
     /**
      * Sets the DD of the node.
-     * @param dd new DD.
+     * @param dd
+     *            new DD.
      */
     public final void setDD(int dd) {
         DD = dd;
@@ -89,7 +92,8 @@ public class SpaceTreeNode implements SpaceTree {
 
     /**
      * Sets the DV of the node.
-     * @param dv new dv
+     * @param dv
+     *            new dv
      */
     public final void setDV(float dv) {
         DV = dv;
@@ -104,7 +108,8 @@ public class SpaceTreeNode implements SpaceTree {
 
     /**
      * Set left child.
-     * @param left new left child.
+     * @param left
+     *            new left child.
      */
     public final void setLeft(SpaceTree left) {
         this.left = left;
@@ -119,12 +124,12 @@ public class SpaceTreeNode implements SpaceTree {
 
     /**
      * Set right child.
-     * @param right new right child.
+     * @param right
+     *            new right child.
      */
     public final void setRight(SpaceTree right) {
         this.right = right;
     }
-
 
     public final SpaceTreeLeaf search(float[] value) {
         if (value[DD] < DV) {
@@ -147,20 +152,24 @@ public class SpaceTreeNode implements SpaceTree {
      *            will hold all the spaces that intersect with the query
      */
     public final void searchRange(float[][] query, List < SpaceTreeLeaf > result) {
+
         // if the maximum value of the query in the given dimension is lower
         // than the split value, then we can safely ignore the other branches
-        if (query[DD][MIN] <= DV) {
-            left.searchRange(query, result);
-        }
 
-        if (query[DD][MAX] >= DV) {
-            right.searchRange(query, result);
-        }
+            if (query[DD][MIN] <= DV) {
+                left.searchRange(query, result);
+            }
+
+            if (query[DD][MAX] >= DV) {
+                right.searchRange(query, result);
+            }
+
     }
 
     /**
      * Searches for space spaceNumber and returns such leaf.
-     * @param spaceNumber the space number we want to search
+     * @param spaceNumber
+     *            the space number we want to search
      * @return The spaceLeaf with SNo spaceNumber
      */
     public final SpaceTreeLeaf searchSpace(int spaceNumber) {

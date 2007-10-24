@@ -160,13 +160,14 @@ public class OBSlice implements OBShort {
      * @return A String representation of the tree.
      */
     public final String toString() {
+        String res = ":)";
         try {
             updateTree();
-            return tree.toStringList();
+            res = "" + this.size();
         } catch (Exception e) {
             assert false;
         }
-        return ":)";
+        return res;
     }
 
     /**

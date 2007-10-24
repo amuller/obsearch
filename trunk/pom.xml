@@ -24,7 +24,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
 	<properties>
 		<!-- additional unit test files to be downloaded -->
 
-		<my.test.data.db>slices</my.test.data.db>
+		<my.test.data.db>slices-small</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
 
 		<!-- texen templates configuration -->
@@ -98,6 +98,13 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
 			<groupId>colt</groupId>
 			<artifactId>colt</artifactId>
 			<version>1.2.0</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>trove</groupId>
+			<artifactId>trove</artifactId>
+			<version>2.0.1</version>
 			<scope>compile</scope>
 		</dependency>
 

@@ -2,6 +2,8 @@ package org.ajmm.obsearch.index.pivotselection;
 
 import hep.aida.bin.MightyStaticBin1D;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.ajmm.obsearch.exception.OBException;
@@ -53,9 +55,15 @@ public class TentaclePivotSelectorShort < O extends OBShort >
     private short minD;
 
     /**
+     * Number of seeds to be used. We will take the highest harmonic value
+     * found.
+     */
+    private int seedCount;
+
+    /**
      * Logger.
      */
-    private static final transient  Logger logger = Logger
+    private static final transient Logger logger = Logger
             .getLogger(TentaclePivotSelectorShort.class);
 
     /**
@@ -63,9 +71,18 @@ public class TentaclePivotSelectorShort < O extends OBShort >
      * minD units.
      * @param minD
      *            (minimun accepted number of units)
+     * @param seedCount
+     *            Number of seeds to use (the greater the number, the best but
+     *            it will take longer to compute)
+     * @param pivotable
+     *            A pivotable object that tells which objects should be added as
+     *            pivots and which should not.
      */
-    public TentaclePivotSelectorShort(short minD) {
+    public TentaclePivotSelectorShort(short minD, int seedCount,
+            Pivotable < O > pivotable) {
+        super(pivotable);
         this.minD = minD;
+        this.seedCount = seedCount;
     }
 
     @Override
@@ -86,36 +103,113 @@ public class TentaclePivotSelectorShort < O extends OBShort >
     protected O obtainD(AbstractPivotIndex < O > x)
             throws InstantiationException, IllegalAccessException,
             DatabaseException, OBException {
+        int i = 0;
+        ArrayList<DResult> result = new ArrayList<DResult>(seedCount);
+        while (i < seedCount) {
+            DResult temp = obtainDAux(x);
+            result.add(temp);
+            i++;
+        }
+        Object[] arr = result.toArray();
+        Arrays.sort(arr);
+        // Note: I have experimentally confirmed that taking
+        // the median will return *much* better results than
+        // taking the rightmost element of this array.
+        DResult res = (DResult)arr[seedCount / 2];// take the median object
+        
+        d = (short) res.getD();
+        logger.debug("Selecting distance: " + d);
+        return res.getObj();
+    }
+
+    protected DResult obtainDAux(AbstractPivotIndex < O > x)
+            throws InstantiationException, IllegalAccessException,
+            DatabaseException, OBException {
         Random r = new Random();
         int m = x.getMaxId();
-        int id = r.nextInt(m);
-        O ob = x.getObject(id);
+        int id;
+        O ob;
+        do {
+            id = r.nextInt(m);
+            ob = x.getObject(id);
+        } while (!pivotable.canBeUsedAsPivot(ob));
         int i = 0;
         MightyStaticBin1D data = new MightyStaticBin1D(true, false, 4);
         while (i < m) {
             if (id != i) {
-                short res = ob.distance(x.getObject(i));
+                O temp = x.getObject(i);
+                short res = ob.distance(temp);
                 if (logger.isDebugEnabled()) {
-                    if (i % 10000 == 0) {
+                    if (i % 100000 == 0) {
                         logger.debug("Finding averages for:" + i);
                     }
                 }
                 if (res != 0) {
                     data.add(res);
                 }
+
             }
             i++;
         }
         double mean = data.geometricMean();
 
-        d = (short) mean;
-        logger.debug("D found by harmonic mean: " + d);
-        return ob;
+        logger.debug("D found by harmonic mean: " + mean);
+        return new DResult(ob, mean);
     }
 
     @Override
     protected boolean withinRange(O a, O b) throws OBException {
         return Math.abs(a.distance(b) - d) <= minD;
+    }
+
+    /**
+     * Utility class used to return an OB and its harmonic distance with all the
+     * objects of the database.
+     * @author amuller
+     */
+    private class DResult implements Comparable <DResult>{
+        /**
+         * Object to be returned
+         */
+        private O obj;
+
+        /**
+         * Mean distance of the object and all the elements in the database.
+         */
+        private double d;
+
+        public DResult(O obj, double d) {
+            super();
+            this.obj = obj;
+            this.d = d;
+        }
+
+        public double getD() {
+            return d;
+        }
+
+        public void setD(double d) {
+            this.d = d;
+        }
+
+        public O getObj() {
+            return obj;
+        }
+
+        public void setObj(O obj) {
+            this.obj = obj;
+        }
+        
+        public int compareTo(DResult r){
+            if( d < r.d ){
+                return -1;
+            }else if(d == r.d){
+                return 0;
+            }else{
+                return 1;
+            }
+        }
+
     }
 
 }
