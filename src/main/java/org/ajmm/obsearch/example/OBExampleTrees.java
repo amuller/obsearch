@@ -11,6 +11,8 @@ import java.util.List;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexFactory;
 import org.ajmm.obsearch.index.PPTreeShort;
+import org.ajmm.obsearch.index.pivotselection.AcceptAll;
+import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.commons.cli.CommandLine;
@@ -124,11 +126,13 @@ public final class OBExampleTrees {
                 // generate pivots
                 // The object ps will select pivots based on some simple
                 // criteria
-                final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                        (short) 10);
+                //final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
+                 //       (short) 10, 30, new AcceptAll< OBSlice >());
+                logger.debug("Selecting pivots");
+                KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());
                 ps.generatePivots(index);
                 // Freeze the index so that we can start using it
-                logger.info("freezing");
+                logger.info("Freezing");
                 index.freeze();
                 // close the index
                 index.close();
@@ -202,10 +206,9 @@ public final class OBExampleTrees {
                 }
                 // we can do something now with the result
                 final long time = System.currentTimeMillis() - start;
-                logger.info("Running time: seconds: " + time / 1000
+                logger.info("Running time in seconds: " + time / 1000
                         + " minutes: " + time / 1000 / 60);
-                logger.info(index);
-
+                logger.info("Stats follow: total initial rectangles:" + index.initialHyperRectangleTotal + " final initial rectangles " + index.finalHyperRectangleTotal);
             } else {
                 throw new OBException(
                         "You have to set the mode: 'create' or 'search'");

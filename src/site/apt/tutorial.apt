@@ -136,7 +136,7 @@ public class OBVectorExample implements OBShort {
 // 30: Number of pivots used by SMAP. 
 // Depending on the distance function a greater number might improve performance.  
 // You might want to spend some time tweaking your function.
-// od: Partitions of the P+Tree. A value of 6 usually works well :).
+// od: Partitions of the P+Tree. A value of 8 usually works well :).
 PPTreeShort < OBVectorExample > index = 
 	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
 ---
@@ -147,7 +147,7 @@ PPTreeShort < OBVectorExample > index =
 
 You will have to give OBSearch a bunch of objects. OBSearch will "learn"
 from these objects and optimize its index when enough data has been
-presented to him.	
+presented to him.	You decide when you have given OBSearch "enough" objects.
 
 ---
 // Create your object (load it from a file)

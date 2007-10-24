@@ -112,12 +112,12 @@ public class SpaceTreeLeaf implements SpaceTree {
      *            new width
      */
     public final void setWidth(double[] b) {
-        this.width =  b;
+        this.width = b;
         int i = 0;
-        while(i < b.length){
-						width[i] = 1 / width[i];
-						i++;
-				}
+        while (i < b.length) {
+            width[i] = 1 / width[i];
+            i++;
+        }
     }
 
     /**

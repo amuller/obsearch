@@ -42,3 +42,7 @@ cd ..
 rm -fdr temp 
 
 
+wget http://obsearch.googlecode.com/files/trove-2.0.1.jar
+mvn install:install-file -Dfile=trove-2.0.1.jar -DgroupId=trove -DartifactId=trove -Dversion=2.0.1 -Dpackaging=jar -DgeneratePom=true
+
+rm trove-2.0.1.jar

@@ -657,5 +657,10 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
         return resId;
     }
+    
+    public  float distance(O a, O b) throws OBException{
+        short result = ((OBShort)a).distance((OBShort)b);
+        return normalize(result);
+    }
 
 }

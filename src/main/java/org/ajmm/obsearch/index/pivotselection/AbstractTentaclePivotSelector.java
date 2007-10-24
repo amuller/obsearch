@@ -29,11 +29,11 @@ import com.sleepycat.je.DatabaseException;
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
  */
 /**
- * This pivot selector first finds a random element, gets the average distance d
- * of the element and all the objects in the database. Then it will find random
- * pivots that are all at least d units away of each other. The algorithm might
- * have to try with a smaller d if there are no pivots that satisfy the previous
- * condition.
+ * This pivot selector first finds a random element D, gets the average distance
+ * d of the element and all the objects in the database. Then it will find
+ * random pivots that are all at least d units away of each other. The algorithm
+ * might have to try with a smaller d if there are no pivots that satisfy the
+ * previous condition.
  * @param <O>
  *            Type of object of the index to be analyzed.
  * @author Arnoldo Jose Muller Molina
@@ -43,6 +43,8 @@ import com.sleepycat.je.DatabaseException;
 public abstract class AbstractTentaclePivotSelector < O extends OB > implements
         PivotSelector < O > {
 
+    protected Pivotable < O > pivotable;
+
     /**
      * Logger.
      */
@@ -50,9 +52,8 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
             .getLogger(AbstractTentaclePivotSelector.class);
 
     /**
-     * Generates n (n = pivots) from the database The resulting array is a list
-     * of ids from the database The method will modify the pivot index and
-     * update the information of the selected new pivots
+     * Generates n (n = pivots) from the database. The method will modify the
+     * pivot index and update the information of the selected new pivots
      * @param x
      *            Generate pivots from this index
      * @throws DatabaseException
@@ -82,23 +83,27 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
             int i = 0;
             while (id < m && i < pivotsCount) {
                 O current = x.getObject(id);
-                if ((i == 0 && withinRange(prev, current))
-                        || withinRangeAll(current, obs, i)) {
-                    // if we are processing the first element, we check it
-                    // against
-                    // the "seed" object found by obtainD
-                    // otherwise we verify that current preserves withinRange
-                    // with all the other elements
-                    obs[i] = current;
-                    res[i] = id;
-                    i++;
+                // only take a guy that can be used as a pivot
+                if (pivotable.canBeUsedAsPivot(current)) {
+                    if ((i == 0 && withinRange(prev, current))
+                            || withinRangeAll(current, obs, i)) {
+                        // if we are processing the first element, we check it
+                        // against
+                        // the "seed" object found by obtainD
+                        // otherwise we verify that current preserves
+                        // withinRange
+                        // with all the other elements
+                        obs[i] = current;
+                        res[i] = id;
+                        i++;
+                    }
                 }
                 id++;
             }
             if (i == pivotsCount) {
                 repeat = false; // we are done
             } else {
-                logger.debug("Repeating, reached until pivot:" + i);
+                logger.debug("Repeating, reached until id:" + id + " pivot # " + i);
                 if (!easifyD()) {
                     throw new PivotsUnavailableException();
                 }
@@ -169,4 +174,15 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
      *             User generated exception
      */
     protected abstract boolean withinRange(O a, O b) throws OBException;
+
+    /**
+     * Constructor.
+     * @param pivotable
+     *            A pivotable object that tells which objects should be added as
+     *            pivots and which should not.
+     */
+    public AbstractTentaclePivotSelector(Pivotable < O > pivotable) {
+        super();
+        this.pivotable = pivotable;
+    }
 }

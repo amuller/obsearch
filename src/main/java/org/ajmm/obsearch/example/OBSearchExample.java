@@ -183,7 +183,7 @@ public final class OBSearchExample {
                 }
                 // generate pivots
                 TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                        (short) 10);
+                        (short) 10, 5, new TreePivotable());
                 ps.generatePivots((AbstractPivotIndex < OBSlice >) index
                         .getIndex());
                 // freeze the index (or ask OBSearch to "learn" how the data is

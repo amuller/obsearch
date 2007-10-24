@@ -96,7 +96,10 @@ public class PPTreeShort < O extends OBShort >
      * Cache used for getting objects from B. Only used before freezing
      */
     private transient OBCache < float[] > bCache;
-
+    
+    
+ 
+ 
     /**
      * Constructor.
      * @param databaseDirectory
@@ -143,7 +146,7 @@ public class PPTreeShort < O extends OBShort >
         this.maxInput = maxInput;
         // this optimization reduces the computations required
         // for the first level normalization.
-				this.opt = 1 / ((float) (maxInput - minInput));
+	this.opt = 1 / ((float) (maxInput - minInput));
         resultCache = new HashMap < O, OBQueryShort < O >>(3000);
         bCache = new OBCache < float[] >(this.databaseSize());
     }
@@ -282,6 +285,10 @@ public class PPTreeShort < O extends OBShort >
         }
         return result;
     }
+    
+    public long initialHyperRectangleTotal = 0;
+    public long queryCount = 0;    
+    public long finalHyperRectangleTotal = 0;
 
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
             throws NotFrozenException, DatabaseException,
@@ -295,11 +302,15 @@ public class PPTreeShort < O extends OBShort >
         List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
         // obtain the hypercubes that have to be matched
 
-        spaceTree.searchRange(qrect, hyperRectangles);
-
+        spaceTree.searchRange(qrect, hyperRectangles);        
         searchOBAux(object, r, result, qrect, t, hyperRectangles);
+        
+        // stats
+        queryCount++;
+        initialHyperRectangleTotal += hyperRectangles.size();
     }
-
+    
+    
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
             int[] boxes) throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
@@ -382,7 +393,9 @@ public class PPTreeShort < O extends OBShort >
             if (!space.intersects(qrect)) {
                 continue;
             }
-
+            // stats
+            finalHyperRectangleTotal++;
+            
             // for each space there are 2d pyramids that have to be browsed
             int i = 0;
             // update the current rectangle, we also have to center it
@@ -646,6 +659,7 @@ public class PPTreeShort < O extends OBShort >
         IntegerBinding.intToEntry(id, keyEntry);
         insertInDatabase(out, keyEntry, bDB);
     }
+   
 
     /**
      * Read the given tuple from B database and load it into the given tuple in
@@ -661,21 +675,19 @@ public class PPTreeShort < O extends OBShort >
      *             range defined by the user.
      */
     @Override
-    protected final void readFromB(int id, float[] tuple)
+    protected final float[] readFromB(int id)
             throws DatabaseException, OutOfRangeException {
         Cursor cursor = null;
         // check if the tuple is in cache
         float[] temp = this.bCache.get(id);
         if (temp != null) {
             int i = 0;
-            // copy the contents to the result.
-            while (i < tuple.length) {
-                tuple[i] = temp[i];
-                i++;
-            }
-            return;
+            
+            return temp;
         }
+        float[] tempTuple = new float[pivotsCount];
         try {
+            
             DatabaseEntry keyEntry = new DatabaseEntry();
             DatabaseEntry dataEntry = new DatabaseEntry();
             cursor = bDB.openCursor(null, null);
@@ -686,24 +698,23 @@ public class PPTreeShort < O extends OBShort >
             if (retVal == OperationStatus.NOTFOUND) {
                 assert false : "Trying to read : " + id
                         + " but the database is: " + this.databaseSize();
-                return;
+                throw new OutOfRangeException();
             }
 
             assert cursor.count() == 1;
 
             TupleInput in = new TupleInput(dataEntry.getData());
             int i = 0;
-            assert tuple.length == pivotsCount;
-            float[] tempTuple = new float[pivotsCount];
+            
             while (i < pivotsCount) {
-                tuple[i] = normalizeFirstPassAux(in.readShort());
-                tempTuple[i] = tuple[i];
+                tempTuple[i] = normalizeFirstPassAux(in.readShort());
                 i++;
             }
             bCache.put(id, tempTuple);
         } finally {
             cursor.close();
         }
+        return tempTuple;
     }
 
     /**
@@ -1055,4 +1066,8 @@ public class PPTreeShort < O extends OBShort >
         return resId;
     }
 
+    public  float distance(O a, O b) throws OBException{
+        short result = ((OBShort)a).distance((OBShort)b);
+        return normalizeFirstPassAux(result);
+    }
 }

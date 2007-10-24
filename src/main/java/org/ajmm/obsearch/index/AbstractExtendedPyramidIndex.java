@@ -398,7 +398,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
         int i = p;
         assert i < pivotsCount;
-        lowHighResult[HHIGH] = max(q[i]); // HIGH calculation is always the
+        lowHighResult[HHIGH] = max(q[i]);         
         if (isEasyCase(q)) { // do not use max2 here
             lowHighResult[HLOW] = 0;
         } else {
@@ -417,6 +417,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             lowHighResult[HLOW] = max;
         }
     }
+        
 
     /**
      * Finds qjmin for the given j, and the given i pyramid and the ranges of

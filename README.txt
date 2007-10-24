@@ -245,3 +245,9 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
  
  mvn assembly:assembly
 
+
+
+Planed Features:
+
+Pivot selection based on k-means++.
+Random pyramid selection and priorities for space tree nodes.

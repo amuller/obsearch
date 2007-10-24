@@ -742,6 +742,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             OBException {
         if (logger.isDebugEnabled()) {
             logger.debug("Pivots selected " + Arrays.toString(ids));
+          
         }
         createPivotsArray();
         assert ids.length == pivots.length && pivots.length == this.pivotsCount;
@@ -753,6 +754,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             this.pivotsBytes[i] = out.getBufferBytes();
             pivots[i] = obj;
             i++;
+        }
+        if(logger.isDebugEnabled()){
+            logger.debug("Detail: " + Arrays.toString(pivots));
         }
     }
 
@@ -910,5 +914,16 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         result.load(in);
         return result;
     }
+    
+    /**
+     * This method returns the corresponding float
+     * value of the distance of the given objects 
+     * @param a First object to compare
+     * @param b Second object to compare
+     * @return A normalized (first pass) value of the distance of a and b
+     */
+    public abstract float distance(O a, O b) throws OBException;
+        
+    
 
 }
