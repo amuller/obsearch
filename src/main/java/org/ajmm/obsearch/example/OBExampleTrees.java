@@ -209,6 +209,7 @@ public final class OBExampleTrees {
                 logger.info("Running time in seconds: " + time / 1000
                         + " minutes: " + time / 1000 / 60);
                 logger.info("Stats follow: total initial rectangles:" + index.initialHyperRectangleTotal + " final initial rectangles " + index.finalHyperRectangleTotal);
+                logger.info("Status detail: pyramids accessed: " + index.finalPyramidTotal + " smap vectors: " + index.smapRecordsCompared + " distance computations: " + index.distanceComputations);
             } else {
                 throw new OBException(
                         "You have to set the mode: 'create' or 'search'");

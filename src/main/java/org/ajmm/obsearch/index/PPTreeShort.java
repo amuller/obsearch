@@ -286,9 +286,18 @@ public class PPTreeShort < O extends OBShort >
         return result;
     }
     
+    /**
+     * All the statistics values are kept here so that we will erase them at
+     * some point in the future. This is ugly but it is the only way that we will
+     * remove all the code related to stats to squeeze the last ounce of performance
+     * out of OBSearch :)
+     */
     public long initialHyperRectangleTotal = 0;
     public long queryCount = 0;    
     public long finalHyperRectangleTotal = 0;
+    public long finalPyramidTotal = 0;
+    public long smapRecordsCompared = 0;
+    public long distanceComputations = 0;
 
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
             throws NotFrozenException, DatabaseException,
@@ -406,6 +415,7 @@ public class PPTreeShort < O extends OBShort >
                 // intersect destroys q, so we have to copy it
                 copyQuery(qw, q);
                 if (intersect(q, i, lowHighResult)) {
+                    this.finalPyramidTotal++;
                     int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
                     // index
                     searchBTreeAndUpdate(object, t, myr, ri
@@ -500,7 +510,9 @@ public class PPTreeShort < O extends OBShort >
                         && currentPyramidValue <= hhigh) {
 
                     TupleInput in = new TupleInput(dataEntry.getData());
-
+                    
+                    this.smapRecordsCompared++;
+                    
                     int i = 0;
                     short t;
                     max = Short.MIN_VALUE;
@@ -523,7 +535,7 @@ public class PPTreeShort < O extends OBShort >
                         int id = in.readInt();
                         O toCompare = super.getObject(id);
                         realDistance = object.distance(toCompare);
-
+                        this.distanceComputations++;
                         if (realDistance <= r) {
 
                             result.add(id, toCompare, realDistance);
