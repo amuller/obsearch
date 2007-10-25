@@ -402,23 +402,51 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         if (isEasyCase(q)) { // do not use max2 here
             lowHighResult[HLOW] = 0;
         } else {
-            // return the minimum of QJmin
-            int j = 0;
-            float max = 0;
-            while (j < pivotsCount) {
-                if (i != j) {
-                    float t = qjmin(q, j, i);
-                    if (t > max) {
-                        max = t;
-                    }
-                }
-                j++;
-            }
-            lowHighResult[HLOW] = max;
+            // return the minimum of QJmin           
+            determineRanges1(p,q,lowHighResult);           
         }
     }
+    
+    private final void determineRanges1(int p, float[][] q, float[] lowHighResult){
+        int j = 0;
+        int i = p;
+        float max = 0;
+        while (j < pivotsCount) {
+            if (i != j) {
+                float t = qjmin(q, j, i);
+                if (t > max) {
+                    max = t;
+                }
+            }
+            j++;
+        }
+        lowHighResult[HLOW] = max;
+    }
+    /*
+    private final void determineRanges2 (int p, float[][] q, float[] lowHighResult){
+        int j = 0;
+        int i = p;
+        float min = Float.MAX_VALUE;
+        while (j < pivotsCount) {
+            if (i != j) {
+                float t = qbarjmin(q, j, i);
+                if (t < min) {
+                    min = t;
+                }
+            }
+            j++;
+        }
+        lowHighResult[HLOW] = min;
+    }
         
-
+    private final float qbarjmin(float[][] q, int j, int i){
+        if(max(q[j]) >= min(q[i])){
+            return Math.max(max(q[i]), min(q[j]));
+        }else{
+            return min(q[i]);
+        }
+    }
+*/
     /**
      * Finds qjmin for the given j, and the given i pyramid and the ranges of
      * the query max and min. Please see the paper on the pyramid technique.
