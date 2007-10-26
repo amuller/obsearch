@@ -46,12 +46,15 @@ Information for Developers
 
 * You need a JDK (We have tested OBSearch with Java 1.6.0_01).
 * You need to have a recent version Maven and ANT installed and working
-  (We have tested OBSearch with Maven 2.0.6 and ANT 1.7.0).
+  (We have tested OBSearch with Maven 2.0.6 and 2.0.7 and ANT 1.7.0).
 
 The first time you checkout OBSearch do a:
 ./install.sh 
 
 This will download and install all the necessary dependencies.
+
+Whenever you do svn update and install.sh is changed please
+run install again.
 
  Compiling:
  ----------

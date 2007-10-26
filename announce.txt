@@ -1,0 +1,21 @@
+OBSearch 0.7-GSOC has been released.
+
+You can download it from:
+http://code.google.com/p/obsearch/downloads/list
+
+d1e7a9c3a343babfa4e824914a6a9759        obsearch-0.7-GSOC-full.tar.bz2
+028d6584eef1bac1e207bd4fe6f4856d        obsearch-0.7-GSOC-full.tar.gz
+70909eb2a24e95c0d3b9ca391754fb6a        obsearch-0.7-GSOC-full.zip
+490c5637f208468965f66fb5222a1a46        obsearch-0.7-GSOC.jar
+
+Please send any bug reports to:
+http://code.google.com/p/obsearch/issues/list
+
+Homepage:
+http://code.google.com/p/obsearch/
+
+Website:
+http://obsearch.berlios.de/
+
+
+Arnoldo Muller.
