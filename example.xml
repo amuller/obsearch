@@ -56,8 +56,8 @@
 
 	<!-- DB and QUERY datafiles -->
 
-	<property name="dbdata" value="${project.build.outputDirectory}/slices"/>
-	<property name="querydata" value="${project.build.outputDirectory}/slices-query"/>
+	<property name="dbdata" value="${user.home}/temp/slices"/>
+	<property name="querydata" value="${user.home}/temp/slices-query"/>
 </target>
 
  
@@ -86,9 +86,9 @@
 				<jvmarg value="-Xmx1200M" />
 				<arg value="-search"/>
 				<arg value="-r"/>
-				<arg value="3"/>
+				<arg value="7"/>
 				<arg value="-k"/>
-				<arg value="2"/>
+				<arg value="3"/>
 				<arg value="-db"/>
 				<arg value="${dbfolder}"/>
 				<arg value="-data"/>

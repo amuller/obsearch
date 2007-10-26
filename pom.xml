@@ -39,7 +39,16 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
       <url>http://www.gnu.org/licenses/gpl.txt</url>
     </license>
   </licenses>
-
+	
+	<!-- you need to update ~/.m2/settings.xml with the login information 
+       for the server "website"-->
+	<distributionManagement>
+    <site>
+      <id>website</id>
+      <url>scp://shell.berlios.de/home/groups/obsearch/htdocs</url>
+    </site>
+  </distributionManagement>
+	
 	<mailingLists>
     <mailingList>
       <name>obsearch-users</name>
