@@ -10,7 +10,7 @@
 #system("mvn site:site") or die "Could not generate site";
 # generate the assemblies
 #system("mvn assembly:assembly") or die "Could not generate assemblies"
-
+#system("mvn site:deploy") or die "Could not deploy website"
 
 $user = $ARGV[0];
 $password = $ARGV[1];

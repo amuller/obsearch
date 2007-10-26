@@ -216,6 +216,6 @@ OBPriorityQueueShort < OBVectorExample > result =
 * Next steps!
 ~~~~~~~~~~~~~
 
-	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: The community is currently voting, we might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
+	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: We are currently voting, we might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
 
 
