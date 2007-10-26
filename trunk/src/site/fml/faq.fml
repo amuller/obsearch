@@ -16,8 +16,7 @@
       <answer>
         <p>
         Because it is the only distributed MAM (Metric Access Methods) index available
-				in the open source market right now. Because it uses SMAP, a simple but effective technique for indexing any type of object. 
-				For other non-distributed solutions:
+				in the open source market right now. Also, because it uses SMAP, a simple but effective technique for indexing any type of object, it might be faster (for heavy objects like trees or graphs) than: 
 				</p>
 				<p>
 				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>

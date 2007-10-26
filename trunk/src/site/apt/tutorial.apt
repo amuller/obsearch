@@ -70,7 +70,7 @@ public class OBVectorExample implements OBShort {
 
     /**
      * 4) Load method. Loads the data into this object. This is analogous to
-     * object deserialization.
+     * object de-serialization.
      * @param in
      *            Byte Stream with all the data that has to be loaded into this
      *            object.
@@ -133,9 +133,9 @@ public class OBVectorExample implements OBShort {
 
 ---
 // dbFolder: Folder where the database will be created.
-// 30: Number of pivots used by SMAP. 
+// 30: Number of pivots used by SMAP (see below). 
 // Depending on the distance function a greater number might improve performance.  
-// You might want to spend some time tweaking your function.
+// You might want to spend some time tweaking this parameter function.
 // od: Partitions of the P+Tree. A value of 8 usually works well :).
 PPTreeShort < OBVectorExample > index = 
 	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
@@ -145,7 +145,7 @@ PPTreeShort < OBVectorExample > index =
 * To insert an object:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You will have to give OBSearch a bunch of objects. OBSearch will "learn"
+   You will have to give OBSearch a bunch of objects. OBSearch will "learn"
 from these objects and optimize its index when enough data has been
 presented to him.	You decide when you have given OBSearch "enough" objects.
 
@@ -160,15 +160,14 @@ index.insert(o);
 * To select the pivots of an index:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 	OBSearch uses properties of the triangle inequality to speed up the searching process.
 We have to first select a set of n pivots (in the example 30) from the database.
-There are several selection strategies. Currently we only provide a TentaclePivotSelector. The 10 means that we want pivots that at least are separated 10 units away
-from each other. The bigger this number is the better. After the pivots are selected,
- we can freeze the index. This is the heart of OBSearch, this technique is called SMAP.
+There are several selection strategies. The number 10 means that we want pivots that at least are separated 10 units away from each other. The bigger this number is the better. After the pivots are selected, we can freeze the index. This is the heart of OBSearch; the technique is called {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}}. The 32 you see there is not related to the number of pivots, it represents the number of "seeds" that will be used for selecting the pivots. Please refer to the docs for more details. NEW in 0.8: Kmeans++ can also be used in metric spaces to select pivots! Please see the KmeansPPPivotSelector class.
 
 ---
-TentaclePivotSelectorShort < OBVectorExample > ps = 
- 			new TentaclePivotSelectorShort < OBVectorExample > ( (short) 10);
+TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
+                             (short) 10, 32, new AcceptAll< OBSlice >());
 ps.generatePivots(index);
 ---
 
@@ -176,7 +175,7 @@ ps.generatePivots(index);
 ~~~~~~~~~~~~~~~~~~~~~
 	
 	OBSearch has to "learn" some sample data before it can efficiently
-retrieve it. This process is called freezing. Before freezing, the pivots
+retrieve it. This process is called "freezing". Before freezing, the pivots
 must be selected. When enough data is collected and when the pivots have been
 selected, you can freeze the index. Note that after a freeze you can still insert and 
 delete items. After a freeze you can start searching the index.
@@ -199,7 +198,7 @@ index.delete(d);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	You just need to decide the amount of items you want (k) and a range (r).
-For objects a,b if d(a,b) > r then the pairs will not be returned.
+For objects a,b if d(a,b) > r then the pairs will not be returned. This type of search is called "nearest neighbor search".
 
 ---
 // This result object will hold the result of the search process.
@@ -217,5 +216,6 @@ OBPriorityQueueShort < OBVectorExample > result =
 * Next steps!
 ~~~~~~~~~~~~~
 
-	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}.
+	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: The community is currently voting, we might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
+
 

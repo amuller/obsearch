@@ -401,8 +401,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         lowHighResult[HHIGH] = max(q[i]);         
         if (isEasyCase(q)) { // do not use max2 here
             lowHighResult[HLOW] = 0;
-        } else {
-            // return the minimum of QJmin           
+        } else {   
             determineRanges1(p,q,lowHighResult);           
         }
     }

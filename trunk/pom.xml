@@ -216,7 +216,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
 
-
+<!--
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
@@ -233,6 +233,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
           </instrumentation>
         </configuration>
       </plugin>
+-->
 
 			<plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -259,16 +260,17 @@ Would be cool to use this.
 	 <build>
 		 <plugins>
 
-			 <plugin>
+			 <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-      </plugin>
+      </plugin>-->
 
 			 <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
           <descriptors>
             <descriptor>src/assembly/dep.xml</descriptor>
+						<descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
 					<!--<descriptorRefs>
 						<descriptorRef>project</descriptorRef>
