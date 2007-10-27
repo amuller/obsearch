@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project name="OBSearch">
+	<!-- download dependencies not available in maven's repository-->
+	<target name="install">
+
+	</target>
+
+	<target name="testDataPrepareInit">
+		<property name="my.test.data.url" value="http://obsearch.googlecode.com/files/"/>		
+		<condition property="testDataReady">
+    <and>
+      <available file="${out}/${my.test.data.db}"/>
+      <available file="${out}/${my.test.data.query}"/>
+    </and>
+  </condition>
+	</target>
+	
+	<target name="testDataPrepare" depends="testDataPrepareInit" unless="testDataReady">
+		
+		<!-- remove -small to get a bigger dataset -->
+		<mkdir dir="${out}"/>
+		<get src="${my.test.data.url}${my.test.data.db}.bz2" dest="${out}/${my.test.data.db}.bz2" usetimestamp="true" />
+		<get src="${my.test.data.url}${my.test.data.query}.bz2" dest="${out}/${my.test.data.query}.bz2" usetimestamp="true" />
+		<bunzip2 src="${out}/${my.test.data.db}.bz2"/>
+		<bunzip2 src="${out}/${my.test.data.query}.bz2"/>
+	</target>
+
+	
+	<!-- generate texen files -->
+	<target name="generateSources">
+		  <taskdef name="fmpp" classname="fmpp.tools.AntTask" /> 
+			<!-- now we generate code using texen -->							
+			<echo>In: ${in}</echo>
+			<echo>Out: ${out}</echo>
+			<property name="finalOut" value="${out}/generated-sources/texen/org/ajmm/obsearch/"/>
+
+			<fmpp
+              sourceRoot="${in}" outputRoot="${out}"
+              data="types: csv(${in}/Types.csv)"
+				      excludes="Types.csv">
+     </fmpp>
+	</target>
+
+</project>

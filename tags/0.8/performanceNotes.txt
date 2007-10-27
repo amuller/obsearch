@@ -1,0 +1,6 @@
+
+So it seems that od=8 works well.
+Also TentaclePivotSelector* works a little better than
+KMeansPPPivotSelector. 
+
+For TentaclePivotSelector* a seedCount of 30 has worked well.

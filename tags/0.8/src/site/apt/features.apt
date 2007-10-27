@@ -1,0 +1,19 @@
+Features
+~~~~~~~~
+
+ * Single-computer or distributed mode.
+	
+ * Designed to handle efficiently heavy objects (trees, graphs).
+
+ * The API is compact and easy to understand.
+
+ * To our knowledge, OBSearch is the fastest general nearest neighbor searcher in the open source market (when you use heavy objects such as trees or graphs, we haven't tried with lighter objects such as numeric vectors).
+ 
+ * Cache system tightly coupled with the garbage collector for optimum speed.
+
+ * 
+
+  []
+
+
+[OBSearchPoster.jpg]  

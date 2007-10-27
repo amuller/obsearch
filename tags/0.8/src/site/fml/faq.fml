@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<faqs id="General FAQ">
+  <part id="General">
+		<faq id="when">
+      <question>When should I use OBSearch?</question>
+      <answer>
+        <p>
+       	When you need to approximately match objects and you have a distance
+				function that satisfies the triangular inequality.
+        </p>
+      </answer>			
+    </faq>  
+		
+    <faq id="reason">
+      <question>Why should I use OBSearch?</question>
+      <answer>
+        <p>
+        Because it is the only distributed MAM (Metric Access Methods) index available
+				in the open source market right now. Also, because it uses SMAP, a simple but effective technique for indexing any type of object, it might be faster (for heavy objects like trees or graphs) than: 
+				</p>
+				<p>
+				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>
+				</p>
+				<p>
+				<a href="http://dbs.mathematik.uni-marburg.de/?search=Research_Projects_XXL">XXL</a>				
+				</p>
+				<p>
+				<a href="http://gbdi.icmc.usp.br/arboretum/">Arboretum</a>
+        </p>
+      </answer>			
+    </faq>   
+
+		<faq id="deps">
+      <question>What do I need to compile OBSearch?</question>
+      <answer>
+        <p>
+				JDK 1.5 or greater and maven http://maven.apache.org/
+        </p>
+      </answer>			
+    </faq>   
+
+		<faq id="meaning">
+      <question>Why OB?</question>
+      <answer>
+        <p>
+        OBSearch is about choice. Some people define OB as "OBject". Others as 
+	      "OBligatory". 								
+        </p>
+				<p>
+				For others, OB = Octopus-Bear. :)
+				</p>
+      </answer>			
+    </faq> 
+  </part>
+</faqs>

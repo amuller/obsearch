@@ -1,0 +1,221 @@
+A 15 minute tutorial
+~~~~~~~~~~~~~~~~~~~~
+
+	This quick tutorial will show how to use OBSearch on a single computer.
+
+	What you need first is to know the object you want to store.
+You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other.
+
+	So we will store vectors of 100 shorts, and we will calculate the
+{{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
+
+	The following code shows 7 things that OBSearch needs in order to be able to retrieve and compare objects. 
+
+----------------------------------------
+/**
+ * Example Object. Store many shorts into a vector and use 1-norm distance on
+ * them.
+ * @author Arnoldo Jose Muller Molina.
+ * @since 0.7
+ */
+
+public class OBVectorExample implements OBShort {
+
+    /**
+     * Total number of elements to store.
+     */
+    private static final int VECTOR_SIZE = 100;
+
+    /**
+     * 1) Actual data.
+     */
+    private short[] data;
+
+    /**
+     * 2) Default constructor is required by OBSearch.
+     */
+    public OBVectorExample() {
+        data = new short[VECTOR_SIZE];
+    }
+
+    /**
+     * Additional constructors can be created to make your life easier.
+     * (OBSearch does not use them)
+     */
+    public OBVectorExample(short[] data) {
+        assert data.length == VECTOR_SIZE;
+        this.data = data;
+    }
+
+    /**
+     * 3) 1-norm distance function. A casting error can happen here, but we
+     * don't check it for efficiency reasons.
+     * @param object
+     *            The object to compare.
+     * @return The distance between this and object.
+     * @throws OBException
+     *             if something goes wrong. But nothing should be wrong in this
+     *             function.
+     */
+    public final short distance(final OB object) throws OBException {
+        OBVectorExample o = (OBVectorExample) object;
+        short res = 0;
+        int i = 0;
+        while (i < VECTOR_SIZE) {
+            res += Math.abs(data[i] - o.data[i]);
+            i++;
+        }
+        return res;
+    }
+
+    /**
+     * 4) Load method. Loads the data into this object. This is analogous to
+     * object de-serialization.
+     * @param in
+     *            Byte Stream with all the data that has to be loaded into this
+     *            object.
+     */
+    public final void load(final TupleInput in) throws OBException {
+        int i = 0;
+        while (i < VECTOR_SIZE) {
+            // read a short from the stream and
+            // store it into our array.
+            data[i] = in.readShort();
+            i++;
+        }
+    }
+
+    /**
+     * 5) Store method. Write the contents of the object into out. Analogous to
+     * Java's object serialization.
+     * @param out
+     *            Stream where we will store this object.
+     */
+    public final void store(TupleOutput out) {
+        int i = 0;
+        while (i < VECTOR_SIZE) {
+            // write each short into
+            // the stream
+            out.writeShort(data[i]);
+            i++;
+        }
+    }
+
+    /**
+     * 6) Equals method. Implementation of the equals method is required. A
+     * casting error can happen here, but we don't check it for efficiency
+     * reasons.
+     * @param object
+     *            The object to compare.
+     * @return true if this and object are equal.
+     */
+    public final boolean equals(final Object object) {
+        OBVectorExample o = (OBVectorExample) object;
+        return Arrays.equals(data, o.data);
+    }
+
+    /**
+     * 7) Hash code method. This method is required too.
+     * @return The hash code of the data array.
+     */
+    public final int hashCode() {
+        // TODO: this value should be cached.
+        return Arrays.hashCode(data);
+    }
+
+}
+----------------------------------------
+
+	Now you have an object that OBSearch can use for matching.
+
+* To create a new index:
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+---
+// dbFolder: Folder where the database will be created.
+// 30: Number of pivots used by SMAP (see below). 
+// Depending on the distance function a greater number might improve performance.  
+// You might want to spend some time tweaking this parameter function.
+// od: Partitions of the P+Tree. A value of 8 usually works well :).
+PPTreeShort < OBVectorExample > index = 
+	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
+---
+
+
+* To insert an object:
+~~~~~~~~~~~~~~~~~~~~~~
+
+   You will have to give OBSearch a bunch of objects. OBSearch will "learn"
+from these objects and optimize its index when enough data has been
+presented to him.	You decide when you have given OBSearch "enough" objects.
+
+---
+// Create your object (load it from a file)
+// using your constructor
+OBVectorExample o = new OBVectorExample(mydata);
+// insert the object
+index.insert(o);
+---
+
+* To select the pivots of an index:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+	OBSearch uses properties of the triangle inequality to speed up the searching process.
+We have to first select a set of n pivots (in the example 30) from the database.
+There are several selection strategies. The number 10 means that we want pivots that at least are separated 10 units away from each other. The bigger this number is the better. After the pivots are selected, we can freeze the index. This is the heart of OBSearch; the technique is called {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}}. The 32 you see there is not related to the number of pivots, it represents the number of "seeds" that will be used for selecting the pivots. Please refer to the docs for more details. NEW in 0.8: Kmeans++ can also be used in metric spaces to select pivots! Please see the KmeansPPPivotSelector class.
+
+---
+TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
+                             (short) 10, 32, new AcceptAll< OBSlice >());
+ps.generatePivots(index);
+---
+
+* To freeze an index:
+~~~~~~~~~~~~~~~~~~~~~
+	
+	OBSearch has to "learn" some sample data before it can efficiently
+retrieve it. This process is called "freezing". Before freezing, the pivots
+must be selected. When enough data is collected and when the pivots have been
+selected, you can freeze the index. Note that after a freeze you can still insert and 
+delete items. After a freeze you can start searching the index.
+
+---
+index.freeze();
+---
+
+* To delete an object:
+~~~~~~~~~~~~~~~~~~~~~~
+
+---
+// Create your object (load it from a file)
+// using your constructor
+OBVectorExample d = new OBVectorExample(mydata);
+index.delete(d);
+---
+
+* Search for similar objects:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	You just need to decide the amount of items you want (k) and a range (r).
+For objects a,b if d(a,b) > r then the pairs will not be returned. This type of search is called "nearest neighbor search".
+
+---
+// This result object will hold the result of the search process.
+// note that it is here where you define k
+OBPriorityQueueShort < OBVectorExample > result = 
+	new OBPriorityQueueShort < OBVectorExample > (k);
+
+// now you can search the closest elements to o within a range r
+// the result will be stored in "result"
+	index.searchOB(o, r, result);
+// You can iterate "result".
+---
+
+
+* Next steps!
+~~~~~~~~~~~~~
+
+	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: We are currently voting, we might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
+
+
