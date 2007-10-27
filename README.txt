@@ -56,6 +56,33 @@ This will download and install all the necessary dependencies.
 Whenever you do svn update and install.sh is changed please
 run install again.
 
+***********************************
+Information for OBSearch Developers
+***********************************
+
+ Deployment:
+ -----------
+Before deploying, change the line in pom.xml from
+<my.test.data.db>slices-small</my.test.data.db>
+to:
+<my.test.data.db>slices</my.test.data.db>
+
+And run: mvn test
+The test will run for 40 hours, if everything is fine, then you can release:
+but first restore the line <my.test.data.db>slices-small</my.test.data.db>
+in pom.xml
+
+perl deploy.pl
+
+This script will generate the binary files, upload the website to
+berlios.de and will also generate an announce.txt file ready to 
+be sent to the mailing lists. The label creation is a manual process
+ and it must be done after this script has been completed:
+ 
+svn copy https://obsearch.googlecode.com/svn/trunk/ \
+             https://obsearch.googlecode.com/svn/tags/0.7-GSOC \
+             -m "initial release"  --username <you>
+
  Compiling:
  ----------
 
@@ -83,7 +110,7 @@ OBSearch has two modes of operation. Single computer and p2p operation.
 Single Computer:
 We have a comprehensive set of tests that verify that every object
 inserted into the database is searched, deleted and stored properly.
-The full tests take around 29 hours and are always executed before publishing
+The full tests take around 40 hours and are always executed before publishing
 a new version of the program. 
 You can see the summary of the results in the project's website under
 "Project Reports".
@@ -252,5 +279,5 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
 
 Planed Features:
 
-Pivot selection based on k-means++.
-Random pyramid selection and priorities for space tree nodes.
+
+* Random pyramid selection and priorities for space tree nodes. (this is actually slow, left here for documentation purposes)

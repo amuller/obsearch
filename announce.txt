@@ -1,12 +1,19 @@
-OBSearch 0.7-GSOC has been released.
+
+OBSearch 0.8 has been released.
+
+Release Highlights:
 
 You can download it from:
 http://code.google.com/p/obsearch/downloads/list
 
-d1e7a9c3a343babfa4e824914a6a9759        obsearch-0.7-GSOC-full.tar.bz2
-028d6584eef1bac1e207bd4fe6f4856d        obsearch-0.7-GSOC-full.tar.gz
-70909eb2a24e95c0d3b9ca391754fb6a        obsearch-0.7-GSOC-full.zip
-490c5637f208468965f66fb5222a1a46        obsearch-0.7-GSOC.jar
+
+md5:17ffd2cc9f377470d0114a729cec365f sha1:bf362ddcca57d3856563ba27ec0f7d3b48963a9d obsearch-0.8-bin.tar.bz2
+md5:3d5373ab1100ef535286b197869ceb10 sha1:bfc4772bccc1b216e44873104acd8a3ed016e10f obsearch-0.8-bin.tar.gz
+md5:6e687517436b19f292dec330ca34f2db sha1:03db6e8301da84d7b3fe68b0d1059ec929e79171 obsearch-0.8-bin.zip
+md5:2afb6c39d405a33be4e85d3220c0c73e sha1:b10e6168981c29305214a1432e91f0b1064bc9d0 obsearch-0.8.jar
+md5:0a533da04be6014c5f0afd2e4a1be1c5 sha1:f4d5ff4e53c2cda9ab81beb8c79e856b93c5d7b3 obsearch-0.8-src.tar.bz2
+md5:ff0e9a7f6a7feb0085ca7e88dd53da42 sha1:6a1455f9ba021a550c8c72f51a286fa94333d443 obsearch-0.8-src.tar.gz
+md5:ae1161afcb3a8b1f4f5911fac2ad8b5b sha1:98421efe4c2da6a39f4f341274c5f0977d259f4d obsearch-0.8-src.zip
 
 Please send any bug reports to:
 http://code.google.com/p/obsearch/issues/list
@@ -18,4 +25,5 @@ Website:
 http://obsearch.berlios.de/
 
 
-Arnoldo Muller.
+Arnoldo Muller
+
