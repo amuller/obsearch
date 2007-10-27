@@ -27,10 +27,6 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
 		<my.test.data.db>slices-small</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
 		<my.test.data.dir>${user.home}/temp/</my.test.data.dir>
-		<!-- texen templates configuration -->
-		<my.templates.texen>/texen/</my.templates.texen>
-		<my.templates.index>org/ajmm/obsearch/index/</my.templates.index>
-		<my.templates.object>org/ajmm/obsearch/object/</my.templates.object>
   </properties>
 
 	<licenses>
@@ -471,30 +467,12 @@ Would be cool to use this.
 	
 	 <developers>
 		 <developer timezone="+9">
-			 <id>amuller</id>
+			 <id>arnoldomuller</id>
 			 <name>Arnoldo Jose Muller Molina</name>
-			 <email>arnoldoMuller::arroba::g+m+a+i+l</email>
+			 <email>arnoldoMuller::arroba::g+m-a*i^l</email>
 			 <organization>Kyushu Institute of Technology</organization>
 			 <roles>
 				 <role>Developer</role>
-			 </roles>
-		 </developer>
-		 <developer timezone="-8">
-			 <id>cbrown</id>
-			 <name>Cynthia A. Brown</name>
-			 <email>???</email>
-			 <organization> Portland State University</organization>
-			 <roles>
-				 <role>Mentor</role>
-			 </roles>
-		 </developer>
-     <developer timezone="-8">
-			 <id>bmassey</id>
-			 <name>Barton C. Massey</name>
-			 <email>???</email>
-			 <organization> Portland State University</organization>
-			 <roles>
-				 <role>Mentor</role>
 			 </roles>
 		 </developer>
 	 </developers>
