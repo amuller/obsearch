@@ -64,6 +64,14 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
       <post>http://groups.google.com/group/obsearch-developers</post>
       <archive>http://groups.google.com/group/obsearch-developers</archive>
     </mailingList>
+
+		 <mailingList>
+      <name>obsearch-developers</name>
+      <subscribe/>
+      <unsubscribe/>
+      <post>http://groups.google.com/group/obsearch-announce</post>
+      <archive>http://groups.google.com/group/obsearch-announce</archive>
+    </mailingList>
   </mailingLists>
 
 	<issueManagement>
@@ -225,7 +233,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
 
-<!--
+
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
@@ -242,7 +250,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
           </instrumentation>
         </configuration>
       </plugin>
--->
+
 
 			<plugin>
         <groupId>org.codehaus.mojo</groupId>
