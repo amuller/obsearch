@@ -3,17 +3,21 @@ OBSearch 0.8 has been released.
 
 Release Highlights:
 
+* Several optimizations (13x improvement in freeze for P+Tree)
+* Kmeans++ pivot selector
+* Improvements in TentaclePivotSelector (better than Kmeans++)
+
 You can download it from:
 http://code.google.com/p/obsearch/downloads/list
 
 
-md5:17ffd2cc9f377470d0114a729cec365f sha1:bf362ddcca57d3856563ba27ec0f7d3b48963a9d obsearch-0.8-bin.tar.bz2
-md5:3d5373ab1100ef535286b197869ceb10 sha1:bfc4772bccc1b216e44873104acd8a3ed016e10f obsearch-0.8-bin.tar.gz
-md5:6e687517436b19f292dec330ca34f2db sha1:03db6e8301da84d7b3fe68b0d1059ec929e79171 obsearch-0.8-bin.zip
-md5:2afb6c39d405a33be4e85d3220c0c73e sha1:b10e6168981c29305214a1432e91f0b1064bc9d0 obsearch-0.8.jar
-md5:0a533da04be6014c5f0afd2e4a1be1c5 sha1:f4d5ff4e53c2cda9ab81beb8c79e856b93c5d7b3 obsearch-0.8-src.tar.bz2
-md5:ff0e9a7f6a7feb0085ca7e88dd53da42 sha1:6a1455f9ba021a550c8c72f51a286fa94333d443 obsearch-0.8-src.tar.gz
-md5:ae1161afcb3a8b1f4f5911fac2ad8b5b sha1:98421efe4c2da6a39f4f341274c5f0977d259f4d obsearch-0.8-src.zip
+md5:50ff16f24288f6e45c707c03b3080522 sha1:d4138c6af57ee9c3deaf4f6d86126ce8d4ceb70c obsearch-0.8-bin.tar.bz2
+md5:24f30cf8017e51177a14a512fe642593 sha1:9047b97a8fe94979fcd104f67471b5dd9fdc4662 obsearch-0.8-bin.tar.gz
+md5:e206e2c55d97905683fc775608b426e5 sha1:4703d41287730b588717484607e33994e993cdc6 obsearch-0.8-bin.zip
+md5:4ca3a05504012ba3adeba5ad522edf0b sha1:2661dea6c023ba78fb3ce1059f6579555aa125bb obsearch-0.8.jar
+md5:1e284315461e1529e37cb2115cf11b0c sha1:8d6f323ee240cef46b55d1c2f1317cc97bc8d174 obsearch-0.8-src.tar.bz2
+md5:e97269a1dbaeb6042ece61e1a92b963e sha1:593d1c0f2312b0583137539eeb82e5fa57187244 obsearch-0.8-src.tar.gz
+md5:8035374bc9d9b5d4741c7a1c9e964ed9 sha1:75bbe93924c84d48d3ae92f7236038cd6c484525 obsearch-0.8-src.zip
 
 Please send any bug reports to:
 http://code.google.com/p/obsearch/issues/list
