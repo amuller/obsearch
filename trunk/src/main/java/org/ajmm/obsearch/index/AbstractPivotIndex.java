@@ -29,6 +29,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
+import com.sleepycat.je.Transaction;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -218,6 +219,16 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         initC();
         initK();
     }
+    
+    /**
+     * Initializes only the databases that are to be used after freezing.
+     * @throws DatabaseException If something goes wrong with the DB
+     */
+    private void initDBAfterInitialization() throws DatabaseException {
+        initBerkeleyDB();
+        // way of creating a database
+        initC();
+    }
 
     /**
      * Initializes database B. This database is only used during
@@ -274,8 +285,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         if (logger.isDebugEnabled()) {
             logger
                     .debug("Initializing transient fields after de-serialization");
-        }
-        initDB();
+        }        
+        this.initDBAfterInitialization();
         loadPivots();
         initCache();
         initC();
@@ -605,6 +616,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         if (logger.isDebugEnabled()) {
             logger.debug("Storing pivot tuples from A to B");
         }
+        
+        // we do not need this database after a freeze is invoked.
+        deleteDatabase(kDB, "K");
+        kDB = null;
+        
         // cache is initialized as from the point we set frozen = true
         // queries can be achieved
         initCache();
@@ -626,7 +642,24 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         writeSporeFile();
 
         assert aDB.count() == bDB.count();
-
+        
+        // now we can get rid of the data in B.
+        deleteDatabase(bDB, "B");
+        bDB = null;
+       
+        
+    }
+    
+    /**
+     * Deletes all the records of database db.
+     * @param db the database that will be deleted
+     */
+    private void deleteDatabase(Database db, String name) throws DatabaseException{
+        db.close();
+        //Transaction txn = databaseEnvironment.beginTransaction(null, null);
+        this.databaseEnvironment.truncateDatabase(null, name, false);
+        //txn = databaseEnvironment.beginTransaction(null, null);
+        this.databaseEnvironment.removeDatabase(null, name);        
     }
 
     /**
@@ -978,9 +1011,13 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     public void close() throws DatabaseException {
         aDB.close();
-        bDB.close();
+        if(bDB != null){
+            bDB.close();
+        }
         closeC();
-        kDB.close();
+        if(kDB != null){
+            kDB.close();
+        }
         databaseEnvironment.cleanLog();
         databaseEnvironment.close();
     }
