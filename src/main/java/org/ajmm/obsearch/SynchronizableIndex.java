@@ -110,8 +110,10 @@ public interface SynchronizableIndex < O extends OB > extends Index < O > {
      *            The object to be added
      * @param time
      *            Timestamp to be used.
-     * @return The internal id of the object(>= 0) or -1 if the object exists in
-     *         the database
+     * @return If {@link org.ajmm.obsearch.Result#OK} or
+     *         {@link org.ajmm.obsearch.Result#EXISTS} then the result will hold
+     *         the id of the inserted object and the operation is successful.
+     *         Otherwise an exception will be thrown.
      * @throws DatabaseException
      *             If something goes wrong with the DB
      * @throws OBException
@@ -122,7 +124,7 @@ public interface SynchronizableIndex < O extends OB > extends Index < O > {
      *             If there is a problem when instantiating objects O
      * @since 0.0
      */
-    int insert(O object, long time) throws DatabaseException, OBException,
+    Result insert(O object, long time) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException;
 
     /**
@@ -133,8 +135,10 @@ public interface SynchronizableIndex < O extends OB > extends Index < O > {
      *            Object to insert
      * @param time
      *            The time where it should be inserted
-     * @return The internal id of the object(>= 0) or -1 if the object exists in
-     *         the database
+     * @return {@link org.ajmm.obsearch.Result#OK} and the deleted object's id
+     *         if the object was found and successfully deleted.
+     *         {@link org.ajmm.obsearch.Result#NOT_EXISTS} if the object is not
+     *         in the database.
      * @throws DatabaseException
      *             If something goes wrong with the DB
      * @throws OBException
@@ -144,6 +148,6 @@ public interface SynchronizableIndex < O extends OB > extends Index < O > {
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
      */
-    int delete(O object, long time) throws DatabaseException, OBException,
+    Result delete(O object, long time) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException;
 }

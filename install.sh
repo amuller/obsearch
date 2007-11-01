@@ -1,4 +1,4 @@
-
+# this script is only for OBSearch developers
 # this script loads the latest versions of some dependencies not 
 # available in maven repositories
 

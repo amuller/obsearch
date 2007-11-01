@@ -51,6 +51,7 @@ import net.jxta.util.JxtaServerPipe;
 import org.ajmm.obsearch.AsynchronousIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -1939,13 +1940,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
                         boolean insert = in.readBoolean();
                         O o = readObject(in);
                         // logger.info("Inserting object");
-                        int res = -1;
+                        Result res = Result.NOT_EXISTS;
                         if (insert) {
                             res = getIndex().insert(o, time);
                         } else {
                             getIndex().delete(o, time);
                         }
-                        if (res == -1) {
+                        if (res != Result.OK) {
                             repeatedItems++;
                         }
                         // update the sync info so that timeouts won't occurr
@@ -2331,9 +2332,9 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      *             If there is a problem when instantiating objects O
      * @since 0.0
      */
-    public int delete(final O object) throws DatabaseException, OBException,
+    public Result delete(final O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        int res = getIndex().delete(object);
+        Result res = getIndex().delete(object);
 
         this.boxesUpdated.set(true);
         return res;
@@ -2378,11 +2379,11 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      *             If there is a problem when instantiating objects O
      * @since 0.0
      */
-    public int insert(final O object) throws IllegalIdException,
+    public Result insert(final O object) throws IllegalIdException,
             DatabaseException, OBException, IllegalAccessException,
             InstantiationException {
 
-        int res = getIndex().insert(object);
+        Result res = getIndex().insert(object);
         boxesUpdated.set(true);
         return res;
     }
@@ -2413,7 +2414,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
         return getIndex().readObject(in);
     }
 
-    public boolean exists(final O object) throws DatabaseException,
+    public Result exists(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }

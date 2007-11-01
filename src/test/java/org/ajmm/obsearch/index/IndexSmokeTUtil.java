@@ -14,6 +14,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
@@ -94,7 +95,16 @@ public class IndexSmokeTUtil {
             if (line != null) {
                 OBSlice s = new OBSlice(line);
                 if (shouldProcessSlice(s)) {
-                    assertEquals(realIndex, index.insert(s));
+                    Result res = index.insert(s);
+                    assertTrue(res == Result.OK);
+                    assertEquals(realIndex, res.getId());
+                    // If we insert before freezing, we should
+                    // be getting a Result.EXISTS if we try to insert
+                    // again!
+                    assertTrue(! index.isFrozen());
+                    res = index.insert(s);
+                    assertTrue(res == Result.EXISTS);
+                    assertEquals(res.getId(), realIndex);
                     realIndex++;
                 }
             }
@@ -134,15 +144,20 @@ public class IndexSmokeTUtil {
             if (line != null) {
                 OBSlice s = new OBSlice(line);
                 if (shouldProcessSlice(s)) {
-                    assertTrue(index.exists(s));
+                    Result res = index.exists(s);
+                    assertTrue(res == Result.EXISTS);
+                    assertEquals(i, res.getId());
                     // attempt to insert the object again, and get
                     // the -1
-                    assertEquals(-1, index.insert(s));
+                    res = index.insert(s);
+                    assertEquals(res.getId(), i);
+                    assertTrue(res == Result.EXISTS );
+                    i++;
                 }
                 if (i % 10000 == 0) {
                     logger.info("Exists/insert : " + i);
                 }
-                i++;
+               
             }
             re = r.readLine();
         }
@@ -310,9 +325,14 @@ public class IndexSmokeTUtil {
         int max = index.databaseSize();
         while (i < max) {
             OBSlice x = index.getObject(i);
-            assertTrue(index.exists(x));
-            assertEquals(i, index.delete(x));
-            assertTrue(!index.exists(x));
+            Result ex = index.exists(x);
+            assertTrue(ex == Result.EXISTS);
+            assertTrue(ex.getId() == i);
+            ex = index.delete(x);
+            assertTrue(ex == Result.OK);
+            assertEquals(i, ex.getId());
+            ex = index.exists(x);
+            assertTrue(ex == Result.NOT_EXISTS);
             i++;
         }
         index.close();

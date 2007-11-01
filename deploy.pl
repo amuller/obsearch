@@ -85,8 +85,9 @@ sub uploadFileToGoogleCode {
 		my $comment;
 		if($file =~ /bin/){
 				$comment = "binary";
-		}elsif($file =~/jar/){
-				$comment = "jar-no-dependencies";
+		}
+		elsif($file =~/jar/){
+				$comment = "jar-dist";
 						($v) = ($file =~ /obsearch-(.*)[.]jar/);
 				$version = $v;
 				#print "Version found! $version";
