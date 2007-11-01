@@ -226,6 +226,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     private void initDBAfterInitialization() throws DatabaseException {
         initBerkeleyDB();
+        initA();
         // way of creating a database
         initC();
     }
@@ -289,7 +290,6 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         this.initDBAfterInitialization();
         loadPivots();
         initCache();
-        initC();
         // restore the ids
         id = new AtomicInteger(this.databaseSize());
         return this.returnSelf();

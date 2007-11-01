@@ -93,7 +93,7 @@
 				<jvmarg value="-Xmx1200M" />
 				<arg value="-search"/>
 				<arg value="-r"/>
-				<arg value="7"/>
+				<arg value="3"/>
 				<arg value="-k"/>
 				<arg value="3"/>
 				<arg value="-db"/>

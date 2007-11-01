@@ -126,10 +126,9 @@ public final class OBExampleTrees {
                 // generate pivots
                 // The object ps will select pivots based on some simple
                 // criteria
-                //final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                 //       (short) 10, 30, new AcceptAll< OBSlice >());
+                final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
                 logger.debug("Selecting pivots");
-                KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());
+                //KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());
                 ps.generatePivots(index);
                 // Freeze the index so that we can start using it
                 logger.info("Freezing");
