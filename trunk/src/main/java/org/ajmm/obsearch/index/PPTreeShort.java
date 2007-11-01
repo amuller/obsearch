@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.ajmm.obsearch.Index;
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -775,9 +776,9 @@ public class PPTreeShort < O extends OBShort >
         return this;
     }
 
-    public boolean exists(O object) throws DatabaseException, OBException,
+    public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-
+        Result res = Result.NOT_EXISTS;
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -798,7 +799,7 @@ public class PPTreeShort < O extends OBShort >
                     dataEntry, null);
 
             if (retVal == OperationStatus.NOTFOUND) {
-                return false;
+                return res;
             }
 
             if (cursor.count() > 0) {
@@ -834,7 +835,9 @@ public class PPTreeShort < O extends OBShort >
                         int id = in.readInt();
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
-                            return true;
+                            res = Result.EXISTS;
+                            res.setId(id);
+                            break;
                         }
 
                     }
@@ -853,28 +856,29 @@ public class PPTreeShort < O extends OBShort >
                 cursor.close();
             }
         }
-        return false;
+        return res;
     }
 
     // re-implemented here to improve performance
     @Override
-    public int insert(O object) throws DatabaseException, OBException,
+    public Result insert(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        int resId = -1;
         if (isFrozen()) {
-            resId = insertAux(object);
+            return insertAux(object);
         } else {
-            resId = id.getAndIncrement();
-            insertUnFrozen(object, resId);
+            // do the default method if we are in frozen mode.
+            return super.insert(object);
         }
-        return resId;
     }
 
     /**
      * Auxiliary insert operation.
      * @param object
      *            object to insert.
-     * @return -1 if the object is already inserted, otherwise the object's id
+     * @return {@link org.ajmm.obsearch.Result#OK} and the deleted object's id
+     *         if the object was found and successfully deleted.
+     *         {@link org.ajmm.obsearch.Result#NOT_EXISTS} if the object is not
+     *         in the database.
      * @throws DatabaseException
      *             If something goes wrong with the DB
      * @throws OBException
@@ -884,10 +888,9 @@ public class PPTreeShort < O extends OBShort >
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
      */
-    private int insertAux(final O object) throws DatabaseException,
+    private Result insertAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
-        // if the object is not in the database, we can insert it
-
+        // if the object is not in the database, we can insert it        
         int resId = -1;
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
@@ -944,6 +947,7 @@ public class PPTreeShort < O extends OBShort >
                         int id = in.readInt();
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
+                            resId = id;
                             exists = true;
                             break;
                         }
@@ -965,15 +969,19 @@ public class PPTreeShort < O extends OBShort >
                 cursor.close();
             }
         }
+        Result res;
         if (exists) {
-            resId = -1;
+            res = Result.EXISTS;
+           
         } else {
             // we have to insert the record.
+            res = Result.OK;
             resId = id.getAndIncrement();
             insertA(object, resId);
             insertFrozenAuxAux(ppTreeValue, tuple, resId);
         }
-        return resId;
+        res.setId(resId);
+        return res;
 
     }
 
@@ -992,9 +1000,10 @@ public class PPTreeShort < O extends OBShort >
      *             If there is a problem when instantiating objects O
      */
     @Override
-    protected final int deleteAux(final O object) throws DatabaseException,
+    protected final Result deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
+        Result res = Result.NOT_EXISTS;
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -1052,6 +1061,8 @@ public class PPTreeShort < O extends OBShort >
                             resId = id;
                             exists = true;
                             retVal = cursor.delete();
+                            res = Result.OK;
+                            res.setId(resId);
                             if (retVal != OperationStatus.SUCCESS) {
                                 throw new DatabaseException();
                             }
@@ -1075,7 +1086,7 @@ public class PPTreeShort < O extends OBShort >
                 cursor.close();
             }
         }
-        return resId;
+        return res;
     }
 
     public  float distance(O a, O b) throws OBException{

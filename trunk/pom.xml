@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
-  <packaging>jar</packaging>
+  <!--<packaging>jar</packaging>-->
   <version>0.8</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
@@ -284,6 +284,7 @@ Would be cool to use this.
           <descriptors>
             <descriptor>src/assembly/dep.xml</descriptor>
 						<descriptor>src/assembly/src.xml</descriptor>
+						<descriptor>src/assembly/jardep.xml</descriptor>
           </descriptors>
 					<!--<descriptorRefs>
 						<descriptorRef>project</descriptorRef>
@@ -469,7 +470,6 @@ Would be cool to use this.
 		 <developer timezone="+9">
 			 <id>arnoldomuller</id>
 			 <name>Arnoldo Jose Muller Molina</name>
-			 <email>arnoldoMuller::arroba::g+m-a*i^l</email>
 			 <organization>Kyushu Institute of Technology</organization>
 			 <roles>
 				 <role>Developer</role>

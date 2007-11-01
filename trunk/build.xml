@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <project name="OBSearch">
-	<!-- download dependencies not available in maven's repository-->
+	<!-- download test data files-->
 	<target name="install">
 
 	</target>

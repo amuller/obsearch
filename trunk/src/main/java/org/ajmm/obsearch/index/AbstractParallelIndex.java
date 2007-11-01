@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.ParallelIndex;
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -134,7 +135,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
      */
     public abstract Index < O > getIndex();
 
-    public int delete(O object) throws DatabaseException, OBException,
+    public Result delete(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         return getIndex().delete(object);
     }
@@ -159,9 +160,9 @@ public abstract class AbstractParallelIndex < O extends OB > implements
         return getIndex().getBox(object);
     }
 
-    public int insert(O object) throws IllegalIdException, DatabaseException,
+    public Result insert(O object) throws IllegalIdException, DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
-        int res = getIndex().insert(object);
+        Result res = getIndex().insert(object);
         return res;
     }
 
@@ -222,7 +223,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
         return getIndex().readObject(in);
     }
 
-    public boolean exists(O object) throws DatabaseException, OBException,
+    public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }

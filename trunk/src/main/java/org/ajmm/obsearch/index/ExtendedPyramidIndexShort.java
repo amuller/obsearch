@@ -6,6 +6,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 import org.ajmm.obsearch.Index;
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -556,8 +557,9 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
     }
 
-    public boolean exists(final O object) throws DatabaseException,
+    public Result exists(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
+        Result res = Result.NOT_EXISTS;
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
         searchOB(object, (short) 0, result);
@@ -565,16 +567,19 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
             Iterator < OBResultShort < O >> it = result.iterator();
             assert it.hasNext();
             OBResultShort < O > r = it.next();
-            return object.equals(r.getObject());
-        } else {
-            return false;
-        }
+            if (object.equals(r.getObject())){
+                res = Result.EXISTS;
+                res.setId(r.getId());
+            }
+        } 
+        return res;
     }
 
     @Override
-    protected int deleteAux(final O object) throws DatabaseException,
+    protected Result deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
+        Result res = Result.NOT_EXISTS;
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -629,6 +634,8 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
+                            res = Result.OK;
+                            res.setId(resId);
                             retVal = cursor.delete();
                             // txn.commit();
                             if (retVal != OperationStatus.SUCCESS) {
@@ -655,7 +662,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                 cursor.close();
             }
         }
-        return resId;
+        return res;
     }
     
     public  float distance(O a, O b) throws OBException{
