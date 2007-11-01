@@ -176,20 +176,93 @@ public class IndexSmokeTUtil {
      *                something goes wrong.
      */
     protected void tIndex(IndexShort < OBSlice > index) throws Exception {
-
         File query = new File(testProperties.getProperty("test.query.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
+        
         int cx = 0;
-        int querySize = 1642; // amount of elements to read from the query
-        String re = null;
+       
         initIndex(index);
-        // assertEquals(index.aDB.count(), index.bDB.count());
+        search(index, (short)3,(byte)3);
+        search(index, (short)10,(byte)3);
+        int i = 0;
+       // int realIndex = 0;
+        // test special methods that only apply to
+        // SynchronizableIndex
+        if (index instanceof SynchronizableIndex) {
+            logger.info("Testing timestamp index");
+            SynchronizableIndex < OBSlice > index2 = (SynchronizableIndex < OBSlice >) index;
+            i = 0;
+            int totalCx = 0;
+            logger.info("Total Boxes: " + index2.totalBoxes());
+            while (i < index2.totalBoxes()) {
+                Iterator < TimeStampResult < OBSlice >> it2 = index2
+                        .elementsNewerThan(i, 0);
+                int cx2 = 0;
+                while (it2.hasNext()) {
+                    TimeStampResult < OBSlice > t = it2.next();
+                    OBSlice o = t.getObject();
+                    assert o != null;
+                    // extract the object returned by the timestamp
+                    // iterator and confirm that it is in the database.
+                    OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
+                            (byte) 1);
+                    index.searchOB(o, (short) 1, x);
+                    Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
+                    assertTrue(" Size found:" + x.getSize() + " item # " + cx
+                            + " : " + o, x.getSize() == 1);
+                    while (it3.hasNext()) {
+                        OBResultShort < OBSlice > j = it3.next();
+                        assertTrue(j.getObject().equals(o));
+                        assertTrue(j.getObject().distance(o) == 0);
+                    }
+                    cx2++;
+
+                }
+                assertEquals(cx2, index2.elementsPerBox(i));
+                logger.info("Result: box: " + i + " Cx" + cx2);
+                totalCx += cx2;
+                i++;
+            }
+            assertEquals(index.databaseSize(), totalCx);
+            logger.info("CX: " + totalCx);
+        }
+
+        // now we delete elements from the DB
+        logger.info("Testing deletes");
+        i = 0;
+        int max = index.databaseSize();
+        while (i < max) {
+            OBSlice x = index.getObject(i);
+            Result ex = index.exists(x);
+            assertTrue(ex == Result.EXISTS);
+            assertTrue(ex.getId() == i);
+            ex = index.delete(x);
+            assertTrue(ex == Result.OK);
+            assertEquals(i, ex.getId());
+            ex = index.exists(x);
+            assertTrue(ex == Result.NOT_EXISTS);
+            i++;
+        }
+        index.close();
+        Directory.deleteDirectory(dbFolder);
+    }
+    
+    /**
+     * Perform all the searches with
+     * @param x the index that will be used
+     * @param range
+     * @param k
+     */
+    public  void search(IndexShort< OBSlice > index, short range, byte k) throws Exception{
+     // assertEquals(index.aDB.count(), index.bDB.count());
         // assertEquals(index.aDB.count(), index.bDB.count());
         // index.stats();
-        byte k = 3;
-        short range = 3; // range
         // it is time to Search
+        int querySize = 1642; // amount of elements to read from the query
+        String re = null;
         logger.info("Matching begins...");
+        File query = new File(testProperties.getProperty("test.query.input"));
+        File dbFolder = new File(testProperties.getProperty("test.db.path"));
         BufferedReader r = new BufferedReader(new FileReader(query));
         List < OBPriorityQueueShort < OBSlice >> result = new LinkedList < OBPriorityQueueShort < OBSlice >>();
         re = r.readLine();
@@ -277,66 +350,6 @@ public class IndexSmokeTUtil {
         r.close();
         logger.info("Finished  matching validation.");
         assertFalse(it.hasNext());
-
-        // test special methods that only apply to
-        // SynchronizableIndex
-        if (index instanceof SynchronizableIndex) {
-            logger.info("Testing timestamp index");
-            SynchronizableIndex < OBSlice > index2 = (SynchronizableIndex < OBSlice >) index;
-            i = 0;
-            int totalCx = 0;
-            logger.info("Total Boxes: " + index2.totalBoxes());
-            while (i < index2.totalBoxes()) {
-                Iterator < TimeStampResult < OBSlice >> it2 = index2
-                        .elementsNewerThan(i, 0);
-                int cx2 = 0;
-                while (it2.hasNext()) {
-                    TimeStampResult < OBSlice > t = it2.next();
-                    OBSlice o = t.getObject();
-                    assert o != null;
-                    // extract the object returned by the timestamp
-                    // iterator and confirm that it is in the database.
-                    OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
-                            (byte) 1);
-                    index.searchOB(o, (short) 1, x);
-                    Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
-                    assertTrue(" Size found:" + x.getSize() + " item # " + cx
-                            + " : " + o, x.getSize() == 1);
-                    while (it3.hasNext()) {
-                        OBResultShort < OBSlice > j = it3.next();
-                        assertTrue(j.getObject().equals(o));
-                        assertTrue(j.getObject().distance(o) == 0);
-                    }
-                    cx2++;
-
-                }
-                assertEquals(cx2, index2.elementsPerBox(i));
-                logger.info("Result: box: " + i + " Cx" + cx2);
-                totalCx += cx2;
-                i++;
-            }
-            assertEquals(realIndex, totalCx);
-            logger.info("CX: " + totalCx);
-        }
-
-        // now we delete elements from the DB
-        logger.info("Testing deletes");
-        i = 0;
-        int max = index.databaseSize();
-        while (i < max) {
-            OBSlice x = index.getObject(i);
-            Result ex = index.exists(x);
-            assertTrue(ex == Result.EXISTS);
-            assertTrue(ex.getId() == i);
-            ex = index.delete(x);
-            assertTrue(ex == Result.OK);
-            assertEquals(i, ex.getId());
-            ex = index.exists(x);
-            assertTrue(ex == Result.NOT_EXISTS);
-            i++;
-        }
-        index.close();
-        Directory.deleteDirectory(dbFolder);
     }
 
     /**

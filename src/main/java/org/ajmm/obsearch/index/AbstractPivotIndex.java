@@ -568,6 +568,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If something goes wrong with the DB
      */
     public void prepareFreeze() throws DatabaseException {
+        // we do not need this database anymore as it is only before
+        // freeze is performed
+        deleteDatabase(kDB, "K");
+        kDB = null;
         initCache();
     }
 
@@ -617,9 +621,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             logger.debug("Storing pivot tuples from A to B");
         }
         
-        // we do not need this database after a freeze is invoked.
-        deleteDatabase(kDB, "K");
-        kDB = null;
+        
         
         // cache is initialized as from the point we set frozen = true
         // queries can be achieved
