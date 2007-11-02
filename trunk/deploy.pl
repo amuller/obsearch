@@ -17,6 +17,7 @@ if (not defined $password){
 		die "You did not give me a password!";
 }
 
+shell("mvn clean");
 # generate the website
 shell("mvn site:site");
 # generate the assemblies
