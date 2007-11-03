@@ -238,7 +238,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         Result r = getIndex().insert(object);
-        if (r == Result.OK) { // if we could insert the object
+        if (r.getStatus() == Result.Status.OK) { // if we could insert the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
                 insertInsertEntry(box, time, r.getId());
@@ -252,7 +252,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         Result r = getIndex().delete(object);
-        if (r == Result.OK) { // if we could delete the object
+        if (r.getStatus() == Result.Status.OK) { // if we could delete the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
                 insertDeleteEntry(box, time, object);

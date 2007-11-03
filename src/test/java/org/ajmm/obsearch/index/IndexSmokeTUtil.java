@@ -96,14 +96,14 @@ public class IndexSmokeTUtil {
                 OBSlice s = new OBSlice(line);
                 if (shouldProcessSlice(s)) {
                     Result res = index.insert(s);
-                    assertTrue(res == Result.OK);
+                    assertTrue(res.getStatus() == Result.Status.OK);
                     assertEquals(realIndex, res.getId());
                     // If we insert before freezing, we should
                     // be getting a Result.EXISTS if we try to insert
                     // again!
                     assertTrue(! index.isFrozen());
                     res = index.insert(s);
-                    assertTrue(res == Result.EXISTS);
+                    assertTrue(res.getStatus() == Result.Status.EXISTS);
                     assertEquals(res.getId(), realIndex);
                     realIndex++;
                 }
@@ -145,13 +145,13 @@ public class IndexSmokeTUtil {
                 OBSlice s = new OBSlice(line);
                 if (shouldProcessSlice(s)) {
                     Result res = index.exists(s);
-                    assertTrue(res == Result.EXISTS);
+                    assertTrue(res.getStatus() == Result.Status.EXISTS);
                     assertEquals(i, res.getId());
                     // attempt to insert the object again, and get
                     // the -1
                     res = index.insert(s);
                     assertEquals(res.getId(), i);
-                    assertTrue(res == Result.EXISTS );
+                    assertTrue(res.getStatus() == Result.Status.EXISTS );
                     i++;
                 }
                 if (i % 10000 == 0) {
@@ -234,13 +234,13 @@ public class IndexSmokeTUtil {
         while (i < max) {
             OBSlice x = index.getObject(i);
             Result ex = index.exists(x);
-            assertTrue(ex == Result.EXISTS);
+            assertTrue(ex.getStatus() == Result.Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);
-            assertTrue(ex == Result.OK);
+            assertTrue(ex.getStatus() == Result.Status.OK);
             assertEquals(i, ex.getId());
             ex = index.exists(x);
-            assertTrue(ex == Result.NOT_EXISTS);
+            assertTrue(ex.getStatus() == Result.Status.NOT_EXISTS);
             i++;
         }
         index.close();
