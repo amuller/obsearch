@@ -39,10 +39,9 @@ import com.sleepycat.je.DatabaseException;
  * searches on an unfrozen index. Note that freezing the index does not mean you
  * cannot insert new data. You can! 3) Insert/Delete new records/ and search.
  * There are indexes that wrap other indexes to provide extended functionality.
- * Please consult the documentation for each index.
- * The index assumes that for any two objects a, b:
- * if a.equals(b) then for their corresponding byte arrays ba,bb ba.equals(bb) must also hold.
- *  
+ * Please consult the documentation for each index. The index assumes that for
+ * any two objects a, b: if a.equals(b) then for their corresponding byte arrays
+ * ba,bb ba.equals(bb) must also hold.
  * @param <O>
  *                The object that will be indexed in the database
  * @author Arnoldo Jose Muller Molina
@@ -106,7 +105,7 @@ public interface Index < O extends OB > {
 
     /**
      * Freezes the index. From this point data can be inserted, searched and
-     * deleted The index might deteriorate at some point so every once in a
+     * deleted. The index might deteriorate at some point so every once in a
      * while it is a good idea to rebuild the index. A PivotSelector must be
      * executed before calling this method.
      * @throws IOException
@@ -184,7 +183,7 @@ public interface Index < O extends OB > {
     /**
      * Closes the database.
      * @throws DatabaseException
-     *                 If something goes wrong with the DB
+     *                 If something goes wrong with the DB.
      */
     void close() throws DatabaseException;
 
