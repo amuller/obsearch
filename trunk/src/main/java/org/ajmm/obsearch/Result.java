@@ -27,36 +27,71 @@ package org.ajmm.obsearch;
  * @since 0
  */
 
-public enum Result {
-    
-    
-    OK,
-    EXISTS,
-    NOT_EXISTS,
-    ERROR;
-    
+public class Result {
+
+    public enum Status {
+        OK, EXISTS, NOT_EXISTS, ERROR;
+    }
+
     /**
-     * Object id for relevant 
+     * Status of the Operation
+     */
+    private Status status;
+
+    /**
+     * Object id for relevant
      */
     private int id;
-  
-   Result(){
-       this.id = -1;
-   }
-    
-   /**
-    * Sets the id returned in the enumeration.
-    * @param id The new id.
-    */
-   public void setId(int id){
-       this.id = id;
-   }
-   /**
-    * Returns the id of the affected item of the operation
-    * -1 if the id does not apply.
-    * @return The id.
-    */
-   public int getId(){
-       return id;
-   }
+
+    /**
+     * Creates a default status with status Status.Error
+     * and an id of -1.
+     */
+    public Result() {
+        this(Status.ERROR, -1);
+    }
+
+    /**
+     * Initializes the object with the given
+     * status and an id of -1
+     * @param status The status that will be used.
+     */
+    public Result(Status status){
+        this(status, -1);
+    }
+    /**
+     * Creates a new status object.
+     * @param status The status the object will hold
+     * @param id The id of the affected object.
+     */
+    public Result(Status status, int id) {
+        this.status = status;
+        this.id = id;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    /**
+     * Sets the id returned in the enumeration.
+     * @param id
+     *                The new id.
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
+     * Returns the id of the affected item of the operation -1 if the id does
+     * not apply.
+     * @return The id.
+     */
+    public int getId() {
+        return id;
+    }
 }

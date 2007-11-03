@@ -559,7 +559,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     public Result exists(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
-        Result res = Result.NOT_EXISTS;
+        Result res = new Result(Result.Status.NOT_EXISTS);
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
         searchOB(object, (short) 0, result);
@@ -568,7 +568,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
             assert it.hasNext();
             OBResultShort < O > r = it.next();
             if (object.equals(r.getObject())){
-                res = Result.EXISTS;
+                res = new Result(Result.Status.EXISTS);
                 res.setId(r.getId());
             }
         } 
@@ -579,7 +579,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     protected Result deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
-        Result res = Result.NOT_EXISTS;
+        Result res = new Result(Result.Status.NOT_EXISTS);
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -634,7 +634,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
-                            res = Result.OK;
+                            res = new Result(Result.Status.OK);
                             res.setId(resId);
                             retVal = cursor.delete();
                             // txn.commit();
