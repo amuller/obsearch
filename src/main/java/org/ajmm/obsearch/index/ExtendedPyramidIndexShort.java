@@ -47,10 +47,10 @@ import com.sleepycat.je.OperationStatus;
  */
 /**
  * ExtendedPyramidIndexShort is an index that uses the pyramid technique. The
- * distance function used must return short values.
- * The spore file name is: ExtendedPyramidTechniqueShort
+ * distance function used must return short values. The spore file name is:
+ * ExtendedPyramidTechniqueShort
  * @param <O>
- *            The type of object to be stored in the Index.
+ *                The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
@@ -71,13 +71,13 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * Creates a new ExtendedPyramidIndexShort. Ranges accepted by this pyramid
      * will be between 0 and Short.MAX_VALUE
      * @param databaseDirectory
-     *            Directory were the index will be stored
+     *                Directory were the index will be stored
      * @param pivots
-     *            Numbe rof pivots to be used.
+     *                Numbe rof pivots to be used.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws IOException
-     *             If the databaseDirectory directory does not exist.
+     *                 If the databaseDirectory directory does not exist.
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
             final short pivots) throws DatabaseException, IOException {
@@ -93,17 +93,17 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * maxInput]. These two values can be over estimated but not under
      * estimated.
      * @param databaseDirectory
-     *            Directory were the index will be stored
+     *                Directory were the index will be stored
      * @param pivots
-     *            Numbe rof pivots to be used.
+     *                Numbe rof pivots to be used.
      * @param minInput
-     *            Minimum value to be returned by the distance function
+     *                Minimum value to be returned by the distance function
      * @param maxInput
-     *            Maximum value to be returned by the distance function
+     *                Maximum value to be returned by the distance function
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws IOException
-     *             If the databaseDirectory directory does not exist.
+     *                 If the databaseDirectory directory does not exist.
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
             final short pivots, final short minInput, final short maxInput)
@@ -253,33 +253,34 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     /**
      * This method reads from the B-tree appies l-infinite to discard false
-     * positives. This technique is called SMAP. Calculates the real distance and updates the result priority
-     * queue It is left public so that junit can perform validations on it
-     * Performance-wise this is one of the most important methods
+     * positives. This technique is called SMAP. Calculates the real distance
+     * and updates the result priority queue It is left public so that junit can
+     * perform validations on it Performance-wise this is one of the most
+     * important methods
      * @param object
-     *            object to search
+     *                object to search
      * @param tuple
-     *            tuple of the object
+     *                tuple of the object
      * @param r
-     *            range
+     *                range
      * @param hlow
-     *            lowest pyramid value
+     *                lowest pyramid value
      * @param hhigh
-     *            highest pyramid value
+     *                highest pyramid value
      * @param result
-     *            result of the search operation
+     *                result of the search operation
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws IllegalIdException
-     *             This exception is left as a Debug flag. If you receive this
-     *             exception please report the problem to:
-     *             http://code.google.com/p/obsearch/issues/list
+     *                 This exception is left as a Debug flag. If you receive
+     *                 this exception please report the problem to:
+     *                 http://code.google.com/p/obsearch/issues/list
      */
     private void searchBTreeAndUpdate(final O object, final short[] tuple,
             final short r, final float hlow, final float hhigh,
@@ -355,14 +356,14 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * you want non-rectangular queries you have to override this method and
      * make sure your modification works well with searchOB
      * @param t
-     *            the tuple to be processed
+     *                the tuple to be processed
      * @param r
-     *            the range
+     *                the range
      * @param q
-     *            resulting rectangle query
+     *                resulting rectangle query
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
 
     protected final void generateRectangle(final short[] t, final short r,
@@ -383,10 +384,10 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * Method that takes the values already calculated in B and puts them into C
      * This is to save some time when rebuilding the index.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     @Override
     protected void insertFromBtoC() throws DatabaseException,
@@ -427,10 +428,10 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * Transforms the given tuple into an extended pyramid technique normalized
      * value that considers the "center" of the dimension.
      * @param tuple
-     *            The original tuple in the default dimension
+     *                The original tuple in the default dimension
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @return resulting normalized tuple
      */
     protected final float[] extendedPyramidTransform(final short[] tuple)
@@ -450,11 +451,11 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     /**
      * Normalize the given value.
      * @param x
-     *            value to normalize
+     *                value to normalize
      * @return the normalized value
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     protected float normalize(final short x) throws OutOfRangeException {
         if (x < minInput || x > maxInput) {
@@ -480,18 +481,101 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         return super.pyramidOfPoint(et);
     }
 
+    public Result exists(O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
+        Result res = new Result(Result.Status.NOT_EXISTS);
+        
+        short[] tuple = new short[pivotsCount];
+        // calculate the pivot for the given object
+        calculatePivotTuple(object, tuple);
+        
+        float[] et = extendedPyramidTransform(tuple);
+        float pyramidValue = pyramidValue(et);
+        
+        Cursor cursor = null;
+
+        try {
+
+            DatabaseEntry keyEntry = new DatabaseEntry();
+            DatabaseEntry dataEntry = new DatabaseEntry();
+            cursor = cDB.openCursor(null, null);
+            SortedFloatBinding.floatToEntry(pyramidValue, keyEntry);
+            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
+                    dataEntry, null);
+
+            if (retVal == OperationStatus.NOTFOUND) {
+                return res;
+            }
+
+            if (cursor.count() > 0) {
+                float currentPyramidValue = SortedFloatBinding
+                        .entryToFloat(keyEntry);
+                short max = Short.MIN_VALUE;
+                while (retVal == OperationStatus.SUCCESS
+                        && currentPyramidValue == pyramidValue) {
+
+                    TupleInput in = new TupleInput(dataEntry.getData());
+
+                    int i = 0;
+                    short t;
+                    max = Short.MIN_VALUE;
+                    // STATS
+                    while (i < tuple.length) {
+                        t = (short) Math.abs(tuple[i] - in.readShort());
+                        if (t > max) {
+                            max = t;
+                            if (t != 0) {
+                                break; // finish this loop this slice won't be
+                                // matched
+                                // after all!
+                            }
+                        }
+                        i++;
+                    }
+
+                    // if max == 0 we can check the candidate
+
+                    if (max == 0) {
+                        // there is a chance it is a possible match
+                        int id = in.readInt();
+                        O toCompare = super.getObject(id);
+                        if (object.equals(toCompare)) {
+                            res = new Result(Result.Status.EXISTS);
+                            res.setId(id);
+                            break;
+                        }
+
+                    }
+                    // read the next record
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                    // update the current pyramid value so that we know when
+                    // to
+                    // stop
+                    currentPyramidValue = SortedFloatBinding
+                            .entryToFloat(keyEntry);
+                }
+            }
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return res;
+    }
+
     /**
      * Inserts the given tuple and id into C
      * @param t
-     *            tuple
+     *                tuple
      * @param id
-     *            internal id
+     *                internal id
      * @return 1 if everything was sucessful
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      */
     protected byte insertFrozenAux(final short[] t, final int id)
             throws OutOfRangeException, DatabaseException {
@@ -541,11 +625,11 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     /**
      * Calculates the tuple vector for the given object.
      * @param obj
-     *            object to be processed
+     *                object to be processed
      * @param tuple
-     *            The resulting tuple will be stored here
+     *                The resulting tuple will be stored here
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      */
     protected final void calculatePivotTuple(final O obj, final short[] tuple)
             throws OBException {
@@ -557,23 +641,23 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
     }
 
-    public Result exists(final O object) throws DatabaseException,
-            OBException, IllegalAccessException, InstantiationException {
+    /*public Result exists(final O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
         Result res = new Result(Result.Status.NOT_EXISTS);
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
-        searchOB(object, (short) 0, result);
+        searchOB(object, (short) 1, result);
         if (result.getSize() == 1) {
             Iterator < OBResultShort < O >> it = result.iterator();
             assert it.hasNext();
             OBResultShort < O > r = it.next();
-            if (object.equals(r.getObject())){
+            if (object.equals(r.getObject())) {
                 res = new Result(Result.Status.EXISTS);
                 res.setId(r.getId());
             }
-        } 
+        }
         return res;
-    }
+    }*/
 
     @Override
     protected Result deleteAux(final O object) throws DatabaseException,
@@ -664,9 +748,9 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
         return res;
     }
-    
-    public  float distance(O a, O b) throws OBException{
-        short result = ((OBShort)a).distance((OBShort)b);
+
+    public float distance(O a, O b) throws OBException {
+        short result = ((OBShort) a).distance((OBShort) b);
         return normalize(result);
     }
 

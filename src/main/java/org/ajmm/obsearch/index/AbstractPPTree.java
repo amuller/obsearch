@@ -57,6 +57,13 @@ public abstract class AbstractPPTree < O extends OB >
     private static final transient Logger logger = Logger
             .getLogger(AbstractPPTree.class);
 
+    
+    /**
+     * The minimum number of elements that will be accepted in each
+     * space.
+     */
+    private static final int MIN_ELEMENTS_IN_SPACE_ACCEPTED = 50;
+    
     /**
      * Partitions to be used when generating the space tree.
      */
@@ -77,6 +84,11 @@ public abstract class AbstractPPTree < O extends OB >
      * Holds the spaceTree's leaf nodes so we can access them fast.
      */
     protected transient SpaceTreeLeaf[] spaceTreeLeaves;
+    
+    /**
+     * The total # of boxes used by this P+Tree.
+     */
+    private int totalBoxes;
 
     /**
      * AbstractPPTree Constructs a P+Tree.
@@ -148,7 +160,8 @@ public abstract class AbstractPPTree < O extends OB >
         // divide the space
         spaceDivision(node, 0, minMax, data, sNo, ran, null);
         // we created all the spaces.
-        assert sNo[0] == Math.pow(2, od);
+        assert sNo[0] <= Math.pow(2, od);
+        this.totalBoxes = sNo[0];
         // now the space-tree has been built.
         // save the space tree
         this.spaceTree = node;
@@ -259,6 +272,21 @@ public abstract class AbstractPPTree < O extends OB >
         SpaceTreeLeaf n = this.spaceTree.search(tuple);
         return n.getSNo();
     }
+    
+    /**
+     * This method returns true if either l or r are
+     * smaller than {@value #MIN_ELEMENTS_IN_SPACE_ACCEPTED}. This will mean that
+     * the Parition will stop and that the amount of subspaces
+     * will be less than 2 ^ od
+     * @param l number of elements of the left space
+     * @param r number of elements of the right space
+     * @return true if either of the spaces are less than {@link #MIN_ELEMENTS_IN_SPACE_ACCEPTED}.
+     * 
+     */
+    protected boolean shallWeStop(int l, int r){
+        return l <= MIN_ELEMENTS_IN_SPACE_ACCEPTED ||
+                r <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
+    }
 
     /**
      * A recursive version of the space division algorithm.
@@ -290,8 +318,9 @@ public abstract class AbstractPPTree < O extends OB >
         }
 
         try {
-            if (currentLevel < od) { // nonleaf node processing
+            if (currentLevel < od && ! (node instanceof SpaceTreeLeaf) ) { // nonleaf node processing
                 // initialize clustering algorithm
+                assert node instanceof SpaceTreeNode;
                 float[][] centers = kMeans(data, (byte) 2, ran);
 
                 // assert centers.numInstances() == 2 : "Centers found: " +
@@ -326,7 +355,7 @@ public abstract class AbstractPPTree < O extends OB >
                 SpaceTree rightNode = null;
 
                 SpaceTreeNode ntemp = (SpaceTreeNode) node;
-                if (currentLevel < (od - 1)) { // if we are before the last
+                if (currentLevel < (od - 1) && ! shallWeStop(SL.size(), SR.size())) { // if we are before the last
                     // iteration (that is before adding
                     // the leaves)
                     leftNode = new SpaceTreeNode();
@@ -340,7 +369,7 @@ public abstract class AbstractPPTree < O extends OB >
                 ntemp.setLeft(leftNode);
                 ntemp.setRight(rightNode);
 
-                if (currentLevel < (od - 1)) {
+                if (currentLevel < (od - 1) && ! shallWeStop(SL.size(), SR.size())) {
                     spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
                             SNo, ran, null);
                     spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
@@ -433,7 +462,7 @@ public abstract class AbstractPPTree < O extends OB >
         if (cluster.size() <= 1) {
             throw new KMeansException(
                     "Cannot cluster spaces with one or less elements. Found elements: "
-                            + cluster);
+                            + cluster.size());
         }
         float[][] centroids = new float[k][pivotsCount];
         if (iteration < AbstractPPTree.KMEANS_PP_ITERATIONS) {
@@ -468,14 +497,7 @@ public abstract class AbstractPPTree < O extends OB >
                 updateAveragesInfo(closest, tempTuple, averages);
                 card++;
             }
-            // we need to make sure that every centroid has elements, otherwise
-            // we have to execute the algorithm again
-            if (someoneEmpty(selection)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Repeating k-means: " + cluster.size());
-                }
-                return kMeansAux(cluster, k, ran, 1);
-            }
+            
             // after finishing recalculating the pivots, we just have to
             // center the clusters
             if (modified) {
@@ -486,15 +508,16 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * Returns true if any of the given clusters is empty.
+     * Returns true if any of the given clusters is almost (30 elements
+     * or less) empty.
      * @param selection
      *            set of clusters to analyze
      * @return true if any of the given clusters is empty
      */
-    private boolean someoneEmpty(final TIntHashSet[] selection) {
+    private boolean someoneAlmostEmpty(final TIntHashSet[] selection) {
         byte i = 0;
         while (i < selection.length) {
-            if (selection[i].size() == 0) {
+            if (selection[i].size() <= 30) {
                 return true;
             }
             i++;
@@ -629,7 +652,7 @@ public abstract class AbstractPPTree < O extends OB >
 
     @Override
     public int totalBoxes() {
-        return (int) Math.pow(2, this.od);
+        return totalBoxes;
     }
 
     /**

@@ -237,6 +237,7 @@ public final class OBSearchExample {
                             OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
                                     k);
                             p2p.searchOB(s, range, x);
+                            logger.info(x);
                             result.add(x);
                             i++;
                         }

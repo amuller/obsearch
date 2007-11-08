@@ -190,7 +190,7 @@ public class IndexSmokeTUtil {
         // SynchronizableIndex
         if (index instanceof SynchronizableIndex) {
             logger.info("Testing timestamp index");
-            SynchronizableIndex < OBSlice > index2 = (SynchronizableIndex < OBSlice >) index;
+            SynchronizableIndexShort < OBSlice > index2 = (SynchronizableIndexShort < OBSlice >) index;
             i = 0;
             int totalCx = 0;
             logger.info("Total Boxes: " + index2.totalBoxes());
@@ -206,10 +206,11 @@ public class IndexSmokeTUtil {
                     // iterator and confirm that it is in the database.
                     OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
                             (byte) 1);
-                    index.searchOB(o, (short) 1, x);
+                    // it should be  set to 0, but it won't work with 0.
+                    index2.searchOB(o, (short) 5, x);
                     Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
                     assertTrue(" Size found:" + x.getSize() + " item # " + cx
-                            + " : " + o, x.getSize() == 1);
+                            + " : " + o + " db size: " + index.databaseSize(), x.getSize() == 1);
                     while (it3.hasNext()) {
                         OBResultShort < OBSlice > j = it3.next();
                         assertTrue(j.getObject().equals(o));

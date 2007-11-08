@@ -58,7 +58,7 @@ public final class OBExampleTrees {
     /**
      * Logger.
      */
-    private static final Logger logger = Logger.getLogger(OBExampleTrees.class);
+    private static final Logger logger = Logger.getLogger("OBExampleTrees");
 
     /**
      * Utility classes should not have public constructors.
@@ -69,12 +69,13 @@ public final class OBExampleTrees {
 
     /**
      * Reads the parameters from the command line and either creates or searches
-     * an index.
+     * an index. 
      * @param args
      *            The arguments from the command line.
      */
     public static void main(final String[] args) {
         int returnValue = 0;
+        int maxStrSize = 0;
         // initialize log4j
         try {
             PropertyConfigurator.configure("obexample.log4j");
@@ -102,7 +103,7 @@ public final class OBExampleTrees {
                  * by shouldProcessTree())
                  */
                 index = new PPTreeShort < OBSlice >(dbFolder, (short) 30, od,
-                        (short) 0, (short) 1000);
+                        (short) 0, (short) 7000);
 
                 logger.info("Adding data");
                 final BufferedReader r = new BufferedReader(
@@ -113,6 +114,10 @@ public final class OBExampleTrees {
                 while (re != null) {
                     // if this returns null then we read a comment
                     final String l = parseLine(re);
+                    int tl = l.length();
+                    if(maxStrSize < tl){
+                        maxStrSize = tl;
+                    }
                     if (l != null) {
                         final OBSlice s = new OBSlice(l);
                         if (shouldProcessTree(s)) {
@@ -123,6 +128,8 @@ public final class OBExampleTrees {
                     }
                     re = r.readLine();
                 }
+                // 19413
+                logger.info("Max str size: " + maxStrSize);
                 // generate pivots
                 // The object ps will select pivots based on some simple
                 // criteria
@@ -134,8 +141,8 @@ public final class OBExampleTrees {
                 logger.info("Freezing");
                 index.freeze();
                 // close the index
-                index.close();
-                logger.info("Finished Index Creation");
+                logger.info("Finished Index Creation, items stored:" + index.databaseSize());                
+                index.close();                
             } else if (cline.hasOption("search")) {
 
                 // Load a database created in the previous step and search
@@ -188,10 +195,12 @@ public final class OBExampleTrees {
                         // we load the Tree from the file
                         if (shouldProcessTree(s)) {
                             // and perform the search
+                            logger.info("Slice: " + l);
                             index.searchOB(s, range, x);
                             // search is completed, we just store the
                             // result.
-                            result.add(x);
+                            logger.info(x);
+                            //result.add(x);
                             i++;
                         }
                     }
@@ -334,7 +343,7 @@ public final class OBExampleTrees {
      *             Throws an exception if the OBSlice has an invalid tree
      */
     public static boolean shouldProcessTree(final OBSlice x) throws Exception {
-        return x.size() <= 500;
+        return true;
     }
 
     /**

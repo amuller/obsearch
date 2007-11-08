@@ -119,7 +119,9 @@ public class OBSlice implements OBShort {
         }
         // return Na - res + Nb - res;
         // return (Na + Nb) - ( 2 * res);
-        return (short) (((Na + Nb) - (2 * res)) / 2);
+        short r = (short) (((Na + Nb) - (2 * res)) / 2);
+        assert r >= 0;
+        return r;
     }
 
     /**
