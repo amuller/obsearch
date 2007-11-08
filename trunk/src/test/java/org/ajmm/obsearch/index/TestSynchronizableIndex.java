@@ -44,6 +44,10 @@ public class TestSynchronizableIndex
     public void testSyncTree() throws Exception {
         File dbFolder = new File(TUtils.getTestProperties().getProperty(
                 "test.db.path"));
+        OBSlice x = new OBSlice("U(M(),X())");
+        OBSlice x2 = new OBSlice("E( U(M(),X()))");
+        System.out.println("Distance:" + x.distance(x2));
+        
         Directory.deleteDirectory(dbFolder);
         assertTrue(!dbFolder.exists());
         assertTrue(dbFolder.mkdirs());
