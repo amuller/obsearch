@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index;
 
+import gnu.trove.TIntObjectHashMap;
+
 import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,7 +39,7 @@ public class OBCache < O > {
     /**
      * The map that stores the cache.
      */
-    private ConcurrentHashMap < Integer, SoftReference < O > > map;
+    private TIntObjectHashMap < SoftReference < O > > map;
 
     /**
      * Initialize the cache with the given amount of elements.
@@ -48,7 +50,7 @@ public class OBCache < O > {
     public OBCache(final int size) {
         // using open addressing because it is cheaper
         // map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
-        map = new ConcurrentHashMap < Integer, SoftReference < O >>(size);
+        map = new TIntObjectHashMap  < SoftReference < O >>(size);
     }
 
     /**
