@@ -69,7 +69,13 @@
 	    <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<!--<jvmarg value="-ea" />-->
 				<jvmarg value="-server" />
-				<jvmarg value="-Xmx1300M" />
+				<jvmarg value="-Xmx2000M" />
+<!--        <jvmarg value=" -XX:+AggressiveHeap"/>-->
+<!--				<jvmarg value="-XX:+UseLargePages"/>-->
+					<jvmarg value="-XX:+UseParallelGC"/>
+						<jvmarg value="-XX:+UseParallelOldGC"/> <!-- parallel compaction -->
+						<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
+
 				<arg value="-create"/>
 				<arg value="-db"/>
 				<arg value="${dbfolder}"/>
@@ -90,12 +96,15 @@
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<jvmarg value="-server" />
 				<!--<jvmarg value="-ea"/>-->
-				<jvmarg value="-Xmx1200M" />
+				<jvmarg value="-Xmx2000M" />
+				<jvmarg value="-XX:+UseParallelGC"/>
+				<jvmarg value="-XX:+UseParallelOldGC"/>
+				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
 				<arg value="-search"/>
 				<arg value="-r"/>
 				<arg value="3"/>
 				<arg value="-k"/>
-				<arg value="3"/>
+				<arg value="1"/>
 				<arg value="-db"/>
 				<arg value="${dbfolder}"/>
 				<arg value="-data"/>

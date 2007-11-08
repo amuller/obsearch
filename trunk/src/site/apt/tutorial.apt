@@ -136,7 +136,9 @@ public class OBVectorExample implements OBShort {
 // 30: Number of pivots used by SMAP (see below). 
 // Depending on the distance function a greater number might improve performance.  
 // You might want to spend some time tweaking this parameter function.
-// od: Partitions of the P+Tree. A value of 8 usually works well :).
+// od: Partitions of the P+Tree. Depending on the distance function a value of
+//     6-9 might be good. You have to perform some tests to decide which
+//     is the best value. 
 PPTreeShort < OBVectorExample > index = 
 	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
 ---

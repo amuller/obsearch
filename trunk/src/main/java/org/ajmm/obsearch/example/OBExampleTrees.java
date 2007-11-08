@@ -135,7 +135,7 @@ public final class OBExampleTrees {
                 // criteria
                 final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
                 logger.debug("Selecting pivots");
-                //KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());
+                //KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable< OBSlice >());
                 ps.generatePivots(index);
                 // Freeze the index so that we can start using it
                 logger.info("Freezing");
@@ -195,11 +195,11 @@ public final class OBExampleTrees {
                         // we load the Tree from the file
                         if (shouldProcessTree(s)) {
                             // and perform the search
-                            logger.info("Slice: " + l);
+                            //logger.info("Slice: " + l);
                             index.searchOB(s, range, x);
                             // search is completed, we just store the
                             // result.
-                            logger.info(x);
+                            //logger.info(x);
                             //result.add(x);
                             i++;
                         }
