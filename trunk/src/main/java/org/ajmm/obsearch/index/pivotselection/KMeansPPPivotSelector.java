@@ -90,11 +90,10 @@ public class KMeansPPPivotSelector < O extends OB > implements
        
         // Randomly select one center
         int index;
-        int currentCenter;
+        int currentCenter = 0;
         O currentObject;
         do{
             index = r.nextInt(databaseSize);
-            currentCenter = 0;
             centroidIds[currentCenter] = index;
             currentObject = x.getObject(centroidIds[currentCenter]);
         }while(! pivotable.canBeUsedAsPivot(currentObject));

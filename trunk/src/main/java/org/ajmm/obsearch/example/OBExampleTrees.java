@@ -11,7 +11,9 @@ import java.util.List;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexFactory;
 import org.ajmm.obsearch.index.PPTreeShort;
+import org.ajmm.obsearch.index.PivotSelector;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
+import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.TentaclePivotSelectorShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
@@ -48,7 +50,7 @@ import org.apache.log4j.PropertyConfigurator;
 /**
  * This class shows how a tree matcher can be built with OBSearch. Please see
  * the ant file example.xml (targets "create" and "search") for an example on
- * how to invocate this program.
+ * how to invoke this program.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
@@ -59,6 +61,8 @@ public final class OBExampleTrees {
      * Logger.
      */
     private static final Logger logger = Logger.getLogger("OBExampleTrees");
+    
+    private static int maxTreeSize = -1;
 
     /**
      * Utility classes should not have public constructors.
@@ -94,7 +98,14 @@ public final class OBExampleTrees {
             if (cline.hasOption("create")) {
 
                 final File dbFolder = new File(cline.getOptionValue("db"));
+                logger.debug("DB: " + dbFolder);
                 final byte od = Byte.parseByte(cline.getOptionValue("od"));
+                logger.debug("OD: " + od);
+                maxTreeSize = Short.parseShort(cline.getOptionValue("maxTreeSize"));
+                logger.debug("Max tree size: " + maxTreeSize);
+                
+                short pivotSize = Short.parseShort(cline.getOptionValue("pivotSize"));
+                logger.debug("Pivot Size: " + pivotSize);
                 // create the index
                 /*
                  * 30 is the number of pivots to use. 0 and 1000 are the minimum
@@ -102,8 +113,8 @@ public final class OBExampleTrees {
                  * OBSlice will return. (based on the maximum tree value defined
                  * by shouldProcessTree())
                  */
-                index = new PPTreeShort < OBSlice >(dbFolder, (short) 30, od,
-                        (short) 0, (short) 7000);
+                index = new PPTreeShort < OBSlice >(dbFolder, (short) pivotSize, od,
+                        (short) 0, (short) (maxTreeSize*2));
 
                 logger.info("Adding data");
                 final BufferedReader r = new BufferedReader(
@@ -133,9 +144,20 @@ public final class OBExampleTrees {
                 // generate pivots
                 // The object ps will select pivots based on some simple
                 // criteria
-                final TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
+                
+                PivotSelector<OBSlice> ps;
+               if(cline.hasOption("fixedPivotSelector")){
+                   ps = new FixedPivotSelector();
+               }else   if(cline.hasOption("tentaclePivotSelector")){
+                   ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
+               }else if(cline.hasOption("kMeansPPPivotSelector")){
+                   ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable());                              
+               }else{
+                   logger.fatal("Unrecognized pivot selection method");
+                   ps = null;
+               }
+               
                 logger.debug("Selecting pivots");
-                //KMeansPPPivotSelector<OBSlice> ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable< OBSlice >());
                 ps.generatePivots(index);
                 // Freeze the index so that we can start using it
                 logger.info("Freezing");
@@ -193,7 +215,7 @@ public final class OBExampleTrees {
 
                         final OBSlice s = new OBSlice(l);
                         // we load the Tree from the file
-                        if (shouldProcessTree(s)) {
+                       // if (shouldProcessTree(s)) {
                             // and perform the search
                             //logger.info("Slice: " + l);
                             index.searchOB(s, range, x);
@@ -202,7 +224,7 @@ public final class OBExampleTrees {
                             //logger.info(x);
                             //result.add(x);
                             i++;
-                        }
+                        //}
                     }
                     // hardcoded value, we don't match beyond this
                     // value
@@ -321,7 +343,15 @@ public final class OBExampleTrees {
 
         final Option od = OptionBuilder.withArgName("#").hasArg()
                 .withDescription("# of partitions for P+Tree").create("od");
+        
+        final Option maxTreeSize = OptionBuilder.withArgName("#").hasArg()
+        .withDescription("maximum accepted tree size").create("maxTreeSize");
 
+        final Option pivotSize = OptionBuilder.withArgName("#").hasArg()
+        .withDescription("Number of pivots to use").create("pivotSize");
+        
+        
+        
         Options options = new Options();
         options.addOption(in);
         options.addOption(out);
@@ -330,6 +360,12 @@ public final class OBExampleTrees {
         options.addOption(k);
         options.addOption(search);
         options.addOption(od);
+        options.addOption(maxTreeSize);
+        options.addOption(pivotSize);
+        options.addOption("fixedPivotSelector", false, "If the FixedPivotSelector method will be used");
+        options.addOption("tentaclePivotSelector", false, "If the TentaclePivotSelector method will be used");
+        options.addOption("kMeansPPPivotSelector", false, "If the kMeansPPPivotSelector method will be used");
+        
         return options;
     }
 
@@ -343,7 +379,8 @@ public final class OBExampleTrees {
      *             Throws an exception if the OBSlice has an invalid tree
      */
     public static boolean shouldProcessTree(final OBSlice x) throws Exception {
-        return true;
+        return x.size() <= maxTreeSize;
+        //return true;
     }
 
     /**

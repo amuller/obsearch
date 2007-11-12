@@ -737,7 +737,7 @@ public abstract class AbstractPPTree < O extends OB >
             OutOfRangeException {
 
         float potential = 0;
-        int retries = 1;
+        int retries = 7;
         int centroidIds[] = new int[k]; // keep track of the selected centroids
         float[] closestDistances = new float[cluster.size()];
         float[] tempA = new float[pivotsCount];
