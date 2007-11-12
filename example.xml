@@ -12,12 +12,28 @@
 	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
 	<property name="destlocation" value="${ant.home}/lib/"/>
 	
-	<!--WARNING:  do not put a slash at the end of this property -->
-	<property name="dbfolder" value="${user.home}/temp/PurpleTentacleX2"/>
+	<!-- single computer related properties -->
 
+	<!-- Index Creation -->
+	<property name="od" value="7"/>
+	<property name="maxTreeSize" value="500"/>
+	<property name="pivotSize" value="30"/>
+	<!-- options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector -->
+	<property name="pivotSelectionCriteria" value="fixedPivotSelector"/>
+	
+	<!-- Search -->
+	<property name="k" value="3"/>
+	<property name="r" value="3"/>
+	
+
+	<!-- p2p related properties -->
 	<property name="name" value="seeder"/>
-
 	<property name="threads" value="4"/>
+
+	
+
+	<!--WARNING:  do not put a slash at the end of this property -->
+	<property name="dbfolder" value="${user.home}/temp/OBDB-OD${od}-${maxTreeSize}-Piv-${pivotSize}-${pivotSelectionCriteria}"/>
 
 </target>
 
@@ -69,11 +85,10 @@
 	    <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<!--<jvmarg value="-ea" />-->
 				<jvmarg value="-server" />
-				<jvmarg value="-Xmx2000M" />
-<!--        <jvmarg value=" -XX:+AggressiveHeap"/>-->
-<!--				<jvmarg value="-XX:+UseLargePages"/>-->
+				<jvmarg value="-Xmx3500M" />
+
 					<jvmarg value="-XX:+UseParallelGC"/>
-						<jvmarg value="-XX:+UseParallelOldGC"/> <!-- parallel compaction -->
+						<jvmarg value="-XX:+UseParallelOldGC"/> 
 						<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
 
 				<arg value="-create"/>
@@ -82,7 +97,12 @@
 				<arg value="-data"/>
 				<arg value="${dbdata}"/>
 				<arg value="-od"/>
-				<arg value="8"/>
+				<arg value="${od}"/>
+				<arg value="-maxTreeSize"/>
+				<arg value="${maxTreeSize}"/>
+				<arg value="-pivotSize"/>
+				<arg value="${pivotSize}"/>
+				<arg value="-${pivotSelectionCriteria}"/>
 			</java>
 </target>
 
@@ -96,15 +116,16 @@
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<jvmarg value="-server" />
 				<!--<jvmarg value="-ea"/>-->
-				<jvmarg value="-Xmx2000M" />
+				<jvmarg value="-Xmx3500M" />
+
 				<jvmarg value="-XX:+UseParallelGC"/>
 				<jvmarg value="-XX:+UseParallelOldGC"/>
 				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
 				<arg value="-search"/>
 				<arg value="-r"/>
-				<arg value="3"/>
+				<arg value="${r}"/>
 				<arg value="-k"/>
-				<arg value="1"/>
+				<arg value="${k}"/>
 				<arg value="-db"/>
 				<arg value="${dbfolder}"/>
 				<arg value="-data"/>
