@@ -11,6 +11,7 @@ import hep.aida.bin.QuantileBin1D;
 
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.KMeansException;
+import org.ajmm.obsearch.exception.KMeansHungUpException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.pptree.SpaceTree;
@@ -44,7 +45,7 @@ import com.sleepycat.je.DatabaseException;
  * An Abstract P+Tree. Contains common functionality to all the P+trees
  * @author Arnoldo Jose Muller Molina
  * @param <O>
- *            The type of object to be stored in the Index.
+ *                The type of object to be stored in the Index.
  * @since 0.7
  */
 
@@ -57,13 +58,13 @@ public abstract class AbstractPPTree < O extends OB >
     private static final transient Logger logger = Logger
             .getLogger(AbstractPPTree.class);
 
-    
     /**
-     * The minimum number of elements that will be accepted in each
-     * space.
+     * The minimum number of elements that will be accepted in each space.
      */
     private static final int MIN_ELEMENTS_IN_SPACE_ACCEPTED = 50;
-    
+
+    private static final int K_MEANS_REPETITIONS = 10;
+
     /**
      * Partitions to be used when generating the space tree.
      */
@@ -84,7 +85,7 @@ public abstract class AbstractPPTree < O extends OB >
      * Holds the spaceTree's leaf nodes so we can access them fast.
      */
     protected transient SpaceTreeLeaf[] spaceTreeLeaves;
-    
+
     /**
      * The total # of boxes used by this P+Tree.
      */
@@ -93,16 +94,16 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * AbstractPPTree Constructs a P+Tree.
      * @param databaseDirectory
-     *            the database directory
+     *                the database directory
      * @param pivots
-     *            how many pivots will be used
+     *                how many pivots will be used
      * @param od
-     *            parameter used to specify the number of divisions. 2 ^ od
-     *            divisions will be performed.
+     *                parameter used to specify the number of divisions. 2 ^ od
+     *                divisions will be performed.
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws IOException
-     *             if the index serialization process fails
+     *                 if the index serialization process fails
      */
     public AbstractPPTree(final File databaseDirectory, final short pivots,
             final byte od) throws DatabaseException, IOException {
@@ -116,7 +117,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     protected final void initSpaceTreeLeaves() {
         assert spaceTree != null;
-        int max = super.totalBoxes();
+        int max = totalBoxes();
         spaceTreeLeaves = new SpaceTreeLeaf[max];
         int i = 0;
         while (i < max) {
@@ -128,16 +129,16 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Calculates the space Tree.
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      */
     @Override
     protected final void calculateIndexParameters() throws DatabaseException,
@@ -146,17 +147,17 @@ public abstract class AbstractPPTree < O extends OB >
 
         Random ran = new Random(System.currentTimeMillis());
         int maxSize = databaseSize();
-        IntArrayList data = new IntArrayList(databaseSize());
+        IntArrayList data = new IntArrayList(maxSize);
         int i = 0;
-        while(i < maxSize){
+        while (i < maxSize) {
             data.add(i);
             i++;
         }
-        SpaceTreeNode node = new SpaceTreeNode(); // this will hold the
+        SpaceTreeNode node = new SpaceTreeNode(null); // this will hold the
         // now we just have to create the space tree
         float[][] minMax = new float[pivotsCount][2];
         initMinMax(minMax);
-        int[] sNo = new int[1]; // this is a pointer
+        int[] sNo = new int[1]; // this is a pointer for the poor.
         // divide the space
         spaceDivision(node, 0, minMax, data, sNo, ran, null);
         // we created all the spaces.
@@ -177,11 +178,12 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Calculates the parameters for the leaf based on minMax, and the center.
      * @param x
-     *            The leaf to be processed
+     *                The leaf to be processed
      * @param minMax
-     *            a 2 item array.
+     *                a 2 item array.
      * @param center
-     *            the center of the space that the leaf is going to represent.
+     *                the center of the space that the leaf is going to
+     *                represent.
      */
     protected void calculateLeaf(final SpaceTreeLeaf x, final float[][] minMax,
             final float[] center) {
@@ -227,12 +229,13 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * validates that the properties of function T are preserved in x.
      * @param x
-     *            (initialized leaf)
+     *                (initialized leaf)
      * @param center
-     *            The center of the leaf
+     *                The center of the leaf
      * @return true if the leaf is valid.
      */
-    protected final boolean validateT(final SpaceTreeLeaf x, final float[] center) {
+    protected final boolean validateT(final SpaceTreeLeaf x,
+            final float[] center) {
         int i = 0;
         boolean res = true;
         while (i < center.length && res) {
@@ -251,7 +254,7 @@ public abstract class AbstractPPTree < O extends OB >
      * pivots of this index pv is the pyramid value for a tuple norm() is the
      * normalization applied in the given space.
      * @param tuple
-     *            The tuple that will be processed
+     *                The tuple that will be processed
      * @return the P+Tree value
      */
     protected final float ppvalue(final float[] tuple) {
@@ -260,128 +263,144 @@ public abstract class AbstractPPTree < O extends OB >
         float[] result = new float[pivotsCount];
         n.normalize(tuple, result);
         return n.getSNo() * 2 * pivotsCount + super.pyramidValue(result);
+        
     }
 
     /**
      * Calculate a space number for the given tuple.
      * @param tuple
-     *            Tuple to be processed.
+     *                Tuple to be processed.
      * @return space number for the given tuple.
      */
     protected int spaceNumber(final float[] tuple) {
         SpaceTreeLeaf n = this.spaceTree.search(tuple);
         return n.getSNo();
     }
-    
+
     /**
-     * This method returns true if either l or r are
-     * smaller than {@value #MIN_ELEMENTS_IN_SPACE_ACCEPTED}. This will mean that
-     * the Parition will stop and that the amount of subspaces
-     * will be less than 2 ^ od
-     * @param l number of elements of the left space
-     * @param r number of elements of the right space
-     * @return true if either of the spaces are less than {@link #MIN_ELEMENTS_IN_SPACE_ACCEPTED}.
-     * 
+     * This method returns true if either l or r are smaller than
+     * {@value #MIN_ELEMENTS_IN_SPACE_ACCEPTED}. This will mean that the
+     * Partition will stop and that the amount of subspaces will be less than 2 ^
+     * od
+     * @param l
+     *                number of elements of the left space
+     * @param r
+     *                number of elements of the right space
+     * @return true if either of the spaces are less than
+     *         {@link #MIN_ELEMENTS_IN_SPACE_ACCEPTED}.
      */
-    protected boolean shallWeStop(int l, int r){
-        return l <= MIN_ELEMENTS_IN_SPACE_ACCEPTED ||
-                r <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
+    protected boolean shallWeStop(int l, int r) {
+        return l <= MIN_ELEMENTS_IN_SPACE_ACCEPTED
+                || r <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
     }
 
     /**
      * A recursive version of the space division algorithm.
      * @param node
-     *            Current node of the tree to be processed
+     *                Current node of the tree to be processed
      * @param currentLevel
-     *            Current depth
+     *                Current depth
      * @param minMax
-     *            The current min and maximum values for each of the dimensions
-     *            of the current space.
+     *                The current min and maximum values for each of the
+     *                dimensions of the current space.
      * @param data
-     *            All the data that is going to be processed
+     *                All the data that is going to be processed
      * @param SNo
-     *            The current space number (used as an array of 1 elmenet so
-     *            that it can be seen by all the other recursion branches)
+     *                The current space number (used as an array of 1 elmenet so
+     *                that it can be seen by all the other recursion branches)
      * @param ran
-     *            A random number generator
+     *                A random number generator
      * @param center
-     *            Calculated center of the space.
+     *                Calculated center of the space.
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      */
     protected void spaceDivision(final SpaceTree node, final int currentLevel,
-            final float[][] minMax, final IntArrayList data, final int[] SNo, final Random ran,
-            final float[] center) throws OBException {
+            final float[][] minMax, final IntArrayList data, final int[] SNo,
+            final Random ran, final float[] center) throws OBException {
         if (logger.isDebugEnabled()) {
             logger.debug("Dividing space, level:" + currentLevel
                     + " data size: " + data.size());
         }
 
         try {
-            if (currentLevel < od && ! (node instanceof SpaceTreeLeaf) ) { // nonleaf node processing
+            if ( !(node instanceof SpaceTreeLeaf)) { 
                 // initialize clustering algorithm
                 assert node instanceof SpaceTreeNode;
                 float[][] centers = kMeans(data, (byte) 2, ran);
 
                 // assert centers.numInstances() == 2 : "Centers found: " +
                 // centers.numInstances();
-
                 float[] CL = centers[0];
                 float[] CR = centers[1];
                 short DD = dividingDimension(CL, CR);
                 float DV = ((CR[DD] + CL[DD]) / 2);
-
+                assert DV != 0f;
+                assert DV != 1f;
                 if (logger.isDebugEnabled()) {
                     logger.debug("Details:" + currentLevel + " DD: " + DD
                             + " DV " + DV);
                 }
 
-                // Create "children" spaces
+                // Create sub-spaces
                 IntArrayList SL = new IntArrayList(data.size());
                 IntArrayList SR = new IntArrayList(data.size());
 
                 // update space boundaries
                 float[][] minMaxLeft = cloneMinMax(minMax);
                 float[][] minMaxRight = cloneMinMax(minMax);
-                assert DV <= minMaxLeft[DD][MAX];
+               
                 minMaxLeft[DD][MAX] = DV;
-                assert DV >= minMaxLeft[DD][MIN];
+                //assert DV >= minMaxLeft[DD][MIN];
+                assert minMaxLeft[DD][MIN] < minMaxLeft[DD][MAX];
+                //assert DV >= minMaxRight[DD][MAX];
                 minMaxRight[DD][MIN] = DV;
+                
+                assert minMaxRight[DD][MIN] < minMaxRight[DD][MAX];
+                //assert DV >= minMaxRight[DD][MIN];
+        
                 // Divide the elements of the original space
                 divideSpace(data, SL, SR, DD, DV);
-                assert data.size() == SL.size()
-                        + SR.size();
+                assert data.size() == SL.size() + SR.size();
+                
+                assert verifyDivideSpace(SL, SR, DD,DV);
+                
                 SpaceTree leftNode = null;
                 SpaceTree rightNode = null;
 
                 SpaceTreeNode ntemp = (SpaceTreeNode) node;
-                if (currentLevel < (od - 1) && ! shallWeStop(SL.size(), SR.size())) { // if we are before the last
+                
+                boolean nextIterationIsNotLeaf = currentLevel < (od - 1)
+                && !shallWeStop(SL.size(), SR.size());
+                
+                float [] medianCenterLeft = null;
+                float [] medianCenterRight = null;
+                if (nextIterationIsNotLeaf) { // if we are
+                    // before
+                    // the last
                     // iteration (that is before adding
                     // the leaves)
-                    leftNode = new SpaceTreeNode();
-                    rightNode = new SpaceTreeNode();
+                    leftNode = new SpaceTreeNode(CL);
+                    rightNode = new SpaceTreeNode(CR);
+                    
                 } else {
-                    leftNode = new SpaceTreeLeaf();
-                    rightNode = new SpaceTreeLeaf();
+                    leftNode = new SpaceTreeLeaf(CL);
+                    rightNode = new SpaceTreeLeaf(CR);
+                    medianCenterLeft = calculateCenter(SL, DD, DV, true);
+                    medianCenterRight = calculateCenter(SR, DD, DV,false);
                 }
+                
                 ntemp.setDD(DD);
                 ntemp.setDV(DV);
                 ntemp.setLeft(leftNode);
                 ntemp.setRight(rightNode);
+                
+                spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
+                        SNo, ran, medianCenterLeft);
+                spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
+                        SNo, ran, medianCenterRight);
 
-                if (currentLevel < (od - 1) && ! shallWeStop(SL.size(), SR.size())) {
-                    spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
-                            SNo, ran, null);
-                    spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
-                            SNo, ran, null);
-                } else {
-
-                    spaceDivision(leftNode, currentLevel + 1, minMaxLeft, SL,
-                            SNo, ran, calculateCenter(SL));
-                    spaceDivision(rightNode, currentLevel + 1, minMaxRight, SR,
-                            SNo, ran, calculateCenter(SR));
-
-                }
+                
             } else { // leaf node processing
                 if (logger.isDebugEnabled()) {
                     logger.debug("Found Space:" + SNo[0] + " data size: "
@@ -410,54 +429,148 @@ public abstract class AbstractPPTree < O extends OB >
             throw new OBException(e);
         }
     }
-
+    
+    private boolean verifyDivideSpace(IntArrayList SL, IntArrayList SR, int DD, float DV) 
+        throws DatabaseException, OutOfRangeException{
+        int i = 0;
+        while(i < SL.size()){
+            float [] tuple = this.readFromB(SL.get(i));
+            assert tuple[DD] < DV;
+            i++;
+        }
+        i = 0;
+        while(i < SR.size()){
+            float [] tuple = this.readFromB(SR.get(i));
+            assert tuple[DD] >= DV;
+            i++;
+        }
+        return true;
+    }
     /**
      * Performs k-means on the given cluster.
      * @param cluster
-     *            Each turned bit of the given cluster is an object ID in B
+     *                Each turned bit of the given cluster is an object ID in B
      * @param k
-     *            the number of clusters to generate
+     *                the number of clusters to generate
      * @param ran
-     *            Random number generator
+     *                Random number generator
      * @return The centroids of the clusters
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws KMeansException
-     *             If k-means++ fails to find clusters
+     *                 If k-means++ fails to find clusters
      */
-    private float[][] kMeans(final IntArrayList cluster, final byte k, final Random ran)
-            throws DatabaseException, OutOfRangeException, KMeansException {
-        return kMeansAux(cluster, k, ran, 0);
+    /*
+    private float[][] kMeans(final IntArrayList cluster, final byte k,
+            final Random ran) throws DatabaseException, OutOfRangeException,
+            KMeansException {
+        double[] squaredErrorRes = new double[1];
+        float[][] res = null;
+        double best = Double.MAX_VALUE;
+        int i = 0;
+        // find the best k=means pair
+        while (i < K_MEANS_REPETITIONS) {
+
+            try {
+                float[][] temp = kMeansAux(cluster, k, ran, 0,
+                        squaredErrorRes);
+                assert squaredErrorRes[0] < Float.MAX_VALUE : "Size: "
+                        + squaredErrorRes[0];
+                if (squaredErrorRes[0] < best) {
+                    res = temp;
+                    best = squaredErrorRes[0];
+                }
+                i++;
+            } catch (KMeansHungUpException e) {
+                // if we could not converge, then we have to
+                // retry the clustering again
+            }
+        }       
+        return res;
     }
+    */
+    private float[][] kMeans(final IntArrayList cluster, final byte k,
+            final Random ran) throws DatabaseException, OutOfRangeException,
+            KMeansException {
+        double[] squaredErrorRes = new double[1];
+        float[][] res = null;
+        double best = Double.MAX_VALUE;
+        boolean bestKMeansPP = true;
+        int i = 0;
+        // find the best k=means pair
+        while (i < K_MEANS_REPETITIONS) {
+            int tries = 0;
+            boolean kmeansPP = true;
+            // hack to force how good kmeans++ works against
+            // random init
+            /*if (i < (K_MEANS_REPETITIONS / 2) - 1) {
+                tries = KMEANS_PP_ITERATIONS + 1;
+                kmeansPP = false;
+            }*/
+            try {
+                squaredErrorRes[0] = 0;
+                float[][] temp = kMeansAux(cluster, k, new Random(System.currentTimeMillis()), tries,
+                        squaredErrorRes);
+                logger.debug(" squared error: " + squaredErrorRes[0] + " ++?: " + kmeansPP);
+                assert squaredErrorRes[0] < Float.MAX_VALUE : "Size: "
+                        + squaredErrorRes[0];
+                if (squaredErrorRes[0] < best) {
+                    res = temp;
+                    best = squaredErrorRes[0];
+                    bestKMeansPP = kmeansPP;
+                }
+                i++;
+            } catch (KMeansHungUpException e) {
+                // if we could not converge, then we have to
+                // retry the clustering again
+            }
+        }
+        logger.debug("Best: " + best + " ++? " + bestKMeansPP);
+        if (bestKMeansPP) {
+            kmeansPPGood++;
+        } else {
+            kmeansGood++;
+        }
+        return res;
+    }
+
+    public int kmeansGood = 0;
+
+    public int kmeansPPGood = 0;
 
     /**
      * Executes k-means, keeps a count of the number of iterations performed...
      * if clustering cannot converge properly, then we execute the randomized
      * initialization procedure.
      * @param cluster
-     *            BitSet with the elements of the current data set
+     *                BitSet with the elements of the current data set
      * @param k
-     *            Number of clusters to generate
+     *                Number of clusters to generate
      * @param ran
-     *            Random function
+     *                Random function
      * @param iteration
-     *            Number of iterations
-     * @return The centers of the cluster.
+     *                Number of iterations
+     * @return An arrays of arrays of k+1 elements. The first two elements are
+     *         the centers of the k clusters found and the last element is a one
+     *         element array that holds the value of the squared error function.
+     *         This value can be used to decide which is the best set of
+     *         centroids from several iterations.
      * @throws KMeansException
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws KMeansException
-     *             If k-means++ fails to find clusters
+     *                 If k-means++ fails to find clusters
      */
-    private float[][] kMeansAux(final IntArrayList cluster, final byte k, final Random ran,
-            final int iteration) throws DatabaseException, OutOfRangeException,
-            KMeansException {
+    private float[][] kMeansAux(final IntArrayList cluster, final byte k,
+            final Random ran, final int iteration, double[] squaredErrorRes)
+            throws DatabaseException, OutOfRangeException, KMeansException,
+            KMeansHungUpException {
 
         if (cluster.size() <= 1) {
             throw new KMeansException(
@@ -489,7 +602,7 @@ public abstract class AbstractPPTree < O extends OB >
                 // find the closest spot
                 byte closest = closest(tempTuple, centroids);
                 // check if the closest cluster is still the same
-                if (!selection[closest].contains(index) ){
+                if (!selection[closest].contains(index)) {
                     modified = true;
                     // set the correct cluster where our item belongs
                     updateClusterInfo(closest, selection, index);
@@ -497,21 +610,41 @@ public abstract class AbstractPPTree < O extends OB >
                 updateAveragesInfo(closest, tempTuple, averages);
                 card++;
             }
-            
+
             // after finishing recalculating the pivots, we just have to
             // center the clusters
             if (modified) {
                 centerClusters(centroids, averages, selection);
             }
         }
+        // calculate the squared error function.
+        int card = 0;
+        
+        double squaredError = 0;
+        while (card < cluster.size()) {
+
+            int index = cluster.get(card);
+            // get the tuple
+            tempTuple = readFromB(index);
+            // find the closest spot
+            byte closest = closest(tempTuple, centroids);
+            float x = this.squareDistance(tempTuple, centroids[closest]);
+            assert !Float.isNaN(x) : "Calculated: "
+                    + Arrays.toString(tempTuple) + " , "
+                    + Arrays.toString(centroids[closest]);
+            squaredError += x;
+            card++;
+        }
+        
+        squaredErrorRes[0] = squaredError / cluster.size();
         return centroids;
     }
 
     /**
-     * Returns true if any of the given clusters is almost (30 elements
-     * or less) empty.
+     * Returns true if any of the given clusters is almost (30 elements or less)
+     * empty.
      * @param selection
-     *            set of clusters to analyze
+     *                set of clusters to analyze
      * @return true if any of the given clusters is empty
      */
     private boolean someoneAlmostEmpty(final TIntHashSet[] selection) {
@@ -528,20 +661,27 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Find the centroids.
      * @param centroids
-     *            Result is left here...
+     *                Result is left here...
      * @param averages
-     *            Average for each dimension
+     *                Average for each dimension
      * @param selection
-     *            Current list of clusters
+     *                Current list of clusters
+     * @throws KMeansException
+     *                 if any of the selections have zero elements.
      */
-    private void centerClusters(final float[][] centroids, final float[][] averages,
-            final TIntHashSet selection[]) {
+    private void centerClusters(final float[][] centroids,
+            final float[][] averages, final TIntHashSet selection[])
+            throws KMeansHungUpException {
         byte i = 0;
         assert centroids.length == averages.length
                 && centroids.length == selection.length;
         while (i < averages.length) {
             int cx = 0;
-            while (cx < pivotsCount) {
+            //assert selection[i].size() != 0;
+            while (cx < pivotsCount) {              
+                if (selection[i].size() == 0) {
+                    throw new KMeansHungUpException();
+                }
                 centroids[i][cx] = averages[i][cx] / selection[i].size();
                 cx++;
             }
@@ -552,11 +692,11 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Adds the contents of tuple to averages[cluster].
      * @param cluster
-     *            Cluster to process
+     *                Cluster to process
      * @param tuple
-     *            Tuple to add
+     *                Tuple to add
      * @param averages
-     *            The result will be stored here.
+     *                The result will be stored here.
      */
     private void updateAveragesInfo(final byte cluster, final float[] tuple,
             final float[][] averages) {
@@ -571,13 +711,14 @@ public abstract class AbstractPPTree < O extends OB >
      * Sets the ith element in selection[cluster] and set the ith bit in the
      * other clusters to 0.
      * @param cluster
-     *            The cluster that will be set
+     *                The cluster that will be set
      * @param element
-     *            Elemenet id
+     *                Elemenet id
      * @param selection
-     *            The cluster we will set.
+     *                The cluster we will set.
      */
-    private void updateClusterInfo(final byte cluster, final TIntHashSet[] selection, final int element) {
+    private void updateClusterInfo(final byte cluster,
+            final TIntHashSet[] selection, final int element) {
         byte i = 0;
         while (i < selection.length) {
             if (i == cluster) {
@@ -592,9 +733,9 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Finds the centroid which is closest to tuple.
      * @param tuple
-     *            The tuple to process
+     *                The tuple to process
      * @param centroids
-     *            A list of centroids
+     *                A list of centroids
      * @return A byte indicating which is the closest centroid to the given
      *         tuple.
      */
@@ -613,34 +754,40 @@ public abstract class AbstractPPTree < O extends OB >
         return res;
     }
 
+
+
     /**
-     * Computes the euclidean distance for the given tuples.
+     * Computes the squared distance for the given tuples.
      * @param a
-     *            tuple
+     *                tuple
      * @param b
-     *            tuple
-     * @return euclidean distance
+     *                tuple
+     * @return squared distance
      */
-    private float euclideanDistance(final float[] a, final float[] b) {
+    public static final float squareDistance(final float[] a, final float[] b) {
+        assert a.length == b.length;
         int i = 0;
         float res = 0;
-        while (i < pivotsCount) {
+        while (i < a.length) {
             float t = a[i] - b[i];
             res += t * t;
             i++;
         }
-        return (float) Math.sqrt(res);
+        return res;
     }
+    
+    
 
     /**
      * Initializes k cluster based on cluster
      * @param cluster
-     *            Reference cluster
+     *                Reference cluster
      * @param k
-     *            number of clusters to generate
+     *                number of clusters to generate
      * @return An array of clusters with the size of cluster
      */
-    private TIntHashSet[] initSubClusters(final IntArrayList cluster, final byte k) {
+    private TIntHashSet[] initSubClusters(final IntArrayList cluster,
+            final byte k) {
         TIntHashSet[] res = new TIntHashSet[k];
         byte i = 0;
         while (i < k) {
@@ -658,21 +805,22 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Initializes k centroids (Default method).
      * @param cluster
-     *            original cluster
+     *                original cluster
      * @param k
-     *            number of clusters
+     *                number of clusters
      * @param centroids
-     *            Centroids that will be generated
+     *                Centroids that will be generated
      * @param r
-     *            A random function
+     *                A random function
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB.
+     *                 If somehing goes wrong with the DB.
      */
-    private void initializeKMeans(final IntArrayList cluster, final byte k, final float[][] centroids,
-            final Random r) throws DatabaseException, OutOfRangeException {
+    private void initializeKMeans(final IntArrayList cluster, final byte k,
+            final float[][] centroids, final Random r)
+            throws DatabaseException, OutOfRangeException {
         int total = cluster.size();
         byte i = 0;
         int centroidIds[] = new int[k];
@@ -692,49 +840,29 @@ public abstract class AbstractPPTree < O extends OB >
         }
     }
 
-    /**
-     * Calculates a distance used by kmeans++
-     * @param a
-     *            A tuple
-     * @param b
-     *            B tuple
-     * @return The distance as calculated by kmeans++. Please refer to the
-     *         paper.
-     */
-    float kMeansPPDistance(final float[] a, final float[] b) {
-        assert a.length == b.length;
-        float res = 0;
-        int i = 0;
-        while (i < a.length) {
-            float x = a[i] - b[i];
-            res += x * x;
-            i++;
-        }
-        return res;
-    }
-
+    
     /**
      * Initializes k centroids by using k-means++ leaves the result in
      * "centroids" The original paper is here: David Arthur and Sergei
      * Vassilvitskii, "k-means++: The Advantages of Careful Seeding" SODA 2007.
      * This method was inspired from the source code provided by the authors
      * @param cluster
-     *            Cluster to initialize
+     *                Cluster to initialize
      * @param k
-     *            Number of centroids
+     *                Number of centroids
      * @param centroids
-     *            The resulting centroids
+     *                The resulting centroids
      * @param r
-     *            A random number generator.
+     *                A random number generator.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     private void initializeKMeansPP(final IntArrayList cluster, final byte k,
-            final float[][] centroids, final Random r) throws DatabaseException,
-            OutOfRangeException {
+            final float[][] centroids, final Random r)
+            throws DatabaseException, OutOfRangeException {
 
         float potential = 0;
         int retries = 7;
@@ -750,11 +878,10 @@ public abstract class AbstractPPTree < O extends OB >
         centroidIds[currentCenter] = index;
         centroids[currentCenter] = readFromB(index);
         int i = 0;
-        // Random ran0 = new Random(r.nextInt());
         while (i < cluster.size()) {
             int t = cluster.get(i);
-            tempA =  readFromB(t);
-            closestDistances[i] = kMeansPPDistance(tempA,
+            tempA = readFromB(t);
+            closestDistances[i] = squareDistance(tempA,
                     centroids[currentCenter]);
             potential += closestDistances[i];
             i++;
@@ -772,10 +899,11 @@ public abstract class AbstractPPTree < O extends OB >
                 // choose the new center
                 float probability = r.nextFloat() * potential;
                 for (index = 0; index < cluster.size(); index++) {
-                    
+
                     if (contains(cluster.get(index), centroidIds, centerCount)) {
                         continue;
                     }
+
                     if (probability <= closestDistances[index])
                         break;
                     else
@@ -795,7 +923,7 @@ public abstract class AbstractPPTree < O extends OB >
                 for (i = 0; i < cluster.size(); i++) {
                     int t = cluster.get(i);
                     tempA = readFromB(t);
-                    newPotential += Math.min(kMeansPPDistance(tempA, tempB),
+                    newPotential += Math.min(squareDistance(tempA, tempB),
                             closestDistances[i]);
                 }
 
@@ -806,9 +934,11 @@ public abstract class AbstractPPTree < O extends OB >
                 }
             }
 
-            assert !contains(cluster.get(bestIndex), centroidIds, centerCount) 
-            : "The id: " + cluster.get(bestIndex) + " was found here: " + Arrays.toString(centroidIds) + " max: " + centerCount;
-       
+            assert !contains(cluster.get(bestIndex), centroidIds, centerCount) : "The id: "
+                    + cluster.get(bestIndex)
+                    + " was found here: "
+                    + Arrays.toString(centroidIds) + " max: " + centerCount;
+
             // Add the appropriate center
             centroidIds[centerCount] = bestIndex;
             centroids[centerCount] = readFromB(cluster.get(bestIndex));
@@ -817,20 +947,20 @@ public abstract class AbstractPPTree < O extends OB >
             for (i = 0; i < cluster.size(); i++) {
                 int t = cluster.get(i);
                 tempA = readFromB(t);
-                closestDistances[i] = Math.min(kMeansPPDistance(tempA, tempB),
+                closestDistances[i] = Math.min(squareDistance(tempA, tempB),
                         closestDistances[i]);
             }
             // make sure that the same center is not found
-              centerCount++;
+            centerCount++;
         }
     }
 
     /**
      * Returns the ith set bit of the given cluster.
      * @param cluster
-     *            the cluster to be processed
+     *                the cluster to be processed
      * @param i
-     *            the ith set bit
+     *                the ith set bit
      * @return the ith set bit of the cluster
      */
     private int returnIth(final BitSet cluster, final int i) {
@@ -853,11 +983,11 @@ public abstract class AbstractPPTree < O extends OB >
      * Returns true if id is in the array ids performs the operation up to max
      * (inclusive) if max is 0 this function always returns false.
      * @param id
-     *            an identification
+     *                an identification
      * @param ids
-     *            a list of numbers
+     *                a list of numbers
      * @param max
-     *            the maximum point that we will process
+     *                the maximum point that we will process
      * @return true if id is in the array ids
      */
     private boolean contains(final int id, final int[] ids, final int max) {
@@ -871,41 +1001,42 @@ public abstract class AbstractPPTree < O extends OB >
             }
             i++;
         }
-        
+
         return false;
     }
 
     /**
      * Read the given tuple from B database and load it into the given tuple
      * @param id
-     *            object internal id
+     *                object internal id
      * @param tuple
-     *            store the corresponding tuple here.
+     *                store the corresponding tuple here.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
-    protected abstract float[] readFromB(int id)
-            throws DatabaseException, OutOfRangeException;
+    protected abstract float[] readFromB(int id) throws DatabaseException,
+            OutOfRangeException;
 
     /**
      * Verifies that all the data that is going to be inserted in this leaf
      * belongs to the given leaf.
      * @param instances
-     *            Set if data that will be verified
+     *                Set if data that will be verified
      * @param n
-     *            Leaf that will be processed.
+     *                Leaf that will be processed.
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @return if the data is valid
      */
-    protected boolean verifyData(final IntArrayList instances, final SpaceTreeLeaf n)
-            throws OutOfRangeException, DatabaseException {
+    protected boolean verifyData(final IntArrayList instances,
+            final SpaceTreeLeaf n) throws OutOfRangeException,
+            DatabaseException {
         int i = 0;
         boolean res = true;
         float[] tempTuple = new float[pivotsCount];
@@ -913,20 +1044,41 @@ public abstract class AbstractPPTree < O extends OB >
             int t = instances.get(i);
             tempTuple = this.readFromB(t);
             res = n.pointInside(tempTuple);
+            
+            //assert res : Arrays.toString(tempTuple) + " is not inside: " + n + " detail: " + k ;
             i++;
         }
         return res;
+    }
+    
+    /**
+     * Computes the euclidean distance for the given tuples.
+     * @param a
+     *            tuple
+     * @param b
+     *            tuple
+     * @return euclidean distance
+     */
+    private float euclideanDistance(final float[] a, final float[] b) {
+        int i = 0;
+        float res = 0;
+        while (i < pivotsCount) {
+            float t = a[i] - b[i];
+            res += t * t;
+            i++;
+        }
+        return (float) Math.sqrt(res);
     }
 
     /**
      * Calculates the center of the given data based on medians (just like the
      * extended pyramid technique).
      * @param data
-     *            data to be processed
+     *                data to be processed
      * @return the center of the given data
      */
-    protected final float[] calculateCenter(final IntArrayList data)
-            throws DatabaseException, OutOfRangeException {
+    protected final float[] calculateCenter(final IntArrayList data, int DD, double DV, boolean left)
+            throws DatabaseException, OutOfRangeException, KMeansException {
 
         QuantileBin1D[] medianHolder = createMedianHolders(data.size());
         int i = 0;
@@ -934,12 +1086,12 @@ public abstract class AbstractPPTree < O extends OB >
         while (i < data.size()) {
             int t = data.get(i);
             tempTuple = this.readFromB(t);
+            assert ((tempTuple[DD] < DV) || ! left) && ((tempTuple[DD] >= DV) || left);  
             super.updateMedianHolder(tempTuple, medianHolder);
             i++;
         }
 
         // now we just have to get the medians
-        // int
         i = 0;
         float[] res = new float[pivotsCount];
         while (i < pivotsCount) {
@@ -948,12 +1100,14 @@ public abstract class AbstractPPTree < O extends OB >
             i++;
         }
         return res;
+       
+
     }
 
     /**
      * Clone the given float[][] array.
      * @param minMax
-     *            Input array
+     *                Input array
      * @return a clone of minMax
      */
     private final float[][] cloneMinMax(final float[][] minMax) {
@@ -970,7 +1124,7 @@ public abstract class AbstractPPTree < O extends OB >
     /**
      * Initializes minMax bouding values.
      * @param data
-     *            float[][] vector that will be initialized.
+     *                float[][] vector that will be initialized.
      */
     private void initMinMax(final float[][] data) {
         int cx = 0;
@@ -986,24 +1140,23 @@ public abstract class AbstractPPTree < O extends OB >
      * Divides original space. For each v that belongs to "original" if v_DD <
      * DV then v belongs to "left". Otherwise v belongs to "right"
      * @param original
-     *            original data set
+     *                original data set
      * @param left
-     *            items to the left of the division (output argument)
+     *                items to the left of the division (output argument)
      * @param right
-     *            items to the right of the division (output argument)
+     *                items to the right of the division (output argument)
      * @param DD
-     *            See the P+tree paper
+     *                See the P+tree paper
      * @param DV
-     *            See the P+tree paper
+     *                See the P+tree paper
      */
-    protected final void divideSpace(final IntArrayList original, IntArrayList left,
-            IntArrayList right, final int DD, final double DV) throws OutOfRangeException,
-            DatabaseException {
+    protected final void divideSpace(final IntArrayList original,
+            IntArrayList left, IntArrayList right, final int DD, final double DV)
+            throws OutOfRangeException, DatabaseException {
         int i = 0;
         float[] tempTuple = new float[pivotsCount];
         while (i < original.size()) {
-           int  t = original.get(i);
-
+            int t = original.get(i);
             tempTuple = this.readFromB(t);
             if (tempTuple[DD] < DV) {
                 left.add(t);
@@ -1016,8 +1169,10 @@ public abstract class AbstractPPTree < O extends OB >
 
     /**
      * Calculate the dividing dimension for cl and cr.
-     * @param cl left center
-     * @param cr right center
+     * @param cl
+     *                left center
+     * @param cr
+     *                right center
      * @return the dimension that has the biggest gap between cl and cr
      */
     protected final short dividingDimension(final float[] cl, final float[] cr) {
