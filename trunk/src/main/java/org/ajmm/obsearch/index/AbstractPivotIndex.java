@@ -29,6 +29,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.PreloadConfig;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 import com.thoughtworks.xstream.XStream;
@@ -335,7 +336,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         dbConfig.setSortedDuplicates(false);
         aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
         dbConfig.setSortedDuplicates(duplicates);
-
+        PreloadConfig pc = new PreloadConfig();
+        pc.setLoadLNs(true);        
+        aDB.preload(pc);
     }
 
     /**
@@ -349,13 +352,15 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        //envConfig.setCacheSize(CACHE_SIZE);
+        envConfig.setCacheSize(CACHE_SIZE);
         envConfig.setTxnNoSync(true);
         
         envConfig.setConfigParam("je.log.faultReadSize", "20480");
+        envConfig.setConfigParam("je.evictor.lruOnly", "false");
+        envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
-        //envConfig.setLocking(false);
+        envConfig.setLocking(false);
         this.databaseEnvironment = new Environment(dbDir, envConfig);
 
         dbConfig = new DatabaseConfig();

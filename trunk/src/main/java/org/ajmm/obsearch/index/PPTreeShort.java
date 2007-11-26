@@ -516,7 +516,7 @@ public class PPTreeShort < O extends OBShort >
 
                     in.setBuffer(dataEntry.getData());
                     
-                    //this.smapRecordsCompared++;
+                    this.smapRecordsCompared++;
                     
                     i = 0;
                     

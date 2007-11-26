@@ -20,6 +20,7 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.PreloadConfig;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /*
@@ -121,7 +122,9 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
         dbConfig.setSortedDuplicates(duplicates);
         dbConfig.setTransactional(trans);
-
+        PreloadConfig pc = new PreloadConfig();
+        pc.setLoadLNs(true);        
+        cDB.preload(pc);
     }
 
     /**
