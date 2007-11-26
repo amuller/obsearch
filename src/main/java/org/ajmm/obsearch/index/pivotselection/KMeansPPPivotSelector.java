@@ -8,6 +8,7 @@ import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
 import org.ajmm.obsearch.index.PivotSelector;
+import org.ajmm.obsearch.index.utils.OBRandom;
 import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
@@ -82,11 +83,11 @@ public class KMeansPPPivotSelector < O extends OB > implements
         x.prepareFreeze();
         short k = x.getPivotsCount();
         float potential = 0;
-        int retries = 1;
+        int retries = 7;
         int databaseSize = x.databaseSize();
         int centroidIds[] = new int[k]; // keep track of the selected centroids
         float[] closestDistances = new float[databaseSize];
-        Random r = new Random(System.currentTimeMillis());
+        OBRandom r = new OBRandom();
        
         // Randomly select one center
         int index;

@@ -43,7 +43,8 @@ public class TestSpaceTreeLeaf {
      */
     @Before
     public void setUp() throws Exception {
-        leaf = new SpaceTreeLeaf();
+        float [] center = {.75f,.75f};
+        leaf = new SpaceTreeLeaf(center);
         float[][] space = { { 0.5f, 1 }, { 0.5f, 1 } };
         leaf.setMinMax(space);
     }

@@ -36,7 +36,8 @@ public class MyTupleInput
 
     /**
      * Creates a new tuple input.
-     * @param buffer Buffer to use as input.
+     * @param buffer
+     *                Buffer to use as input.
      */
     public MyTupleInput(final byte[] buffer) {
         super(buffer);
@@ -51,12 +52,36 @@ public class MyTupleInput
 
     /**
      * Sets the current buffer. This avoids re-creating TupleInput objects.
-     * @param buffer The buffer that will be set.
+     * @param buffer
+     *                The buffer that will be set.
      */
     public void setBuffer(final byte[] buffer) {
         buf = buffer;
         len = buffer.length;
         off = 0;
         mark = 0;
+    }
+
+    /**
+     * A very dangerous but fast method. Dangerous because most checks are
+     * ignored! yay!
+     * @return a short in the buffer.
+     */
+    public final short readShortFast() {
+        return (short)(readUnsignedShortFast() ^ 0x8000);
+    }
+
+    public final int readUnsignedShortFast() {
+        int c1 = readFastAbunai();
+        int c2 = readFastAbunai();
+        return ((c1 << 8) | c2);
+    }
+
+    /**
+     * A very fast read method.
+     * @see #read()
+     */
+    private final int readFastAbunai() {
+        return buf[off++] & 0xff;
     }
 }

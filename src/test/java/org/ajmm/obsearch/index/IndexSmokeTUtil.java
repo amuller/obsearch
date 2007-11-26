@@ -161,6 +161,7 @@ public class IndexSmokeTUtil {
             }
             re = r.readLine();
         }
+
         assertEquals(realIndex, index.databaseSize());
         r.close();
     }

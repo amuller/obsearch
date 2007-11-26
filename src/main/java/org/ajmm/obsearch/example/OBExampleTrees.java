@@ -151,7 +151,9 @@ public final class OBExampleTrees {
                }else   if(cline.hasOption("tentaclePivotSelector")){
                    ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
                }else if(cline.hasOption("kMeansPPPivotSelector")){
-                   ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable());                              
+                   //new 
+                   //ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable());        
+                   ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());        
                }else{
                    logger.fatal("Unrecognized pivot selection method");
                    ps = null;
@@ -163,7 +165,8 @@ public final class OBExampleTrees {
                 logger.info("Freezing");
                 index.freeze();
                 // close the index
-                logger.info("Finished Index Creation, items stored:" + index.databaseSize());                
+                logger.info("Finished Index Creation, items stored:" + index.databaseSize());
+                logger.info("Kmeans++ " + index.kmeansPPGood + " kmeans: " + index.kmeansGood );
                 index.close();                
             } else if (cline.hasOption("search")) {
 
@@ -240,6 +243,7 @@ public final class OBExampleTrees {
                         + " minutes: " + time / 1000 / 60);
                 logger.info("Stats follow: total initial rectangles:" + index.initialHyperRectangleTotal + " final initial rectangles " + index.finalHyperRectangleTotal);
                 logger.info("Status detail: pyramids accessed: " + index.finalPyramidTotal + " smap vectors: " + index.smapRecordsCompared + " distance computations: " + index.distanceComputations);
+                index.stats();
             } else {
                 throw new OBException(
                         "You have to set the mode: 'create' or 'search'");
@@ -255,10 +259,11 @@ public final class OBExampleTrees {
         } catch (final Exception e) {
             logger.fatal("Exception caught", e);
             returnValue = 83;
-        } finally {
-            LogManager.shutdown();
-            System.exit(returnValue);
         }
+        
+        LogManager.shutdown();
+        System.exit(returnValue);
+        
     }
 
     /**

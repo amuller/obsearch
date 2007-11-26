@@ -15,7 +15,7 @@
 	<!-- single computer related properties -->
 
 	<!-- Index Creation -->
-	<property name="od" value="7"/>
+	<property name="od" value="9"/>
 	<property name="maxTreeSize" value="500"/>
 	<property name="pivotSize" value="30"/>
 	<!-- options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector -->
@@ -25,15 +25,18 @@
 	<property name="k" value="3"/>
 	<property name="r" value="3"/>
 	
+	<!-- System related properties -->
+	
+	<property name="memory" value="3700"/>
 
 	<!-- p2p related properties -->
 	<property name="name" value="seeder"/>
 	<property name="threads" value="4"/>
 
-	
+<!--		<property name="dbfolder" value="${user.home}/temp/PurpleTentacleX500SMAP"/>-->
 
 	<!--WARNING:  do not put a slash at the end of this property -->
-	<property name="dbfolder" value="${user.home}/temp/OBDB-OD${od}-${maxTreeSize}-Piv-${pivotSize}-${pivotSelectionCriteria}"/>
+	<property name="dbfolder" value="${user.home}/temp/OBDB-OD${od}-${maxTreeSize}-Piv-${pivotSize}-${pivotSelectionCriteria}Res"/>
 
 </target>
 
@@ -83,13 +86,13 @@
 	    <mkdir dir="${dbfolder}"/>
 
 	    <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
-				<!--<jvmarg value="-ea" />-->
+<!--				<jvmarg value="-ea" />-->
 				<jvmarg value="-server" />
-				<jvmarg value="-Xmx3500M" />
+				<jvmarg value="-Xmx${memory}M" />
 
 					<jvmarg value="-XX:+UseParallelGC"/>
 						<jvmarg value="-XX:+UseParallelOldGC"/> 
-						<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
+<!--						<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
 
 				<arg value="-create"/>
 				<arg value="-db"/>
@@ -116,11 +119,11 @@
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
 				<jvmarg value="-server" />
 				<!--<jvmarg value="-ea"/>-->
-				<jvmarg value="-Xmx3500M" />
-
+				<jvmarg value="-Xmx${memory}M" />
 				<jvmarg value="-XX:+UseParallelGC"/>
+<!--				<jvmarg value="-Xms${memory}M"/>-->
 				<jvmarg value="-XX:+UseParallelOldGC"/>
-				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>
+<!--				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
 				<arg value="-search"/>
 				<arg value="-r"/>
 				<arg value="${r}"/>

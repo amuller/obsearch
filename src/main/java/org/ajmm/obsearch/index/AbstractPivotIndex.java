@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -159,7 +160,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Size of the cache for the underlying db.
      */
-    private static final int CACHE_SIZE = 300 * 1024 * 1024;
+    private static final int CACHE_SIZE = 700 * 1024 * 1024;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -347,17 +348,21 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         /* Open a transactional Oracle Berkeley DB Environment. */
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
-        envConfig.setTransactional(true);
-        envConfig.setCacheSize(CACHE_SIZE); // 80 MB
+        envConfig.setTransactional(false);
+        //envConfig.setCacheSize(CACHE_SIZE);
+        envConfig.setTxnNoSync(true);
+        
+        envConfig.setConfigParam("je.log.faultReadSize", "20480");
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
-        // envConfig.setLocking(false);
+        //envConfig.setLocking(false);
         this.databaseEnvironment = new Environment(dbDir, envConfig);
 
         dbConfig = new DatabaseConfig();
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
         dbConfig.setSortedDuplicates(true);
+        
         // dbConfig.setExclusiveCreate(true);
     }
 
@@ -369,6 +374,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     public void stats() throws DatabaseException {
         StatsConfig config = new StatsConfig();
         config.setClear(true);
+        config.setFast(true);
         logger.info(databaseEnvironment.getStats(config));
     }
 
@@ -524,6 +530,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         dataEntry.setData(out.getBufferBytes());
         x.put(null, keyEntry, dataEntry);
     }
+    
+   
 
     /**
      * Utility method to insert data in C after freezing. Must be implemented by
@@ -661,7 +669,12 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         //Transaction txn = databaseEnvironment.beginTransaction(null, null);
         this.databaseEnvironment.truncateDatabase(null, name, false);
         //txn = databaseEnvironment.beginTransaction(null, null);
-        this.databaseEnvironment.removeDatabase(null, name);        
+        this.databaseEnvironment.removeDatabase(null, name);     
+        
+        this.databaseEnvironment.cleanLog();
+        this.databaseEnvironment.compress();
+        this.databaseEnvironment.checkpoint(null);      
+       
     }
 
     /**
@@ -803,7 +816,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    public O getObject(final int id) throws DatabaseException,
+    public final O getObject(final int id) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException {
         O res = cache.get(id);
@@ -918,7 +931,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    private O getObject(final int id, final Database db)
+    private final O getObject(final int id, final Database db)
             throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException, OBException {
         // TODO: Optimization: put these two objects in the class so that they
@@ -1020,7 +1033,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         if(kDB != null){
             kDB.close();
         }
+        
         databaseEnvironment.cleanLog();
+        databaseEnvironment.compress();
+        databaseEnvironment.checkpoint(null);
         databaseEnvironment.close();
     }
 

@@ -76,7 +76,7 @@ public class OBException
     /**
      * @return A description for the user of the exception.
      */
-    public final String toString() {
+    public String toString() {
         if (ex != null && str != null) {
             return str + " " + ex.toString();
         } else if (ex != null) {

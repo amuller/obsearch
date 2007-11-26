@@ -197,11 +197,10 @@ public class PPTreeShort < O extends OBShort >
         try {
             int i = 0;
             cursor = bDB.openCursor(null, null);
-            MyTupleInput in = new MyTupleInput();
             while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 assert i == IntegerBinding.entryToInt(foundKey);
                 // i contains the actual id of the tuple
-                in.setBuffer(foundData.getData());
+                TupleInput in = new TupleInput(foundData.getData());
                 int cx = 0;
                 while (cx < t.length) {
                     t[cx] = in.readShort();
@@ -217,7 +216,7 @@ public class PPTreeShort < O extends OBShort >
         } finally {
             cursor.close();
         }
-        assert cDB.count() == bDB.count();
+        assert aDB.count() == bDB.count() && cDB.count() == bDB.count(): "Count c: " + cDB.count()  + " count b: " + bDB.count();
 
     }
 
@@ -273,9 +272,10 @@ public class PPTreeShort < O extends OBShort >
         // calculate the rectangle
         float[][] qrect = new float[pivotsCount][2];
         generateRectangleFirstPass(t, r, qrect);
+        float [] center = normalizeFirstPass(t);
         // obtain the hypercubes that have to be matched
         List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
-        spaceTree.searchRange(qrect, hyperRectangles);
+        spaceTree.searchRange(qrect, center, hyperRectangles);
         int[] result = new int[hyperRectangles.size()];
         Iterator < SpaceTreeLeaf > it = hyperRectangles.iterator();
         int i = 0;
@@ -311,8 +311,8 @@ public class PPTreeShort < O extends OBShort >
         generateRectangleFirstPass(t, r, qrect);
         List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
         // obtain the hypercubes that have to be matched
-
-        spaceTree.searchRange(qrect, hyperRectangles);        
+        float [] center = normalizeFirstPass(t);
+        spaceTree.searchRange(qrect, center, hyperRectangles);        
         searchOBAux(object, r, result, qrect, t, hyperRectangles);
         
         // stats
@@ -507,26 +507,31 @@ public class PPTreeShort < O extends OBShort >
                         .entryToFloat(keyEntry);
                 short max = Short.MIN_VALUE;
                 short realDistance = Short.MIN_VALUE;
+                
+                int i = 0;
+                short t;
+                MyTupleInput in = new MyTupleInput();
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue <= hhigh) {
 
-                    TupleInput in = new TupleInput(dataEntry.getData());
+                    in.setBuffer(dataEntry.getData());
                     
-                    this.smapRecordsCompared++;
+                    //this.smapRecordsCompared++;
                     
-                    int i = 0;
-                    short t;
+                    i = 0;
+                    
                     max = Short.MIN_VALUE;
                     // STATS
-                    while (i < tuple.length) {
-                        t = (short) Math.abs(tuple[i] - in.readShort());
-                        if (t > max) {
+                    while (i < pivotsCount) {
+                        t = (short) Math.abs(tuple[i] - in.readShortFast());
+                        if (t > max) {  
                             max = t;
                             if (t > r) {
                                 break; // finish this loop this slice won't be
                                 // matched
                                 // after all!
                             }
+                            
                         }
                         i++;
                     }
@@ -1093,4 +1098,6 @@ public class PPTreeShort < O extends OBShort >
         short result = ((OBShort)a).distance((OBShort)b);
         return normalizeFirstPassAux(result);
     }
+    
+    
 }
