@@ -17,9 +17,12 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.pptree.SpaceTree;
 import org.ajmm.obsearch.index.pptree.SpaceTreeLeaf;
 import org.ajmm.obsearch.index.pptree.SpaceTreeNode;
+import org.ajmm.obsearch.index.utils.OBRandom;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
+import cern.jet.random.engine.MersenneTwister;
+import cern.jet.random.engine.RandomSeedGenerator;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -63,8 +66,9 @@ public abstract class AbstractPPTree < O extends OB >
      */
     private static final int MIN_ELEMENTS_IN_SPACE_ACCEPTED = 50;
 
-    private static final int K_MEANS_REPETITIONS = 10;
-
+    private static final int K_MEANS_REPETITIONS = 30;
+    
+    
     /**
      * Partitions to be used when generating the space tree.
      */
@@ -327,7 +331,7 @@ public abstract class AbstractPPTree < O extends OB >
             if ( !(node instanceof SpaceTreeLeaf)) { 
                 // initialize clustering algorithm
                 assert node instanceof SpaceTreeNode;
-                float[][] centers = kMeans(data, (byte) 2, ran);
+                float[][] centers = kMeans(data, (byte) 2);
 
                 // assert centers.numInstances() == 2 : "Centers found: " +
                 // centers.numInstances();
@@ -363,7 +367,7 @@ public abstract class AbstractPPTree < O extends OB >
                 divideSpace(data, SL, SR, DD, DV);
                 assert data.size() == SL.size() + SR.size();
                 
-                assert verifyDivideSpace(SL, SR, DD,DV);
+                
                 
                 SpaceTree leftNode = null;
                 SpaceTree rightNode = null;
@@ -492,13 +496,14 @@ public abstract class AbstractPPTree < O extends OB >
         return res;
     }
     */
-    private float[][] kMeans(final IntArrayList cluster, final byte k,
-            final Random ran) throws DatabaseException, OutOfRangeException,
+    private float[][] kMeans(final IntArrayList cluster, final byte k
+            ) throws DatabaseException, OutOfRangeException,
             KMeansException {
-        double[] squaredErrorRes = new double[1];
+        double[] squaredErrorRes = new double[1];        
         float[][] res = null;
         double best = Double.MAX_VALUE;
         boolean bestKMeansPP = true;
+        OBRandom yay = new OBRandom();
         int i = 0;
         // find the best k=means pair
         while (i < K_MEANS_REPETITIONS) {
@@ -506,13 +511,14 @@ public abstract class AbstractPPTree < O extends OB >
             boolean kmeansPP = true;
             // hack to force how good kmeans++ works against
             // random init
-            /*if (i < (K_MEANS_REPETITIONS / 2) - 1) {
-                tries = KMEANS_PP_ITERATIONS + 1;
+            //if (i < (K_MEANS_REPETITIONS / 2) - 1) {
+            /*if(yay.nextBoolean()){
+                tries = KMEANS_PP_ITERATIONS + 5;
                 kmeansPP = false;
             }*/
             try {
                 squaredErrorRes[0] = 0;
-                float[][] temp = kMeansAux(cluster, k, new Random(System.currentTimeMillis()), tries,
+                float[][] temp = kMeansAux(cluster, k, tries,
                         squaredErrorRes);
                 logger.debug(" squared error: " + squaredErrorRes[0] + " ++?: " + kmeansPP);
                 assert squaredErrorRes[0] < Float.MAX_VALUE : "Size: "
@@ -549,8 +555,6 @@ public abstract class AbstractPPTree < O extends OB >
      *                BitSet with the elements of the current data set
      * @param k
      *                Number of clusters to generate
-     * @param ran
-     *                Random function
      * @param iteration
      *                Number of iterations
      * @return An arrays of arrays of k+1 elements. The first two elements are
@@ -567,11 +571,13 @@ public abstract class AbstractPPTree < O extends OB >
      * @throws KMeansException
      *                 If k-means++ fails to find clusters
      */
+    // TODO: improve the way we represent the data. Instead of having 
+    // two huge vectors with each of the elements, we could have one byte vector
+    // whose elements point to the cluster the element belongs to.
     private float[][] kMeansAux(final IntArrayList cluster, final byte k,
-            final Random ran, final int iteration, double[] squaredErrorRes)
+             final int iteration, double[] squaredErrorRes)
             throws DatabaseException, OutOfRangeException, KMeansException,
             KMeansHungUpException {
-
         if (cluster.size() <= 1) {
             throw new KMeansException(
                     "Cannot cluster spaces with one or less elements. Found elements: "
@@ -579,9 +585,9 @@ public abstract class AbstractPPTree < O extends OB >
         }
         float[][] centroids = new float[k][pivotsCount];
         if (iteration < AbstractPPTree.KMEANS_PP_ITERATIONS) {
-            initializeKMeansPP(cluster, k, centroids, ran);
+            initializeKMeansPP(cluster, k, centroids);
         } else {
-            initializeKMeans(cluster, k, centroids, ran);
+            initializeKMeans(cluster, k, centroids);
         }
         TIntHashSet selection[] = initSubClusters(cluster, k);
 
@@ -628,7 +634,7 @@ public abstract class AbstractPPTree < O extends OB >
             tempTuple = readFromB(index);
             // find the closest spot
             byte closest = closest(tempTuple, centroids);
-            float x = this.squareDistance(tempTuple, centroids[closest]);
+            float x = squareDistance(tempTuple, centroids[closest]);
             assert !Float.isNaN(x) : "Calculated: "
                     + Arrays.toString(tempTuple) + " , "
                     + Arrays.toString(centroids[closest]);
@@ -639,24 +645,7 @@ public abstract class AbstractPPTree < O extends OB >
         squaredErrorRes[0] = squaredError / cluster.size();
         return centroids;
     }
-
-    /**
-     * Returns true if any of the given clusters is almost (30 elements or less)
-     * empty.
-     * @param selection
-     *                set of clusters to analyze
-     * @return true if any of the given clusters is empty
-     */
-    private boolean someoneAlmostEmpty(final TIntHashSet[] selection) {
-        byte i = 0;
-        while (i < selection.length) {
-            if (selection[i].size() <= 30) {
-                return true;
-            }
-            i++;
-        }
-        return false;
-    }
+    
 
     /**
      * Find the centroids.
@@ -744,7 +733,7 @@ public abstract class AbstractPPTree < O extends OB >
         byte res = 0;
         float value = Float.MAX_VALUE;
         while (i < centroids.length) {
-            float temp = euclideanDistance(tuple, centroids[i]);
+            float temp = squareDistance(tuple, centroids[i]);
             if (temp < value) {
                 value = temp;
                 res = i;
@@ -819,9 +808,10 @@ public abstract class AbstractPPTree < O extends OB >
      *                 If somehing goes wrong with the DB.
      */
     private void initializeKMeans(final IntArrayList cluster, final byte k,
-            final float[][] centroids, final Random r)
+            final float[][] centroids)
             throws DatabaseException, OutOfRangeException {
         int total = cluster.size();
+        OBRandom r = new OBRandom();
         byte i = 0;
         int centroidIds[] = new int[k];
         while (i < k) {
@@ -840,6 +830,7 @@ public abstract class AbstractPPTree < O extends OB >
         }
     }
 
+    
     
     /**
      * Initializes k centroids by using k-means++ leaves the result in
@@ -861,9 +852,10 @@ public abstract class AbstractPPTree < O extends OB >
      *                 the range defined by the user.
      */
     private void initializeKMeansPP(final IntArrayList cluster, final byte k,
-            final float[][] centroids, final Random r)
+            final float[][] centroids)
             throws DatabaseException, OutOfRangeException {
 
+        OBRandom r = new OBRandom();
         float potential = 0;
         int retries = 7;
         int centroidIds[] = new int[k]; // keep track of the selected centroids

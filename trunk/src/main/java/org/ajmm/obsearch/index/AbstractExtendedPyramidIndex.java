@@ -10,6 +10,8 @@ import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.apache.log4j.Logger;
 
+import cern.colt.list.FloatArrayList;
+
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.Cursor;
@@ -209,6 +211,17 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             i++;
         }
     }
+    
+    protected final void updateFloatHolder(final float[] tuple,
+            FloatArrayList[] medianHolder) {
+        int i = 0;
+        assert tuple.length == medianHolder.length;
+        assert medianHolder.length == pivotsCount;
+        while (i < medianHolder.length) {
+            medianHolder[i].add(tuple[i]);
+            i++;
+        }
+    }
 
     /**
      * Creates pivotsCount QuantileBin1D objects that will be used to calculate
@@ -226,6 +239,18 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             res[i] = new QuantileBin1D(true, size, 0.00001, 0.00001, 10000,
                     new cern.jet.random.engine.DRand(new java.util.Date()),
                     true, true, 2);
+            i++;
+        }
+        return res;
+    }
+    
+    protected final FloatArrayList[] createFloatHolders(int size) {
+        FloatArrayList[] res = new FloatArrayList[pivotsCount];
+        int i = 0;
+        while (i < res.length) {
+            // TODO: move these parameters to a centralized
+            // configuration file.
+            res[i] = new FloatArrayList(size);
             i++;
         }
         return res;
@@ -402,25 +427,22 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         if (isEasyCase(q)) { // do not use max2 here
             lowHighResult[HLOW] = 0;
         } else {   
-            determineRanges1(p,q,lowHighResult);           
+            int j = 0;
+            float max = 0;
+            while (j < pivotsCount) {
+                if (i != j) {
+                    float t = qjmin(q, j, i);
+                    if (t > max) {
+                        max = t;
+                    }
+                }
+                j++;
+            }
+            lowHighResult[HLOW] = max;
         }
     }
     
-    private final void determineRanges1(int p, float[][] q, float[] lowHighResult){
-        int j = 0;
-        int i = p;
-        float max = 0;
-        while (j < pivotsCount) {
-            if (i != j) {
-                float t = qjmin(q, j, i);
-                if (t > max) {
-                    max = t;
-                }
-            }
-            j++;
-        }
-        lowHighResult[HLOW] = max;
-    }
+
     /*
     private final void determineRanges2 (int p, float[][] q, float[] lowHighResult){
         int j = 0;
@@ -457,7 +479,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *            i parameter
      * @return qjmin for the given q,j,i.
      */
-    private float qjmin(final float[][] q, final int j, final int i) {
+    private final float qjmin(final float[][] q, final int j, final int i) {
         if (min(q[j]) > min(q[i])) {
             return min(q[j]);
         } else {
@@ -472,7 +494,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *            A query rectangle
      * @return True if this query is an "easy case" query.
      */
-    private boolean isEasyCase(final float[][] q) {
+    private final boolean isEasyCase(final float[][] q) {
         int i = 0;
         while (i < q.length) {
             if (!((q[i][MIN] <= 0) && (0 <= q[i][MAX]))) {
@@ -489,7 +511,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *            2 element array.
      * @return min
      */
-    private float min(final float[] minMax) {
+    private final float min(final float[] minMax) {
         if (minMax[MIN] <= 0 && 0 <= minMax[MAX]) {
             return 0;
         } else {

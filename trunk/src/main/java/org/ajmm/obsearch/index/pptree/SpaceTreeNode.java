@@ -3,6 +3,8 @@ package org.ajmm.obsearch.index.pptree;
 import java.util.List;
 import java.util.Random;
 
+import org.ajmm.obsearch.index.AbstractPPTree;
+
 /*
  OBSearch: a distributed similarity search engine
  This project is to similarity search what 'bit-torrent' is to downloads.
@@ -28,7 +30,8 @@ import java.util.Random;
  * @since 0.7
  */
 
-public class SpaceTreeNode implements SpaceTree {
+public class SpaceTreeNode
+        extends AbstractSpaceTreeNode implements SpaceTree {
 
     /**
      * Division dimension.
@@ -50,6 +53,14 @@ public class SpaceTreeNode implements SpaceTree {
      */
     private SpaceTree right;
 
+    /**
+     * Initializes the node with the given space center.
+     * @param center
+     *                Center of this subspace.
+     */
+    public SpaceTreeNode(float[] center) {
+        super(center);
+    }
 
     /**
      * @return a string representation of this node.
@@ -76,7 +87,7 @@ public class SpaceTreeNode implements SpaceTree {
     /**
      * Sets the DD of the node.
      * @param dd
-     *            new DD.
+     *                new DD.
      */
     public final void setDD(int dd) {
         DD = dd;
@@ -93,7 +104,7 @@ public class SpaceTreeNode implements SpaceTree {
     /**
      * Sets the DV of the node.
      * @param dv
-     *            new dv
+     *                new dv
      */
     public final void setDV(float dv) {
         DV = dv;
@@ -109,7 +120,7 @@ public class SpaceTreeNode implements SpaceTree {
     /**
      * Set left child.
      * @param left
-     *            new left child.
+     *                new left child.
      */
     public final void setLeft(SpaceTree left) {
         this.left = left;
@@ -125,7 +136,7 @@ public class SpaceTreeNode implements SpaceTree {
     /**
      * Set right child.
      * @param right
-     *            new right child.
+     *                new right child.
      */
     public final void setRight(SpaceTree right) {
         this.right = right;
@@ -135,41 +146,57 @@ public class SpaceTreeNode implements SpaceTree {
         if (value[DD] < DV) {
             return left.search(value);
         }
-        if (value[DD] >= DV) {
+        else {
             return right.search(value);
-        } else {
-            assert false;
-            return null;
-        }
+        } 
     }
 
     /**
      * Takes a query rectangle and returns all the spaces that intersect with
      * it.
      * @param query
-     *            the query to be searched
+     *                the query to be searched
+     *  @param object
+     *                the original object that we will match                
      * @param result
-     *            will hold all the spaces that intersect with the query
+     *                will hold all the spaces that intersect with the query
      */
-    public final void searchRange(float[][] query, List < SpaceTreeLeaf > result) {
+    public final void searchRange(float[][] query, float[] object,List < SpaceTreeLeaf > result) {
 
         // if the maximum value of the query in the given dimension is lower
         // than the split value, then we can safely ignore the other branches
+        boolean conditionA = query[DD][MIN] <= DV;
+        boolean conditionB = query[DD][MAX] >= DV;
 
-            if (query[DD][MIN] <= DV) {
-                left.searchRange(query, result);
+        if (conditionA && conditionB) {
+            // we select first the node whose center is the closest.
+            float distanceL = AbstractPPTree.squareDistance(object, left.getCenter());
+            float distanceR = AbstractPPTree.squareDistance(object, right.getCenter());
+            
+            if(distanceL < distanceR){
+                left.searchRange(query, object, result);
+                right.searchRange(query, object, result);
+            }else{
+                right.searchRange(query, object, result);
+                left.searchRange(query, object, result);
+            }
+            
+        } else {
+            if (conditionA) {
+                left.searchRange(query, object, result);
             }
 
-            if (query[DD][MAX] >= DV) {
-                right.searchRange(query, result);
+            if (conditionB) {
+                right.searchRange(query, object, result);
             }
+        }
 
     }
 
     /**
      * Searches for space spaceNumber and returns such leaf.
      * @param spaceNumber
-     *            the space number we want to search
+     *                the space number we want to search
      * @return The spaceLeaf with SNo spaceNumber
      */
     public final SpaceTreeLeaf searchSpace(int spaceNumber) {

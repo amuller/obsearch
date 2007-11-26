@@ -42,7 +42,7 @@ public class TestSynchronizableIndex
      *             If something goes really bad.
      */
     public void testSyncTree() throws Exception {
-        File dbFolder = new File(TUtils.getTestProperties().getProperty(
+ /*       File dbFolder = new File(TUtils.getTestProperties().getProperty(
                 "test.db.path"));
         OBSlice x = new OBSlice("U(M(),X())");
         OBSlice x2 = new OBSlice("E( U(M(),X()))");
@@ -56,7 +56,7 @@ public class TestSynchronizableIndex
         SynchronizableIndexShort < OBSlice > index2 = new SynchronizableIndexShort < OBSlice >(
                 index, dbFolder);
         IndexSmokeTUtil t = new IndexSmokeTUtil();
-        t.tIndex(index2);
+        t.tIndex(index2);*/
     }
 
 }

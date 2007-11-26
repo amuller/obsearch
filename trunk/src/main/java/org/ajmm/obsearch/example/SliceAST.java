@@ -32,7 +32,7 @@ import antlr.collections.AST;
  * @since 0.7
  */
 
-public class SliceAST
+public final class SliceAST
         extends BaseAST {
 
     /**
@@ -43,25 +43,32 @@ public class SliceAST
     /**
      * Number of children this node has.
      */
-    protected int decendants = -1;
+    public int decendants = -1;
 
     /**
      * The text of this node.
      */
-    protected String text;
+    public String text;
 
     /**
-     * Updates decendant information.
+     * Updates descendants information.
      * @return An integer that represents the number of children of this node.
      */
-    public final int updateDecendantInformation() {
+    public final int updateDecendantInformationAux() {
         decendants = 0;
         SliceAST n = getLeftmostChild();
         while (n != null) {
-            decendants += n.updateDecendantInformation();
+            decendants += n.updateDecendantInformationAux();
             n = (SliceAST) n.getNextSibling();
         }
         return decendants + 1;
+    }
+
+    /**
+     * Updates descendants information.
+     */
+    public final void updateDecendantInformation() {
+        decendants = updateDecendantInformationAux();
     }
 
     /**
@@ -69,9 +76,6 @@ public class SliceAST
      * @return The number of children of this node.
      */
     public final int getDescendants() {
-        if (decendants == -1) {
-            updateDecendantInformation();
-        }
         return decendants;
     }
 
@@ -79,7 +83,7 @@ public class SliceAST
      * @return The size of the Tree (includes the root node)
      */
     public final int getSize() {
-        return getDescendants() + 1;
+        return this.decendants;
     }
 
     /**
@@ -103,9 +107,9 @@ public class SliceAST
     /**
      * Initialize the node.
      * @param t
-     *            Node type
+     *                Node type
      * @param txt
-     *            Node tag
+     *                Node tag
      */
     public final void initialize(final int t, final String txt) {
         setType(t);
@@ -115,7 +119,7 @@ public class SliceAST
     /**
      * Initialize the node from another node.
      * @param t
-     *            Another node.
+     *                Another node.
      */
     public final void initialize(final AST t) {
         setText(t.getText());
@@ -131,9 +135,9 @@ public class SliceAST
     /**
      * Initialize the node.
      * @param t
-     *            Node type
+     *                Node type
      * @param txt
-     *            Node text
+     *                Node text
      */
     public SliceAST(final int t, final String txt) {
         text = txt;
@@ -142,7 +146,7 @@ public class SliceAST
     /**
      * Initialize the node from a token.
      * @param tok
-     *            The token to use as initializer.
+     *                The token to use as initializer.
      */
     public SliceAST(final Token tok) {
         text = tok.getText();
@@ -151,7 +155,7 @@ public class SliceAST
     /**
      * Clone the node with this constructor.
      * @param t
-     *            Another SliceAST
+     *                Another SliceAST
      */
     public SliceAST(final SliceAST t) {
         text = t.text;
@@ -160,7 +164,7 @@ public class SliceAST
     /**
      * Initialize from the given token.
      * @param tok
-     *            A token.
+     *                A token.
      */
     @Override
     public final void initialize(final Token tok) {
@@ -171,7 +175,7 @@ public class SliceAST
     /**
      * Set the token text for this node.
      * @param text_
-     *            The text to use.
+     *                The text to use.
      */
     @Override
     public final void setText(final String text_) {
@@ -181,7 +185,7 @@ public class SliceAST
     /**
      * Set the token type for this node. Currently ignored.
      * @param ttype_
-     *            Type to use
+     *                Type to use
      */
     @Override
     public final void setType(final int ttype_) {
@@ -217,28 +221,86 @@ public class SliceAST
         return ts;
     }
 
-    
-
     /**
-     * Little speed up to the normal equalsTree method.
-     * Returns tree if this and t are equal
-     * @param t Another tree to compare.
+     * Little speed up to the normal equalsTree method. Returns tree if this and
+     * t are equal
+     * @param t
+     *                Another tree to compare.
      * @return True if both trees are equal.
      * @see antlr.BaseAST#equalsTree(antlr.collections.AST)
      */
-    @Override
-    public final boolean equalsTree(final AST t) {
-        final SliceAST j = (SliceAST) t;
-        if (j.getSize() != getSize()) { // little speed up! ;)
+    public final boolean equalsTree(final SliceAST t) {
+        
+        if (t.decendants != this.decendants) { // little speed up! ;)
             return false;
         } else {
             return super.equalsTree(t);
         }
     }
+    /*
+    public final boolean equalsTree(SliceAST t) {
+        // check roots first.
+        
+        if (!this.text.equals(t.text)) return false;
+        // if roots match, do full list match test on children.
+        if (this.getFirstChild() != null) {
+            if (!this.getFirstChild().equalsList(t.getFirstChild())) return false;
+        }
+        // sibling has no kids, make sure t doesn't either
+        else if (t.getFirstChild() != null) {
+            return false;
+        }
+        return true;
+    }*/
+    
+    /** Get the first child of this node; null if not children */
+    public final AST getFirstChild() {
+        return down;
+    }
 
+    /** Get the next sibling in line after this one */
+    public final AST getNextSibling() {
+        return right;
+    }
+    
+    /*
+    public final boolean equalsList(AST t) {
+        AST sibling;
 
+        // the empty tree is not a match of any non-null tree.
+        if (t == null) {
+            return false;
+        }
+
+        // Otherwise, start walking sibling lists.  First mismatch, return false.
+        for (sibling = this;
+                         sibling != null && t != null;
+                         sibling = sibling.getNextSibling(), t = t.getNextSibling())
+                {
+            // as a quick optimization, check roots first.
+            if (! ((SliceAST)sibling).text.equals(((SliceAST)t).text)) {
+                return false;
+            }
+            // if roots match, do full list match test on children.
+            if (sibling.getFirstChild() != null) {
+                if (!sibling.getFirstChild().equalsList(t.getFirstChild())) {
+                    return false;
+                }
+            }
+            // sibling has no kids, make sure t doesn't either
+            else if (t.getFirstChild() != null) {
+                return false;
+            }
+        }
+        if (sibling == null && t == null) {
+            return true;
+        }
+        // one sibling list has more than the other
+        return false;
+    }
+*/
     /**
-     * @return  A list of the nodes in depth first order
+     * @return A list of the nodes in depth first order
      */
     public final synchronized List < SliceAST > depthFirst() {
         final LinkedList < SliceAST > res = new LinkedList < SliceAST >();
@@ -248,7 +310,8 @@ public class SliceAST
 
     /**
      * Auxiliary function for {@link #depthFirst()}.
-     * @param res Where the result will be stored.
+     * @param res
+     *                Where the result will be stored.
      */
     protected final void depthFirstAux(final LinkedList < SliceAST > res) {
         res.add(this);
@@ -261,6 +324,27 @@ public class SliceAST
             right.depthFirstAux(res);
         }
     }
+    
+    public final String toFuriaChanTree(){
+        StringBuilder sb = new StringBuilder();
+        toFuriaChanTreeAux(sb);
+        return sb.toString();
+    }
 
+    private final void toFuriaChanTreeAux(StringBuilder ts) {
+        AST t = this;
+        ts.append(this.toString());
+        if (t.getFirstChild() != null) {
+            ts.append("(");
 
+            ((SliceAST) t.getFirstChild()).toFuriaChanTreeAux(ts);
+
+            ts.append(")");
+        }
+        if(t.getNextSibling() != null){
+            ts.append(",");
+            ((SliceAST)t.getNextSibling()).toFuriaChanTreeAux(ts);
+        }
+    }
+    
 }

@@ -50,26 +50,36 @@ public interface SpaceTree {
      * post your comments. I just felt that it helps to document better... but
      * it is cyclic.
      * @param tuple
-     *            The tuple that will be searched
+     *                The tuple that will be searched
      * @return The leaf where this tuple is stored.
      */
     SpaceTreeLeaf search(float[] tuple);
 
     /**
+     * Returns the center of the underlying space.
+     * @return The center of the space.
+     */
+    float[] getCenter();
+
+    /**
      * Takes a query rectangle and returns all the spaces that intersect with
      * it. The list should be empty the first time you call this method
      * @param query
-     *            the query to be searched
+     *                the query to be searched
+     * @param center
+     *                Holds the center of the query (original object's
+     *                coordinates)
      * @param result
-     *            will hold all the spaces that intersect with the query
+     *                will hold all the spaces that intersect with the query
      */
-    void searchRange(float[][] query, List < SpaceTreeLeaf > result);
+    void searchRange(float[][] query, float[] center,
+            List < SpaceTreeLeaf > result);
 
     /**
      * Returns the space tree with the number spaceNumber.
      * @see #search(float[])
      * @param spaceNumber
-     *            The space number to search.
+     *                The space number to search.
      * @return The space with number spaceNumber
      */
     SpaceTreeLeaf searchSpace(int spaceNumber);

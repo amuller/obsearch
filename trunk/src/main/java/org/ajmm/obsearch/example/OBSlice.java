@@ -35,7 +35,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  */
 /**
  * Example Object that can be stored in OBSearch This class reads strings
- * representations of trees and calcualtes the distance between the objects by
+ * representations of trees and calculates the distance between the objects by
  * using a tree distance function.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
@@ -43,15 +43,12 @@ import com.sleepycat.bind.tuple.TupleOutput;
 
 public class OBSlice implements OBShort {
 
-    /**
-     * An String representation of the tree.
-     */
-    private String slice;
 
     /**
      * The root node of the tree.
      */
     private SliceAST tree;
+    private int hashCode;
 
     /**
      * Default constructor must be provided by every object that implements the
@@ -64,30 +61,45 @@ public class OBSlice implements OBShort {
     /**
      * Creates an slice object.
      * @param slice
-     *            A string representation of a tree.
+     *                A string representation of a tree.
      */
-    public OBSlice(final String slice) {
-        assert slice != null;
-        this.slice = slice;
+    public OBSlice(final String slice) throws OBException {
+        this.updateTree(slice);
+        assert tree.equalsTree( this.parseTree(tree.toFuriaChanTree())) : "This: " + tree.toFuriaChanTree() + " slice: " + slice + " size: " + tree.getSize();
     }
 
     /**
-     * Calculates the distance between two trees.
+     * Calculates the distance between two trees. TODO: traverse the smallest
+     * tree.
      * @param object
-     *            The other object to compare
+     *                The other object to compare
      * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
      * @throws OBException
-     *             if something wrong happens.
+     *                 if something wrong happens.
      * @return A short that indicates how similar or different the trees are.
      */
     public final short distance(final OB object) throws OBException {
         OBSlice b = (OBSlice) object;
-        updateTree();
-        b.updateTree();
+        if (this.tree.getSize() < b.tree.getSize()) {
+            return distance(this.tree, b.tree);
+        } else {
+            return distance(b.tree, this.tree);
+        }
+    }
 
-        List < SliceAST > aExpanded = this.tree.depthFirst();
-        List < SliceAST > bExpanded = b.tree.depthFirst();
+    /**
+     * Calculates the distance between trees a and b.
+     * @param a
+     *                The first tree (should be smaller than b)
+     * @param b
+     *                The second tree
+     * @return The distance of the trees.
+     */
+    private final short distance(SliceAST a, SliceAST b) {
+
+        List < SliceAST > aExpanded = a.depthFirst();
+        List < SliceAST > bExpanded = b.depthFirst();
         List < SliceAST > bExpanded2 = new LinkedList < SliceAST >();
         bExpanded2.addAll(bExpanded);
         int Na = aExpanded.size() * 2;
@@ -128,33 +140,34 @@ public class OBSlice implements OBShort {
      * Internal method that updates the Tree from the String
      * @throws OBException
      */
-    protected final void updateTree() throws OBException {
-        if (tree == null) {
-            try {
-                synchronized (slice) {
-                    assert slice != null;
-                    SliceLexer lexer = new SliceLexer(new StringReader(slice));
-                    SliceParser parser = new SliceParser(lexer);
-                    parser
-                            .setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
-                    parser.slice();
-                    tree = (SliceAST) parser.getAST();
-                    tree.getSize();
-                }
-            } catch (Exception e) {
-                throw new SliceParseException(slice, e);
-            }
+    protected final void updateTree(String x) throws OBException {
+        tree = parseTree(x);
+        this.hashCode = tree.toFuriaChanTree().hashCode();
+    }
+
+    private final SliceAST parseTree(String x) throws SliceParseException {
+        try {
+            SliceLexer lexer = new SliceLexer(new StringReader(x));
+            SliceParser parser = new SliceParser(lexer);
+            parser.setASTNodeClass("org.ajmm.obsearch.example.SliceAST");
+            parser.slice();
+            SliceAST t = (SliceAST) parser.getAST();
+            t.updateDecendantInformation();
+            return t;
+        } catch (Exception e) {
+            throw new SliceParseException(x, e);
         }
     }
+    
+    
 
     /**
      * Returns the size (in nodes) of the tree.
      * @return The size of the tree.
      * @throws OBException
-     *             If something goes wrong.
+     *                 If something goes wrong.
      */
     public final int size() throws OBException {
-        updateTree();
         return tree.getSize();
     }
 
@@ -164,8 +177,7 @@ public class OBSlice implements OBShort {
     public final String toString() {
         String res = ":)";
         try {
-            updateTree();
-            res = "" + this.size();
+            res = tree.toFuriaChanTree() + "|" + tree.getSize() + "|";
         } catch (Exception e) {
             assert false;
         }
@@ -175,30 +187,31 @@ public class OBSlice implements OBShort {
     /**
      * Re-creates this object from the given byte stream
      * @param in
-     *            A byte stream with the data that must be loaded.
+     *                A byte stream with the data that must be loaded.
      * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
-    public void load(TupleInput in) {
-        slice = in.readString();
-        assert slice != null : "Slice was null!";
-        tree = null; // very important!
+    public final void load(TupleInput in) throws OBException {
+        short size = in.readShort();
+        updateTree(in.readBytes(size));
     }
 
     /**
      * Stores this object into the given byte stream.
      * @param out
-     *            The byte stream to be used
+     *                The byte stream to be used
      * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
     public final void store(TupleOutput out) {
-        assert slice != null : "Slice was null";
-        out.writeString(slice);
+        String str = tree.toFuriaChanTree();
+        out.writeShort(str.length());
+        out.writeBytes(str);
     }
 
     /**
      * Returns true of this.tree.equals(obj.tree). For this distance function
      * this.distance(obj) == 0 implies that this.equals(obj) == true
-     * @param obj Object to compare.
+     * @param obj
+     *                Object to compare.
      * @return true if this == obj
      */
     public final boolean equals(final Object obj) {
@@ -207,13 +220,6 @@ public class OBSlice implements OBShort {
             return false;
         }
         OBSlice o = (OBSlice) obj;
-        // parse the strings into trees before the equals too!
-        try {
-            updateTree();
-            o.updateTree();
-        } catch (Exception e) {
-            assert false;
-        }
         return tree.equalsTree(o.tree);
     }
 
@@ -222,8 +228,7 @@ public class OBSlice implements OBShort {
      * @return a hash code of the string representation of this tree.
      */
     public final int hashCode() {
-        assert slice != null;
-        return this.slice.hashCode();
+        return this.hashCode;
     }
 
 }

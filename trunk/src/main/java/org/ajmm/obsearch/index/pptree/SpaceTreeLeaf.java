@@ -31,8 +31,10 @@ import java.util.List;
  * @since 0.7
  */
 
-public class SpaceTreeLeaf implements SpaceTree {
+public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
 
+    
+    
     /**
      * Space number.
      */
@@ -49,10 +51,18 @@ public class SpaceTreeLeaf implements SpaceTree {
     private double[] width;
 
     /**
-     * Precalculated value for normalization.
+     * Pre-calculated value for normalization.
      */
     private double[] exp;
 
+    /**
+     * Initializes the leaf with the given cluster center.
+     * @param center The center of this space.
+     */
+    public SpaceTreeLeaf(float[] center){
+        super(center);
+    }
+    
     /**
      * @return A human readable representation of the object.
      */
@@ -209,7 +219,7 @@ public class SpaceTreeLeaf implements SpaceTree {
      *            will hold all the spaces that intersect with the query
      */
     public final void searchRange(final float[][] query,
-            List < SpaceTreeLeaf > result) {
+            float[] center, List < SpaceTreeLeaf > result) {
         assert intersects(query); // this has to be true
         // if (intersects(query)) {
         result.add(this);
@@ -263,6 +273,28 @@ public class SpaceTreeLeaf implements SpaceTree {
             i++;
         }
         return res;
+    }
+    
+    /**
+     * Returns "" if the given point is inside this space.
+     * Used by an assert in AbstractPPTree.
+     * @param point
+     *            point to be tested
+     * @return " if all the points are inside, or a string indicating the violating coordinate
+     */
+    public final String verifyPointInside(final float[] point) {
+        int i = 0;
+        assert point.length == minMax.length;
+        String msg = "";
+        while (i < point.length) {
+            
+            if(! (minMax[i][MIN] <= point[i] && point[i] <= minMax[i][MAX])){
+                msg = "Violating dim: " + i + " Space: [" +  minMax[i][MIN] + ", " + minMax[i][MAX] + "] " + " tulple's value: " + point[i]; 
+                break;
+            }
+            i++;
+        }
+        return msg;
     }
 
     /**

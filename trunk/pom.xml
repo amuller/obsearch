@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
@@ -7,8 +7,7 @@
   <version>0.9</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
-	<description>  
-	Similarity search is required in many areas. Examples are DNA sequences, music and program matching. When an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits considerably the amount of clients a server can hold.
+	<description>Similarity search is required in many areas. Examples are DNA sequences, music and program matching. When an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits considerably the amount of clients a server can hold.
 
 Individuals or small companies who want to provide similarity search services cannot afford the infrastructure required to support such indexes. OBSearch can be used to distribute the workload among the users and reduce the investment to a few "seeder" servers.
 
@@ -16,8 +15,7 @@ OBSearch achieves this by dividing the search space into n "boxes". Each client 
 
 This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc.
 
-By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality.
-	</description>
+By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality.</description>
   <url>http://code.google.com/p/obsearch/</url>
 
 
@@ -48,23 +46,17 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
 	<mailingLists>
     <mailingList>
       <name>obsearch-users</name>
-      <subscribe/>
-      <unsubscribe/>
       <post>http://groups.google.com/group/obsearch-users</post>
       <archive>http://groups.google.com/group/obsearch-users</archive>
     </mailingList>
 		 <mailingList>
       <name>obsearch-developers</name>
-      <subscribe/>
-      <unsubscribe/>
       <post>http://groups.google.com/group/obsearch-developers</post>
       <archive>http://groups.google.com/group/obsearch-developers</archive>
     </mailingList>
 
 		 <mailingList>
       <name>obsearch-developers</name>
-      <subscribe/>
-      <unsubscribe/>
       <post>http://groups.google.com/group/obsearch-announce</post>
       <archive>http://groups.google.com/group/obsearch-announce</archive>
     </mailingList>
@@ -89,7 +81,7 @@ By using these ideas, CPU-intensive information retrieval can be performed with 
 		<dependency>
       <groupId>berkeleydb</groupId>
       <artifactId>je</artifactId>
-      <version>3.2.23</version>
+      <version>3.2.44</version>
       <scope>compile</scope>
     </dependency>
 
@@ -327,9 +319,9 @@ Would be cool to use this.
               <tasks>
 							
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
-                  <target name="generateSources"/>
-									<property name="in" value="${project.build.sourceDirectory}/../fm/"/>
-									<property name="out" value="${project.build.directory}/generated-sources/fm/"/>
+                  <target name="generateSources"></target>
+									<property name="in" value="${project.build.sourceDirectory}/../fm/"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/fm/"></property>
 								</ant>
 
               </tasks>
@@ -346,13 +338,13 @@ Would be cool to use this.
             <configuration>
               <tasks>
 								<propertyset>
-									<propertyref prefix="my"/>
+									<propertyref prefix="my"></propertyref>
 								</propertyset>
 								<ant antfile="${basedir}/build.xml" inheritRefs="true">               
-                  <target name="testDataPrepare"/>									
-									<property name="out" value="${my.test.data.dir}"/>
-									<property name="my.test.data.db" value="${my.test.data.db}"/>
-									<property name="my.test.data.query" value="${my.test.data.query}"/>
+                  <target name="testDataPrepare"></target>									
+									<property name="out" value="${my.test.data.dir}"></property>
+									<property name="my.test.data.db" value="${my.test.data.db}"></property>
+									<property name="my.test.data.query" value="${my.test.data.query}"></property>
 								</ant>
               </tasks>
             </configuration>
@@ -367,13 +359,13 @@ Would be cool to use this.
             <configuration>
               <tasks>
 								<propertyset>
-									<propertyref prefix="my"/>
+									<propertyref prefix="my"></propertyref>
 								</propertyset>
 								<ant antfile="${basedir}/build.xml" inheritRefs="true">               
-                  <target name="testDataPrepare"/>									
-									<property name="out" value="${my.test.data.dir}"/>
-									<property name="my.test.data.db" value="${my.test.data.db}"/>
-									<property name="my.test.data.query" value="${my.test.data.query}"/>
+                  <target name="testDataPrepare"></target>									
+									<property name="out" value="${my.test.data.dir}"></property>
+									<property name="my.test.data.db" value="${my.test.data.db}"></property>
+									<property name="my.test.data.query" value="${my.test.data.query}"></property>
 								</ant>
               </tasks>
             </configuration>
@@ -452,6 +444,50 @@ Would be cool to use this.
 
 		
 	 </build>
+
+	 <profiles>
+        <profile>
+            <id>netbeans-public</id>
+            <activation>
+                <property>
+                    <name>netbeans.execution</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <classpathPrefix>lib</classpathPrefix>
+                                    <mainClass>org.ajmm.obsearch.example.OBExampleTrees</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>nb</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>directory</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptor>${basedir}/src/main/assemblies/netbeans-run.xml</descriptor>
+                                    <finalName>executable</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 
 

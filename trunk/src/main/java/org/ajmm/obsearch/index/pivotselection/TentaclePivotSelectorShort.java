@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
+import org.ajmm.obsearch.index.utils.OBRandom;
 import org.ajmm.obsearch.ob.OBShort;
 import org.apache.log4j.Logger;
 
@@ -115,7 +116,7 @@ public class TentaclePivotSelectorShort < O extends OBShort >
         // Note: I have experimentally confirmed that taking
         // the median will return *much* better results than
         // taking the rightmost element of this array.
-        DResult res = (DResult)arr[seedCount / 2];// take the median object
+        DResult res = (DResult)arr[(int)(seedCount * 0.50)];// take the median object
         
         d = (short) res.getD();
         logger.debug("Selecting distance: " + d);
@@ -125,7 +126,7 @@ public class TentaclePivotSelectorShort < O extends OBShort >
     protected DResult obtainDAux(AbstractPivotIndex < O > x)
             throws InstantiationException, IllegalAccessException,
             DatabaseException, OBException {
-        Random r = new Random();
+        OBRandom r = new OBRandom();
         int m = x.getMaxId();
         int id;
         O ob;

@@ -3,14 +3,13 @@
 # available in maven repositories
 
 # get the latest version of je
-wget http://obsearch.googlecode.com/files/je-3.2.23.tar.gz
-tar -xzf je-3.2.23.tar.gz
+wget http://obsearch.googlecode.com/files/je-3.2.44.jar
 
-mvn install:install-file -Dfile=./je-3.2.23/lib/je-3.2.23.jar -DgroupId=berkeleydb -DartifactId=je -Dversion=3.2.23 -Dpackaging=jar -DgeneratePom=true
+mvn install:install-file -Dfile=./je-3.2.44.jar -DgroupId=berkeleydb -DartifactId=je -Dversion=3.2.44 -Dpackaging=jar -DgeneratePom=true
 
 #cleanup
-rm -fdr je-3.2.23
-rm je-3.2.23.tar.gz
+
+rm je-3.2.44.jar
 
 # get fmpp
 wget http://obsearch.googlecode.com/files/fmpp_0.9.12.tar.gz
