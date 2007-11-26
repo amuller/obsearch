@@ -3,6 +3,7 @@ package org.ajmm.obsearch.index;
 import gnu.trove.TIntObjectHashMap;
 
 import java.lang.ref.SoftReference;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
@@ -39,7 +40,7 @@ public class OBCache < O > {
     /**
      * The map that stores the cache.
      */
-    private TIntObjectHashMap < SoftReference < O > > map;
+    private WeakHashMap < Integer, O  > map;
 
     /**
      * Initialize the cache with the given amount of elements.
@@ -50,7 +51,7 @@ public class OBCache < O > {
     public OBCache(final int size) {
         // using open addressing because it is cheaper
         // map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
-        map = new TIntObjectHashMap  < SoftReference < O >>(size);
+        map = new WeakHashMap<Integer, O>(size);
     }
 
     /**
@@ -61,7 +62,7 @@ public class OBCache < O > {
      *            Object to store
      */
     public final void put(final int id, final O object) {
-        map.put(Integer.valueOf(id), new SoftReference < O >(object));
+        map.put(id, object);
     }
 
     /**
@@ -71,12 +72,7 @@ public class OBCache < O > {
      * @return null if no object is found
      */
     public final O get(final int id) {
-        SoftReference < O > ref = map.get(id);
-        if (ref == null) {
-            return null; // the object is not here.
-        }
-        O result = ref.get();
-        return result;
+        return map.get(id);
     }
 
 }

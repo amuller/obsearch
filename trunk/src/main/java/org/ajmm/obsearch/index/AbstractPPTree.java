@@ -781,6 +781,13 @@ public abstract class AbstractPPTree < O extends OB >
                     else
                         probability -= closestDistances[index];
                 }
+                // if we did not find any proper index, we assign a random one
+                if (index == cluster.size()) {
+                    do {
+                        index = r.nextInt(cluster.size());
+                    } while (contains(cluster.get(index), centroidIds,
+                            centerCount));
+                }
 
                 // Compute the new potential
                 float newPotential = 0;

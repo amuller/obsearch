@@ -122,13 +122,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws DatabaseException {
         this.dbDir = dbDir;
         initDB();
-        timeByBox = new AtomicLongArray(index.totalBoxes());
-        objectsByBox = new AtomicIntegerArray(index.totalBoxes());
-        int i = 0;
-        while (i < index.totalBoxes()) {
-            objectsByBox.set(i, -1);
-            i++;
-        }
+        
     }
 
     /**
@@ -201,8 +195,16 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             DatabaseException, OutOfRangeException, OBException,
             UndefinedPivotsException {
         getIndex().freeze();
-        // after we freeze, we have to insert our data
+        
+        timeByBox = new AtomicLongArray(getIndex().totalBoxes());
+        objectsByBox = new AtomicIntegerArray(getIndex().totalBoxes());
         int i = 0;
+        while (i < getIndex().totalBoxes()) {
+            objectsByBox.set(i, -1);
+            i++;
+        }
+        // after we freeze, we have to insert our data
+         i = 0;
         int max = getIndex().databaseSize();
         int[] boxes = new int[this.totalBoxes()];
         while (i < max) {
