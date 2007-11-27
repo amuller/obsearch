@@ -161,7 +161,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Size of the cache for the underlying db.
      */
-    private static final int CACHE_SIZE = 700 * 1024 * 1024;
+    private static final int CACHE_SIZE = 300 * 1024 * 1024 ;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -336,8 +336,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         dbConfig.setSortedDuplicates(false);
         aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
         dbConfig.setSortedDuplicates(duplicates);
-        PreloadConfig pc = new PreloadConfig();
-        pc.setLoadLNs(true);        
+        PreloadConfig pc = new PreloadConfig();       
+        pc.setLoadLNs(true);
         aDB.preload(pc);
     }
 
@@ -355,7 +355,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         envConfig.setCacheSize(CACHE_SIZE);
         envConfig.setTxnNoSync(true);
         
-        envConfig.setConfigParam("je.log.faultReadSize", "20480");
+        envConfig.setConfigParam("je.log.faultReadSize", "102400");
+        //envConfig.setConfigParam("je.log.faultReadSize", "10240");
         envConfig.setConfigParam("je.evictor.lruOnly", "false");
         envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         // envConfig.setTxnNoSync(true);

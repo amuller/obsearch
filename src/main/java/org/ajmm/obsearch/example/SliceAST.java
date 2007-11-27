@@ -229,13 +229,70 @@ public final class SliceAST
      * @return True if both trees are equal.
      * @see antlr.BaseAST#equalsTree(antlr.collections.AST)
      */
-    public final boolean equalsTree(final SliceAST t) {
+    /*public final boolean equalsTree(final SliceAST t) {
         
         if (t.decendants != this.decendants) { // little speed up! ;)
             return false;
         } else {
             return super.equalsTree(t);
         }
+    }*/
+    
+    /** Is t an exact structural and equals() match of this tree.  The
+     *  'this' reference is considered the start of a sibling list.
+     */
+    public final  boolean equalsList(AST t) {
+        AST sibling;
+
+        // the empty tree is not a match of any non-null tree.
+        if (t == null) {
+            return false;
+        }
+
+        // Otherwise, start walking sibling lists.  First mismatch, return false.
+        for (sibling = this;
+                         sibling != null && t != null;
+                         sibling = sibling.getNextSibling(), t = t.getNextSibling())
+                {
+            // as a quick optimization, check roots first.
+            if (!sibling.equals(t)) {
+                return false;
+            }
+            // if roots match, do full list match test on children.
+            if (sibling.getFirstChild() != null) {
+                if (!sibling.getFirstChild().equalsList(t.getFirstChild())) {
+                    return false;
+                }
+            }
+            // sibling has no kids, make sure t doesn't either
+            else if (t.getFirstChild() != null) {
+                return false;
+            }
+        }
+        if (sibling == null && t == null) {
+            return true;
+        }
+        // one sibling list has more than the other
+        return false;
+    }
+    
+    public final boolean equalsTree(AST t) {
+        // check roots first.
+        if (!this.equals(t)) return false;
+        // if roots match, do full list match test on children.
+        if (this.getFirstChild() != null) {
+            if (!this.getFirstChild().equalsList(t.getFirstChild())) return false;
+        }
+        // sibling has no kids, make sure t doesn't either
+        else if (t.getFirstChild() != null) {
+            return false;
+        }
+        return true;
+    }
+    
+    public final boolean equals(AST t) {
+        SliceAST j = (SliceAST) t;
+        return t != null && this.text.equals(t.getText()) && this.getSize() == j.getSize();
     }
     /*
     public final boolean equalsTree(SliceAST t) {
