@@ -10,7 +10,7 @@ $executions = 3;
 # execExperiments(11,30,"fixedPivotSelector");
  execExperiments(12,30,"fixedPivotSelector");
 # execExperiments(13,30,"fixedPivotSelector");
-# execExperiments(14,30,"fixedPivotSelector");
+ execExperiments(14,30,"fixedPivotSelector");
 
 # execExperiments(6,30,"tentaclePivotSelector");
 # execExperiments(7,30,"tentaclePivotSelector");
@@ -19,7 +19,7 @@ $executions = 3;
 # execExperiments(10,30,"tentaclePivotSelector");
 # execExperiments(11,30,"tentaclePivotSelector");
 execExperiments(12,30,"tentaclePivotSelector");
-#execExperiments(14,30,"tentaclePivotSelector");
+execExperiments(14,30,"tentaclePivotSelector");
 
 # execExperiments(6,30,"kMeansPPPivotSelector");
 # execExperiments(7,30,"kMeansPPPivotSelector");
@@ -27,7 +27,7 @@ execExperiments(12,30,"tentaclePivotSelector");
 execExperiments(9,30,"kMeansPPPivotSelector");
 #execExperiments(10,30,"kMeansPPPivotSelector");
 execExperiments(12,30,"kMeansPPPivotSelector");
-#execExperiments(14,30,"kMeansPPPivotSelector");
+execExperiments(14,30,"kMeansPPPivotSelector");
 
 # non-fixed:
 
