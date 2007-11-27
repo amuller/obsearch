@@ -515,7 +515,7 @@ public class PPTreeShort < O extends OBShort >
                         && currentPyramidValue <= hhigh) {
 
                     in.setBuffer(dataEntry.getData());
-                    
+                    //TupleInput in = new TupleInput(dataEntry.getData());
                     this.smapRecordsCompared++;
                     
                     i = 0;
