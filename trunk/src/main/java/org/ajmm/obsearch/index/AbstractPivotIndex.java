@@ -352,15 +352,20 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
+        // the default value worked pretty well.
         envConfig.setCacheSize(CACHE_SIZE);
+        // leaving this, but it is meaningless when setLocking(false)
         envConfig.setTxnNoSync(true);
         
+        // 100 k gave the best performance in one thread and for 30 pivots of shorts
         envConfig.setConfigParam("je.log.faultReadSize", "102400");
         //envConfig.setConfigParam("je.log.faultReadSize", "10240");
+        // alternate access method might be the best. We got to keep all the btree in memory
         envConfig.setConfigParam("je.evictor.lruOnly", "false");
         envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
+        // disable this in production
         envConfig.setLocking(false);
         this.databaseEnvironment = new Environment(dbDir, envConfig);
 
