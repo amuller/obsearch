@@ -2,6 +2,10 @@
 
 $executions = 3;
 # options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector 
+# execExperiments(2,30,"fixedPivotSelector");
+# execExperiments(3,30,"fixedPivotSelector");
+# execExperiments(4,30,"fixedPivotSelector");
+# execExperiments(5,30,"fixedPivotSelector");
 # execExperiments(6,30,"fixedPivotSelector");
 # execExperiments(7,30,"fixedPivotSelector");
 # execExperiments(8,30,"fixedPivotSelector");
@@ -76,7 +80,7 @@ sub execExperiments{
 		my($od, $pivotSize, $pivotSelectionCriteria) = @_;
 
 		print "$od-$pivotSize-$pivotSelectionCriteria\n";
-#		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
+		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
 		print "Database creation time $totalC\n";
 		print "Time (sec), k/r\n";
 		execExperimentsAux(1,1,$od, $pivotSize, $pivotSelectionCriteria);

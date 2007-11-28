@@ -1,6 +1,30 @@
 
-So it seems that od=8 works well.
+So it seems that od=9 works well for OBSlice.
 Also TentaclePivotSelector* works a little better than
 KMeansPPPivotSelector. 
 
 For TentaclePivotSelector* a seedCount of 30 has worked well.
+
+Doing this in the spaceNode:
+
+ if(distanceL < distanceR){
+                left.searchRange(query, object, result);
+                right.searchRange(query, object, result);
+            }else{        
+                right.searchRange(query, object, result);
+                left.searchRange(query, object, result);
+            }
+
+is not as good as this:
+
+if(distanceL < distanceR){
+								right.searchRange(query, object, result);
+                left.searchRange(query, object, result);
+                
+            }else{
+								 left.searchRange(query, object, result);       
+                right.searchRange(query, object, result);
+                
+            }
+
+when the k=20 and r=20
