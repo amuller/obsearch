@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 public abstract class AbstractSpaceTreeNode implements SpaceTree {
 
-    /**
+    /*
      * Holds the center of the current node.
      * It is used to explore first the spaces whose center is closest
      * to our query.
@@ -40,6 +40,7 @@ public abstract class AbstractSpaceTreeNode implements SpaceTree {
 
     public final float [] getCenter(){
         return center;
+        //return null;
     }
 
 }
