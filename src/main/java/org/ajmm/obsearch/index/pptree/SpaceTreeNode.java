@@ -168,13 +168,13 @@ public class SpaceTreeNode
         boolean conditionA = query[DD][MIN] <= DV;
         boolean conditionB = query[DD][MAX] >= DV;
 
-        if (conditionA && conditionB) {
+        /*if (conditionA && conditionB) {
             // we select first the node whose center is the closest.
             float distanceL = AbstractPPTree.squareDistance(object, left.getCenter());
             float distanceR = AbstractPPTree.squareDistance(object, right.getCenter());
             
             if(distanceL < distanceR){
-               
+                // inverted seems to be better! :)
                 right.searchRange(query, object, result);
                 left.searchRange(query, object, result);
                 
@@ -183,7 +183,7 @@ public class SpaceTreeNode
                 right.searchRange(query, object, result);                                
             }
             
-        } else {
+        } else {*/
             if (conditionA) {
                 left.searchRange(query, object, result);
             }
@@ -191,7 +191,7 @@ public class SpaceTreeNode
             if (conditionB) {
                 right.searchRange(query, object, result);
             }
-        }
+        //}
 
     }
 

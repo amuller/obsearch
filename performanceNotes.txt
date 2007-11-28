@@ -27,4 +27,5 @@ if(distanceL < distanceR){
                 
             }
 
+In some cases...
 when the k=20 and r=20

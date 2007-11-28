@@ -282,20 +282,17 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     /**
-     * This method returns true if either l or r are smaller than
+     * This method returns true if either l is smaller than
      * {@value #MIN_ELEMENTS_IN_SPACE_ACCEPTED}. This will mean that the
      * Partition will stop and that the amount of subspaces will be less than 2 ^
      * od
-     * @param l
-     *                number of elements of the left space
-     * @param r
-     *                number of elements of the right space
+     * @param s
+     *                number of elements of the given space
      * @return true if either of the spaces are less than
      *         {@link #MIN_ELEMENTS_IN_SPACE_ACCEPTED}.
      */
-    protected boolean shallWeStop(int l, int r) {
-        return l <= MIN_ELEMENTS_IN_SPACE_ACCEPTED
-                || r <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
+    protected boolean shallWeStop(int s) {
+        return s <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
     }
 
     /**
@@ -374,23 +371,26 @@ public abstract class AbstractPPTree < O extends OB >
 
                 SpaceTreeNode ntemp = (SpaceTreeNode) node;
                 
-                boolean nextIterationIsNotLeaf = currentLevel < (od - 1)
-                && !shallWeStop(SL.size(), SR.size());
+                boolean nextIterationIsNotLeafLeft = currentLevel < (od - 1)
+                && !shallWeStop(SL.size());
+                
+                boolean nextIterationIsNotLeafRight = currentLevel < (od - 1)
+                && !shallWeStop(SR.size());
                 
                 float [] medianCenterLeft = null;
                 float [] medianCenterRight = null;
-                if (nextIterationIsNotLeaf) { // if we are
-                    // before
-                    // the last
-                    // iteration (that is before adding
-                    // the leaves)
+                
+                if (nextIterationIsNotLeafLeft) { 
                     leftNode = new SpaceTreeNode(CL);
-                    rightNode = new SpaceTreeNode(CR);
-                    
                 } else {
-                    leftNode = new SpaceTreeLeaf(CL);
+                    leftNode = new SpaceTreeLeaf(CL);                    
+                    medianCenterLeft = calculateCenter(SL, DD, DV, true);                    
+                }
+                
+                if (nextIterationIsNotLeafRight) {
+                    rightNode = new SpaceTreeNode(CR);
+                } else{
                     rightNode = new SpaceTreeLeaf(CR);
-                    medianCenterLeft = calculateCenter(SL, DD, DV, true);
                     medianCenterRight = calculateCenter(SR, DD, DV,false);
                 }
                 

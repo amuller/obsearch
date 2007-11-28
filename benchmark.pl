@@ -2,12 +2,12 @@
 
 $executions = 3;
 # options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector 
-# execExperiments(2,30,"fixedPivotSelector");
+ execExperiments(2,30,"fixedPivotSelector");
 # execExperiments(3,30,"fixedPivotSelector");
-# execExperiments(4,30,"fixedPivotSelector");
+ execExperiments(4,30,"fixedPivotSelector");
 # execExperiments(5,30,"fixedPivotSelector");
 # execExperiments(6,30,"fixedPivotSelector");
-# execExperiments(7,30,"fixedPivotSelector");
+ execExperiments(7,30,"fixedPivotSelector");
 # execExperiments(8,30,"fixedPivotSelector");
  execExperiments(9,30,"fixedPivotSelector");
 # execExperiments(10,30,"fixedPivotSelector");
@@ -16,14 +16,14 @@ $executions = 3;
 # execExperiments(13,30,"fixedPivotSelector");
  execExperiments(14,30,"fixedPivotSelector");
 
-# execExperiments(6,30,"tentaclePivotSelector");
+ execExperiments(6,30,"tentaclePivotSelector");
 # execExperiments(7,30,"tentaclePivotSelector");
 # execExperiments(8,30,"tentaclePivotSelector");
  execExperiments(9,30,"tentaclePivotSelector");
 # execExperiments(10,30,"tentaclePivotSelector");
 # execExperiments(11,30,"tentaclePivotSelector");
 execExperiments(12,30,"tentaclePivotSelector");
-execExperiments(14,30,"tentaclePivotSelector");
+#execExperiments(14,30,"tentaclePivotSelector");
 
 # execExperiments(6,30,"kMeansPPPivotSelector");
 # execExperiments(7,30,"kMeansPPPivotSelector");
@@ -79,10 +79,9 @@ sub execExperiments{
 
 		my($od, $pivotSize, $pivotSelectionCriteria) = @_;
 
-		print "$od-$pivotSize-$pivotSelectionCriteria\n";
+		print "$od-$pivotSize-$pivotSelectionCriteria(";
 		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
-		print "Database creation time $totalC\n";
-		print "Time (sec), k/r\n";
+		print "$totalC)\n";
 		execExperimentsAux(1,1,$od, $pivotSize, $pivotSelectionCriteria);
 execExperimentsAux(1,3,$od, $pivotSize, $pivotSelectionCriteria);
 execExperimentsAux(3,3,$od, $pivotSize, $pivotSelectionCriteria);
