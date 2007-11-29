@@ -117,13 +117,16 @@
 <target name="search" depends="maven">
 	
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
+		<!--<jvmarg value="-ea"/>-->
 				<jvmarg value="-server" />
-				<!--<jvmarg value="-ea"/>-->
+				
 				<jvmarg value="-Xmx${memory}M" />
 				<jvmarg value="-XX:+UseParallelGC"/>
-<!--				<jvmarg value="-Xms${memory}M"/>-->
+				<jvmarg value="-Xms${memory}M"/>
 				<jvmarg value="-XX:+UseParallelOldGC"/>
 <!--				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
+<!-- fix an issue with the garbage collector -->
+        <jvmarg value="-XX:+UseMembar"/>
 				<arg value="-search"/>
 				<arg value="-r"/>
 				<arg value="${r}"/>

@@ -1,25 +1,25 @@
 #!/usr/bin/perl -w
 
-$executions = 3;
+$executions = 10;
 # options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector 
- execExperiments(2,30,"fixedPivotSelector");
+# execExperiments(2,30,"fixedPivotSelector");
 # execExperiments(3,30,"fixedPivotSelector");
- execExperiments(4,30,"fixedPivotSelector");
+# execExperiments(4,30,"fixedPivotSelector");
 # execExperiments(5,30,"fixedPivotSelector");
 # execExperiments(6,30,"fixedPivotSelector");
- execExperiments(7,30,"fixedPivotSelector");
+# execExperiments(7,30,"fixedPivotSelector");
 # execExperiments(8,30,"fixedPivotSelector");
  execExperiments(9,30,"fixedPivotSelector");
 # execExperiments(10,30,"fixedPivotSelector");
 # execExperiments(11,30,"fixedPivotSelector");
  execExperiments(12,30,"fixedPivotSelector");
 # execExperiments(13,30,"fixedPivotSelector");
- execExperiments(14,30,"fixedPivotSelector");
+# execExperiments(14,30,"fixedPivotSelector");
 
- execExperiments(6,30,"tentaclePivotSelector");
+ #execExperiments(6,30,"tentaclePivotSelector");
 # execExperiments(7,30,"tentaclePivotSelector");
 # execExperiments(8,30,"tentaclePivotSelector");
- execExperiments(9,30,"tentaclePivotSelector");
+execExperiments(9,30,"tentaclePivotSelector");
 # execExperiments(10,30,"tentaclePivotSelector");
 # execExperiments(11,30,"tentaclePivotSelector");
 execExperiments(12,30,"tentaclePivotSelector");
@@ -31,7 +31,7 @@ execExperiments(12,30,"tentaclePivotSelector");
 execExperiments(9,30,"kMeansPPPivotSelector");
 #execExperiments(10,30,"kMeansPPPivotSelector");
 execExperiments(12,30,"kMeansPPPivotSelector");
-execExperiments(14,30,"kMeansPPPivotSelector");
+#execExperiments(14,30,"kMeansPPPivotSelector");
 
 # non-fixed:
 
@@ -80,7 +80,7 @@ sub execExperiments{
 		my($od, $pivotSize, $pivotSelectionCriteria) = @_;
 
 		print "$od-$pivotSize-$pivotSelectionCriteria(";
-		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
+#		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
 		print "$totalC)\n";
 		execExperimentsAux(1,1,$od, $pivotSize, $pivotSelectionCriteria);
 execExperimentsAux(1,3,$od, $pivotSize, $pivotSelectionCriteria);

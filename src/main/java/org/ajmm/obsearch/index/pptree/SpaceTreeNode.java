@@ -175,12 +175,14 @@ public class SpaceTreeNode
             
             if(distanceL < distanceR){
                 // inverted seems to be better! :)
-                right.searchRange(query, object, result);
                 left.searchRange(query, object, result);
+                right.searchRange(query, object, result);
+                
                 
             }else{        
+                right.searchRange(query, object, result);      
                 left.searchRange(query, object, result);
-                right.searchRange(query, object, result);                                
+                                          
             }
             
         } else {*/

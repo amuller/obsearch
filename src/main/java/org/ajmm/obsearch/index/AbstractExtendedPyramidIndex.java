@@ -16,6 +16,7 @@ import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
@@ -115,15 +116,14 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      */
     @Override
     protected final void initC() throws DatabaseException {
-        final boolean duplicates = dbConfig.getSortedDuplicates();
-        final boolean trans = dbConfig.getTransactional();
+        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
+        
         dbConfig.setSortedDuplicates(true);
         dbConfig.setTransactional(false);
         cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
-        dbConfig.setSortedDuplicates(duplicates);
-        dbConfig.setTransactional(trans);
+                
         PreloadConfig pc = new PreloadConfig();
-        pc.setLoadLNs(true);        
+        pc.setLoadLNs(true);    
         cDB.preload(pc);
     }
 
