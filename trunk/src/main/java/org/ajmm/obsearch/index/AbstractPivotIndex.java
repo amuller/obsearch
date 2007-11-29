@@ -130,11 +130,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     protected transient Database kDB;
 
-    /**
-     * Generic configuration object for the databases.
-     */
-    protected transient DatabaseConfig dbConfig;
-
+    
     /**
      * The pivots for this Tree. When we instantiate or de-serialize this object
      * we load them from {@link #pivotsBytes}.
@@ -166,7 +162,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Size of the cache for the underlying db.
      */
-    private static final int CACHE_SIZE = 700 * 1024 * 1024 ;
+    protected static final transient int CACHE_SIZE = 100 * 1024 * 1024 ;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -248,10 +244,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If something goes wrong with the DB
      */
     private void initB() throws DatabaseException {
-        final boolean duplicates = dbConfig.getSortedDuplicates();
+        
+        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
+        dbConfig.setDeferredWrite(true); // temp database!
         bDB = databaseEnvironmentCreation.openDatabase(null, "B", dbConfig);
-        dbConfig.setSortedDuplicates(duplicates);
     }
 
     /**
@@ -261,10 +258,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If something goes wrong with the DB
      */
     private void initK() throws DatabaseException {
-        final boolean duplicates = dbConfig.getSortedDuplicates();
+        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
+        dbConfig.setDeferredWrite(true);
         kDB = databaseEnvironmentCreation.openDatabase(null, "K", dbConfig);
-        dbConfig.setSortedDuplicates(duplicates);
     }
 
     /**
@@ -341,13 +338,41 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 if something goes wrong with the DB.
      */
     private void initA() throws DatabaseException {
-        final boolean duplicates = dbConfig.getSortedDuplicates();
+        
+        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
         aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
-        dbConfig.setSortedDuplicates(duplicates);
         PreloadConfig pc = new PreloadConfig();       
         pc.setLoadLNs(true);
         aDB.preload(pc);
+    }
+    
+    /**
+     * Creates the default environment configuration.
+     * @return Default environment configuration.
+     */
+    private EnvironmentConfig createEnvConfig(){
+        /* Open a transactional Oracle Berkeley DB Environment. */
+        EnvironmentConfig envConfig = new EnvironmentConfig();
+        envConfig.setAllowCreate(true);
+        envConfig.setTransactional(false);
+        // the default value worked pretty well.
+        //envConfig.setCacheSize(CACHE_SIZE);
+        // leaving this, but it is meaningless when setLocking(false)
+        //envConfig.setTxnNoSync(true);
+        envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
+        // 100 k gave the best performance in one thread and for 30 pivots of shorts
+        envConfig.setConfigParam("je.log.faultReadSize", "30720");
+        //envConfig.setConfigParam("je.log.faultReadSize", "10240");
+        // alternate access method might be the best. We got to keep all the btree in memory
+       envConfig.setConfigParam("je.evictor.lruOnly", "false");
+        envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
+        // envConfig.setTxnNoSync(true);
+        // envConfig.setTxnWriteNoSync(true);
+        // disable this in production
+        envConfig.setLocking(false);
+        
+        return envConfig;
     }
 
     /**
@@ -357,39 +382,34 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 if something goes wrong with the DB.
      */
     private void initBerkeleyDB() throws DatabaseException, IOException {
-        /* Open a transactional Oracle Berkeley DB Environment. */
-        EnvironmentConfig envConfig = new EnvironmentConfig();
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
-        // the default value worked pretty well.
-        envConfig.setCacheSize(CACHE_SIZE);
-        // leaving this, but it is meaningless when setLocking(false)
-        envConfig.setTxnNoSync(true);
-        
-        // 100 k gave the best performance in one thread and for 30 pivots of shorts
-        envConfig.setConfigParam("je.log.faultReadSize", "30720");
-        //envConfig.setConfigParam("je.log.faultReadSize", "10240");
-        // alternate access method might be the best. We got to keep all the btree in memory
-        //envConfig.setConfigParam("je.evictor.lruOnly", "false");
-        //envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
-        // envConfig.setTxnNoSync(true);
-        // envConfig.setTxnWriteNoSync(true);
-        // disable this in production
-        envConfig.setLocking(false);
+        EnvironmentConfig envConfig = createEnvConfig(); 
         this.databaseEnvironment = new Environment(dbDir, envConfig);
         if(! this.isFrozen()){
             File environmentHome = generateCreationEnvironmentFolder();
             if(!environmentHome.mkdir()){
                 throw new IOException("Env directory could not be created:" + environmentHome);
             }
-            this.databaseEnvironmentCreation = new Environment(generateCreationEnvironmentFolder(), envConfig);
+            EnvironmentConfig envConfig2 = createEnvConfig();
+            envConfig2.setConfigParam("je.deferredWrite.temp", "false") ;            
+            this.databaseEnvironmentCreation = new Environment(generateCreationEnvironmentFolder(), envConfig2);
         }
+        
+
+        
+        // dbConfig.setExclusiveCreate(true);
+    }
+    
+    /**
+     * Creates a default database configuration.
+     * @return default database configuration.
+     */
+    protected DatabaseConfig createDefaultDatabaseConfig(){
+        DatabaseConfig dbConfig = new DatabaseConfig();
         dbConfig = new DatabaseConfig();
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
         dbConfig.setSortedDuplicates(true);
-        
-        // dbConfig.setExclusiveCreate(true);
+        return dbConfig;
     }
     
     private File generateCreationEnvironmentFolder(){

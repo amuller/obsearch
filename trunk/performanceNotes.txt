@@ -29,3 +29,7 @@ if(distanceL < distanceR){
 
 In some cases...
 when the k=20 and r=20
+
+We want to find an object like r-1 so that we can prune more.
+We want to find such objects fast, so that's why we should go
+to the farthest subspaces first.
