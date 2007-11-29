@@ -80,7 +80,7 @@ sub execExperiments{
 		my($od, $pivotSize, $pivotSelectionCriteria) = @_;
 
 		print "$od-$pivotSize-$pivotSelectionCriteria(";
-#		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
+		my $totalC = createDatabase($od, $pivotSize, $pivotSelectionCriteria);
 		print "$totalC)\n";
 		execExperimentsAux(1,1,$od, $pivotSize, $pivotSelectionCriteria);
 execExperimentsAux(1,3,$od, $pivotSize, $pivotSelectionCriteria);
