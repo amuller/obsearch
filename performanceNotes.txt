@@ -33,3 +33,16 @@ when the k=20 and r=20
 We want to find an object like r-1 so that we can prune more.
 We want to find such objects fast, so that's why we should go
 to the farthest subspaces first.
+
+
+35% of the time is spent in readShortFast()
+
+This is a lot of time! really. So we need to speed up this.
+
+nov 30 2007 1:37am is a good benchmark. it shows that most of the time
+is spent in converting bytes! :0)
+
+
+About to work on verifying the speed of insersects improvement
+
+je.evictor.lruOnly is not good at all.

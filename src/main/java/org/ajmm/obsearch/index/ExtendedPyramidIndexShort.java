@@ -140,7 +140,8 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         float[][] q = new float[pivotsCount][2]; // rectangular query
         generateRectangle(t, r, q);
         float[] lowHighResult = new float[2];
-        return intersect(q, box, lowHighResult);
+        float[] minArray = generateMinArray(q);
+        return intersect(q, box, minArray, lowHighResult);
     }
 
     public int[] intersectingBoxes(final O object, final short r)
@@ -156,10 +157,11 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         short myr = r;
         float[] lowHighResult = new float[2];
         generateRectangle(t, myr, qorig);
+        float[] minArray = generateMinArray(qorig);
         int i = 0;
         while (i < pyramidCount) {
             copyQuery(qorig, q);
-            if (intersect(q, i, lowHighResult)) {
+            if (intersect(q, i, minArray, lowHighResult)) {
                 result.set(i);
             }
             i++;
@@ -194,9 +196,11 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         generateRectangle(t, myr, qorig);
         int i = 0;
         float[] lowHighResult = new float[2];
+        float[] minArray = generateMinArray(qorig);
         while (i < pyramidCount) {
             copyQuery(qorig, q);
-            if (intersect(q, i, lowHighResult)) {
+            
+            if (intersect(q, i, minArray, lowHighResult)) {
                 searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
                         + lowHighResult[HHIGH], result);
                 short nr = result.updateRange(myr);
@@ -235,9 +239,10 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         i = 0;
         float[] lowHighResult = new float[2];
         // TODO: select the pyramids randomly just like quicksort
+        float[] minArray = generateMinArray(qorig);
         while (i < pyramidCount) {
             copyQuery(qorig, q);
-            if (intersect(q, i, lowHighResult) && boxesBit.get(i)) {
+            if (intersect(q, i, minArray,lowHighResult) && boxesBit.get(i)) {
                 searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
                         + lowHighResult[HHIGH], result);
                 short nr = result.updateRange(myr);
