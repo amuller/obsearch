@@ -67,6 +67,7 @@ public class PPTreeShort < O extends OBShort >
      */
     private short minInput;
 
+
     /**
      * Maximum value to be returned by the distance function.
      */
@@ -411,11 +412,11 @@ public class PPTreeShort < O extends OBShort >
             // update the current rectangle, we also have to center it
             space.generateRectangle(qrect, qw);
             centerQuery(qw); // center the rectangle
-
+            float[] minArray = generateMinArray(qw);
             while (i < pyramidCount) {
                 // intersect destroys q, so we have to copy it
                 copyQuery(qw, q);
-                if (intersect(q, i, lowHighResult)) {
+                if (intersect(q, i, minArray, lowHighResult)) {
                     this.finalPyramidTotal++;
                     int ri = (space.getSNo() * 2 * pivotsCount) + i; // real
                     // index

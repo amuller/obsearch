@@ -123,7 +123,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
                 
         PreloadConfig pc = new PreloadConfig();
-        pc.setLoadLNs(true);    
+        pc.setLoadLNs(true);
+        // TODO: uncomment this?
         cDB.preload(pc);
     }
 
@@ -366,16 +367,17 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * @return True if rectangle q intersects pyramid p
      */
     protected final boolean intersect(final float[][] q, final int p,
-            float[] lowHighResult) {
+            float[] minArray, float[] lowHighResult) {
         // strategy: as soon as we find something is false, we stop processing
         // otherwise we return true! :)
         int i = p;
         assert i < this.pivotsCount * 2;
         int j = 0;
         if (i < this.pivotsCount) { // the case where i < d
+            float minimum = q[i][MIN];
             while (j < q.length) {
                 if (j != i) {
-                    if (!(q[i][MIN] <= -min(q[j]))) {
+                    if (!(minimum <= - minArray[j])) {
                         return false;
                     }
                 }
@@ -387,9 +389,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             }
         } else { // i >= d
             i = i - this.pivotsCount;
-            while (j < q.length) { // this is the first definition!!!
+            float maximum = q[i][MAX] ;
+            while (j < q.length) { // this is the first definition!!!                
                 if (j != i) {
-                    if (!(q[i][MAX] >= min(q[j]))) {
+                    if (! (maximum >= minArray[j])) {
                         return false;
                     }
                 }
@@ -404,6 +407,22 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         // we have to get the ranges now.
         determineRanges(i, q, lowHighResult);
         return true;
+    }
+    
+    /**
+     * Receives a query and returns a new array generated of calculating min() to 
+     * each of the elements
+     * @param query
+     * @return The array of the min(qj) for each element of the query
+     */
+    protected final float[] generateMinArray(float[][] query){
+        int i  = 0;
+        float [] res = new float[query.length];
+        while(i < query.length){
+            res[i] = min(query[i]);
+            i++;
+        }
+        return res;
     }
 
     /**

@@ -74,6 +74,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public abstract class AbstractPivotIndex < O extends OB > implements Index < O > {
 
     /**
+     * Number of bytes used by the ids that OBSearch uses.
+     */
+    protected static final transient int ID_SIZE_BYTES = 4;
+    
+    /**
      * Logger.
      */
     private static final transient Logger logger = Logger
@@ -162,7 +167,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Size of the cache for the underlying db.
      */
-    protected static final transient int CACHE_SIZE = 100 * 1024 * 1024 ;
+    protected static final transient int CACHE_SIZE = 700 * 1024 * 1024 ;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
@@ -365,8 +370,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         envConfig.setConfigParam("je.log.faultReadSize", "30720");
         //envConfig.setConfigParam("je.log.faultReadSize", "10240");
         // alternate access method might be the best. We got to keep all the btree in memory
-       envConfig.setConfigParam("je.evictor.lruOnly", "false");
-        envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
+     // envConfig.setConfigParam("je.evictor.lruOnly", "false");
+      //  envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // disable this in production
