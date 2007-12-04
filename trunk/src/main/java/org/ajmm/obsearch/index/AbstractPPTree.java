@@ -63,11 +63,20 @@ public abstract class AbstractPPTree < O extends OB >
 
     /**
      * The minimum number of elements that will be accepted in each space.
+     * This setting only applies for the freezing process.
      */
-    private static final int MIN_ELEMENTS_IN_SPACE_ACCEPTED = 50;
+    private  int minElementsPerSubspace = 50;
 
-    private static final int K_MEANS_REPETITIONS = 30;
+    /**
+     * The number of times k-means will be executed. The best clustering will be selected.
+     */
+    private  int kMeansIterations = 30;
     
+    /**
+     * The number of times K-Means++ will be executed. The best selection of initial pivots
+     * will be chosen.
+     */
+    private int kMeansPPRetries = 7;
     
     /**
      * Partitions to be used when generating the space tree.
@@ -80,10 +89,10 @@ public abstract class AbstractPPTree < O extends OB >
     protected SpaceTree spaceTree;
 
     /**
-     * Hack to catch when k-meanspp is not able to generate centers that
+     * Hack to catch when k-means++ is not able to generate centers that
      * converge.
      */
-    protected static final int KMEANS_PP_ITERATIONS = 3;
+    private static final int KMEANS_PP_ITERATIONS = 3;
 
     /**
      * Holds the spaceTree's leaf nodes so we can access them fast.
@@ -117,7 +126,7 @@ public abstract class AbstractPPTree < O extends OB >
 
     /**
      * Initializes the spaceTreeLeaves array. It assumes that the spaceTree is
-     * alreay initialized/loaded
+     * already initialized/loaded
      */
     protected final void initSpaceTreeLeaves() {
         assert spaceTree != null;
@@ -283,16 +292,16 @@ public abstract class AbstractPPTree < O extends OB >
 
     /**
      * This method returns true if either l is smaller than
-     * {@value #MIN_ELEMENTS_IN_SPACE_ACCEPTED}. This will mean that the
+     * {@value #minElementsPerSubspace}. This will mean that the
      * Partition will stop and that the amount of subspaces will be less than 2 ^
      * od
      * @param s
      *                number of elements of the given space
      * @return true if either of the spaces are less than
-     *         {@link #MIN_ELEMENTS_IN_SPACE_ACCEPTED}.
+     *         {@link #minElementsPerSubspace}.
      */
     protected boolean shallWeStop(int s) {
-        return s <= MIN_ELEMENTS_IN_SPACE_ACCEPTED;
+        return s <= minElementsPerSubspace;
     }
 
     /**
@@ -506,7 +515,7 @@ public abstract class AbstractPPTree < O extends OB >
         OBRandom yay = new OBRandom();
         int i = 0;
         // find the best k=means pair
-        while (i < K_MEANS_REPETITIONS) {
+        while (i < kMeansIterations) {
             int tries = 0;
             boolean kmeansPP = true;
             // hack to force how good kmeans++ works against
@@ -857,7 +866,7 @@ public abstract class AbstractPPTree < O extends OB >
 
         OBRandom r = new OBRandom();
         float potential = 0;
-        int retries = 7;
+
         int centroidIds[] = new int[k]; // keep track of the selected centroids
         float[] closestDistances = new float[cluster.size()];
         float[] tempA = new float[pivotsCount];
@@ -886,7 +895,7 @@ public abstract class AbstractPPTree < O extends OB >
             // Repeat several times
             float bestPotential = -1;
             int bestIndex = -1;
-            for (int retry = 0; retry < retries; retry++) {
+            for (int retry = 0; retry < kMeansPPRetries; retry++) {
 
                 // choose the new center
                 float probability = r.nextFloat() * potential;
@@ -1180,6 +1189,51 @@ public abstract class AbstractPPTree < O extends OB >
             i++;
         }
         return (short) res;
+    }
+
+    /**
+     * Please see {@link #kMeansPPRetries}.
+     */
+    public int getKMeansPPRetries() {
+        return kMeansPPRetries;
+    }
+
+    /**
+     * Please see {@link #kMeansPPRetries}.
+     */
+    public void setKMeansPPRetries(int meansPPRetries) {
+        kMeansPPRetries = meansPPRetries;
+    }
+
+    /**
+     * Please see {@link #minElementsPerSubspace}.
+     * @return {@link #minElementsPerSubspace}
+     */
+    public int getMinElementsPerSubspace() {
+        return minElementsPerSubspace;
+    }
+
+    /**
+     * Please see {@link #minElementsPerSubspace}.
+     */
+    public void setMinElementsPerSubspace(int minElementsPerSubspace) {
+        this.minElementsPerSubspace = minElementsPerSubspace;
+    }
+
+    /**
+     * Please see {@link #kMeansIterations}.
+     * @return {@link #kMeansIterations}
+     */
+    public int getKMeansIterations() {
+        return kMeansIterations;
+    }
+
+    /**
+     * Please see {@link #kMeansIterations}.
+     * @param meansIterations
+     */
+    public void setKMeansIterations(int meansIterations) {
+        kMeansIterations = meansIterations;
     }
 
 }

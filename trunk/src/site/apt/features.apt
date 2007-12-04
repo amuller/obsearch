@@ -6,6 +6,10 @@ Features
  * Designed to handle efficiently heavy objects (trees, graphs).
 
  * The API is compact and easy to understand.
+
+ * Stability and scalability: OBSearch's secondary storage backend is Oracle's Berkeley DB. An extensive test suite makes sure that data integrity is preserved.
+ 
+ * Cutting edge:  We strive to put together the latest algorithms the scientific community has to offer. For example, we use a "Mersenne Twister" random function, and also a K-means++ clustering approach. Even some unpublished work on pivot selection strategies is included!
  
   []
 
