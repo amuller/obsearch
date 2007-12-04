@@ -40,26 +40,16 @@ import com.sleepycat.je.DatabaseException;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * AbstractParallelIndex is a wrapper class that allows to exploit all the cpus
- * of a computer with any OB index. Currently this class
- * is not ready to be used. This class is not related to GSOC goals.
+ * AbstractParallelIndex is a wrapper class that allows to exploit all the CPUS
+ * of a computer with any OB index. 
  * @param <O>
  *            The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
-// TODO: There is a performance bottleneck in this class. CPU usage for a quad
-// core machine gets
-// only to 280% when using 4 threads. It should be 400%.
-// It might be berkeley db. It might be simply the fact that there is only one
-// hard drive, and 4 cpus
-// eating a lot of data. Another possibility is that the queue is too slow, that
-// the bottleneck is the creation of slices...
-// I will work on this in the future.
-// This class is officially suspended. We don't need it right now anyway.
-// Also the threads are not separate objects. This could be a problem too.
+
 public abstract class AbstractParallelIndex < O extends OB > implements
-        Index < O >, ParallelIndex < O >, Runnable {
+        Index < O >, ParallelIndex < O >{
 
     /**
      * # of threads to be used.
@@ -89,8 +79,8 @@ public abstract class AbstractParallelIndex < O extends OB > implements
             .getLogger(AbstractParallelIndex.class);
 
     /**
-     * Initializes this parallel index with an Index, a paralellism level.
-     * @param cpus number of cpus to use.
+     * Initializes this parallel index with an Index, a parallelism level.
+     * @param cpus number of CPUS to use.
      */
     public AbstractParallelIndex(int cpus) {
         this.cpus = cpus;
@@ -99,23 +89,13 @@ public abstract class AbstractParallelIndex < O extends OB > implements
         counter = new AtomicInteger();
     }
 
-    /**
-     * This method must be called by daughters of this class when they are ready
-     * to start matching.
-     */
-    protected void initiateThreads() {
-        int i = 0;
-        while (i < cpus) {
-            executor.execute(getMe());
-            i++;
-        }
-    }
+    
 
     /**
      * Returns this parallel index.
      * @return This
      */
-    protected abstract ParallelIndex getMe();
+    protected abstract ParallelIndex<O> getMe();
 
     /**
      * Checks if an exception was registered and if so, throws it.
@@ -170,11 +150,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
         return getIndex().isFrozen();
     }
 
-    /**
-     * This method is in charge of continuously wait for items to match and
-     * perform the respective match.
-     */
-    public abstract void run();
+   
 
     /**
      * Returns the count of elements found in this queue.

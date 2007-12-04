@@ -1,7 +1,12 @@
 package org.ajmm.obsearch.index;
 
+import java.io.File;
+
 import junit.framework.TestCase;
 
+import org.ajmm.obsearch.TUtils;
+import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.index.utils.Directory;
 import org.junit.Test;
 
 /*
@@ -34,21 +39,25 @@ public class TestParallelIndex
     /**
      * The Parallel Index test is currently disabled.
      * @throws Exception
-     *             If something goes really bad.
+     *                 If something goes really bad.
      */
     @Test
     public void testParallelIndexPPTree() throws Exception {
         // TODO: enable parallel index in the future.
-        /*
-         * File dbFolder = new
-         * File(TUtils.getTestProperties().getProperty("test.db.path"));
-         * IndexSmokeTUtil.deleteDB(dbFolder); assertTrue(! dbFolder.exists());
-         * assertTrue(dbFolder.mkdirs()); IndexShort<OBSlice> index = new
-         * PPTreeShort<OBSlice>( dbFolder, (byte) 30, (byte) 2, (short)0,
-         * (short) 200); ParallelIndexShort<OBSlice> pindex = new
-         * ParallelIndexShort<OBSlice>(index,2,3000); IndexSmokeTUtil t = new
-         * IndexSmokeTUtil(); t.tIndex(pindex);
-         */
+/*
+        File dbFolder = new File(TUtils.getTestProperties().getProperty(
+                "test.db.path"));
+        Directory.deleteDirectory(dbFolder);
+        assertTrue(!dbFolder.exists());
+        assertTrue(dbFolder.mkdirs());
+        IndexShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
+                (byte) 30, (byte) 8, (short) 0, (short) 200);
+
+        ParallelIndexShort < OBSlice > pindex = new ParallelIndexShort < OBSlice >(
+                index, 4);
+        IndexSmokeTUtil t = new IndexSmokeTUtil();
+        t.tIndex(pindex);
+*/
     }
 
 }

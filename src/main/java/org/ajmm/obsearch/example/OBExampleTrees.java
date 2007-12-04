@@ -10,8 +10,12 @@ import java.util.List;
 
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexFactory;
+import org.ajmm.obsearch.index.IndexSmokeTUtil;
 import org.ajmm.obsearch.index.PPTreeShort;
+import org.ajmm.obsearch.index.ParallelIndexShort;
 import org.ajmm.obsearch.index.PivotSelector;
+import org.ajmm.obsearch.index.UnsafeNCorePPTreeShort;
+import org.ajmm.obsearch.index.UnsafePPTreeShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
@@ -61,7 +65,7 @@ public final class OBExampleTrees {
      * Logger.
      */
     private static final Logger logger = Logger.getLogger("OBExampleTrees");
-    
+
     private static int maxTreeSize = -1;
 
     /**
@@ -73,9 +77,9 @@ public final class OBExampleTrees {
 
     /**
      * Reads the parameters from the command line and either creates or searches
-     * an index. 
+     * an index.
      * @param args
-     *            The arguments from the command line.
+     *                The arguments from the command line.
      */
     public static void main(final String[] args) {
         int returnValue = 0;
@@ -101,10 +105,12 @@ public final class OBExampleTrees {
                 logger.debug("DB: " + dbFolder);
                 final byte od = Byte.parseByte(cline.getOptionValue("od"));
                 logger.debug("OD: " + od);
-                maxTreeSize = Short.parseShort(cline.getOptionValue("maxTreeSize"));
+                maxTreeSize = Short.parseShort(cline
+                        .getOptionValue("maxTreeSize"));
                 logger.debug("Max tree size: " + maxTreeSize);
-                
-                short pivotSize = Short.parseShort(cline.getOptionValue("pivotSize"));
+
+                short pivotSize = Short.parseShort(cline
+                        .getOptionValue("pivotSize"));
                 logger.debug("Pivot Size: " + pivotSize);
                 // create the index
                 /*
@@ -113,8 +119,9 @@ public final class OBExampleTrees {
                  * OBSlice will return. (based on the maximum tree value defined
                  * by shouldProcessTree())
                  */
-                index = new PPTreeShort < OBSlice >(dbFolder, (short) pivotSize, od,
-                        (short) 0, (short) (maxTreeSize*2));
+                index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
+                        (short) pivotSize, od, (short) 0,
+                        (short) (maxTreeSize * 2),4);
 
                 logger.info("Adding data");
                 final BufferedReader r = new BufferedReader(
@@ -126,7 +133,7 @@ public final class OBExampleTrees {
                     // if this returns null then we read a comment
                     final String l = parseLine(re);
                     int tl = l.length();
-                    if(maxStrSize < tl){
+                    if (maxStrSize < tl) {
                         maxStrSize = tl;
                     }
                     if (l != null) {
@@ -144,31 +151,37 @@ public final class OBExampleTrees {
                 // generate pivots
                 // The object ps will select pivots based on some simple
                 // criteria
-                
-                PivotSelector<OBSlice> ps;
-               if(cline.hasOption("fixedPivotSelector")){
-                   ps = new FixedPivotSelector();
-               }else   if(cline.hasOption("tentaclePivotSelector")){
-                   ps = new TentaclePivotSelectorShort < OBSlice >((short) 10, 30, new AcceptAll< OBSlice >());
-               }else if(cline.hasOption("kMeansPPPivotSelector")){
-                   //new 
-                   //ps = new KMeansPPPivotSelector<OBSlice>(new TreePivotable());        
-                   ps = new KMeansPPPivotSelector<OBSlice>(new AcceptAll< OBSlice >());        
-               }else{
-                   logger.fatal("Unrecognized pivot selection method");
-                   ps = null;
-               }
-               
+
+                PivotSelector < OBSlice > ps;
+                if (cline.hasOption("fixedPivotSelector")) {
+                    ps = new FixedPivotSelector();
+                } else if (cline.hasOption("tentaclePivotSelector")) {
+                    ps = new TentaclePivotSelectorShort < OBSlice >((short) 10,
+                            30, new AcceptAll < OBSlice >());
+                } else if (cline.hasOption("kMeansPPPivotSelector")) {
+                    // new
+                    // ps = new KMeansPPPivotSelector<OBSlice>(new
+                    // TreePivotable());
+                    ps = new KMeansPPPivotSelector < OBSlice >(
+                            new AcceptAll < OBSlice >());
+                } else {
+                    logger.fatal("Unrecognized pivot selection method");
+                    ps = null;
+                }
+
                 logger.debug("Selecting pivots");
                 ps.generatePivots(index);
                 // Freeze the index so that we can start using it
                 logger.info("Freezing");
                 index.freeze();
                 // close the index
-                logger.info("Finished Index Creation, items stored:" + index.databaseSize());
-                logger.info("Kmeans++ " + index.kmeansPPGood + " kmeans: " + index.kmeansGood );
-                index.close();                
-            } else if (cline.hasOption("search")) {
+                logger.info("Finished Index Creation, items stored:"
+                        + index.databaseSize());
+                logger.info("Kmeans++ " + index.kmeansPPGood + " kmeans: "
+                        + index.kmeansGood);
+                index.close();
+            } else if (cline.hasOption("search")
+                    || cline.hasOption("search_sequential")) {
 
                 // Load a database created in the previous step and search
                 // it.
@@ -188,10 +201,13 @@ public final class OBExampleTrees {
                 logger.info("Loading metadata and opening databases... file: "
                         + indexFile.getAbsoluteFile());
                 // We simply load the spore by using IndexFactory...
-                index = (PPTreeShort < OBSlice >) IndexFactory
+                index = (UnsafeNCorePPTreeShort < OBSlice >) IndexFactory
                         .createFromXML(readString(indexFile));
                 // and initialize it.
+                ((UnsafeNCorePPTreeShort)index).setCpus(4);
                 index.relocateInitialize(null);
+                
+               
 
                 logger.info("Done! DB size: " + index.databaseSize());
                 final byte k = Byte.parseByte(cline.getOptionValue("k"));
@@ -203,50 +219,97 @@ public final class OBExampleTrees {
                 String re = r.readLine();
                 int i = 0;
                 final long start = System.currentTimeMillis();
-                // we will read one by one trees separated by new-line
-                // from the given file, and perform a search using the
-                // given k and range
-                while (re != null) {
-                    final String l = parseLine(re);
-                    if (l != null) {
-                        // this is where the result of the match will be stored
-                        final OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
-                                k);
-                        if (i % 100 == 0) {
-                            logger.info("Matching " + i);
-                        }
 
-                        final OBSlice s = new OBSlice(l);
-                        // we load the Tree from the file
-                       // if (shouldProcessTree(s)) {
-                            // and perform the search
-                            //logger.info("Slice: " + l);
-                            index.searchOB(s, range, x);
-                            // search is completed, we just store the
-                            // result.
-                            //logger.info(x);
-                            //result.add(x);
-                            i++;
-                        //}
+                if (cline.hasOption("search")) {
+                    // we will read one by one trees separated by new-line
+                    // from the given file, and perform a search using the
+                    // given k and range
+                    while (re != null) {
+                        final String l = parseLine(re);
+                        if (l != null) {
+                            // this is where the result of the match will be
+                            // stored
+                            final OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
+                                    k);
+                            if (i % 100 == 0) {
+                                logger.info("Matching " + i);
+                            }
+
+                            final OBSlice s = new OBSlice(l);
+                            // we load the Tree from the file
+                            //if (shouldProcessTree(s)) {
+                                // and perform the search
+                                // logger.info("Slice: " + l);
+                                index.searchOB(s, range, x);
+                                // search is completed, we just store the
+                                // result.
+                                // logger.info(x);
+                                // result.add(x);
+                                i++;
+                            //}
+                        }
+                        // hardcoded value, we don't match beyond this
+                        // value
+                        if (i == 1642) {
+                            logger.warn("Finishing test at i : " + i);
+                            break;
+                        }
+                        re = r.readLine();
                     }
-                    // hardcoded value, we don't match beyond this
-                    // value
-                    if (i == 1642) {
-                        logger.warn("Finishing test at i : " + i);
-                        break;
+                    
+                } else { // sequential
+                    logger.info("Warning!!! Sequential mode");
+                    int max = index.databaseSize();
+                    while (re != null) {
+                        final String l = parseLine(re);
+                        if (l != null) {
+                            // this is where the result of the match will be
+                            // stored
+                            final OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
+                                    k);
+                            if (i % 100 == 0) {
+                                logger.info("Matching " + i);
+                            }
+                            
+                            final OBSlice s = new OBSlice(l);
+                            // we load the Tree from the file
+                            //if (shouldProcessTree(s)) {
+                                // and perform the search
+                                // logger.info("Slice: " + l);
+                            IndexSmokeTUtil.searchSequential(max, s, x, index, range);
+                                // search is completed, we just store the
+                                // result.
+                                // logger.info(x);
+                                // result.add(x);
+                                i++;
+                            //}
+                        }
+                        // hardcoded value, we don't match beyond this
+                        // value
+                        if (i == 1642) {
+                            logger.warn("Finishing test at i : " + i);
+                            break;
+                        }
+                        re = r.readLine();
                     }
-                    re = r.readLine();
                 }
                 // we can do something now with the result
                 final long time = System.currentTimeMillis() - start;
                 logger.info("Running time in seconds: " + time / 1000
                         + " minutes: " + time / 1000 / 60);
-                logger.info("Stats follow: total initial rectangles:" + index.initialHyperRectangleTotal + " final initial rectangles " + index.finalHyperRectangleTotal);
-                logger.info("Status detail: pyramids accessed: " + index.finalPyramidTotal + " smap vectors: " + index.smapRecordsCompared + " distance computations: " + index.distanceComputations);
+                logger.info("Stats follow: total initial rectangles:"
+                        + index.initialHyperRectangleTotal
+                        + " final initial rectangles "
+                        + index.finalHyperRectangleTotal);
+                logger.info("Status detail: pyramids accessed: "
+                        + index.finalPyramidTotal + " smap vectors: "
+                        + index.smapRecordsCompared
+                        + " distance computations: "
+                        + index.distanceComputations);
                 index.stats();
             } else {
                 throw new OBException(
-                        "You have to set the mode: 'create' or 'search'");
+                        "You have to set the mode: 'create' or 'search' or 'search_sequential'");
             }
 
         } catch (final ParseException exp) {
@@ -260,19 +323,19 @@ public final class OBExampleTrees {
             logger.fatal("Exception caught", e);
             returnValue = 83;
         }
-        
+
         LogManager.shutdown();
         System.exit(returnValue);
-        
+
     }
 
     /**
      * Reads a String from the given file.
      * @param file
-     *            File to Read
+     *                File to Read
      * @return A String representation of the file
      * @throws IOException
-     *             If there is an IO error
+     *                 If there is an IO error
      */
     public static String readString(final File file) throws IOException {
         final StringBuilder res = new StringBuilder();
@@ -290,16 +353,16 @@ public final class OBExampleTrees {
      * Parses the array of options as received in main() and returns a
      * CommandLine object that makes it easier to analyze the commands.
      * @param options
-     *            The options object (generated from initCommandLine(...))
+     *                The options object (generated from initCommandLine(...))
      * @param c
-     *            The class that will be used for the name of the program.
+     *                The class that will be used for the name of the program.
      * @param args
-     *            Arguments of the command line (as received in main(...))
+     *                Arguments of the command line (as received in main(...))
      * @return A CommandLine object ready to parse commands
      * @throws ParseException
-     *             If the given arguments have syntax errors
+     *                 If the given arguments have syntax errors
      * @throws HelpException
-     *             If the user wants "help" we generate an exception
+     *                 If the user wants "help" we generate an exception
      */
     public static CommandLine getCommandLine(final Options options,
             final Class c, final String[] args) throws ParseException,
@@ -329,6 +392,10 @@ public final class OBExampleTrees {
         final Option search = new Option("search", "Search mode");
         create.setRequired(false);
 
+        final Option searchSeq = new Option("search_sequential",
+                "Search in sequential mode");
+        create.setRequired(false);
+
         final Option in = OptionBuilder.withArgName("dir").hasArg().isRequired(
                 true).withDescription("Database Directory").create("db");
 
@@ -348,15 +415,14 @@ public final class OBExampleTrees {
 
         final Option od = OptionBuilder.withArgName("#").hasArg()
                 .withDescription("# of partitions for P+Tree").create("od");
-        
+
         final Option maxTreeSize = OptionBuilder.withArgName("#").hasArg()
-        .withDescription("maximum accepted tree size").create("maxTreeSize");
+                .withDescription("maximum accepted tree size").create(
+                        "maxTreeSize");
 
         final Option pivotSize = OptionBuilder.withArgName("#").hasArg()
-        .withDescription("Number of pivots to use").create("pivotSize");
-        
-        
-        
+                .withDescription("Number of pivots to use").create("pivotSize");
+
         Options options = new Options();
         options.addOption(in);
         options.addOption(out);
@@ -364,13 +430,17 @@ public final class OBExampleTrees {
         options.addOption(create);
         options.addOption(k);
         options.addOption(search);
+        options.addOption(searchSeq);
         options.addOption(od);
         options.addOption(maxTreeSize);
         options.addOption(pivotSize);
-        options.addOption("fixedPivotSelector", false, "If the FixedPivotSelector method will be used");
-        options.addOption("tentaclePivotSelector", false, "If the TentaclePivotSelector method will be used");
-        options.addOption("kMeansPPPivotSelector", false, "If the kMeansPPPivotSelector method will be used");
-        
+        options.addOption("fixedPivotSelector", false,
+                "If the FixedPivotSelector method will be used");
+        options.addOption("tentaclePivotSelector", false,
+                "If the TentaclePivotSelector method will be used");
+        options.addOption("kMeansPPPivotSelector", false,
+                "If the kMeansPPPivotSelector method will be used");
+
         return options;
     }
 
@@ -378,21 +448,21 @@ public final class OBExampleTrees {
      * We ignore trees whose size (in nodes) is greater than the value hardcoded
      * below.
      * @param x
-     *            The object to be matched.
+     *                The object to be matched.
      * @return True if we should process the given tree.
      * @throws Exception
-     *             Throws an exception if the OBSlice has an invalid tree
+     *                 Throws an exception if the OBSlice has an invalid tree
      */
     public static boolean shouldProcessTree(final OBSlice x) throws Exception {
         return x.size() <= maxTreeSize;
-        //return true;
+        // return true;
     }
 
     /**
      * Parses the given line from the files that contain string representations
      * of trees.
      * @param line
-     *            A line in the trees file
+     *                A line in the trees file
      * @return A string representation of a Tree or null if the line was a
      *         comment.
      */

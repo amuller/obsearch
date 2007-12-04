@@ -781,6 +781,29 @@ public class PPTreeShort < O extends OBShort >
         resultCache = new HashMap < O, OBQueryShort < O >>(resultCacheSize);
         return this;
     }
+    
+    /**
+     * Returns i >=0 if both tuples are the same, otherwise, it returns -1
+     * the first non zero pair. This is used to find pairs of tuples that are likely to be similar
+     * The second tuple is made of shorts except its first item.
+     * Warning: the given tuple input will be modified. Only if all the 30 pivots have the same value
+     * this method will return true. This also means that the next in.getInt() will correctly return 
+     * the id of the object. Only in those cases in.getInt() will return something meaningful.
+     * @param tuple
+     * @param tuple2
+     * @return true i >=0 if both tuples are the same, otherwise, it returns -1
+     */
+    protected int equalTuples(short [] tuple, byte[]  tuple2){
+        TupleInput in = new TupleInput(tuple2);
+        int i = 0;
+        while (i < tuple.length) {            
+            if (tuple[i]  != in.readShort()) {
+                return -1;
+            }
+            i++;
+        }
+        return in.readInt();
+    }
 
     public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
@@ -811,34 +834,14 @@ public class PPTreeShort < O extends OBShort >
             if (cursor.count() > 0) {
                 float currentPyramidValue = SortedFloatBinding
                         .entryToFloat(keyEntry);
-                short max = Short.MIN_VALUE;
+                        
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue == ppTreeValue) {
 
-                    TupleInput in = new TupleInput(dataEntry.getData());
 
-                    int i = 0;
-                    short t;
-                    max = Short.MIN_VALUE;
-                    // STATS
-                    while (i < tuple.length) {
-                        t = (short) Math.abs(tuple[i] - in.readShort());
-                        if (t > max) {
-                            max = t;
-                            if (t != 0) {
-                                break; // finish this loop this slice won't be
-                                // matched
-                                // after all!
-                            }
-                        }
-                        i++;
-                    }
-
-                    // if max == 0 we can check the candidate
-
-                    if (max == 0) {
-                        // there is a chance it is a possible match
-                        int id = in.readInt();
+                    int id = equalTuples(tuple, dataEntry.getData());
+                    if ( id != -1) {
+                        // there is a chance it is a possible match                        
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             res = new Result(Result.Status.EXISTS);
@@ -922,35 +925,15 @@ public class PPTreeShort < O extends OBShort >
             } else if (cursor.count() > 0) {
                 float currentPyramidValue = SortedFloatBinding
                         .entryToFloat(keyEntry);
-                short max = Short.MIN_VALUE;
                 short realDistance = Short.MIN_VALUE;
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue == ppTreeValue) {
 
                     TupleInput in = new TupleInput(dataEntry.getData());
-
-                    int i = 0;
-                    short t;
-                    max = Short.MIN_VALUE;
-                    // STATS
-                    while (i < tuple.length) {
-                        t = (short) Math.abs(tuple[i] - in.readShort());
-                        if (t > max) {
-                            max = t;
-                            if (t != 0) {
-                                break; // finish this loop this slice won't be
-                                // matched
-                                // after all!
-                            }
-                        }
-                        i++;
-                    }
-
-                    // if max == 0 we can check the candidate
-
-                    if (max == 0) {
+                    
+                    int id = equalTuples(tuple, dataEntry.getData());
+                    if ( id != -1) {                  
                         // there is a chance it is a possible match
-                        int id = in.readInt();
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
@@ -1034,34 +1017,13 @@ public class PPTreeShort < O extends OBShort >
             } else if (cursor.count() > 0) {
                 float currentPyramidValue = SortedFloatBinding
                         .entryToFloat(keyEntry);
-                short max = Short.MIN_VALUE;
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue == ppTreeValue) {
 
-                    TupleInput in = new TupleInput(dataEntry.getData());
+                    TupleInput in = new TupleInput(dataEntry.getData());  
 
-                    int i = 0;
-                    short t;
-                    max = Short.MIN_VALUE;
-                    // STATS
-                    while (i < tuple.length) {
-                        t = (short) Math.abs(tuple[i] - in.readShort());
-                        if (t > max) {
-                            max = t;
-                            if (t != 0) {
-                                break; // finish this loop this slice won't be
-                                // matched
-                                // after all!
-                            }
-                        }
-                        i++;
-                    }
-
-                    // if max == 0 we can check the candidate
-
-                    if (max == 0) {
-                        // there is a chance it is a possible match
-                        int id = in.readInt();
+                    int id = equalTuples(tuple, dataEntry.getData());
+                    if ( id != -1) {                       
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;

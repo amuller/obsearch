@@ -68,14 +68,12 @@ public class MyTupleInput
      * @return a short in the buffer.
      */
     public final short readShortFast() {
-        return (short)(readUnsignedShortFast() ^ 0x8000);
+        int c1 = buf[off++] & 0xff;
+        int c2 = buf[off++] & 0xff;        
+        return (short)(((c1 << 8) | c2) ^ 0x8000);
     }
 
-    public final int readUnsignedShortFast() {
-        int c1 = readFastAbunai();
-        int c2 = readFastAbunai();
-        return ((c1 << 8) | c2);
-    }
+    
 
     /**
      * A very fast read method.

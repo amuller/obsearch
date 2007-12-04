@@ -422,7 +422,7 @@ public class IndexSmokeTUtil {
      * @throws Exception
      *             If something goes really bad.
      */
-    public void searchSequential(int max, OBSlice o,
+    public static void searchSequential(int max, OBSlice o,
             OBPriorityQueueShort < OBSlice > result,
             IndexShort < OBSlice > index, short range) throws Exception {
         int i = 0;

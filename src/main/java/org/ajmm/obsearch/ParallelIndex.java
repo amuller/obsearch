@@ -32,7 +32,7 @@ import org.ajmm.obsearch.exception.OBException;
  * @since 0.7
  */
 
-public interface ParallelIndex < O extends OB > extends Runnable {
+public interface ParallelIndex < O extends OB > {
 
     /**
      * Waits for all the current searches to complete.
