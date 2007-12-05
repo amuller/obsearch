@@ -121,7 +121,7 @@ public final class OBExampleTrees {
                  */
                 index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
                         (short) pivotSize, od, (short) 0,
-                        (short) (maxTreeSize * 2),4);
+                        (short) (maxTreeSize * 2),3);
 
                 logger.info("Adding data");
                 final BufferedReader r = new BufferedReader(
