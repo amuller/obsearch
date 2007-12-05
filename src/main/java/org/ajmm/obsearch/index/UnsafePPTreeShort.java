@@ -221,8 +221,7 @@ public class UnsafePPTreeShort < O extends OBShort >
                         realDistance = object.distance(toCompare);
                         this.distanceComputations++;
                         if (realDistance <= r) {
-
-                            result.add(id, toCompare, realDistance);
+                            result.add(id, toCompare, realDistance);                                                        
                         }
                     }
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,7 +84,6 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      */
     private transient Semaphore waitRemainingElements = new Semaphore(0);
 
-   
     /**
      * Constructor.
      * @param databaseDirectory
@@ -137,26 +137,23 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
     }
 
     private void initNCoreHacks() {
-        
-         tupleHackIndex = new AtomicInteger(pivotsCount);
 
-        tupleHackCompleted = new AtomicInteger(pivotsCount);
+        tupleHackIndex = new AtomicInteger(pivotsCount);
 
         hackS = new Semaphore(0);
 
-        hackS2 = new Semaphore(0);
-
         ex = null;
-        
+
         waitRemainingElements = new Semaphore(0);
-        
+
         int i = 0;
         while (i < cpus) {
             Thread x = new Thread(new PivotTupleCalculation());
             x.start();
             i++;
         }
-        queue = new ArrayBlockingQueue < DistanceEvaluation >(cpus * 2);
+        /*
+        queue = new ArrayBlockingQueue < DistanceEvaluation >(cpus * 5000);
         i = 0;
         // leave one thread for smap, and the rest for distance calculations.
         int total = cpus - 1;
@@ -165,11 +162,11 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
             total = 1;
         }
 
-        while (i < total) {
+        while (i < 1) {
             Thread x = new Thread(new DistanceCalculation());
             x.start();
             i++;
-        }
+        }*/
     }
 
     public void relocateInitialize(final File dbPath) throws DatabaseException,
@@ -191,28 +188,29 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
 
         private OBPriorityQueueShort < O > result;
 
-        public DistanceEvaluation(short r, int id, O queryObject,
+        private O toCompare;
+
+        public DistanceEvaluation(short r, int id, O toCompare, O queryObject,
                 OBPriorityQueueShort < O > result) {
             super();
-            setAll(r, id, queryObject, result);
+            setAll(r, id, toCompare, queryObject, result);
         }
 
-        public void setAll(short r, int id, O queryObject,
+        public void setAll(short r, int id, O toCompare, O queryObject,
                 OBPriorityQueueShort < O > result) {
             this.r = r;
-            this.id = id;
+            this.toCompare = toCompare;
             this.queryObject = queryObject;
             this.result = result;
+            this.id = id;
         }
 
         public void match() throws DatabaseException, IllegalAccessException,
                 InstantiationException, IllegalIdException, OBException {
-            O toCompare = getObject(id);
+
             short realDistance = queryObject.distance(toCompare);
             if (realDistance <= r) {
-                synchronized (result) {
-                    result.add(id, toCompare, realDistance);
-                }
+                result.add(id, toCompare, realDistance);
             }
 
         }
@@ -228,11 +226,9 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
                 try {
                     DistanceEvaluation ev = queue.take();
                     ev.match();
-                    // we know that if "we are done" and the queue is empty, no other
+                    // we know that if "we are done" and the queue is empty, no
+                    // other
                     // guy will be added to the queue.
-                    if (queue.size() == 0) {
-                            waitRemainingElements.release();
-                    }
                 } catch (InterruptedException e) {
 
                 } catch (Exception e) {
@@ -250,31 +246,32 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      * @param tuple
      *                The resulting tuple will be stored here
      */
-    /*
+
     protected final void calculatePivotTuple(final O obj, short[] tuple)
             throws OBException {
         // This method must be synchronized
-        synchronized (tupleHackIndex) {
-            assert tuple.length == this.pivotsCount;
-            if (ex != null) {
-                assert ex != null;
-                ex.printStackTrace();
-                throw new OBException(ex);
-            }
-            tupleHack = tuple;
-            tupleHackCurrentObject = obj;
-            tupleHackIndex.set(0);
-            tupleHackCompleted.set(0);
-            hackS.release(pivotsCount);
-            hackS2.acquireUninterruptibly();
-            assert hackS.availablePermits() == 0;
-            assert tupleHackIndex.get() == pivotsCount;
-            assert tupleHackCompleted.get() == pivotsCount;
-            assert validateTuple(obj, tuple);
-            tupleHack = null;
-            tupleHackCurrentObject = null;
+        synchronized(tupleHackIndex){
+        assert tuple.length == this.pivotsCount;
+        if (ex != null) {
+            assert ex != null;
+            ex.printStackTrace();
+            throw new OBException(ex);
         }
-    }*/
+        tupleHack = tuple;
+        tupleHackCurrentObject = obj;
+        tupleHackIndex.set(0);
+        tupleHackCompleted = new CountDownLatch(pivotsCount);
+        hackS.release(pivotsCount);
+        try {
+            tupleHackCompleted.await();
+        } catch (InterruptedException e) {
+
+        }
+        assert hackS.availablePermits() == 0;
+        assert tupleHackIndex.get() == pivotsCount;
+        assert validateTuple(obj, tuple);
+        }
+    }
 
     /**
      * Returns true if the result of the multi-thread method is the same as the
@@ -300,15 +297,14 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
 
     private transient O tupleHackCurrentObject;
 
-    private transient AtomicInteger tupleHackIndex = new AtomicInteger(pivotsCount);
-
-    private transient AtomicInteger tupleHackCompleted = new AtomicInteger(pivotsCount);
+    private transient AtomicInteger tupleHackIndex = new AtomicInteger(
+            pivotsCount);
 
     private transient Semaphore hackS = new Semaphore(0);
 
-    private transient Semaphore hackS2 = new Semaphore(0);
-
     private transient Exception ex = null;
+
+    private transient CountDownLatch tupleHackCompleted;
 
     /**
      * This class helps to perform the pivot calculation in parallel.
@@ -324,11 +320,11 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
                         assert pivots != null;
                         assert tupleHackCurrentObject != null;
                         assert tupleHack != null;
+                        // logger.debug("Pivot calculation " + i);
                         tupleHack[i] = tupleHackCurrentObject
                                 .distance(pivots[i]);
-                        if (tupleHackCompleted.getAndIncrement() == pivotsCount - 1) {
-                            hackS2.release();
-                        }
+
+                        tupleHackCompleted.countDown();
                     } catch (Exception e) {
                         logger.fatal(e);
                         ex = e;
@@ -369,14 +365,14 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                 this exception please report the problem to:
      *                 http://code.google.com/p/obsearch/issues/list
      */
-    /*
+/* TODO: parallelizing this would imply that more distance computations have to be performed.
     public final void searchBTreeAndUpdate(O object, short[] tuple, short r,
             float hlow, float hhigh, OBPriorityQueueShort < O > result)
             throws DatabaseException, IllegalAccessException,
             InstantiationException, IllegalIdException, OBException {
 
         Cursor cursor = null;
-        boolean sentData = false; // if we used the threads, otherwise a deadlock will occur.
+
         try {
 
             DatabaseEntry keyEntry = new DatabaseEntry();
@@ -427,19 +423,17 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
                     if (max <= r && result.isCandidate(max)) {
                         // there is a chance it is a possible match
                         int id = intHandler.getint(in, 0);
+                        O toCompare = getObject(id);
                         DistanceEvaluation d = new DistanceEvaluation(r, id,
-                                object, result);
+                                toCompare, object, result);
                         while (true) {
                             try {
-                                sentData = true;
-                                waitRemainingElements.drainPermits();
                                 queue.put(d);
-                                
                                 break;
                             } catch (InterruptedException e) {
                             }
                         }
-                    
+
                         this.distanceComputations++;
                     }
 
@@ -455,13 +449,7 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
         } finally {
             cursor.close();
         }
-        if(sentData){
-            
-            // wait for all the tasks to complete
-            this.waitRemainingElements.acquireUninterruptibly();
-        }
-
-    }*/
+    }
 
     public int getCpus() {
         return cpus;
@@ -470,5 +458,5 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
     public void setCpus(int cpus) {
         this.cpus = cpus;
     }
-
+*/
 }

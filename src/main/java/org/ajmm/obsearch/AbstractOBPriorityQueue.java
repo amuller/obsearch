@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
-
 /*
  OBSearch: a distributed similarity search engine
  This project is to similarity search what 'bit-torrent' is to downloads.
@@ -28,7 +27,7 @@ import java.util.PriorityQueue;
  * distance computations required. To optimize a bit, the same priority queue is
  * used to store results for the user
  * @param <O>
- *            Result object to be used by the queue
+ *                Result object to be used by the queue
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
@@ -65,7 +64,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      * Creates a priority queue by setting the maximum number of elements to be
      * accepted.
      * @param k
-     *            maximum number of elements to accept
+     *                maximum number of elements to accept
      */
     public AbstractOBPriorityQueue(final byte k) {
         queue = new PriorityQueue < O >();
@@ -90,27 +89,32 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      * Same "sort" of objects means that the distances of the included objects
      * are the same, and the repetitions of such distances are the same.
      * @param obj
-     *            The AbstractOBPriorityQueue that will be compared.
+     *                The AbstractOBPriorityQueue that will be compared.
      * @return True if the given AbstractOBPriorityQueue contains the same
      *         "sort" of objects.
      */
     @Override
     public final boolean equals(final Object obj) {
-        if(obj == null){
-            return false;
+        synchronized (queue) {
+
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof AbstractOBPriorityQueue)) {
+                return false;
+            }
+            final AbstractOBPriorityQueue < O > o = (AbstractOBPriorityQueue < O >) obj;
+            synchronized (o.queue) {
+                if (this.getSize() != o.getSize()) {
+                    return false;
+                }
+                final Object[] a = queue.toArray();
+                final Object[] b = o.queue.toArray();
+                Arrays.sort(a);
+                Arrays.sort(b);
+                return Arrays.equals(a, b);
+            }
         }
-        if(! (obj instanceof AbstractOBPriorityQueue)){
-            return false;
-        }
-        final AbstractOBPriorityQueue < O > o = (AbstractOBPriorityQueue < O >) obj;
-        if (this.getSize() != o.getSize()) {
-            return false;
-        }
-        final Object[] a = queue.toArray();
-        final Object[] b = o.queue.toArray();
-        Arrays.sort(a);
-        Arrays.sort(b);
-        return Arrays.equals(a, b);
     }
 
     /**
