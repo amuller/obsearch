@@ -122,7 +122,6 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws DatabaseException {
         this.dbDir = dbDir;
         initDB();
-        
     }
 
     /**
@@ -152,7 +151,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(true);
-        envConfig.setCacheSize(CACHE_SIZE); // 20 MB
+        //envConfig.setCacheSize(CACHE_SIZE); // 20 MB
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // envConfig.setLocking(false);

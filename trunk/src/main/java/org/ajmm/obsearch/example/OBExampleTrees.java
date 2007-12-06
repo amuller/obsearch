@@ -122,7 +122,12 @@ public final class OBExampleTrees {
                 index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
                         (short) pivotSize, od, (short) 0,
                         (short) (maxTreeSize * 2),3);
-
+                
+                // the bigger these parameters are, the better the
+                // clustering will be. Defaults are 30,7
+                index.setKMeansIterations(3);
+                index.setKMeansPPRetries(1);
+                
                 logger.info("Adding data");
                 final BufferedReader r = new BufferedReader(
                         new FileReader(data));
@@ -164,6 +169,7 @@ public final class OBExampleTrees {
                     // TreePivotable());
                     ps = new KMeansPPPivotSelector < OBSlice >(
                             new AcceptAll < OBSlice >());
+                    ((KMeansPPPivotSelector < OBSlice >)ps).setRetries(1);
                 } else {
                     logger.fatal("Unrecognized pivot selection method");
                     ps = null;
@@ -204,7 +210,7 @@ public final class OBExampleTrees {
                 index = (UnsafeNCorePPTreeShort < OBSlice >) IndexFactory
                         .createFromXML(readString(indexFile));
                 // and initialize it.
-                ((UnsafeNCorePPTreeShort)index).setCpus(4);
+                ((UnsafeNCorePPTreeShort<OBSlice>)index).setCpus(4);
                 index.relocateInitialize(null);
                 
                

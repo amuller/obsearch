@@ -364,7 +364,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         // the default value worked pretty well.
         //envConfig.setCacheSize(CACHE_SIZE);
         // leaving this, but it is meaningless when setLocking(false)
-        //envConfig.setTxnNoSync(true);
+        envConfig.setTxnNoSync(true);
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
         // 100 k gave the best performance in one thread and for 30 pivots of shorts
         envConfig.setConfigParam("je.log.faultReadSize", "30720");
@@ -375,7 +375,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // disable this in production
-        envConfig.setLocking(false);
+        //envConfig.setLocking(false);
         
         return envConfig;
     }

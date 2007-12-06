@@ -77,7 +77,7 @@
 	<!-- DB and QUERY datafiles -->
 
 	<property name="dbdata" value="${user.home}/temp/slices"/>
-	<property name="querydata" value="${user.home}/temp/slices-query-clean"/>
+	<property name="querydata" value="${user.home}/temp/slices-query"/>
 </target>
 
  

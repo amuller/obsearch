@@ -42,21 +42,23 @@ public class TestSynchronizableIndex
      *             If something goes really bad.
      */
     public void testSyncTree() throws Exception {
- /*       File dbFolder = new File(TUtils.getTestProperties().getProperty(
+        File dbFolder = new File(TUtils.getTestProperties().getProperty(
                 "test.db.path"));
-        OBSlice x = new OBSlice("U(M(),X())");
-        OBSlice x2 = new OBSlice("E( U(M(),X()))");
-        System.out.println("Distance:" + x.distance(x2));
+        File dbFolderSync = new File(TUtils.getTestProperties().getProperty(
+        "test.db.path")+ File.separator + "sync");
         
         Directory.deleteDirectory(dbFolder);
         assertTrue(!dbFolder.exists());
         assertTrue(dbFolder.mkdirs());
+        assertTrue(dbFolderSync.mkdirs());
         IndexShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
                 (byte) 30, (byte) 2, (short) 0, (short) 200);
         SynchronizableIndexShort < OBSlice > index2 = new SynchronizableIndexShort < OBSlice >(
-                index, dbFolder);
+                index, dbFolderSync );
         IndexSmokeTUtil t = new IndexSmokeTUtil();
-        t.tIndex(index2);*/
+        t.tIndex(index2);
+        
+        
     }
 
 }

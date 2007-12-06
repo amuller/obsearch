@@ -125,7 +125,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         PreloadConfig pc = new PreloadConfig();
         pc.setLoadLNs(true);
         // TODO: uncomment this?
-       cDB.preload(pc);
+       //cDB.preload(pc);
     }
 
     /**
