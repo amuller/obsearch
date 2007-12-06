@@ -422,7 +422,7 @@ Would be cool to use this.
         <configuration>
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
-          <argLine>-Xmx1700M</argLine>
+          <argLine>-Xmx1300M</argLine>
         </configuration>
       </plugin>
 

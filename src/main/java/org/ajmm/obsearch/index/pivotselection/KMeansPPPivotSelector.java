@@ -42,6 +42,7 @@ import com.sleepycat.je.DatabaseException;
 public class KMeansPPPivotSelector < O extends OB > implements
         PivotSelector < O > {
 
+    private int retries = 7;
     /**
      * Logger.
      */
@@ -83,7 +84,6 @@ public class KMeansPPPivotSelector < O extends OB > implements
         x.prepareFreeze();
         short k = x.getPivotsCount();
         float potential = 0;
-        int retries = 7;
         int databaseSize = x.databaseSize();
         int centroidIds[] = new int[k]; // keep track of the selected centroids
         float[] closestDistances = new float[databaseSize];
@@ -200,6 +200,14 @@ public class KMeansPPPivotSelector < O extends OB > implements
             i++;
         }
         return false;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
     }
 
 }

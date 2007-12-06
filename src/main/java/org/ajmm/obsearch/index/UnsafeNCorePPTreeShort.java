@@ -450,7 +450,7 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
             cursor.close();
         }
     }
-
+*/
     public int getCpus() {
         return cpus;
     }
@@ -458,5 +458,5 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
     public void setCpus(int cpus) {
         this.cpus = cpus;
     }
-*/
+
 }
