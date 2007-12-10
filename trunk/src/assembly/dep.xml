@@ -1,0 +1,45 @@
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>zip</format>
+		<format>tar.bz2</format>
+		<format>tar.gz</format>
+  </formats>
+	<includeSiteDirectory>true</includeSiteDirectory>
+	
+	<dependencySets>
+    <dependencySet>
+      <includes>
+        <include>*:jar:*</include>
+      </includes>
+			<outputDirectory>/deps</outputDirectory>
+		</dependencySet>
+		
+	</dependencySets>
+
+<fileSets>
+    <fileSet>
+      <directory>target</directory>
+      <outputDirectory>/lib</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+    </fileSet>
+</fileSets>
+
+	<files>
+    <file>
+      <source>README.txt</source>
+      <outputDirectory>/</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+    <file>
+      <source>LICENSE.txt</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+
+  </files>
+
+	
+
+</assembly>
