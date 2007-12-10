@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="OBSearch">
+<!--
+  <bannerLeft>
+    <name>Maven</name>
+    <src>http://maven.apache.org/images/apache-maven-project.png</src>
+    <href>http://maven.apache.org/</href>
+  </bannerLeft>
+-->
+  <bannerRight>
+		<name>BerliOS Developer Logo</name>
+		<src>http://developer.berlios.de/bslogo.php?group_id=8796</src>
+		<href>http://developer.berlios.de</href>
+  </bannerRight>
+
+  <body>
+    <links>     
+      <item name="GSOC" href="http://code.google.com/soc/"/>
+    </links>
+		<menu name="Main">
+			<item name="Welcome" href="index.html"/>
+		</menu>
+
+    <menu name="About OBSearch">
+			<item name="Overview" href="overview.html"/>
+			<item name="Features" href="features.html"/>
+			<item name="20 Min. Tutorial" href="tutorial.html"/>
+      <item name="FAQ" href="faq.html"/>
+    </menu>
+		
+		<menu name="Get OBSearch">
+			<item name="Downloads" href="download.html"/>
+		</menu>
+
+		<menu ref="reports"/>
+		
+  </body>
+</project>
