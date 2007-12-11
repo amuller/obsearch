@@ -112,23 +112,9 @@ public class IndexSmokeTUtil {
 
         }
         r.close();
-        // logger.info("Inserted elements: " + realIndex);
-        // select the pivots
-        // TentaclePivotSelectorShort<OBSlice> ps = new
-        // TentaclePivotSelectorShort<OBSlice>((short)5);
-        // RandomPivotSelector ps = new RandomPivotSelector();
-        // select some pivots.
-        DummyPivotSelector ps = new DummyPivotSelector();
-        if (index instanceof ParallelIndex) {
-            ps.generatePivots((AbstractPivotIndex) ((ParallelIndex) index)
-                    .getIndex());
-        } else if (index instanceof SynchronizableIndex) {
-            ps
-                    .generatePivots((AbstractPivotIndex) ((SynchronizableIndex) index)
-                            .getIndex());
-        } else {
-            ps.generatePivots((AbstractPivotIndex) index);
-        }
+        
+        
+        
         // "learn the data".
         logger.info("freezing");
         index.freeze();

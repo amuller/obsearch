@@ -191,8 +191,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
 
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException,
-            UndefinedPivotsException {
+            DatabaseException, OutOfRangeException, OBException {
         getIndex().freeze();
         
         timeByBox = new AtomicLongArray(getIndex().totalBoxes());

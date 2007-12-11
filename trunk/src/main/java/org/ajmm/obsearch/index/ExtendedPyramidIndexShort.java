@@ -73,16 +73,20 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * @param databaseDirectory
      *                Directory were the index will be stored
      * @param pivots
-     *                Numbe rof pivots to be used.
+     *                Number of pivots to be used.
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
-     *                 If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
-            final short pivots) throws DatabaseException, IOException {
+            final short pivots, PivotSelector < O > pivotSelector)
+            throws DatabaseException, IOException {
 
-        this(databaseDirectory, pivots, (short) 0, Short.MAX_VALUE);
+        this(databaseDirectory, pivots, (short) 0, Short.MAX_VALUE,
+                pivotSelector);
     }
 
     /**
@@ -95,20 +99,23 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      * @param databaseDirectory
      *                Directory were the index will be stored
      * @param pivots
-     *                Numbe rof pivots to be used.
+     *                Number of pivots to be used.
      * @param minInput
      *                Minimum value to be returned by the distance function
      * @param maxInput
      *                Maximum value to be returned by the distance function
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
-     *                 If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
-            final short pivots, final short minInput, final short maxInput)
-            throws DatabaseException, IOException {
-        super(databaseDirectory, pivots);
+            final short pivots, final short minInput, final short maxInput,
+            PivotSelector < O > pivotSelector) throws DatabaseException,
+            IOException {
+        super(databaseDirectory, pivots, pivotSelector);
         this.minInput = minInput;
         this.maxInput = maxInput;
         assert minInput < maxInput;
@@ -199,7 +206,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         float[] minArray = generateMinArray(qorig);
         while (i < pyramidCount) {
             copyQuery(qorig, q);
-            
+
             if (intersect(q, i, minArray, lowHighResult)) {
                 searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
                         + lowHighResult[HHIGH], result);
@@ -242,7 +249,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         float[] minArray = generateMinArray(qorig);
         while (i < pyramidCount) {
             copyQuery(qorig, q);
-            if (intersect(q, i, minArray,lowHighResult) && boxesBit.get(i)) {
+            if (intersect(q, i, minArray, lowHighResult) && boxesBit.get(i)) {
                 searchBTreeAndUpdate(object, t, myr, i + lowHighResult[HLOW], i
                         + lowHighResult[HHIGH], result);
                 short nr = result.updateRange(myr);
@@ -489,14 +496,14 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         Result res = new Result(Result.Status.NOT_EXISTS);
-        
+
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
-        
+
         float[] et = extendedPyramidTransform(tuple);
         float pyramidValue = pyramidValue(et);
-        
+
         Cursor cursor = null;
 
         try {
@@ -646,23 +653,16 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
     }
 
-    /*public Result exists(final O object) throws DatabaseException, OBException,
-            IllegalAccessException, InstantiationException {
-        Result res = new Result(Result.Status.NOT_EXISTS);
-        OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
-                (byte) 1);
-        searchOB(object, (short) 1, result);
-        if (result.getSize() == 1) {
-            Iterator < OBResultShort < O >> it = result.iterator();
-            assert it.hasNext();
-            OBResultShort < O > r = it.next();
-            if (object.equals(r.getObject())) {
-                res = new Result(Result.Status.EXISTS);
-                res.setId(r.getId());
-            }
-        }
-        return res;
-    }*/
+    /*
+     * public Result exists(final O object) throws DatabaseException,
+     * OBException, IllegalAccessException, InstantiationException { Result res =
+     * new Result(Result.Status.NOT_EXISTS); OBPriorityQueueShort < O > result =
+     * new OBPriorityQueueShort < O >( (byte) 1); searchOB(object, (short) 1,
+     * result); if (result.getSize() == 1) { Iterator < OBResultShort < O >> it =
+     * result.iterator(); assert it.hasNext(); OBResultShort < O > r =
+     * it.next(); if (object.equals(r.getObject())) { res = new
+     * Result(Result.Status.EXISTS); res.setId(r.getId()); } } return res; }
+     */
 
     @Override
     protected Result deleteAux(final O object) throws DatabaseException,

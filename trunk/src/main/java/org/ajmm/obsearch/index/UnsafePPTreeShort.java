@@ -82,21 +82,24 @@ public class UnsafePPTreeShort < O extends OBShort >
      * @param databaseDirectory
      *                Directory were the index will be stored
      * @param pivots
-     *                Numbe rof pivots to be used.
+     *                Number of pivots to be used.
      * @param od
      *                Partitions for the space tree (please check the P+tree
      *                paper)
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @param cpus
-     *                Number of cpus to use.
+     *                Number of CPUS to use.
      * @throws DatabaseException
-     *                 If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
-    public UnsafePPTreeShort(File databaseDirectory, short pivots, byte od
-            ) throws DatabaseException, IOException {
-        this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE
-                );
+    public UnsafePPTreeShort(File databaseDirectory, short pivots, byte od,
+            PivotSelector < O > pivotSelector) throws DatabaseException,
+            IOException {
+        this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
+                pivotSelector);
     }
 
     /**
@@ -113,19 +116,18 @@ public class UnsafePPTreeShort < O extends OBShort >
      *                Minimum value to be returned by the distance function
      * @param maxInput
      *                Maximum value to be returned by the distance function
-     * @param cpus
-     *                Number of CPUS to use.
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public UnsafePPTreeShort(File databaseDirectory, short pivots, byte od,
-            short minInput, short maxInput) throws DatabaseException,
-            IOException {
-        super(databaseDirectory, pivots, od, minInput, maxInput);
+            short minInput, short maxInput, PivotSelector < O > pivotSelector)
+            throws DatabaseException, IOException {
+        super(databaseDirectory, pivots, od, minInput, maxInput, pivotSelector);
 
-       
     }
 
     /**
@@ -221,7 +223,7 @@ public class UnsafePPTreeShort < O extends OBShort >
                         realDistance = object.distance(toCompare);
                         this.distanceComputations++;
                         if (realDistance <= r) {
-                            result.add(id, toCompare, realDistance);                                                        
+                            result.add(id, toCompare, realDistance);
                         }
                     }
 

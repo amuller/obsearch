@@ -81,7 +81,6 @@ public class KMeansPPPivotSelector < O extends OB > implements
             throws OBException, IllegalAccessException, InstantiationException,
             DatabaseException, PivotsUnavailableException {
         // we need to prepare the index for freezing!
-        x.prepareFreeze();
         short k = x.getPivotsCount();
         float potential = 0;
         int databaseSize = x.databaseSize();

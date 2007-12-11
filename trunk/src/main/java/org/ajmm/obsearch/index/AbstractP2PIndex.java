@@ -2342,8 +2342,8 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
 
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException,
-            UndefinedPivotsException {
+            DatabaseException, OutOfRangeException, OBException
+             {
         getIndex().freeze();
 
     }

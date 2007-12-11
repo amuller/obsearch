@@ -51,11 +51,10 @@ import com.sleepycat.je.OperationStatus;
 /**
  * PPTreeShort Implementation of a P+Tree that stores OB objects whose distance
  * functions generate shorts. We take the burden of maintaining one class per
- * datatype for efficiency reasons.
- * The spore file name is: PPTreeShort
+ * datatype for efficiency reasons. The spore file name is: PPTreeShort
  * @author Arnoldo Jose Muller Molina
  * @param <O>
- *            The type of object to be stored in the Index.
+ *                The type of object to be stored in the Index.
  * @since 0.7
  */
 
@@ -66,7 +65,6 @@ public class PPTreeShort < O extends OBShort >
      * Minimum value to be returned by the distance function.
      */
     private short minInput;
-
 
     /**
      * Maximum value to be returned by the distance function.
@@ -92,32 +90,34 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Size of the cache of {@link #resultCache}.
      */
-    protected  static final int resultCacheSize = 3000;
+    protected static final int resultCacheSize = 3000;
 
     /**
      * Cache used for getting objects from B. Only used before freezing
      */
     private transient OBCache < float[] > bCache;
-    
-    
- 
- 
+
     /**
      * Constructor.
      * @param databaseDirectory
-     *            Directory were the index will be stored
+     *                Directory were the index will be stored
      * @param pivots
-     *            Numbe rof pivots to be used.
+     *                Numbe rof pivots to be used.
      * @param od
-     *            Partitions for the space tree (please check the P+tree paper)
+     *                Partitions for the space tree (please check the P+tree
+     *                paper)
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws IOException
-     *             If the databaseDirectory directory does not exist.
+     *                 If the databaseDirectory directory does not exist.
      */
-    public PPTreeShort(File databaseDirectory, short pivots, byte od)
-            throws DatabaseException, IOException {
-        this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE);
+    public PPTreeShort(File databaseDirectory, short pivots, byte od,
+            PivotSelector < O > pivotSelector) throws DatabaseException,
+            IOException {
+        this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
+                pivotSelector);
     }
 
     /**
@@ -127,28 +127,32 @@ public class PPTreeShort < O extends OBShort >
      * by the distance function must be within [minInput, maxInput]. These two
      * values can be over estimated but not under estimated.
      * @param databaseDirectory
-     *            Directory were the index will be stored
+     *                Directory were the index will be stored
      * @param pivots
-     *            Numbe rof pivots to be used.
+     *                Numbe rof pivots to be used.
      * @param minInput
-     *            Minimum value to be returned by the distance function
+     *                Minimum value to be returned by the distance function
      * @param maxInput
-     *            Maximum value to be returned by the distance function
+     *                Maximum value to be returned by the distance function
+     * @param cpus
+     *                Number of CPUS to use.
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws IOException
-     *             If the databaseDirectory directory does not exist.
+     *                 If the databaseDirectory directory does not exist.
      */
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
-            short minInput, short maxInput) throws DatabaseException,
-            IOException {
-        super(databaseDirectory, pivots, od);
+            short minInput, short maxInput, PivotSelector < O > pivotSelector)
+            throws DatabaseException, IOException {
+        super(databaseDirectory, pivots, od, pivotSelector);
         assert minInput < maxInput;
         this.minInput = minInput;
         this.maxInput = maxInput;
         // this optimization reduces the computations required
         // for the first level normalization.
-	this.opt = 1 / ((float) (maxInput - minInput));
+        this.opt = 1 / ((float) (maxInput - minInput));
         resultCache = new HashMap < O, OBQueryShort < O >>(3000);
         bCache = new OBCache < float[] >(this.databaseSize());
     }
@@ -181,10 +185,10 @@ public class PPTreeShort < O extends OBShort >
      * Method that takes the values already calculated in B and puts them into C
      * This is to save some time when rebuilding the index
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     @Override
     protected void insertFromBtoC() throws DatabaseException,
@@ -217,7 +221,8 @@ public class PPTreeShort < O extends OBShort >
         } finally {
             cursor.close();
         }
-        assert aDB.count() == bDB.count() && cDB.count() == bDB.count(): "Count c: " + cDB.count()  + " count b: " + bDB.count();
+        assert aDB.count() == bDB.count() && cDB.count() == bDB.count() : "Count c: "
+                + cDB.count() + " count b: " + bDB.count();
 
     }
 
@@ -225,14 +230,14 @@ public class PPTreeShort < O extends OBShort >
      * Generates a query rectangle based on the given range and the given tuple.
      * It normalizes the query first level only
      * @param t
-     *            the tuple to be processed
+     *                the tuple to be processed
      * @param r
-     *            the range
+     *                the range
      * @param q
-     *            resulting rectangle query
+     *                resulting rectangle query
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
 
     protected final void generateRectangleFirstPass(short[] t, short r,
@@ -273,7 +278,7 @@ public class PPTreeShort < O extends OBShort >
         // calculate the rectangle
         float[][] qrect = new float[pivotsCount][2];
         generateRectangleFirstPass(t, r, qrect);
-        float [] center = normalizeFirstPass(t);
+        float[] center = normalizeFirstPass(t);
         // obtain the hypercubes that have to be matched
         List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
         spaceTree.searchRange(qrect, center, hyperRectangles);
@@ -287,18 +292,23 @@ public class PPTreeShort < O extends OBShort >
         }
         return result;
     }
-    
+
     /**
      * All the statistics values are kept here so that we will erase them at
-     * some point in the future. This is ugly but it is the only way that we will
-     * remove all the code related to stats to squeeze the last ounce of performance
-     * out of OBSearch :)
+     * some point in the future. This is ugly but it is the only way that we
+     * will remove all the code related to stats to squeeze the last ounce of
+     * performance out of OBSearch :)
      */
     public long initialHyperRectangleTotal = 0;
-    public long queryCount = 0;    
+
+    public long queryCount = 0;
+
     public long finalHyperRectangleTotal = 0;
+
     public long finalPyramidTotal = 0;
+
     public long smapRecordsCompared = 0;
+
     public long distanceComputations = 0;
 
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
@@ -312,16 +322,15 @@ public class PPTreeShort < O extends OBShort >
         generateRectangleFirstPass(t, r, qrect);
         List < SpaceTreeLeaf > hyperRectangles = new LinkedList < SpaceTreeLeaf >();
         // obtain the hypercubes that have to be matched
-        float [] center = normalizeFirstPass(t);
-        spaceTree.searchRange(qrect, center, hyperRectangles);        
+        float[] center = normalizeFirstPass(t);
+        spaceTree.searchRange(qrect, center, hyperRectangles);
         searchOBAux(object, r, result, qrect, t, hyperRectangles);
-        
+
         // stats
         queryCount++;
         initialHyperRectangleTotal += hyperRectangles.size();
     }
-    
-    
+
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
             int[] boxes) throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
@@ -344,34 +353,34 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Helper function to search for objects.
      * @param object
-     *            The object that has to be searched
+     *                The object that has to be searched
      * @param r
-     *            The range to be used
+     *                The range to be used
      * @param result
-     *            A priority queue that will hold the result
+     *                A priority queue that will hold the result
      * @param qrect
-     *            Query rectangle
+     *                Query rectangle
      * @param t
-     *            Tuple in raw form (short)
+     *                Tuple in raw form (short)
      * @param hyperRectangles
-     *            The space tree leaves that will be searched.
+     *                The space tree leaves that will be searched.
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws NotFrozenException
-     *             if the index has not been frozen.
+     *                 if the index has not been frozen.
      * @throws IllegalIdException
-     *             This exception is left as a Debug flag. If you receive this
-     *             exception please report the problem to:
-     *             http://code.google.com/p/obsearch/issues/list
+     *                 This exception is left as a Debug flag. If you receive
+     *                 this exception please report the problem to:
+     *                 http://code.google.com/p/obsearch/issues/list
      */
     public void searchOBAux(O object, short r,
             OBPriorityQueueShort < O > result, float[][] qrect, short[] t,
@@ -406,7 +415,7 @@ public class PPTreeShort < O extends OBShort >
             }
             // stats
             finalHyperRectangleTotal++;
-            
+
             // for each space there are 2d pyramids that have to be browsed
             int i = 0;
             // update the current rectangle, we also have to center it
@@ -459,29 +468,29 @@ public class PPTreeShort < O extends OBShort >
      * perform validations on it Performance-wise this is one of the most
      * important methods
      * @param object
-     *            object to search
+     *                object to search
      * @param tuple
-     *            tuple of the object
+     *                tuple of the object
      * @param r
-     *            range
+     *                range
      * @param hlow
-     *            lowest pyramid value
+     *                lowest pyramid value
      * @param hhigh
-     *            highest pyramid value
+     *                highest pyramid value
      * @param result
-     *            result of the search operation
+     *                result of the search operation
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws IllegalIdException
-     *             This exception is left as a Debug flag. If you receive this
-     *             exception please report the problem to:
-     *             http://code.google.com/p/obsearch/issues/list
+     *                 This exception is left as a Debug flag. If you receive
+     *                 this exception please report the problem to:
+     *                 http://code.google.com/p/obsearch/issues/list
      */
     public void searchBTreeAndUpdate(O object, short[] tuple, short r,
             float hlow, float hhigh, OBPriorityQueueShort < O > result)
@@ -508,7 +517,7 @@ public class PPTreeShort < O extends OBShort >
                         .entryToFloat(keyEntry);
                 short max = Short.MIN_VALUE;
                 short realDistance = Short.MIN_VALUE;
-                
+
                 int i = 0;
                 short t;
                 MyTupleInput in = new MyTupleInput();
@@ -516,23 +525,23 @@ public class PPTreeShort < O extends OBShort >
                         && currentPyramidValue <= hhigh) {
 
                     in.setBuffer(dataEntry.getData());
-                    //TupleInput in = new TupleInput(dataEntry.getData());
+                    // TupleInput in = new TupleInput(dataEntry.getData());
                     this.smapRecordsCompared++;
-                    
+
                     i = 0;
-                    
+
                     max = Short.MIN_VALUE;
                     // STATS
                     while (i < pivotsCount) {
                         t = (short) Math.abs(tuple[i] - in.readShortFast());
-                        if (t > max) {  
+                        if (t > max) {
                             max = t;
                             if (t > r) {
                                 break; // finish this loop this slice won't be
                                 // matched
                                 // after all!
                             }
-                            
+
                         }
                         i++;
                     }
@@ -592,15 +601,15 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Inserts the given tuple and id into C
      * @param t
-     *            tuple
+     *                tuple
      * @param id
-     *            internal id
+     *                internal id
      * @return 1 if everything was sucessful
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      */
     protected byte insertFrozenAux(short[] t, int id)
             throws OutOfRangeException, DatabaseException {
@@ -612,14 +621,14 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Inserts the given tuple and id into C with the given ppTreeValue.
      * @param t
-     *            tuple
+     *                tuple
      * @param ppTreeValue
-     *            P+Tree value for the tuple
+     *                P+Tree value for the tuple
      * @param id
-     *            internal id
+     *                internal id
      * @return 1 if everything was sucessful
      * @throws DatabaseException
-     *             If somehing goes wrong with the DB
+     *                 If somehing goes wrong with the DB
      */
     protected byte insertFrozenAuxAux(float ppTreeValue, short[] t, int id)
             throws DatabaseException {
@@ -648,8 +657,8 @@ public class PPTreeShort < O extends OBShort >
      * @param t
      * @return A float array of values in the range[0,1]
      * @throws OutOfRangeException
-     *             If any of the values in t goes beyond the ranges defined at
-     *             construction time.
+     *                 If any of the values in t goes beyond the ranges defined
+     *                 at construction time.
      */
     protected float[] normalizeFirstPass(short[] t) throws OutOfRangeException {
         assert t.length == pivotsCount;
@@ -678,35 +687,34 @@ public class PPTreeShort < O extends OBShort >
         IntegerBinding.intToEntry(id, keyEntry);
         insertInDatabase(out, keyEntry, bDB);
     }
-   
 
     /**
      * Read the given tuple from B database and load it into the given tuple in
      * a normalized form.
      * @param id
-     *            local id of the tuple we want
+     *                local id of the tuple we want
      * @param tuple
-     *            The tuple is loaded and stored here.
+     *                The tuple is loaded and stored here.
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     @Override
-    protected final float[] readFromB(int id)
-            throws DatabaseException, OutOfRangeException {
+    protected final float[] readFromB(int id) throws DatabaseException,
+            OutOfRangeException {
         Cursor cursor = null;
         // check if the tuple is in cache
         float[] temp = this.bCache.get(id);
         if (temp != null) {
             int i = 0;
-            
+
             return temp;
         }
         float[] tempTuple = new float[pivotsCount];
         try {
-            
+
             DatabaseEntry keyEntry = new DatabaseEntry();
             DatabaseEntry dataEntry = new DatabaseEntry();
             cursor = bDB.openCursor(null, null);
@@ -724,7 +732,7 @@ public class PPTreeShort < O extends OBShort >
 
             TupleInput in = new TupleInput(dataEntry.getData());
             int i = 0;
-            
+
             while (i < pivotsCount) {
                 tempTuple[i] = normalizeFirstPassAux(in.readShort());
                 i++;
@@ -740,11 +748,11 @@ public class PPTreeShort < O extends OBShort >
      * Normalize the given value This is a first pass normalization, any value
      * to [0,1].
      * @param x
-     *            value to be normalized
+     *                value to be normalized
      * @return the normalized value
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      */
     protected float normalizeFirstPassAux(short x) throws OutOfRangeException {
         if (x < minInput || x > maxInput) {
@@ -761,9 +769,9 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Calculates the tuple vector for the given object.
      * @param obj
-     *            object to be processed
+     *                object to be processed
      * @param tuple
-     *            The resulting tuple will be stored here
+     *                The resulting tuple will be stored here
      */
     protected void calculatePivotTuple(final O obj, short[] tuple)
             throws OBException {
@@ -781,23 +789,24 @@ public class PPTreeShort < O extends OBShort >
         resultCache = new HashMap < O, OBQueryShort < O >>(resultCacheSize);
         return this;
     }
-    
+
     /**
-     * Returns i >=0 if both tuples are the same, otherwise, it returns -1
-     * the first non zero pair. This is used to find pairs of tuples that are likely to be similar
-     * The second tuple is made of shorts except its first item.
-     * Warning: the given tuple input will be modified. Only if all the 30 pivots have the same value
-     * this method will return true. This also means that the next in.getInt() will correctly return 
-     * the id of the object. Only in those cases in.getInt() will return something meaningful.
+     * Returns i >=0 if both tuples are the same, otherwise, it returns -1 the
+     * first non zero pair. This is used to find pairs of tuples that are likely
+     * to be similar The second tuple is made of shorts except its first item.
+     * Warning: the given tuple input will be modified. Only if all the 30
+     * pivots have the same value this method will return true. This also means
+     * that the next in.getInt() will correctly return the id of the object.
+     * Only in those cases in.getInt() will return something meaningful.
      * @param tuple
      * @param tuple2
      * @return true i >=0 if both tuples are the same, otherwise, it returns -1
      */
-    protected int equalTuples(short [] tuple, byte[]  tuple2){
+    protected int equalTuples(short[] tuple, byte[] tuple2) {
         TupleInput in = new TupleInput(tuple2);
         int i = 0;
-        while (i < tuple.length) {            
-            if (tuple[i]  != in.readShort()) {
+        while (i < tuple.length) {
+            if (tuple[i] != in.readShort()) {
                 return -1;
             }
             i++;
@@ -834,14 +843,13 @@ public class PPTreeShort < O extends OBShort >
             if (cursor.count() > 0) {
                 float currentPyramidValue = SortedFloatBinding
                         .entryToFloat(keyEntry);
-                        
+
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue == ppTreeValue) {
 
-
                     int id = equalTuples(tuple, dataEntry.getData());
-                    if ( id != -1) {
-                        // there is a chance it is a possible match                        
+                    if (id != -1) {
+                        // there is a chance it is a possible match
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             res = new Result(Result.Status.EXISTS);
@@ -883,23 +891,23 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Auxiliary insert operation.
      * @param object
-     *            object to insert.
+     *                object to insert.
      * @return {@link org.ajmm.obsearch.Result#OK} and the deleted object's id
      *         if the object was found and successfully deleted.
      *         {@link org.ajmm.obsearch.Result#NOT_EXISTS} if the object is not
      *         in the database.
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      */
     private Result insertAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
-        // if the object is not in the database, we can insert it        
+        // if the object is not in the database, we can insert it
         int resId = -1;
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
@@ -930,9 +938,9 @@ public class PPTreeShort < O extends OBShort >
                         && currentPyramidValue == ppTreeValue) {
 
                     TupleInput in = new TupleInput(dataEntry.getData());
-                    
+
                     int id = equalTuples(tuple, dataEntry.getData());
-                    if ( id != -1) {                  
+                    if (id != -1) {
                         // there is a chance it is a possible match
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
@@ -961,7 +969,7 @@ public class PPTreeShort < O extends OBShort >
         Result res;
         if (exists) {
             res = new Result(Result.Status.EXISTS);
-           
+
         } else {
             // we have to insert the record.
             res = new Result(Result.Status.OK);
@@ -977,16 +985,16 @@ public class PPTreeShort < O extends OBShort >
     /**
      * Auxiliary delete operation.
      * @param object
-     *            object to delete.
+     *                object to delete.
      * @return -1 if the object was not found, otherwise the object's id
      * @throws DatabaseException
-     *             If something goes wrong with the DB
+     *                 If something goes wrong with the DB
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      */
     @Override
     protected final Result deleteAux(final O object) throws DatabaseException,
@@ -1020,10 +1028,10 @@ public class PPTreeShort < O extends OBShort >
                 while (retVal == OperationStatus.SUCCESS
                         && currentPyramidValue == ppTreeValue) {
 
-                    TupleInput in = new TupleInput(dataEntry.getData());  
+                    TupleInput in = new TupleInput(dataEntry.getData());
 
                     int id = equalTuples(tuple, dataEntry.getData());
-                    if ( id != -1) {                       
+                    if (id != -1) {
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
@@ -1057,10 +1065,9 @@ public class PPTreeShort < O extends OBShort >
         return res;
     }
 
-    public  float distance(O a, O b) throws OBException{
-        short result = ((OBShort)a).distance((OBShort)b);
+    public float distance(O a, O b) throws OBException {
+        short result = ((OBShort) a).distance((OBShort) b);
         return normalizeFirstPassAux(result);
     }
-    
-    
+
 }
