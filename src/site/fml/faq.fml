@@ -15,8 +15,8 @@
       <question>Why should I use OBSearch?</question>
       <answer>
         <p>
-        Because it is the only distributed MAM (Metric Access Methods) index available
-				in the open source market right now. Also, because OBSearch uses SMAP, a simple but effective technique for indexing any type of object, it is faster (for heavy objects like trees or graphs) than: 
+        Because it is the only distributed similarity search index available
+				in the open source market right now. Also, because OBSearch uses SMAP, a simple but effective technique for indexing any type of object. Other programs you could use are:
 				</p>
 				<p>
 				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>
@@ -26,6 +26,10 @@
 				</p>
 				<p>
 				<a href="http://gbdi.icmc.usp.br/arboretum/">Arboretum</a>
+        </p>
+				
+				<p>
+				<a href="http://sisap.org/">SISAP</a>
         </p>
       </answer>			
     </faq>   

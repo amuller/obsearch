@@ -16,6 +16,7 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
+import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import org.apache.log4j.Logger;
 
@@ -77,7 +78,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * Number of bytes used by the ids that OBSearch uses.
      */
     protected static final transient int ID_SIZE_BYTES = 4;
-    
+
     /**
      * Logger.
      */
@@ -111,7 +112,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * Berkeley DB database environment.
      */
     protected transient Environment databaseEnvironment;
-    
+
     /**
      * Berkeley DB database environment used only at database creation time.
      */
@@ -135,7 +136,6 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     protected transient Database kDB;
 
-    
     /**
      * The pivots for this Tree. When we instantiate or de-serialize this object
      * we load them from {@link #pivotsBytes}.
@@ -167,11 +167,16 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Size of the cache for the underlying db.
      */
-    protected static final transient int CACHE_SIZE = 700 * 1024 * 1024 ;
+    protected static final transient int CACHE_SIZE = 700 * 1024 * 1024;
+
+    /**
+     * The pivot selector used in the index.
+     */
+    protected PivotSelector < O > pivotSelector;
 
     /**
      * Creates a new pivot index. The maximum number of pivots has been
-     * arbitrarily hardcoded to the size of short.
+     * arbitrarily hard-coded to the size of short.
      * @param databaseDirectory
      *                Where all the databases will be stored.
      * @param pivots
@@ -181,8 +186,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws IOException
      *                 If the databaseDirectory does not exist.
      */
-    public AbstractPivotIndex(final File databaseDirectory, final short pivots)
-            throws DatabaseException, IOException {
+    public AbstractPivotIndex(final File databaseDirectory, final short pivots,
+            PivotSelector < O > pivotSelector) throws DatabaseException,
+            IOException {
         this.dbDir = databaseDirectory;
         if (!dbDir.exists()) {
             throw new IOException("Directory does not exist.");
@@ -194,6 +200,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         maxId = 0;
         id = new AtomicInteger(0);
         this.pivotsBytes = new byte[pivotsCount][];
+        this.pivotSelector = pivotSelector;
         initDB();
     }
 
@@ -218,8 +225,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * this method if they want to create new databases.
      * @throws DatabaseException
      *                 If something goes wrong with the DB
-     *  @throws IOException
-     *                  If any of the paths to be used is wrong.
+     * @throws IOException
+     *                 If any of the paths to be used is wrong.
      */
     private void initDB() throws DatabaseException, IOException {
         initBerkeleyDB();
@@ -229,13 +236,17 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         initC();
         initK();
     }
-    
+
     /**
      * Initializes only the databases that are to be used after freezing.
-     * @throws DatabaseException If something goes wrong with the DB
-     * @throws IOException if some path is wrong and the databases cannot be created.
+     * @throws DatabaseException
+     *                 If something goes wrong with the DB
+     * @throws IOException
+     *                 if some path is wrong and the databases cannot be
+     *                 created.
      */
-    private void initDBAfterInitialization() throws DatabaseException, IOException {
+    private void initDBAfterInitialization() throws DatabaseException,
+            IOException {
         initBerkeleyDB();
         initA();
         // way of creating a database
@@ -249,7 +260,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If something goes wrong with the DB
      */
     private void initB() throws DatabaseException {
-        
+
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
         dbConfig.setDeferredWrite(true); // temp database!
@@ -291,7 +302,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If there is a problem when instantiating objects O
      * @throws NotFrozenException
      *                 if the index has not been frozen.
-     * @throws IOException If any of the paths that will be used are wrong.
+     * @throws IOException
+     *                 If any of the paths that will be used are wrong.
      */
     protected Object initializeAfterSerialization() throws DatabaseException,
             NotFrozenException, IllegalAccessException, InstantiationException,
@@ -299,7 +311,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         if (logger.isDebugEnabled()) {
             logger
                     .debug("Initializing transient fields after de-serialization");
-        }        
+        }
         this.initDBAfterInitialization();
         loadPivots();
         initCache();
@@ -343,40 +355,42 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 if something goes wrong with the DB.
      */
     private void initA() throws DatabaseException {
-        
+
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
         aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
-        PreloadConfig pc = new PreloadConfig();       
+        PreloadConfig pc = new PreloadConfig();
         pc.setLoadLNs(true);
         aDB.preload(pc);
     }
-    
+
     /**
      * Creates the default environment configuration.
      * @return Default environment configuration.
      */
-    private EnvironmentConfig createEnvConfig(){
+    private EnvironmentConfig createEnvConfig() {
         /* Open a transactional Oracle Berkeley DB Environment. */
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
         // the default value worked pretty well.
-        //envConfig.setCacheSize(CACHE_SIZE);
+        // envConfig.setCacheSize(CACHE_SIZE);
         // leaving this, but it is meaningless when setLocking(false)
         envConfig.setTxnNoSync(true);
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
-        // 100 k gave the best performance in one thread and for 30 pivots of shorts
+        // 100 k gave the best performance in one thread and for 30 pivots of
+        // shorts
         envConfig.setConfigParam("je.log.faultReadSize", "30720");
-        //envConfig.setConfigParam("je.log.faultReadSize", "10240");
-        // alternate access method might be the best. We got to keep all the btree in memory
-     // envConfig.setConfigParam("je.evictor.lruOnly", "false");
-      //  envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
+        // envConfig.setConfigParam("je.log.faultReadSize", "10240");
+        // alternate access method might be the best. We got to keep all the
+        // btree in memory
+        // envConfig.setConfigParam("je.evictor.lruOnly", "false");
+        // envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         // envConfig.setTxnNoSync(true);
         // envConfig.setTxnWriteNoSync(true);
         // disable this in production
-        //envConfig.setLocking(false);
-        
+        // envConfig.setLocking(false);
+
         return envConfig;
     }
 
@@ -387,28 +401,28 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 if something goes wrong with the DB.
      */
     private void initBerkeleyDB() throws DatabaseException, IOException {
-        EnvironmentConfig envConfig = createEnvConfig(); 
+        EnvironmentConfig envConfig = createEnvConfig();
         this.databaseEnvironment = new Environment(dbDir, envConfig);
-        if(! this.isFrozen()){
+        if (!this.isFrozen()) {
             File environmentHome = generateCreationEnvironmentFolder();
-            if(!environmentHome.mkdir()){
-                throw new IOException("Env directory could not be created:" + environmentHome);
+            if (!environmentHome.mkdir()) {
+                throw new IOException("Env directory could not be created:"
+                        + environmentHome);
             }
             EnvironmentConfig envConfig2 = createEnvConfig();
-            envConfig2.setConfigParam("je.deferredWrite.temp", "false") ;            
-            this.databaseEnvironmentCreation = new Environment(generateCreationEnvironmentFolder(), envConfig2);
+            envConfig2.setConfigParam("je.deferredWrite.temp", "false");
+            this.databaseEnvironmentCreation = new Environment(
+                    generateCreationEnvironmentFolder(), envConfig2);
         }
-        
 
-        
         // dbConfig.setExclusiveCreate(true);
     }
-    
+
     /**
      * Creates a default database configuration.
      * @return default database configuration.
      */
-    protected DatabaseConfig createDefaultDatabaseConfig(){
+    protected DatabaseConfig createDefaultDatabaseConfig() {
         DatabaseConfig dbConfig = new DatabaseConfig();
         dbConfig = new DatabaseConfig();
         dbConfig.setTransactional(false);
@@ -416,8 +430,8 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         dbConfig.setSortedDuplicates(true);
         return dbConfig;
     }
-    
-    private File generateCreationEnvironmentFolder(){
+
+    private File generateCreationEnvironmentFolder() {
         return new File(dbDir + File.separator + "freeze");
     }
 
@@ -585,8 +599,6 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         dataEntry.setData(out.getBufferBytes());
         x.put(null, keyEntry, dataEntry);
     }
-    
-   
 
     /**
      * Utility method to insert data in C after freezing. Must be implemented by
@@ -624,18 +636,21 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     }
 
     /**
-     * Pivot selectors who use the cache (access the objects of the DB) should
-     * call this method before calling freeze. Users do not have to worry about
-     * this method.
+     * This method is called before the freeze. It will delete unnecessary data
+     * and will initialize the cache. In addition, pivots will be selected here.
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      */
-    public void prepareFreeze() throws DatabaseException {
+    protected void prepareFreeze() throws DatabaseException,
+            PivotsUnavailableException, IllegalAccessException,
+            InstantiationException, OBException {
         // we do not need this database anymore as it is only before
         // freeze is performed
         deleteDatabaseCreation(kDB, "K");
         kDB = null;
         initCache();
+        logger.info("Generating pivots.");
+        this.pivotSelector.generatePivots(this);
     }
 
     /**
@@ -670,25 +685,25 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException,
-            UndefinedPivotsException {
+            DatabaseException, OutOfRangeException, OBException
+             {
         if (isFrozen()) {
-            throw new AlreadyFrozenException();
+            throw new OBException(new AlreadyFrozenException());
         }
-
+        try{
+            this.prepareFreeze();
+        }catch(Exception e){
+            throw new OBException(e);
+        }
         if (pivots == null) {
-            throw new UndefinedPivotsException();
+            throw new OBException(new UndefinedPivotsException());
         }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Storing pivot tuples from A to B");
         }
+
         
-        
-        
-        // cache is initialized as from the point we set frozen = true
-        // queries can be achieved
-        initCache();
 
         // we have to create database B
         insertFromAtoB();
@@ -707,42 +722,43 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         writeSporeFile();
 
         assert aDB.count() == bDB.count();
-        
+
         // now we can get rid of the data in B.
         deleteDatabaseCreation(bDB, "B");
         bDB = null;
-       
-        
-          
+
     }
-    
+
     /**
      * Deletes all the records of database db.
-     * @param db the database that will be deleted
+     * @param db
+     *                the database that will be deleted
      */
-    private void deleteDatabase(Database db, String name) throws DatabaseException{
+    private void deleteDatabase(Database db, String name)
+            throws DatabaseException {
         db.close();
-        //Transaction txn = databaseEnvironment.beginTransaction(null, null);
+        // Transaction txn = databaseEnvironment.beginTransaction(null, null);
         this.databaseEnvironment.truncateDatabase(null, name, false);
-        //txn = databaseEnvironment.beginTransaction(null, null);
-        this.databaseEnvironment.removeDatabase(null, name);     
-        
+        // txn = databaseEnvironment.beginTransaction(null, null);
+        this.databaseEnvironment.removeDatabase(null, name);
+
         this.databaseEnvironment.cleanLog();
         this.databaseEnvironment.compress();
-        this.databaseEnvironment.checkpoint(null);      
-  }
-    
-    private void deleteDatabaseCreation(Database db, String name) throws DatabaseException{
+        this.databaseEnvironment.checkpoint(null);
+    }
+
+    private void deleteDatabaseCreation(Database db, String name)
+            throws DatabaseException {
         db.close();
-        //Transaction txn = databaseEnvironment.beginTransaction(null, null);
+        // Transaction txn = databaseEnvironment.beginTransaction(null, null);
         this.databaseEnvironmentCreation.truncateDatabase(null, name, false);
-        //txn = databaseEnvironment.beginTransaction(null, null);
-        this.databaseEnvironmentCreation.removeDatabase(null, name);     
-        
+        // txn = databaseEnvironment.beginTransaction(null, null);
+        this.databaseEnvironmentCreation.removeDatabase(null, name);
+
         this.databaseEnvironmentCreation.cleanLog();
         this.databaseEnvironmentCreation.compress();
-        this.databaseEnvironmentCreation.checkpoint(null);      
-  }
+        this.databaseEnvironmentCreation.checkpoint(null);
+    }
 
     /**
      * Writes down the spore file of this index.
@@ -834,8 +850,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    protected abstract Result deleteAux(final O object) throws DatabaseException,
-            OBException, IllegalAccessException, InstantiationException;
+    protected abstract Result deleteAux(final O object)
+            throws DatabaseException, OBException, IllegalAccessException,
+            InstantiationException;
 
     /**
      * Copies all the values already inserted in B into C. This is only for
@@ -1093,20 +1110,20 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     public void close() throws DatabaseException {
         aDB.close();
-        if(bDB != null){
+        if (bDB != null) {
             bDB.close();
         }
         closeC();
-        if(kDB != null){
+        if (kDB != null) {
             kDB.close();
         }
-        
+
         databaseEnvironment.cleanLog();
         databaseEnvironment.compress();
         databaseEnvironment.checkpoint(null);
         databaseEnvironment.close();
-        
-        if(databaseEnvironmentCreation != null){
+
+        if (databaseEnvironmentCreation != null) {
             this.databaseEnvironmentCreation.close();
         }
     }

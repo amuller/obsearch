@@ -55,7 +55,9 @@ public class OBRandom {
      * interval (0.0f,1.0f) (excluding 0.0f and 1.0f)
      */
     public float nextFloat() {
-        return r.nextFloat();
+        float res = r.nextFloat();
+        assert 0.0f < res &&  res < 1.0f;
+        return res;
     }
 
     /**

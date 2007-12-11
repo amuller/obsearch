@@ -18,6 +18,7 @@ if (not defined $password){
 }
 
 shell("mvn clean");
+shell("mvn compile");
 # generate the website
 shell("mvn site:site");
 # generate the assemblies
@@ -47,7 +48,7 @@ OBSearch $version released.
 
 OBSearch $version has been released.
 
-Release Highlights:
+Release highlights:
 
 You can download it from:
 http://code.google.com/p/obsearch/downloads/list
@@ -89,7 +90,7 @@ sub uploadFileToGoogleCode {
 		}
 		elsif($file =~/jar/){
 				$comment = "jar-dist";
-						($v) = ($file =~ /obsearch-(.*)[.]jar/);
+						($v) = ($file =~ /obsearch-([\d|.]*)[.]jar/);
 				$version = $v;
 				#print "Version found! $version";
 		}

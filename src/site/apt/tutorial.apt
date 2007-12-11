@@ -137,8 +137,8 @@ public class OBVectorExample implements OBShort {
 // Depending on the distance function a greater number might improve performance.  
 // You might want to spend some time tweaking this parameter function.
 // od: Partitions of the P+Tree. Depending on the distance function a value of
-//     6-9 might be good. You have to perform some tests to decide which
-//     is the best value. 
+//     9-12 might be good. You have to perform some tests to decide which
+//     is the best value for your distance function.
 PPTreeShort < OBVectorExample > index = 
 	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
 ---
@@ -163,9 +163,8 @@ index.insert(o);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	OBSearch uses properties of the triangle inequality to speed up the searching process.
-We have to first select a set of n pivots (in the example 30) from the database.
-There are several selection strategies. The number 10 means that we want pivots that at least are separated 10 units away from each other. The bigger this number is the better. After the pivots are selected, we can freeze the index. This is the heart of OBSearch; the technique is called {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}}. The 32 you see there is not related to the number of pivots, it represents the number of "seeds" that will be used for selecting the pivots. Please refer to the docs for more details. NEW in 0.8: Kmeans++ can also be used in metric spaces to select pivots! Please see the KmeansPPPivotSelector class.
+	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
+There are several selection strategies. In this case we used a "tentacle" pivot selection strategy. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. After the pivots are selected, we can freeze the index. 
 
 ---
 TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
@@ -200,7 +199,7 @@ index.delete(d);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	You just need to decide the amount of items you want (k) and a range (r).
-For objects a,b if d(a,b) > r then the pairs will not be returned. This type of search is called "nearest neighbor search".
+For objects a,b if d(a,b) > r then the pairs will not be returned. 
 
 ---
 // This result object will hold the result of the search process.
@@ -218,6 +217,6 @@ OBPriorityQueueShort < OBVectorExample > result =
 * Next steps!
 ~~~~~~~~~~~~~
 
-	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: We are currently voting, we might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
+	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: We are currently voting. We might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
 
 

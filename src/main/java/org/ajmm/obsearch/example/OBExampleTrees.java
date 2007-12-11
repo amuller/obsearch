@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexFactory;
-import org.ajmm.obsearch.index.IndexSmokeTUtil;
+import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.ParallelIndexShort;
 import org.ajmm.obsearch.index.PivotSelector;
@@ -112,6 +112,25 @@ public final class OBExampleTrees {
                 short pivotSize = Short.parseShort(cline
                         .getOptionValue("pivotSize"));
                 logger.debug("Pivot Size: " + pivotSize);
+                
+                PivotSelector < OBSlice > ps;
+                if (cline.hasOption("fixedPivotSelector")) {
+                    ps = new FixedPivotSelector();
+                } else if (cline.hasOption("tentaclePivotSelector")) {
+                    ps = new TentaclePivotSelectorShort < OBSlice >((short) 10,
+                            30, new AcceptAll < OBSlice >());
+                } else if (cline.hasOption("kMeansPPPivotSelector")) {
+                    // new
+                    // ps = new KMeansPPPivotSelector<OBSlice>(new
+                    // TreePivotable());
+                    ps = new KMeansPPPivotSelector < OBSlice >(
+                            new AcceptAll < OBSlice >());
+                    ((KMeansPPPivotSelector < OBSlice >)ps).setRetries(1);
+                } else {
+                    logger.fatal("Unrecognized pivot selection method");
+                    ps = null;
+                }
+                
                 // create the index
                 /*
                  * 30 is the number of pivots to use. 0 and 1000 are the minimum
@@ -121,7 +140,7 @@ public final class OBExampleTrees {
                  */
                 index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
                         (short) pivotSize, od, (short) 0,
-                        (short) (maxTreeSize * 2),3);
+                        (short) (maxTreeSize * 2),ps,3);
                 
                 // the bigger these parameters are, the better the
                 // clustering will be. Defaults are 30,7
@@ -157,26 +176,9 @@ public final class OBExampleTrees {
                 // The object ps will select pivots based on some simple
                 // criteria
 
-                PivotSelector < OBSlice > ps;
-                if (cline.hasOption("fixedPivotSelector")) {
-                    ps = new FixedPivotSelector();
-                } else if (cline.hasOption("tentaclePivotSelector")) {
-                    ps = new TentaclePivotSelectorShort < OBSlice >((short) 10,
-                            30, new AcceptAll < OBSlice >());
-                } else if (cline.hasOption("kMeansPPPivotSelector")) {
-                    // new
-                    // ps = new KMeansPPPivotSelector<OBSlice>(new
-                    // TreePivotable());
-                    ps = new KMeansPPPivotSelector < OBSlice >(
-                            new AcceptAll < OBSlice >());
-                    ((KMeansPPPivotSelector < OBSlice >)ps).setRetries(1);
-                } else {
-                    logger.fatal("Unrecognized pivot selection method");
-                    ps = null;
-                }
+                
 
                 logger.debug("Selecting pivots");
-                ps.generatePivots(index);
                 // Freeze the index so that we can start using it
                 logger.info("Freezing");
                 index.freeze();
@@ -282,7 +284,7 @@ public final class OBExampleTrees {
                             //if (shouldProcessTree(s)) {
                                 // and perform the search
                                 // logger.info("Slice: " + l);
-                            IndexSmokeTUtil.searchSequential(max, s, x, index, range);
+                            searchSequential(max, s, x, index, range);
                                 // search is completed, we just store the
                                 // result.
                                 // logger.info(x);
@@ -486,6 +488,35 @@ public final class OBExampleTrees {
                 assert false : "Received line: " + line;
                 return null;
             }
+        }
+    }
+    
+    /**
+     * Sequential search.
+     * @param max
+     *            Search all the ids in the database until max
+     * @param o
+     *            The object to search
+     * @param result
+     *            The queue were the results are stored
+     * @param index
+     *            the index to search
+     * @param range
+     *            The range to employ
+     * @throws Exception
+     *             If something goes really bad.
+     */
+    public static void searchSequential(int max, OBSlice o,
+            OBPriorityQueueShort < OBSlice > result,
+            IndexShort < OBSlice > index, short range) throws Exception {
+        int i = 0;
+        while (i < max) {
+            OBSlice obj = index.getObject(i);
+            short res = o.distance(obj);
+            if (res <= range) {
+                result.add(i, obj, res);
+            }
+            i++;
         }
     }
 

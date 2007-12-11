@@ -97,14 +97,16 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *            the database directory
      * @param pivots
      *            how many pivots will be used
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @throws DatabaseException
      *             If a database error occurs.
      * @throws IOException
      *             If a serialization issue occurs.
      */
     public AbstractExtendedPyramidIndex(final File databaseDirectory,
-            final short pivots) throws DatabaseException, IOException {
-        super(databaseDirectory, pivots); // initializes the databases
+            final short pivots, PivotSelector < O > pivotSelector) throws DatabaseException, IOException {
+        super(databaseDirectory, pivots, pivotSelector); // initializes the databases
         mp = new float[super.pivotsCount];
     }
 
@@ -114,6 +116,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * @throws DatabaseException
      *             If a database error occurs.
      */
+    //TODO: insert the keys in C in order to increase performance.
+    //           I read somewhere that Berkeley DB works better if you do so.
     @Override
     protected final void initC() throws DatabaseException {
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
@@ -124,7 +128,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
                 
         PreloadConfig pc = new PreloadConfig();
         pc.setLoadLNs(true);
-        // TODO: uncomment this?
+        // TODO: remove this comment?
        //cDB.preload(pc);
     }
 

@@ -70,7 +70,6 @@ public abstract class AbstractTentaclePivotSelector < O extends OB > implements
     public void generatePivots(final AbstractPivotIndex < O > x)
             throws OBException, IllegalAccessException, InstantiationException,
             DatabaseException, PivotsUnavailableException {
-        x.prepareFreeze();
         O prev = obtainD(x);
         int m = x.getMaxId();
         short pivotsCount = x.getPivotsCount();

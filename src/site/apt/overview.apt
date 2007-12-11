@@ -4,19 +4,20 @@ OBSearch
 * Synopsis
 ~~~~~~~~~~~
 
-	This project is to similarity search what 'bit-torrent' is to downloads. All the clients share the workload when performing queries.
+  OBSearch is a similarity search engine.
 
 * Details
 ~~~~~~~~~~
 
+ Similarity search is required in many areas. For example, music matching and binary program matching require a similarity search engine. Nowadays, it is common to hear news of projects like "photosynth" that heavily rely on similarity search. OBSearch is a similarity search engine that can help you to create an interesting and new application!
 
-	Similarity search is required in many areas. Examples are DNA sequences, music and program matching. When an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits considerably the amount of clients a server can hold.
+* Why OBSearch?
+~~~~~~~~~~~~~~~
 
-	Individuals or small companies who want to provide similarity search services cannot afford the infrastructure required to support such indexes. OBSearch can be used to distribute the workload among the users and reduce the investment to a few "seeder" servers.
+  There has been much research on the subject of similarity search, and several approaches that work well in practice have been developed. Nevertheless, these approaches are CPU intensive, and therefore the amount of clients a server can hold is very limited. As a consequence, individuals or small companies who want to provide similarity search services cannot afford the infrastructure required. OBSearch attempts to solve this problem by distributing the workload among the users.
 
-	OBSearch achieves this by dividing the search space into n "boxes". Each client that joins the network will support m boxes (where m is much smaller than n). Additionally, OBsearch can determine for any query which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches. The library is modular, so you can also use OBSearch in a single computer. It is very fast! http://planet-soc.com/node/1527
+  OBSearch achieves this by dividing the search space into n "boxes". In addition, OBsearch can determine for any query, which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches by distributing the queries among the peers.  This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc. 
 
-	This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc.
 
 	By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality(1).
 

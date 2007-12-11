@@ -159,8 +159,12 @@ public final class OBSearchExample {
                 // OBExampleTrees.shouldProcessSlice(s)
                 // is a better and cleaner approach that helps to validate your
                 // distance function.
+                // generate pivots
+                TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
+                        (short) 10, 5, new TreePivotable());
+                
                 pp = new PPTreeShort < OBSlice >(stdFolder, d, od, (short) 0,
-                        (short) 1000);
+                        (short) 1000,ps);
                 SynchronizableIndexShort < OBSlice > index = new SynchronizableIndexShort < OBSlice >(
                         pp, syncFolder);
 
@@ -181,11 +185,7 @@ public final class OBSearchExample {
                     }
                     re = r.readLine();
                 }
-                // generate pivots
-                TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                        (short) 10, 5, new TreePivotable());
-                ps.generatePivots((AbstractPivotIndex < OBSlice >) index
-                        .getIndex());
+               
                 // freeze the index (or ask OBSearch to "learn" how the data is
                 // distributed to optimize access
                 // you can always add more data later.

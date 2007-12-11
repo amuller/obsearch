@@ -30,7 +30,8 @@ import com.sleepycat.je.DatabaseException;
  * @since 0.7
  */
 public class DummyPivotSelector implements PivotSelector {
-
+    // make sure it is only executed once
+    boolean executed = false;
     /**
      * Selects the first n pivots from the database.
      * @param index
@@ -47,6 +48,7 @@ public class DummyPivotSelector implements PivotSelector {
      */
     public final void generatePivots(AbstractPivotIndex index) throws OBException,
             IllegalAccessException, InstantiationException, DatabaseException {
+        assert ! executed;
         short pivots = index.getPivotsCount();
         int maxIdAvailable = index.getMaxId();
         assert pivots <= maxIdAvailable;
@@ -58,5 +60,6 @@ public class DummyPivotSelector implements PivotSelector {
             i++;
         }
         index.storePivots(res);
+        executed = true;
     }
 }

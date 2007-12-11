@@ -93,6 +93,8 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      * @param od
      *                Partitions for the space tree (please check the P+tree
      *                paper)
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @param cpus
      *                Number of CPUS to use.
      * @throws DatabaseException
@@ -101,9 +103,10 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                 If the databaseDirectory directory does not exist.
      */
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
-            byte od, int cpus) throws DatabaseException, IOException {
+            byte od, PivotSelector < O > pivotSelector, int cpus)
+            throws DatabaseException, IOException {
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
-                cpus);
+                pivotSelector, cpus);
     }
 
     /**
@@ -120,6 +123,8 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                Minimum value to be returned by the distance function
      * @param maxInput
      *                Maximum value to be returned by the distance function
+     * @param pivotSelector
+     *                The pivot selector that will be used by this index.
      * @param cpus
      *                Number of cpus to use.
      * @throws DatabaseException
@@ -128,9 +133,10 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                 If the databaseDirectory directory does not exist.
      */
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
-            byte od, short minInput, short maxInput, int cpus)
+            byte od, short minInput, short maxInput,
+            PivotSelector < O > pivotSelector, int cpus)
             throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, od, minInput, maxInput);
+        super(databaseDirectory, pivots, od, minInput, maxInput, pivotSelector);
 
         this.cpus = cpus;
         initNCoreHacks();
@@ -153,20 +159,12 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
             i++;
         }
         /*
-        queue = new ArrayBlockingQueue < DistanceEvaluation >(cpus * 5000);
-        i = 0;
-        // leave one thread for smap, and the rest for distance calculations.
-        int total = cpus - 1;
-
-        if (cpus == 1) {
-            total = 1;
-        }
-
-        while (i < 1) {
-            Thread x = new Thread(new DistanceCalculation());
-            x.start();
-            i++;
-        }*/
+         * queue = new ArrayBlockingQueue < DistanceEvaluation >(cpus * 5000); i =
+         * 0; // leave one thread for smap, and the rest for distance
+         * calculations. int total = cpus - 1; if (cpus == 1) { total = 1; }
+         * while (i < 1) { Thread x = new Thread(new DistanceCalculation());
+         * x.start(); i++; }
+         */
     }
 
     public void relocateInitialize(final File dbPath) throws DatabaseException,
@@ -250,26 +248,26 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
     protected final void calculatePivotTuple(final O obj, short[] tuple)
             throws OBException {
         // This method must be synchronized
-        synchronized(tupleHackIndex){
-        assert tuple.length == this.pivotsCount;
-        if (ex != null) {
-            assert ex != null;
-            ex.printStackTrace();
-            throw new OBException(ex);
-        }
-        tupleHack = tuple;
-        tupleHackCurrentObject = obj;
-        tupleHackIndex.set(0);
-        tupleHackCompleted = new CountDownLatch(pivotsCount);
-        hackS.release(pivotsCount);
-        try {
-            tupleHackCompleted.await();
-        } catch (InterruptedException e) {
+        synchronized (tupleHackIndex) {
+            assert tuple.length == this.pivotsCount;
+            if (ex != null) {
+                assert ex != null;
+                ex.printStackTrace();
+                throw new OBException(ex);
+            }
+            tupleHack = tuple;
+            tupleHackCurrentObject = obj;
+            tupleHackIndex.set(0);
+            tupleHackCompleted = new CountDownLatch(pivotsCount);
+            hackS.release(pivotsCount);
+            try {
+                tupleHackCompleted.await();
+            } catch (InterruptedException e) {
 
-        }
-        assert hackS.availablePermits() == 0;
-        assert tupleHackIndex.get() == pivotsCount;
-        assert validateTuple(obj, tuple);
+            }
+            assert hackS.availablePermits() == 0;
+            assert tupleHackIndex.get() == pivotsCount;
+            assert validateTuple(obj, tuple);
         }
     }
 
@@ -365,92 +363,38 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                 this exception please report the problem to:
      *                 http://code.google.com/p/obsearch/issues/list
      */
-/* TODO: parallelizing this would imply that more distance computations have to be performed.
-    public final void searchBTreeAndUpdate(O object, short[] tuple, short r,
-            float hlow, float hhigh, OBPriorityQueueShort < O > result)
-            throws DatabaseException, IllegalAccessException,
-            InstantiationException, IllegalIdException, OBException {
-
-        Cursor cursor = null;
-
-        try {
-
-            DatabaseEntry keyEntry = new DatabaseEntry();
-            DatabaseEntry dataEntry = new DatabaseEntry();
-            cursor = cDB.openCursor(null, null);
-            SortedFloatBinding.floatToEntry(hlow, keyEntry);
-            OperationStatus retVal = cursor.getSearchKeyRange(keyEntry,
-                    dataEntry, null);
-
-            if (retVal == OperationStatus.NOTFOUND) {
-                return;
-            }
-
-            if (cursor.count() > 0) {
-                float currentPyramidValue = SortedFloatBinding
-                        .entryToFloat(keyEntry);
-                short max = Short.MIN_VALUE;
-                Unsafe unsafe = UnsafeArrayHandlerShort.unsafe;
-                long i = 0;
-                long init = UnsafeArrayHandlerInt.size
-                        + UnsafeArrayHandlerByte.offset;
-                short t;
-                while (retVal == OperationStatus.SUCCESS
-                        && currentPyramidValue <= hhigh) {
-
-                    byte[] in = dataEntry.getData();
-                    // TupleInput in = new TupleInput(dataEntry.getData());
-                    this.smapRecordsCompared++;
-
-                    i = init;
-                    max = Short.MIN_VALUE;
-                    // STATS
-
-                    for (short b : tuple) {
-                        t = (short) Math.abs(b - unsafe.getShort(in, i));
-                        if (t > max) {
-                            max = t;
-                            if (t > r) {
-                                break; // finish this loop this slice won't be
-                                // matched
-                                // after all!
-                            }
-
-                        }
-                        i += UnsafeArrayHandlerShort.size;
-                    }
-
-                    if (max <= r && result.isCandidate(max)) {
-                        // there is a chance it is a possible match
-                        int id = intHandler.getint(in, 0);
-                        O toCompare = getObject(id);
-                        DistanceEvaluation d = new DistanceEvaluation(r, id,
-                                toCompare, object, result);
-                        while (true) {
-                            try {
-                                queue.put(d);
-                                break;
-                            } catch (InterruptedException e) {
-                            }
-                        }
-
-                        this.distanceComputations++;
-                    }
-
-                    // read the next record
-                    retVal = cursor.getNext(keyEntry, dataEntry, null);
-                    // update the current pyramid value so that we know when
-                    // to
-                    // stop
-                    currentPyramidValue = SortedFloatBinding
-                            .entryToFloat(keyEntry);
-                }
-            }
-        } finally {
-            cursor.close();
-        }
-    }
-*/
+    /*
+     * TODO: parallelizing this would imply that more distance computations have
+     * to be performed. public final void searchBTreeAndUpdate(O object, short[]
+     * tuple, short r, float hlow, float hhigh, OBPriorityQueueShort < O >
+     * result) throws DatabaseException, IllegalAccessException,
+     * InstantiationException, IllegalIdException, OBException { Cursor cursor =
+     * null; try { DatabaseEntry keyEntry = new DatabaseEntry(); DatabaseEntry
+     * dataEntry = new DatabaseEntry(); cursor = cDB.openCursor(null, null);
+     * SortedFloatBinding.floatToEntry(hlow, keyEntry); OperationStatus retVal =
+     * cursor.getSearchKeyRange(keyEntry, dataEntry, null); if (retVal ==
+     * OperationStatus.NOTFOUND) { return; } if (cursor.count() > 0) { float
+     * currentPyramidValue = SortedFloatBinding .entryToFloat(keyEntry); short
+     * max = Short.MIN_VALUE; Unsafe unsafe = UnsafeArrayHandlerShort.unsafe;
+     * long i = 0; long init = UnsafeArrayHandlerInt.size +
+     * UnsafeArrayHandlerByte.offset; short t; while (retVal ==
+     * OperationStatus.SUCCESS && currentPyramidValue <= hhigh) { byte[] in =
+     * dataEntry.getData(); // TupleInput in = new
+     * TupleInput(dataEntry.getData()); this.smapRecordsCompared++; i = init;
+     * max = Short.MIN_VALUE; // STATS for (short b : tuple) { t = (short)
+     * Math.abs(b - unsafe.getShort(in, i)); if (t > max) { max = t; if (t > r) {
+     * break; // finish this loop this slice won't be // matched // after all! } }
+     * i += UnsafeArrayHandlerShort.size; } if (max <= r &&
+     * result.isCandidate(max)) { // there is a chance it is a possible match
+     * int id = intHandler.getint(in, 0); O toCompare = getObject(id);
+     * DistanceEvaluation d = new DistanceEvaluation(r, id, toCompare, object,
+     * result); while (true) { try { queue.put(d); break; } catch
+     * (InterruptedException e) { } } this.distanceComputations++; } // read the
+     * next record retVal = cursor.getNext(keyEntry, dataEntry, null); // update
+     * the current pyramid value so that we know when // to // stop
+     * currentPyramidValue = SortedFloatBinding .entryToFloat(keyEntry); } } }
+     * finally { cursor.close(); } }
+     */
     public int getCpus() {
         return cpus;
     }

@@ -121,9 +121,6 @@ public interface Index < O extends OB > {
      *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
-     * @throws UndefinedPivotsException
-     *                 If the pivots of the index have not been selected before
-     *                 calling this method.
      * @throws OutOfRangeException
      *                 If the distance of any object to any other object exceeds
      *                 the range defined by the user.
@@ -134,8 +131,8 @@ public interface Index < O extends OB > {
      */
     void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException,
-            UndefinedPivotsException;
+            DatabaseException, OutOfRangeException, OBException
+            ;
 
     /**
      * Deletes the given object form the database.

@@ -11,31 +11,31 @@ Version: ${version}
 Synopsis:
 *********
 
-This project is to similarity search what 'bit-torrent' is to
-downloads. All the clients share the workload when performing
-queries.
+OBSearch is a distributed similarity search engine.
 
-********
-Details:
-********
+* Details
+~~~~~~~~~~
 
-Similarity search is required in many areas. Examples are DNA sequences, music and program matching. When an exact match is required, it is possible to access the data very efficiently. In the case of similarity search, one has to use special indexing techniques to reduce the amount of comparisons that have to be performed. There has been much research on the subject and several approaches that work well in practice have been developed. All these approaches are CPU intensive. This of course limits considerably the amount of clients a server can hold.
+ Similarity search is required in many areas. For example, music matching and binary program matching require a similarity search engine. Nowadays, it is common to hear news of projects like "photosynth" that heavily rely on similarity search. OBSearch is a similarity search engine that can help you to create an interesting and new application!
 
-Individuals or small companies who want to provide similarity search services cannot afford the infrastructure required to support such indexes. OBSearch can be used to distribute the workload among the users and reduce the investment to a few "seeder" servers.
+* Why OBSearch?
+~~~~~~~~~~~~~~~
 
-OBSearch achieves this by dividing the search space into n "boxes". Each client that joins the network will support m boxes (where m is much smaller than n). Additionally, OBsearch can determine for any query which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches. The library is modular, so you can also use OBSearch in a single computer. It is very fast! http://planet-soc.com/node/1527
+  There has been much research on the subject of similarity search, and several approaches that work well in practice have been developed. Nevertheless, these approaches are CPU intensive, and therefore the amount of clients a server can hold is very limited. As a consequence, individuals or small companies who want to provide similarity search services cannot afford the infrastructure required. OBSearch attempts to solve this problem by distributing the workload among the users.
 
-This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc.
+  OBSearch achieves this by dividing the search space into n "boxes". In addition, OBsearch can determine for any query, which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches by distributing the queries among the peers.  This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc. 
 
-By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality(1).
 
-This project is being developed as part of Google Summer of Code 2007. The mentoring organization is Portland State University.
+	By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality(1).
 
-Technicalities:
+	This project started as part of Google Summer of Code 2007. The mentoring organization was Portland State University.
 
-Among similarity search indexing techniques, the pyramid technique is of special interest. In this approach, all the data is divided into an i number of pyramids (the user specifies i). A query can be answered by looking only at the pyramids that intersect it. It is very natural then to separate each pyramid into a client and apply a distributed approach for answering queries. The pyramid technique can only match vectors. In order to be able to match any kind of object, a dimension reduction technique called SMAP (Simple Map) is being employed. To further improve performance, we are employing a P+Tree (partitions the space so that the pyramid technique becomes more efficient) combined with K-means++.
+* Technicalities:
+~~~~~~~~~~~~~~~~~
 
-(1) Also the users can provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality.
+	Among similarity search indexing techniques, the pyramid technique is of special interest. In this approach, all the data is divided into an i number of pyramids (the user specifies i). A query can be answered by looking only at the pyramids that intersect it. It is very natural then to separate each pyramid into a client and apply a distributed approach for answering queries. The pyramid technique can only match vectors. In order to be able to match any kind of object, a dimension reduction technique called {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}} (Simple Map) is being employed. To further improve performance, we are employing a P+Tree (partitions the space so that the pyramid technique becomes more efficient) combined with K-means++.
+
+	(1) Also the users can provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality. 
 
 **************************
 Information for Developers
@@ -68,7 +68,7 @@ to:
 <my.test.data.db>slices</my.test.data.db>
 
 And run: mvn test
-The test will run for 40 hours, if everything is fine, then you can release:
+The test will run for 50 hours, if everything is fine, then you can release:
 but first restore the line <my.test.data.db>slices-small</my.test.data.db>
 in pom.xml
 
