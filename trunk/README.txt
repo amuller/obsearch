@@ -281,3 +281,11 @@ Planed Features:
 
 
 * Random pyramid selection and priorities for space tree nodes. (this is actually slow, left here for documentation purposes)
+
+
+*******
+Caveats
+*******
+
+Only distance functions that return shorts are currently supported.
+We need to create the templates required to support all the other data types.
