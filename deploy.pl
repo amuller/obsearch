@@ -90,7 +90,7 @@ sub uploadFileToGoogleCode {
 		}
 		elsif($file =~/jar/){
 				$comment = "jar-dist";
-						($v) = ($file =~ /obsearch-([\d|.]*)[.]jar/);
+						($v) = ($file =~ /obsearch-([\d|.|\w]*)[.]jar/);
 				$version = $v;
 				#print "Version found! $version";
 		}

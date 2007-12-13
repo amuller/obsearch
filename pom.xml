@@ -4,7 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9</version>
+  <version>0.9.1</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description> OBSearch is a similarity search engine.
@@ -228,6 +228,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
 				<configuration>
+					<maxmem>1700</maxmem>
           <instrumentation>
             <ignores>
               <ignore>org.ajmm.obsearch.example.SliceLexer</ignore>

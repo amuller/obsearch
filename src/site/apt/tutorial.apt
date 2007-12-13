@@ -131,6 +131,17 @@ public class OBVectorExample implements OBShort {
 * To create a new index:
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
+There are several selection strategies. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. The actual pivot selection, occurs during freeze.
+
+---
+TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
+                             (short) 10, 32, new AcceptAll< OBSlice >());
+---
+
+  Now that we have a pivot selector, we can create the index:
+
 ---
 // dbFolder: Folder where the database will be created.
 // 30: Number of pivots used by SMAP (see below). 
@@ -139,8 +150,9 @@ public class OBVectorExample implements OBShort {
 // od: Partitions of the P+Tree. Depending on the distance function a value of
 //     9-12 might be good. You have to perform some tests to decide which
 //     is the best value for your distance function.
+// ps: is the pivot selection strategy that will be used.
 PPTreeShort < OBVectorExample > index = 
-	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od);	
+	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od, ps);	
 ---
 
 
@@ -159,18 +171,6 @@ OBVectorExample o = new OBVectorExample(mydata);
 index.insert(o);
 ---
 
-* To select the pivots of an index:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
-There are several selection strategies. In this case we used a "tentacle" pivot selection strategy. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. After the pivots are selected, we can freeze the index. 
-
----
-TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                             (short) 10, 32, new AcceptAll< OBSlice >());
-ps.generatePivots(index);
----
 
 * To freeze an index:
 ~~~~~~~~~~~~~~~~~~~~~
