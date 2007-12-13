@@ -1,0 +1,42 @@
+
+OBSearch 0.9 released.
+
+OBSearch 0.9 has been released.
+
+Release Highlights:
+
+- Many optimizations and tuning of many parameters. 
+- The K-means subsystem was improved, now it is possible to select the best of several iterations for the algorithm.
+- The P+Tree is now asymmetric. It will grow only if there is enough data.
+- Unsafe Class: For those of you who want to be on the edge, there is an Unsafe version of the P+Tree that improves performance for big k and r.
+
+Caveats:
+
+- The way status results are returned has been modified. Please see OBExampleTrees.java for an example on how to use this status result class.
+
+
+You can download it from:
+http://code.google.com/p/obsearch/downloads/list
+
+
+md5:19dbe4e309c4e4320dd2c63bbc759f15 sha1:ecb566e20a3d53c73eb7a44442c98b95773b5070 obsearch-0.9-bin.tar.bz2
+md5:b95042d11d2a1392f7465d13ce8238ae sha1:e22a51ebcfa317390f54b583e6055b9236531da5 obsearch-0.9-bin.tar.gz
+md5:266489d07e869f17d3da6e8ba72b5567 sha1:011ffcd0872083d669a2037ba5a83e69cb902710 obsearch-0.9-bin.zip
+md5:9bc9aee5769cb5fb65cce654b91463a7 sha1:10070d2b77c5e5469742281a81039715c28458ed obsearch-0.9.jar
+md5:7b5100af98372720b27d5e4ded960eee sha1:53667bff2c995af1dbc7913a4643fac8d4c88169 obsearch-0.9-jar-with-dependencies.jar
+md5:43b2f4431147dce44de04250646e3f20 sha1:d6597a9811ec879a3f88e6bdf33e6a27f95545c5 obsearch-0.9-src.tar.bz2
+md5:e2fdb7edaa3595e6f79b5295fd838d9b sha1:674ebae84fac6611e27c202016f091ff529c7640 obsearch-0.9-src.tar.gz
+md5:4c14002bad8f51346ab726d8a756cb9a sha1:59f163c14641c9a65ade7f0088226905fa0aa610 obsearch-0.9-src.zip
+
+Please send any bug reports to:
+http://code.google.com/p/obsearch/issues/list
+
+Homepage:
+http://code.google.com/p/obsearch/
+
+Website:
+http://obsearch.berlios.de/
+
+
+Arnoldo Muller
+
