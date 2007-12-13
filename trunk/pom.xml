@@ -223,7 +223,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
 
-
+<!--
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
@@ -241,7 +241,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
           </instrumentation>
         </configuration>
       </plugin>
-
+-->
 
 			<plugin>
         <groupId>org.codehaus.mojo</groupId>
