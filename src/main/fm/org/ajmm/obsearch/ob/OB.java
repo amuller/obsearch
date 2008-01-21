@@ -43,13 +43,13 @@ public interface OB${Type} extends OB{
      * Calculates the similarity of "this" and "object". The function must
      * satisfy the triangular inequality and return a ${type}.
      * @param object
-     *            The object to be compared
+     *            The object of type OB${Type} to be compared
      * @param result
      *            The resulting distance
      * @since 0.7
      * @throws OBException
      *             User generated exception
      */
-    ${type} distance(OB object) throws OBException;
+    ${type} distance(OB${Type} object) throws OBException;
 }
 </#list>

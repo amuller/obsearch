@@ -1,5 +1,8 @@
 package org.ajmm.obsearch.asserts;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.ajmm.obsearch.exception.OBException;
 
 /*
@@ -66,6 +69,17 @@ public final class OBAsserts {
         if (!condition) {
             throw new IllegalArgumentException(msg);
         }
+    }
+    
+    /**
+     * Checks that the given file exists, otherwise throws an IOException
+     * @throws IOException if the given file does not exist
+     * @param file File that will be confirmed for existence
+     */
+    public static void chkFileExists(final File file) throws IOException{
+       if(! file.exists()){
+           throw new IOException("File:" + file + "does not exist");
+       }
     }
 
     /**

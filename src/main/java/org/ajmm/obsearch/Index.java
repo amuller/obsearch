@@ -131,8 +131,7 @@ public interface Index < O extends OB > {
      */
     void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException
-            ;
+            DatabaseException, OutOfRangeException, OBException;
 
     /**
      * Deletes the given object form the database.
@@ -258,5 +257,13 @@ public interface Index < O extends OB > {
      */
     O readObject(TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException;
+
+    /**
+     * Returns the name used to store the serialized version of the index
+     * (or meta-data of the index). 
+     * @return The serialized file name where the index will store itself or its
+     * metadata.
+     */
+     String getSerializedName();
 
 }

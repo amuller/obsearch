@@ -71,6 +71,10 @@ public class P2PIndexShort < O extends OBShort >
      * Stores the queries to be used.
      */
     private QueryProcessingShort[] queries;
+    
+    public String getSerializedName(){
+        return this.getClass().getSimpleName();
+    }
 
     /**
      * Creates a P2P Index short The provided index must be SynchronizableIndex

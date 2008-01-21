@@ -201,7 +201,7 @@ public final class OBExampleTrees {
                 // stored
                 // in the folder where the DB was created under the file:
                 // PPTreeShort
-                final File indexFile = new File(dbFolder + "/PPTreeShort");
+                final File indexFile = new File(dbFolder +  File.separator +"PPTreeShort");
                 if (!indexFile.exists()) {
                     throw new OBException("Index file:" + indexFile
                             + " does not exist.");

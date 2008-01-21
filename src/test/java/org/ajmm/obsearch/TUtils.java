@@ -3,6 +3,7 @@
  */
 package org.ajmm.obsearch;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -47,7 +48,7 @@ public class TUtils {
     public static Properties getTestProperties() throws IOException {
         if (testProperties == null) { // load the properties only once
             InputStream is = TUtils.class
-                    .getResourceAsStream("/test.properties");
+                    .getResourceAsStream(File.separator + "test.properties");
             testProperties = new Properties();
             testProperties.load(is);
             // configure log4j only once too

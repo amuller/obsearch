@@ -87,6 +87,12 @@ public class ParallelIndexShort < O extends OBShort >
             i++;
         }
     }
+    
+  
+    
+    public String getSerializedName(){
+        return this.getClass().getSimpleName();
+    }
 
     @Override
     public int elementsInQueue() {
