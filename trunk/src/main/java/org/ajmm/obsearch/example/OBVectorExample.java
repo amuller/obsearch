@@ -73,7 +73,7 @@ public class OBVectorExample implements OBShort {
      *             if something goes wrong. But nothing should be wrong in this
      *             function.
      */
-    public final short distance(final OB object) throws OBException {
+    public final short distance(final OBShort object) throws OBException {
         OBVectorExample o = (OBVectorExample) object;
         short res = 0;
         int i = 0;

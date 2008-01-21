@@ -69,6 +69,10 @@ public class SynchronizableIndexShort < O extends OBShort >
             OutOfRangeException, OBException {
         index.searchOB(object, r, result);
     }
+    
+    public String getSerializedName(){
+        return this.getClass().getSimpleName();
+    }
 
     @Override
     public Index < O > getIndex() {

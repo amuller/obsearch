@@ -101,6 +101,8 @@ public class UnsafePPTreeShort < O extends OBShort >
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
                 pivotSelector);
     }
+    
+   
 
     /**
      * Creates a new UnsafePPTreeShort. Ranges accepted by this index will be

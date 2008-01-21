@@ -79,7 +79,7 @@ public class OBSlice implements OBShort {
      *                 if something wrong happens.
      * @return A short that indicates how similar or different the trees are.
      */
-    public final short distance(final OB object) throws OBException {
+    public final short distance(final OBShort object) throws OBException {
         OBSlice b = (OBSlice) object;
         if (this.tree.getSize() < b.tree.getSize()) {
             return distance(this.tree, b.tree);
