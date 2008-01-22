@@ -1,5 +1,10 @@
 package org.ajmm.obsearch.index;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 import org.ajmm.obsearch.Index;
 
 import com.thoughtworks.xstream.XStream;
@@ -41,14 +46,30 @@ public final class IndexFactory {
     /**
      * Creates an index from the given XML. Users are responsible of knowing
      * what type of index is being read. Users are responsible of casting the
-     * xml.
+     * result.
      * @param xml
      *            String with the serialized index.
      * @return An instantiated index.
      */
     public static Index createFromXML(final String xml) {
-        XStream xstream = new XStream();
+        XStream xstream = new XStream();        
         return (Index) xstream.fromXML(xml);
+    }
+    
+    /**
+     * Creates an index from the given XML file. Users are responsible of knowing
+     * what type of index is being read. Users are responsible of casting the
+     * result.
+     * @param xmlFileName
+     *            File name of the xml file that will be loaded
+     * @return An instantiated index.
+     * @throws FileNotFoundException if the give file does not exist
+     */
+    public static Index createFromXML(final File xmlFileName) throws FileNotFoundException {
+        XStream xstream = new XStream();  
+        FileInputStream fs = new FileInputStream(xmlFileName);
+        BufferedInputStream bf = new BufferedInputStream(fs);
+        return (Index) xstream.fromXML(bf);
     }
 
 }
