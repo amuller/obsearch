@@ -688,7 +688,11 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             DatabaseException, OutOfRangeException, OBException
              {
         if (isFrozen()) {
-            throw new OBException(new AlreadyFrozenException());
+            throw new AlreadyFrozenException();
+        }
+        
+        if(this.databaseSize() == 0){
+            throw new OBException("Cannot freeze a database of size 0");
         }
         try{
             this.prepareFreeze();
