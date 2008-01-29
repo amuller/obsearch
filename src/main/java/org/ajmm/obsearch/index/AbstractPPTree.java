@@ -210,7 +210,7 @@ public abstract class AbstractPPTree < O extends OB >
         double[] width = new double[pivotsCount];
         double[] exp = new double[pivotsCount];
         while (i < pivotsCount) {
-            assert minMax[i][MIN] < center[i] && center[i] < minMax[i][MAX] : "MIN: "
+            assert minMax[i][MIN] <= center[i] && center[i] <= minMax[i][MAX] : "MIN: "
                     + minMax[i][MIN]
                     + " CENTER: "
                     + center[i]

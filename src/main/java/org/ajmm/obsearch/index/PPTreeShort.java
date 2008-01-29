@@ -708,8 +708,6 @@ public class PPTreeShort < O extends OBShort >
         // check if the tuple is in cache
         float[] temp = this.bCache.get(id);
         if (temp != null) {
-            int i = 0;
-
             return temp;
         }
         float[] tempTuple = new float[pivotsCount];
