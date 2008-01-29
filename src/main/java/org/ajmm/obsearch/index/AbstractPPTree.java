@@ -511,8 +511,8 @@ public abstract class AbstractPPTree < O extends OB >
             try {
                 squaredErrorRes[0] = 0;
                 float[][] temp = kMeansAux(cluster, k, tries, squaredErrorRes);
-                logger.debug(" squared error: " + squaredErrorRes[0] + " ++?: "
-                        + kmeansPP);
+                //logger.debug(" squared error: " + squaredErrorRes[0] + " ++?: "
+                //        + kmeansPP);
                 assert squaredErrorRes[0] < Float.MAX_VALUE : "Size: "
                         + squaredErrorRes[0];
                 if (squaredErrorRes[0] < best) {
