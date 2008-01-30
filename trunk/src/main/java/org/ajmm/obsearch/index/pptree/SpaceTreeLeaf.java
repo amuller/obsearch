@@ -207,6 +207,8 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @return Normalized version of the value in dimension i.
      */
     public final float normalizeAux(float value, int i) {
+        // TODO: this thing sometimes generates 1.00001 or stuff like that.
+        // shall we just force it to be 1?
         return (float) Math.pow((value - min[i]) * width[i], exp[i]);
     }
 
