@@ -258,11 +258,6 @@ public interface Index < O extends OB > {
     O readObject(TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException;
 
-    /**
-     * Returns the name used to store meta-data of the index
-     * @return The serialized file name where the index will store itself or its
-     * metadata.
-     */
-     String getSerializedName();
+    
 
 }

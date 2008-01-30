@@ -71,13 +71,13 @@ public abstract class AbstractPPTree < O extends OB >
      * The number of times k-means will be executed. The best clustering will be
      * selected.
      */
-    private int kMeansIterations = 30;
+    private int kMeansIterations = 1;
 
     /**
      * The number of times K-Means++ will be executed. The best selection of
      * initial pivots will be chosen.
      */
-    private int kMeansPPRetries = 7;
+    private int kMeansPPRetries = 1;
 
     /**
      * Partitions to be used when generating the space tree.
