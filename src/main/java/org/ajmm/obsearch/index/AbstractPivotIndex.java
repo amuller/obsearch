@@ -359,9 +359,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         dbConfig.setSortedDuplicates(false);
         aDB = databaseEnvironment.openDatabase(null, "A", dbConfig);
-        PreloadConfig pc = new PreloadConfig();
-        pc.setLoadLNs(true);
-        aDB.preload(pc);
+        //PreloadConfig pc = new PreloadConfig();
+        //pc.setLoadLNs(true);
+        //aDB.preload(pc);
     }
 
     /**

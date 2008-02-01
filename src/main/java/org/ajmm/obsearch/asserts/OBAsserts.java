@@ -117,6 +117,16 @@ public final class OBAsserts {
                     + " out of range: [" + min + ", " + max + "]");
         }
     }
+    
+    /**
+     * Checks if the given number is greater or equal than 0.
+     * @param x
+     */
+    public static void chkPositive(final long x){
+        if(! (x >= 0)){
+            throw new IllegalArgumentException( x + " is not greater or equal than 0");
+        }
+    }
 
     /**
      * Checks that the given value "toCheck" is within range [min, max]. If not,

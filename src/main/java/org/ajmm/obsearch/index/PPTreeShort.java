@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -315,6 +316,7 @@ public class PPTreeShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
+        OBAsserts.chkPositive(r);
         short[] t = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, t);

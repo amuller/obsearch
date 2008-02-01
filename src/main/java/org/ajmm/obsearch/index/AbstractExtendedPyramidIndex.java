@@ -126,8 +126,8 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         dbConfig.setTransactional(false);
         cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
                 
-        PreloadConfig pc = new PreloadConfig();
-        pc.setLoadLNs(true);
+        //PreloadConfig pc = new PreloadConfig();
+        //pc.setLoadLNs(true);
         // TODO: remove this comment?
        //cDB.preload(pc);
     }
