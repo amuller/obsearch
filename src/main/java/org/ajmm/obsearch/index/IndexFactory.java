@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import org.ajmm.obsearch.Index;
+import org.ajmm.obsearch.OB;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -34,13 +35,23 @@ import com.thoughtworks.xstream.XStream;
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
-public final class IndexFactory {
+public final class IndexFactory < O extends OB > {
 
     /**
      * Utility class should not have a public constructor.
      */
-    private IndexFactory() {
+    public IndexFactory() {
 
+    }
+    
+    /**
+     * Returns true if the given OB database is frozen, false otherwise.
+     * @param OBFolder
+     * @return true if the given OB datatabase is frozen, false otherwise.
+     */
+    public boolean isFrozen(final File OBFolder){
+        return new File(OBFolder,
+                Index.SPORE_FILENAME).exists();
     }
 
     /**
@@ -48,28 +59,31 @@ public final class IndexFactory {
      * what type of index is being read. Users are responsible of casting the
      * result.
      * @param xml
-     *            String with the serialized index.
+     *                String with the serialized index.
      * @return An instantiated index.
      */
-    public static Index createFromXML(final String xml) {
-        XStream xstream = new XStream();        
-        return (Index) xstream.fromXML(xml);
+    public Index < O > createFromXML(final String xml) {
+        XStream xstream = new XStream();
+        return (Index < O >) xstream.fromXML(xml);
     }
-    
+
     /**
-     * Creates an index from the given XML file. Users are responsible of knowing
-     * what type of index is being read. Users are responsible of casting the
-     * result.
+     * Creates an index from the given OBSearch database folder. Users are
+     * responsible of knowing what type of index is being read and casting the result
+     * to the appropriate index.
      * @param xmlFileName
-     *            File name of the xml file that will be loaded
+     *                File name of the folder in which the database is found
      * @return An instantiated index.
-     * @throws FileNotFoundException if the give file does not exist
+     * @throws FileNotFoundException
+     *                 if the give file does not exist
      */
-    public static Index createFromXML(final File xmlFileName) throws FileNotFoundException {
-        XStream xstream = new XStream();  
-        FileInputStream fs = new FileInputStream(xmlFileName);
+    public Index < O > createFromOBFolder(final File OBFolder)
+            throws FileNotFoundException {
+        XStream xstream = new XStream();
+        FileInputStream fs = new FileInputStream(new File(OBFolder,
+                Index.SPORE_FILENAME));
         BufferedInputStream bf = new BufferedInputStream(fs);
-        return (Index) xstream.fromXML(bf);
+        return (Index<O>) xstream.fromXML(bf);
     }
 
 }

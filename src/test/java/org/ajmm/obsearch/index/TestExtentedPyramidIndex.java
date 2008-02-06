@@ -56,7 +56,7 @@ public class TestExtentedPyramidIndex
         assertTrue(dbFolder.mkdirs());
         DummyPivotSelector ps = new DummyPivotSelector();
         IndexShort < OBSlice > index = new ExtendedPyramidIndexShort < OBSlice >(
-                dbFolder, (byte) 15, (short) 0, (short) 200, ps);
+                dbFolder, (byte) 15, (short) 0, (short) 200, ps, OBSlice.class);
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(index);
     }

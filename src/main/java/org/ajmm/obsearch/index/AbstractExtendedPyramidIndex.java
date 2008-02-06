@@ -99,14 +99,15 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      *            how many pivots will be used
      * @param pivotSelector
      *                The pivot selector that will be used by this index.
+     * @param type The class of the object O that will be used.                 
      * @throws DatabaseException
      *             If a database error occurs.
      * @throws IOException
      *             If a serialization issue occurs.
      */
     public AbstractExtendedPyramidIndex(final File databaseDirectory,
-            final short pivots, PivotSelector < O > pivotSelector) throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, pivotSelector); // initializes the databases
+            final short pivots, PivotSelector < O > pivotSelector, Class<O> type) throws DatabaseException, IOException {
+        super(databaseDirectory, pivots, pivotSelector,type); // initializes the databases
         mp = new float[super.pivotsCount];
     }
 

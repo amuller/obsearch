@@ -97,16 +97,17 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                The pivot selector that will be used by this index.
      * @param cpus
      *                Number of CPUS to use.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
-            byte od, PivotSelector < O > pivotSelector, int cpus)
+            byte od, PivotSelector < O > pivotSelector, int cpus, Class<O> type)
             throws DatabaseException, IOException {
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
-                pivotSelector, cpus);
+                pivotSelector, cpus, type);
     }
 
     /**
@@ -127,6 +128,7 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      *                The pivot selector that will be used by this index.
      * @param cpus
      *                Number of cpus to use.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If somehing goes wrong with the DB
      * @throws IOException
@@ -134,9 +136,9 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      */
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
             byte od, short minInput, short maxInput,
-            PivotSelector < O > pivotSelector, int cpus)
+            PivotSelector < O > pivotSelector, int cpus, Class<O> type)
             throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, od, minInput, maxInput, pivotSelector);
+        super(databaseDirectory, pivots, od, minInput, maxInput, pivotSelector, type);
 
         this.cpus = cpus;
         initNCoreHacks();

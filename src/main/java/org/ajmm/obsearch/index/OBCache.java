@@ -6,6 +6,11 @@ import java.lang.ref.SoftReference;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OutOfRangeException;
+
+import com.sleepycat.je.DatabaseException;
+
 import cern.colt.map.OpenIntObjectHashMap;
 
 /*
@@ -30,62 +35,73 @@ import cern.colt.map.OpenIntObjectHashMap;
 /**
  * By using soft references, an OB cache is implemented The garbage collector
  * decides based on the access patterns of each reference, which elements are
- * released and which are kept.
+ * released and which are kept. The cache controls the loading of items. For
+ * this purpose an OBCacheLoader is provided to control the loading and
+ * instantiation of the objects from secondary storage. That is why this cache
+ * does not have a put method. It assumes that all the requested items exist
+ * in secondary storage otherwise it returns an error. Loading operations
+ * generate a lock but reading operations do not generate any locks. 
  * @param <O>
- *            The type of object that will be stored in the Cache.
+ *                The type of object that will be stored in the Cache.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
 
-public class OBCache < O > {
+public final class OBCache < O > {
 
     /**
      * The map that stores the cache.
      */
-    //private WeakHashMap < Integer, O  > map;
-    private ConcurrentHashMap< Integer,O > map;
+    // private ConcurrentHashMap< Integer,O > map;
+    private OpenIntObjectHashMap map;
+
+    private OBCacheLoader < O > loader;
+
     /**
      * Initialize the cache with the given amount of elements.
      * @param size
-     *            Number of elements that the internal hash table will be
-     *            initialized with.
+     *                Number of elements that the internal hash table will be
+     *                initialized with.
      */
-    public OBCache(final int size) {
+    public OBCache(OBCacheLoader < O > loader) throws DatabaseException{
         // using open addressing because it is cheaper
-        //map = new OpenIntObjectHashMap(2 * currentDBSize, 0 , 0.5);
-        map = new ConcurrentHashMap< Integer, O >();
-        //map = new WeakHashMap<Integer, O>(size);
-       // map = new TIntObjectHashMap  < SoftReference<O> >(size);
+        map = new OpenIntObjectHashMap(2 * loader.getDBSize(), 0, 0.5);
+        // map = new ConcurrentHashMap< Integer, O >();
+        // map = new TIntObjectHashMap < SoftReference<O> >(size);
+        this.loader = loader;
     }
 
     /**
-     * Stores the object in the cache.
+     * Removes from the cache the given id to recover some memory.
      * @param id
-     *            Internal id of the object
-     * @param object
-     *            Object to store
+     *                the id to be removed
      */
-    public final void put(final int id, final O object) {
-        
-        //map.put(id, new SoftReference<O>(object));
-        map.put(id,object);
+    public void remove(int id) {
+        map.removeKey(id);
     }
 
     /**
      * Gets the given object, returns null if the object is not found.
      * @param id
-     *            internal id.
+     *                internal id.
      * @return null if no object is found
      */
-    public final O get(final int id) {
-        //return map.get(id);
-         //SoftReference<O>  
-        O ref = map.get(id);
-         return ref;
-        /*if (ref == null) {
-            return null; // the object is not here.
+    public O get(final int id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+        // return map.get(id);
+        // SoftReference<O>
+        SoftReference < O > ref = (SoftReference < O >) map.get(id);
+        if (ref == null || ref.get() == null) {
+            // we load the object.
+            synchronized (loader) {
+                // we have to check if the obj is there again in
+                // case someone else added it already
+                ref = (SoftReference < O >) map.get(id);
+                if (ref == null || ref.get() == null) {
+                    ref = new SoftReference < O >(loader.loadObject(id));
+                    map.put(id, ref);
+                }
+            }
         }
-        O result = ref.get();
-        return result;*/
+        return ref.get();
     }
 }

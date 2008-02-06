@@ -59,7 +59,7 @@ public class TestUnsafePPTreeShort  extends TestCase{
        assertTrue(dbFolder.mkdirs());
        DummyPivotSelector ps = new DummyPivotSelector();
        IndexShort < OBSlice > index = new UnsafePPTreeShort < OBSlice >(dbFolder,
-               (byte) 30, (byte) 8, (short) 0, (short) 200, ps);
+               (byte) 30, (byte) 8, (short) 0, (short) 200, ps, OBSlice.class);
 
        IndexSmokeTUtil t = new IndexSmokeTUtil();
        t.tIndex(index);

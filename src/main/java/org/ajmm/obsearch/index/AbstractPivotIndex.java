@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -181,13 +182,15 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                Where all the databases will be stored.
      * @param pivots
      *                The number of pivots to be used.
+     * @param pivotSelector The pivot selector that will be used at freeze. If you are not planning to freeze during the life of this object, just put a null.
+     * @param type The class of the object O that will be used.   
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory does not exist.
      */
     public AbstractPivotIndex(final File databaseDirectory, final short pivots,
-            PivotSelector < O > pivotSelector) throws DatabaseException,
+            PivotSelector < O > pivotSelector, Class<O> type) throws DatabaseException,
             IOException {
         this.dbDir = databaseDirectory;
         if (!dbDir.exists()) {
@@ -202,6 +205,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         this.pivotsBytes = new byte[pivotsCount][];
         this.pivotSelector = pivotSelector;
         initDB();
+        this.type = type;
     }
 
     /**
@@ -340,7 +344,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     protected void initCache() throws DatabaseException {
         if (cache == null) {
             int size = databaseSize();
-            cache = new OBCache < O >(size);
+            cache = new OBCache < O >(new ALoader());
         }
     }
 
@@ -403,19 +407,15 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     private void initBerkeleyDB() throws DatabaseException, IOException {
         EnvironmentConfig envConfig = createEnvConfig();
         this.databaseEnvironment = new Environment(dbDir, envConfig);
-        if (!this.isFrozen()) {
-            File environmentHome = generateCreationEnvironmentFolder();
-            if (!environmentHome.mkdir()) {
-                throw new IOException("Env directory could not be created:"
-                        + environmentHome);
-            }
-            EnvironmentConfig envConfig2 = createEnvConfig();
-            envConfig2.setConfigParam("je.deferredWrite.temp", "false");
-            this.databaseEnvironmentCreation = new Environment(
-                    generateCreationEnvironmentFolder(), envConfig2);
+        EnvironmentConfig envConfig2 = createEnvConfig();
+        
+        File environmentHome = generateCreationEnvironmentFolder();
+        environmentHome.mkdirs();
+        this.databaseEnvironmentCreation = new Environment(
+                generateCreationEnvironmentFolder(), envConfig2);
+        if (!this.isFrozen()) {                       
+            OBAsserts.chkFileExists(environmentHome);
         }
-
-        // dbConfig.setExclusiveCreate(true);
     }
 
     /**
@@ -464,10 +464,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             throws IllegalIdException, DatabaseException {
         if (id != maxId) {
             throw new IllegalIdException();
-        }
-        if (type == null) { // a way of storing the class type for O
-            type = (Class < O >) object.getClass();
-        }
+        }        
         maxId = id + 1;
         insertA(object, id);
         return 1;
@@ -697,6 +694,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         try{
             this.prepareFreeze();
         }catch(Exception e){
+            logger.debug("Something bad happening before freezing: ", e);
             throw new OBException(e);
         }
         if (pivots == null) {
@@ -772,7 +770,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     protected void writeSporeFile() throws IOException {
         String xml = toXML();
         FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator
-                + getSerializedName());
+                + SPORE_FILENAME);
         fout.write(xml);
         fout.close();
     }
@@ -907,12 +905,19 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     public final O getObject(final int id) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException {
-        O res = cache.get(id);
-        if (res == null) {
-            res = getObject(id, aDB);
-            cache.put(id, res);
+        return cache.get(id);
+    }
+    
+    private class ALoader implements OBCacheLoader<O>{
+
+        public int getDBSize() throws DatabaseException{
+            return (int)aDB.count();
         }
-        return res;
+
+        public O loadObject(int i) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {            
+            return getObject(i, aDB);
+        }
+        
     }
 
     /**
@@ -992,13 +997,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
 
     }
 
-    /**
-     * Generates the name of the file to be used to store the serialized version
-     * of this Index.
-     * @return The serialized file name where the index will store the "spore
-     *         file"
-     */
-    public abstract String getSerializedName();
+    
 
     /**
      * Gets the object with the given id from the database.
@@ -1113,21 +1112,29 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      *                 If something goes wrong with the DB
      */
     public void close() throws DatabaseException {
-        aDB.close();
-        if (bDB != null) {
-            bDB.close();
-        }
-        closeC();
-        if (kDB != null) {
-            kDB.close();
-        }
+        
+       
 
         databaseEnvironment.cleanLog();
         databaseEnvironment.compress();
         databaseEnvironment.checkpoint(null);
+        aDB.close();
+        if (bDB != null) {
+            bDB.sync();
+            bDB.close();
+        }
+        closeC();
+        if (kDB != null) {
+            kDB.sync();
+            kDB.close();
+        }
+        
         databaseEnvironment.close();
 
         if (databaseEnvironmentCreation != null) {
+            databaseEnvironmentCreation.cleanLog();
+            databaseEnvironmentCreation.compress();
+            databaseEnvironmentCreation.checkpoint(null);
             this.databaseEnvironmentCreation.close();
         }
     }

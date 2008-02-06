@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexFactory;
 import org.ajmm.obsearch.index.IndexShort;
@@ -140,7 +141,7 @@ public final class OBExampleTrees {
                  */
                 index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
                         (short) pivotSize, od, (short) 0,
-                        (short) (maxTreeSize * 2),ps,3);
+                        (short) (maxTreeSize * 2),ps,3, OBSlice.class);
                 
                 // the bigger these parameters are, the better the
                 // clustering will be. Defaults are 30,7
@@ -194,28 +195,15 @@ public final class OBExampleTrees {
                 // Load a database created in the previous step and search
                 // it.
                 final File dbFolder = new File(cline.getOptionValue("db"));
-
-                // The spore is an xml file that contains information created
-                // after the "learning" process done during Freeze().
-                // In the case of the PPTreeShort index, it will always be
-                // stored
-                // in the folder where the DB was created under the file:
-                // PPTreeShort
-                final File indexFile = new File(dbFolder +  File.separator +"PPTreeShort");
-                if (!indexFile.exists()) {
-                    throw new OBException("Index file:" + indexFile
-                            + " does not exist.");
-                }
-                logger.info("Loading metadata and opening databases... file: "
-                        + indexFile.getAbsoluteFile());
-                // We simply load the spore by using IndexFactory...
-                index = (UnsafeNCorePPTreeShort < OBSlice >) IndexFactory
-                        .createFromXML(readString(indexFile));
+                OBAsserts.chkFileExists(dbFolder);
+                
+                logger.info("Loading metadata and opening databases... file: ");                        
+                // We simply load the index by using IndexFactory...
+                IndexFactory<OBSlice> ifac = new IndexFactory<OBSlice>();
+                index = (UnsafeNCorePPTreeShort < OBSlice >) ifac.createFromOBFolder(dbFolder);
                 // and initialize it.
                 ((UnsafeNCorePPTreeShort<OBSlice>)index).setCpus(4);
-                index.relocateInitialize(null);
-                
-               
+                index.relocateInitialize(null);                               
 
                 logger.info("Done! DB size: " + index.databaseSize());
                 final byte k = Byte.parseByte(cline.getOptionValue("k"));

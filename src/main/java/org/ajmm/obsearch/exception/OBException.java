@@ -53,15 +53,14 @@ public class OBException
      *            An exception for the user
      */
     public OBException(final String msg, final Exception ex) {
-        this.str = msg;
-        this.ex = ex;
+        super(msg, ex);
     }
 
     /**
      * Default constructor.
      */
     public OBException() {
-        ex = null;
+        super();
     }
 
     /**
@@ -70,15 +69,15 @@ public class OBException
      *            An exception that will be wrapped.
      */
     public OBException(Exception e) {
-        this.ex = e;
+        super(e);
     }
 
     /**
      * @return A description for the user of the exception.
      */
-    public String toString() {
+    /*public String toString() {
         if (ex != null && str != null) {
-            return str + " " + ex.toString();
+            return str + " " + ex.getMessage();
         } else if (ex != null) {
             return ex.toString();
         } else if (str != null) {
@@ -86,5 +85,5 @@ public class OBException
         } else {
             return "N/A, Sing this Corrosion!";
         }
-    }
+    }*/
 }

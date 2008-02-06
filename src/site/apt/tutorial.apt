@@ -152,7 +152,7 @@ TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBS
 //     is the best value for your distance function.
 // ps: is the pivot selection strategy that will be used.
 PPTreeShort < OBVectorExample > index = 
-	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od, ps);	
+	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od, ps, OBVectorExample.class );	
 ---
 
 
