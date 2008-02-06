@@ -241,6 +241,11 @@ public interface Index < O extends OB > {
      *         fields of this object.
      */
     String toXML();
+    
+    /**
+     * The name of the file in which the meta-data is stored. 
+     */
+    String SPORE_FILENAME = "spore";
 
     /**
      * Instantiates an object from a byte stream. This method should only be

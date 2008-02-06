@@ -109,16 +109,17 @@ public class PPTreeShort < O extends OBShort >
      *                paper)
      * @param pivotSelector
      *                The pivot selector that will be used by this index.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
-            PivotSelector < O > pivotSelector) throws DatabaseException,
+            PivotSelector < O > pivotSelector, Class<O> type) throws DatabaseException,
             IOException {
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
-                pivotSelector);
+                pivotSelector,type);
     }
 
     /**
@@ -139,15 +140,16 @@ public class PPTreeShort < O extends OBShort >
      *                Number of CPUS to use.
      * @param pivotSelector
      *                The pivot selector that will be used by this index.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If somehing goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
-            short minInput, short maxInput, PivotSelector < O > pivotSelector)
+            short minInput, short maxInput, PivotSelector < O > pivotSelector, Class<O> type)
             throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, od, pivotSelector);
+        super(databaseDirectory, pivots, od, pivotSelector, type);
         assert minInput < maxInput;
         this.minInput = minInput;
         this.maxInput = maxInput;
@@ -155,7 +157,7 @@ public class PPTreeShort < O extends OBShort >
         // for the first level normalization.
         this.opt = 1 / ((float) (maxInput - minInput));
         resultCache = new HashMap < O, OBQueryShort < O >>(3000);
-        bCache = new OBCache < float[] >(this.databaseSize());
+        bCache = new OBCache < float[] >(new BLoader());
     }
 
     @Override
@@ -167,11 +169,6 @@ public class PPTreeShort < O extends OBShort >
             i++;
         }
         return res;
-    }
-
-    @Override
-    public String getSerializedName() {
-        return "PPTreeShort";
     }
 
     /**
@@ -689,7 +686,49 @@ public class PPTreeShort < O extends OBShort >
         IntegerBinding.intToEntry(id, keyEntry);
         insertInDatabase(out, keyEntry, bDB);
     }
+    
+    private class BLoader implements OBCacheLoader<float[]>{
+        
+        public int getDBSize() throws DatabaseException{
+            return (int)bDB.count();
+        }
+        
+        public float[] loadObject(int id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException{
+            Cursor cursor = null;
+            float[] tempTuple = new float[pivotsCount];
+            try {
 
+                DatabaseEntry keyEntry = new DatabaseEntry();
+                DatabaseEntry dataEntry = new DatabaseEntry();
+                cursor = bDB.openCursor(null, null);
+                IntegerBinding.intToEntry(id, keyEntry);
+                OperationStatus retVal = cursor.getSearchKey(keyEntry, dataEntry,
+                        null);
+
+                if (retVal == OperationStatus.NOTFOUND) {
+                    assert false : "Trying to read : " + id
+                            + " but the database is: " + getDBSize();
+                    throw new OutOfRangeException();
+                }
+
+                assert cursor.count() == 1;
+
+                TupleInput in = new TupleInput(dataEntry.getData());
+                int i = 0;
+
+                while (i < pivotsCount) {
+                    tempTuple[i] = normalizeFirstPassAux(in.readShort());
+                    i++;
+                }
+            } finally {
+                cursor.close();
+            }
+            return tempTuple;
+        }
+
+    
+    }
+    
     /**
      * Read the given tuple from B database and load it into the given tuple in
      * a normalized form.
@@ -705,43 +744,14 @@ public class PPTreeShort < O extends OBShort >
      */
     @Override
     protected final float[] readFromB(int id) throws DatabaseException,
-            OutOfRangeException {
-        Cursor cursor = null;
-        // check if the tuple is in cache
-        float[] temp = this.bCache.get(id);
-        if (temp != null) {
-            return temp;
+            OutOfRangeException, OBException {
+        float[] res;
+        try{
+            res = this.bCache.get(id);
+        }catch(Exception e){
+            throw new OBException(e);
         }
-        float[] tempTuple = new float[pivotsCount];
-        try {
-
-            DatabaseEntry keyEntry = new DatabaseEntry();
-            DatabaseEntry dataEntry = new DatabaseEntry();
-            cursor = bDB.openCursor(null, null);
-            IntegerBinding.intToEntry(id, keyEntry);
-            OperationStatus retVal = cursor.getSearchKey(keyEntry, dataEntry,
-                    null);
-
-            if (retVal == OperationStatus.NOTFOUND) {
-                assert false : "Trying to read : " + id
-                        + " but the database is: " + this.databaseSize();
-                throw new OutOfRangeException();
-            }
-
-            assert cursor.count() == 1;
-
-            TupleInput in = new TupleInput(dataEntry.getData());
-            int i = 0;
-
-            while (i < pivotsCount) {
-                tempTuple[i] = normalizeFirstPassAux(in.readShort());
-                i++;
-            }
-            bCache.put(id, tempTuple);
-        } finally {
-            cursor.close();
-        }
-        return tempTuple;
+        return res;
     }
 
     /**

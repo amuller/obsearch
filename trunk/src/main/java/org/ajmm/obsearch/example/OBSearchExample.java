@@ -164,7 +164,7 @@ public final class OBSearchExample {
                         (short) 10, 5, new TreePivotable());
                 
                 pp = new PPTreeShort < OBSlice >(stdFolder, d, od, (short) 0,
-                        (short) 1000,ps);
+                        (short) 1000,ps, OBSlice.class);
                 SynchronizableIndexShort < OBSlice > index = new SynchronizableIndexShort < OBSlice >(
                         pp, syncFolder);
 
@@ -333,7 +333,8 @@ public final class OBSearchExample {
         // OBSearch works like a matryoshka doll, you wrap an index with another
         // to get extended functionality.
         // 1) The smallest index is the P+Tree
-        PPTreeShort < OBSlice > pp = (PPTreeShort < OBSlice >) IndexFactory
+        IndexFactory<OBSlice> ifac = new IndexFactory<OBSlice>();
+        PPTreeShort < OBSlice > pp = (PPTreeShort < OBSlice >) ifac
                 .createFromXML(sp);
         // required step to init restored databases
         pp.relocateInitialize(stdFolder);

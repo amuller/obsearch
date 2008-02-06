@@ -54,7 +54,7 @@ public class TestSynchronizableIndex
         assertTrue(dbFolderSync.mkdirs());
         DummyPivotSelector ps = new DummyPivotSelector();
         IndexShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
-                (byte) 30, (byte) 2, (short) 0, (short) 200, ps);
+                (byte) 30, (byte) 2, (short) 0, (short) 200, ps, OBSlice.class);
         SynchronizableIndexShort < OBSlice > index2 = new SynchronizableIndexShort < OBSlice >(
                 index, dbFolderSync );
         IndexSmokeTUtil t = new IndexSmokeTUtil();

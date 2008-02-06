@@ -76,17 +76,18 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      *                Number of pivots to be used.
      * @param pivotSelector
      *                The pivot selector that will be used by this index.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 If the databaseDirectory directory does not exist.
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
-            final short pivots, PivotSelector < O > pivotSelector)
+            final short pivots, PivotSelector < O > pivotSelector, Class<O> type)
             throws DatabaseException, IOException {
 
         this(databaseDirectory, pivots, (short) 0, Short.MAX_VALUE,
-                pivotSelector);
+                pivotSelector,type);
     }
 
     /**
@@ -106,6 +107,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      *                Maximum value to be returned by the distance function
      * @param pivotSelector
      *                The pivot selector that will be used by this index.
+     * @param type The class of the object O that will be used.  
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
@@ -113,17 +115,12 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      */
     public ExtendedPyramidIndexShort(final File databaseDirectory,
             final short pivots, final short minInput, final short maxInput,
-            PivotSelector < O > pivotSelector) throws DatabaseException,
+            PivotSelector < O > pivotSelector,Class<O> type) throws DatabaseException,
             IOException {
-        super(databaseDirectory, pivots, pivotSelector);
+        super(databaseDirectory, pivots, pivotSelector, type);
         this.minInput = minInput;
         this.maxInput = maxInput;
         assert minInput < maxInput;
-    }
-
-    @Override
-    public String getSerializedName() {
-        return "ExtendedPyramidTechniqueShort";
     }
 
     @Override

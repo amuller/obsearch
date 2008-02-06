@@ -116,15 +116,16 @@ public abstract class AbstractPPTree < O extends OB >
      * @param od
      *                parameter used to specify the number of divisions. 2 ^ od
      *                divisions will be performed.
+     * @param type The class of the object O that will be used.                 
      * @throws DatabaseException
      *                 If something goes wrong with the DB
      * @throws IOException
      *                 if the index serialization process fails
      */
     public AbstractPPTree(final File databaseDirectory, final short pivots,
-            final byte od, PivotSelector < O > pivotSelector)
+            final byte od, PivotSelector < O > pivotSelector, Class<O> type)
             throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, pivotSelector);
+        super(databaseDirectory, pivots, pivotSelector,type);
         this.od = od;
     }
 
@@ -444,7 +445,7 @@ public abstract class AbstractPPTree < O extends OB >
     }
 
     private boolean verifyDivideSpace(IntArrayList SL, IntArrayList SR, int DD,
-            float DV) throws DatabaseException, OutOfRangeException {
+            float DV) throws DatabaseException, OutOfRangeException, OBException {
         int i = 0;
         while (i < SL.size()) {
             float[] tuple = this.readFromB(SL.get(i));
@@ -490,7 +491,7 @@ public abstract class AbstractPPTree < O extends OB >
      * retry the clustering again } } return res; }
      */
     private float[][] kMeans(final IntArrayList cluster, final byte k)
-            throws DatabaseException, OutOfRangeException, KMeansException {
+            throws DatabaseException, OutOfRangeException, KMeansException, OBException {
         double[] squaredErrorRes = new double[1];
         float[][] res = null;
         double best = Double.MAX_VALUE;
@@ -569,7 +570,7 @@ public abstract class AbstractPPTree < O extends OB >
     private float[][] kMeansAux(final IntArrayList cluster, final byte k,
             final int iteration, double[] squaredErrorRes)
             throws DatabaseException, OutOfRangeException, KMeansException,
-            KMeansHungUpException {
+            KMeansHungUpException, OBException {
         if (cluster.size() <= 1) {
             throw new KMeansException(
                     "Cannot cluster spaces with one or less elements. Found elements: "
@@ -796,7 +797,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     private void initializeKMeans(final IntArrayList cluster, final byte k,
             final float[][] centroids) throws DatabaseException,
-            OutOfRangeException {
+            OutOfRangeException, OBException {
         int total = cluster.size();
         OBRandom r = new OBRandom();
         byte i = 0;
@@ -838,7 +839,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     private void initializeKMeansPP(final IntArrayList cluster, final byte k,
             final float[][] centroids) throws DatabaseException,
-            OutOfRangeException {
+            OutOfRangeException, OBException {
 
         OBRandom r = new OBRandom();
         float potential = 0;
@@ -995,7 +996,7 @@ public abstract class AbstractPPTree < O extends OB >
      *                 the range defined by the user.
      */
     protected abstract float[] readFromB(int id) throws DatabaseException,
-            OutOfRangeException;
+            OutOfRangeException, OBException;
 
     /**
      * Verifies that all the data that is going to be inserted in this leaf
@@ -1013,7 +1014,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     protected boolean verifyData(final IntArrayList instances,
             final SpaceTreeLeaf n) throws OutOfRangeException,
-            DatabaseException {
+            DatabaseException, OBException {
         int i = 0;
         boolean res = true;
         float[] tempTuple = new float[pivotsCount];
@@ -1057,7 +1058,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     protected final float[] calculateCenter(final IntArrayList data, int DD,
             double DV, boolean left) throws DatabaseException,
-            OutOfRangeException, KMeansException {
+            OutOfRangeException, KMeansException, OBException {
 
         QuantileBin1D[] medianHolder = createMedianHolders(data.size());
         int i = 0;
@@ -1131,7 +1132,7 @@ public abstract class AbstractPPTree < O extends OB >
      */
     protected final void divideSpace(final IntArrayList original,
             IntArrayList left, IntArrayList right, final int DD, final double DV)
-            throws OutOfRangeException, DatabaseException {
+            throws OutOfRangeException, DatabaseException, OBException {
         int i = 0;
         float[] tempTuple = new float[pivotsCount];
         while (i < original.size()) {
