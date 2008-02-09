@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<!-- This is a convenience script used to run OB's examples 
+     This allows the programmer to control exactly what parameters
+		 are being passed to OB. Using unit tests is not a good idea, as
+		 assertions are always enabled.
+-->
+
+<project name="OBSearchExample" xmlns:artifact="urn:maven-artifact-ant">
+
+<target name="init">
+	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
+	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
+	<property name="destlocation" value="${ant.home}/lib/"/>
+	
+	<!-- single computer related properties -->
+
+	<!-- Index Creation -->
+	<property name="od" value="9"/>
+	<property name="maxTreeSize" value="500"/>
+	<property name="pivotSize" value="30"/>
+	<!-- options: fixedPivotSelector tentaclePivotSelector kMeansPPPivotSelector -->
+	<property name="pivotSelectionCriteria" value="fixedPivotSelector"/>
+	
+	<!-- Search -->
+	<property name="k" value="3"/>
+	<property name="r" value="3"/>
+	
+	<!-- System related properties -->
+	
+	<property name="memory" value="3700"/>
+
+	<!-- p2p related properties -->
+	<property name="name" value="seeder"/>
+	<property name="threads" value="4"/>
+
+<!--		<property name="dbfolder" value="${user.home}/temp/PurpleTentacleX500SMAP"/>-->
+
+	<!--WARNING:  do not put a slash at the end of this property -->
+	<property name="dbfolder" value="${user.home}/temp/OBDB-OD${od}-${maxTreeSize}-Piv-${pivotSize}-${pivotSelectionCriteria}Res"/>
+
+</target>
+
+<!-- check if maven tasks have been downloaded -->
+<target name="checkprerequisites">
+<condition property="mavenanttaskavailable">
+      <available file="${destlocation}/${anttask}"/>
+</condition>
+</target>
+
+<!-- download maven tasks -->
+<target name="downloadprerequisites" unless="mavenanttaskavailable" depends="checkprerequisites, init">
+
+	<get src="${jardownloadlocation}/${anttask}" dest="${destlocation}/${anttask}"/>
+	
+</target>
+
+<!-- initialize maven tasks-->
+<target name="maven" depends="init, downloadprerequisites">
+	
+	<path id="maven-ant-tasks.classpath" path="${destlocation}/${anttask}" />
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+           classpathref="maven-ant-tasks.classpath" />
+	<!-- access maven project -->
+	<artifact:pom id="project" file="pom.xml" />
+	<!-- define the classpath -->
+
+	
+	<!-- generate the classpath -->
+	<artifact:dependencies pathId="dependency.classpath">
+      <pom refid="project"/>
+  </artifact:dependencies>
+	
+	<echo>
+		Local class path ${project.build.outputDirectory}
+	</echo>
+
+	<!-- DB and QUERY datafiles -->
+
+	<property name="dbdata" value="${user.home}/temp/slices"/>
+	<property name="querydata" value="${user.home}/temp/slices-query"/>
+</target>
+
+ 
+<target name="create" depends="maven">
+	 <delete dir="${dbfolder}"/>
+	    <mkdir dir="${dbfolder}"/>
+
+	    <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
+<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx${memory}M" />
+
+					<jvmarg value="-XX:+UseParallelGC"/>
+						<jvmarg value="-XX:+UseParallelOldGC"/> 
+<!--						<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
+
+				<arg value="-create"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-data"/>
+				<arg value="${dbdata}"/>
+				<arg value="-od"/>
+				<arg value="${od}"/>
+				<arg value="-maxTreeSize"/>
+				<arg value="${maxTreeSize}"/>
+				<arg value="-pivotSize"/>
+				<arg value="${pivotSize}"/>
+				<arg value="-${pivotSelectionCriteria}"/>
+			</java>
+</target>
+
+<target name="printClassPath" depends="maven">
+	<property name="text" refid="dependency.classpath"/>
+	<echo>${text}</echo>
+</target>
+
+<target name="search" depends="maven">
+	
+	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBExampleTrees"  failonerror="true">
+<jvmarg value="-server" />
+<jvmarg value="-Xmx${memory}M" />
+<jvmarg value="-Xms${memory}M"/>
+
+
+		<!--<jvmarg value="-ea"/>-->
+				<jvmarg value="-XX:+UseParallelGC"/>
+				<jvmarg value="-XX:+UseParallelOldGC"/>
+        <jvmarg value="-XX:+UseMembar"/>
+<!--				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
+<!-- fix an issue with the garbage collector -->
+				<arg value="-search"/>
+				<arg value="-r"/>
+				<arg value="${r}"/>
+				<arg value="-k"/>
+				<arg value="${k}"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-data"/>
+				<arg value="${querydata}"/>
+			</java>
+</target>
+
+
+<target name="p2pinit" depends="maven">
+	    
+			<!-- someone has to copy the spore file into this folder, only
+           the folder who originally contained the data will have this
+           file. Think of it as a .torrent file-->
+	    <property name="spore" value="${dbfolder}/std/PPTreeShort"/>								
+</target>
+
+<target name="p2pcreate" depends="p2pinit">
+
+	<delete dir="${dbfolder}"/>
+	<mkdir dir="${dbfolder}"/>	
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath" classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx3700M" />
+				<arg value="-create"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-data"/>
+				<arg value="${dbdata}"/>
+				<arg value="-od"/>
+				<arg value="2"/>
+				<arg value="-d"/>
+				<arg value="30"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+			</java>
+
+			<copy todir="${dbfolder}BKP">
+				<fileset dir="${dbfolder}"/>
+			</copy>
+
+</target>
+
+
+<target name="p2psearch" depends="p2pinit">
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-search"/>
+				<arg value="-r"/>
+				<arg value="3"/>
+				<arg value="-k"/>
+				<arg value="2"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-data"/>
+				<arg value="${querydata}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+			</java>
+</target>
+
+<target name="p2ptentacle" depends="p2pinit">
+
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+<!--				<jvmarg value="-ea" />-->
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx1000M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-tentacle"/>
+				<Arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+			</java>
+</target>
+
+<target name="p2pserver" depends="p2pinit">
+<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.OBSearchExample"  failonerror="true">
+<!--				<jvmarg value="-ea" />-->
+				<!--<jvmarg value="-esa" />-->
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx3700M" />
+				<arg value="-spore"/>
+				<arg value="${spore}"/>
+				<arg value="-tentacle"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-name"/>
+				<arg value="${name}"/>
+				<arg value="-searchThreads"/>
+				<arg value="${threads}"/>
+				<arg value="-server"/>
+			</java>
+</target>
+
+
+
+</project>

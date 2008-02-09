@@ -1,0 +1,32 @@
+
+OBSearch  released.
+
+OBSearch  has been released.
+
+Release highlights:
+
+You can download it from:
+http://code.google.com/p/obsearch/downloads/list
+
+
+md5:bfaf86910f8869cd3ece1942f57d7182 sha1:3ba856281d4c792447ef6863f2d7a55fe9f66a53 obsearch-0.9.1a-bin.tar.bz2
+md5:7deba816e2feea1bd39a8f9ce57edb6f sha1:c42f858765484ae9f87bf61818832a9a22f400bc obsearch-0.9.1a-bin.tar.gz
+md5:b1e39dd2a86610a80ebebb46a99927ef sha1:34d5261fdbba8ab559c1f39e78bbc9a4f069bfb1 obsearch-0.9.1a-bin.zip
+md5:21f13b28911583d5f494a4896692be43 sha1:d196da89eaba11203b759ab5e4662b68a51cacd3 obsearch-0.9.1a.jar
+md5:1090a51ed109494d198472e66a05c680 sha1:c2b0a896224cad01b9891ec8b2e4142535af6cf4 obsearch-0.9.1a-jar-with-dependencies.jar
+md5:47b0c07ac400a4fab70afdaeb580f039 sha1:866c4d333f2341f2be95256945535ee5fec10884 obsearch-0.9.1a-src.tar.bz2
+md5:cf7048a1cf2789acd8570a9368248be3 sha1:a864d21beaf5c73e9ce8ae465b7c6a44fb52c5a8 obsearch-0.9.1a-src.tar.gz
+md5:28ab55fb85023b5cf3839b66ae2378cc sha1:42e9660975c36356c1917c85f15663882e03c8d1 obsearch-0.9.1a-src.zip
+
+Please send any bug reports to:
+http://code.google.com/p/obsearch/issues/list
+
+Homepage:
+http://code.google.com/p/obsearch/
+
+Website:
+http://obsearch.berlios.de/
+
+
+Arnoldo Muller
+
