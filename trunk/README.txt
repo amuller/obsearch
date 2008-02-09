@@ -110,7 +110,7 @@ OBSearch has two modes of operation. Single computer and p2p operation.
 Single Computer:
 We have a comprehensive set of tests that verify that every object
 inserted into the database is searched, deleted and stored properly.
-The full tests take around 40 hours and are always executed before publishing
+The full tests take around 50 hours and are always executed before publishing
 a new version of the program. 
 You can see the summary of the results in the project's website under
 "Project Reports".

@@ -4,7 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9.1a</version>
+  <version>0.9.1b</version>
 <!-- TODO:
 		 * spore
 		 * Cache
@@ -47,7 +47,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 	<distributionManagement>
     <site>
       <id>website</id>
-      <url>scp://shell.berlios.de/home/groups/obsearch/htdocs</url>
+      <url>scp://obsearch.net/~/obsearch.net/</url>
     </site>
   </distributionManagement>
 	
