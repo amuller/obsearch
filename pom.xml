@@ -30,8 +30,8 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 	<properties>
 		<!-- additional unit test files to be downloaded -->
 
-		<my.test.data.db>slices</my.test.data.db>
-		<my.test.data.query>slices</my.test.data.query>
+		<my.test.data.db>slices-small</my.test.data.db>
+		<my.test.data.query>slices-query</my.test.data.query>
 		<my.test.data.dir>${user.home}/temp/</my.test.data.dir>
   </properties>
 
@@ -431,7 +431,7 @@ Would be cool to use this.
         <configuration>
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
-          <argLine>-Xmx4000M</argLine>
+          <argLine>-Xmx1200M</argLine>
         </configuration>
       </plugin>
 
