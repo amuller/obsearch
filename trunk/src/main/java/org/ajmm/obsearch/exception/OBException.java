@@ -25,16 +25,7 @@ package org.ajmm.obsearch.exception;
  */
 public class OBException
         extends Exception {
-    /**
-     * An exception associated
-     * with the error.
-     */
-    private Exception ex;
-
-    /**
-     * A message for the user.
-     */
-    private String str;
+   
 
     /**
      * Constructor.
@@ -42,7 +33,7 @@ public class OBException
      *            A message for the user
      */
     public OBException(final String msg) {
-        this.str = msg;
+        super(msg);
     }
 
     /**
