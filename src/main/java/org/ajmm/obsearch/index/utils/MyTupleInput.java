@@ -61,6 +61,15 @@ public class MyTupleInput
         off = 0;
         mark = 0;
     }
+    
+    /**
+     * Sets the 
+     * @param offset
+     */
+    public void setOffset(int offset) {
+        off = offset;
+        mark = 0;
+    }
 
     /**
      * A very dangerous but fast method. Dangerous because most checks are
@@ -75,11 +84,5 @@ public class MyTupleInput
 
     
 
-    /**
-     * A very fast read method.
-     * @see #read()
-     */
-    private final int readFastAbunai() {
-        return buf[off++] & 0xff;
-    }
+   
 }

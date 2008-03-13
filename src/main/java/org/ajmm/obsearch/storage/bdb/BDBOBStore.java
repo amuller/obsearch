@@ -183,6 +183,17 @@ public class BDBOBStore implements OBStore {
             super.finalize();
         }
     }
+    
+    public long size()  throws OBStorageException{
+        long res;
+        
+        try{
+            res = db.count();
+        }catch(DatabaseException e){
+            throw new OBStorageException(e);
+        }
+        return res;
+    }
        
    }
 
