@@ -110,4 +110,13 @@ public interface OBStore {
      */
     void deleteAll() throws OBStorageException;
 
+    /**
+     * Returns the number of elements in the database. 
+     * @return The number of elements in the database. 
+     * @throws OBStorageException
+     *                 If an exception occurs at the underlying storage system.
+     *                 You can query the exception to see more details regarding
+     *                 the nature of the error.
+     */
+    long size() throws OBStorageException;
 }
