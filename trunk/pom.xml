@@ -82,7 +82,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.2</version>
-      <scope>test</scope>
+      <scope>compile</scope>
     </dependency>
 
 
@@ -330,11 +330,33 @@ Would be cool to use this.
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"></target>
 									<property name="in" value="${project.build.sourceDirectory}/../fm/"></property>
-									<property name="out" value="${project.build.directory}/generated-sources/fm/"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/main/java/"></property>
+									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>
 								</ant>
 
               </tasks>
-							<sourceRoot>${project.build.directory}/generated-sources/fm</sourceRoot>
+							<sourceRoot>${project.build.directory}/generated-sources/main/java/</sourceRoot>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+					<!-- generate code for testing -->
+					<execution>
+						<id>codeGenerationTest</id>
+            <phase>generate-test-sources</phase>
+            <configuration>
+              <tasks>
+							
+								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
+                  <target name="generateSources"></target>
+									<property name="in" value="${project.build.testSourceDirectory}/../fm/"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/test/java"></property>
+									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>
+								</ant>
+
+              </tasks>
+							<testSourceRoot>${project.build.directory}/generated-sources/test/java</testSourceRoot>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -432,6 +454,7 @@ Would be cool to use this.
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
           <argLine>-Xmx1200M</argLine>
+					<childDelegation>true</childDelegation>
         </configuration>
       </plugin>
 

@@ -1,3 +1,16 @@
+<@pp.dropOutputFile />
+<#list types as t>
+<#assign type = t.name>
+
+<#if type == "int">
+<#assign Type2 = "Integer">
+<#else>
+<#assign Type2 = t.name?cap_first>
+</#if>
+
+<#assign Type = t.name?cap_first>
+
+<@pp.changeOutputFile name="StorageValidation"+Type+".java" />
 package org.ajmm.obsearch.storage;
 
 import java.util.Arrays;
@@ -27,7 +40,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-public class StorageTester  extends TestCase{
+public class StorageValidation${Type} extends TestCase {
     
     /**
      * Create a vector of pairs of size {@link #NUM_OF_ITEMS} so that
@@ -41,14 +54,19 @@ public class StorageTester  extends TestCase{
      * @param storage
      * @throws OBStorageException
      */
-    public static void ShortStorageValidation(OBStoreShort storage) throws OBStorageException{
-        HashMap<Short, byte[]> testData = new HashMap<Short, byte[]>();
+    public static void validate(OBStore${Type} storage) throws OBStorageException{
+        HashMap<${Type2}, byte[]> testData = new HashMap<${Type2}, byte[]>();
         Random x = new Random();
         int i = 0;
-        short min = Short.MAX_VALUE;
-        short max = Short.MIN_VALUE;
+        ${type} min = ${Type2}.MAX_VALUE;
+        ${type} max = ${Type2}.MIN_VALUE;
         while(i < NUM_OF_ITEMS){
-            short ran = (short) (x.nextInt() % Short.MAX_VALUE);
+						<#if type == "double" || type == "float" || type == "long" || 
+                 type == "int">
+            ${type} ran = x.next${Type}();
+            <#else>
+            ${type} ran = (${type}) (x.nextInt() % ${Type}.MAX_VALUE);
+						</#if>
             if(ran < min){
                 min = ran;
             }
@@ -60,21 +78,21 @@ public class StorageTester  extends TestCase{
             i++;
         }
 
-        for(short j : testData.keySet()){
+        for(${type} j : testData.keySet()){
             storage.put(j, testData.get(j));
         }               
         // test that all the data is there:
-        for(short j : testData.keySet()){               
+        for(${type} j : testData.keySet()){               
              assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
         }         
         
         // do a range search       
-        Iterator<TupleShort> it = storage.processRange(min, max);
+        Iterator<Tuple${Type}> it = storage.processRange(min, max);
         i = 0;
         boolean first = true;
-        short prev = Short.MIN_VALUE;
+        ${type} prev = ${Type2}.MIN_VALUE;
         while(it.hasNext()){
-            TupleShort t = it.next();
+            Tuple${Type} t = it.next();
             assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue()));
             if(first){
                 prev = t.getKey();
@@ -86,22 +104,22 @@ public class StorageTester  extends TestCase{
             }
             i++;
         }
-        assertEquals(i, testData.size());
+        assertEquals(testData.size(), i);
         // TODO: add more tests for the iterator
         
         // Test updates:
-        for(short j : testData.keySet()){
+        for(${type} j : testData.keySet()){
             String d = x.nextDouble() + "";
             testData.put(j,d.getBytes());
             storage.put(j, d.getBytes());
         }          
         // test that all the new  data is there:
-        for(short j : testData.keySet()){               
+        for(${type} j : testData.keySet()){               
              assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
         }    
         
         // Test deletes:
-        for(short j : testData.keySet()){
+        for(${type} j : testData.keySet()){
             assertTrue( storage.getValue(j) != null);
             storage.delete(j);
             assertTrue(storage.getValue(j) == null);
@@ -110,3 +128,4 @@ public class StorageTester  extends TestCase{
     
    
 }
+</#list>

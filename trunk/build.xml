@@ -29,14 +29,13 @@
 	<!-- generate texen files -->
 	<target name="generateSources">
 		  <taskdef name="fmpp" classname="fmpp.tools.AntTask" /> 
-			<!-- now we generate code using texen -->							
+			<!-- now we generate code using texen -->	
+			<echo>Defs: ${defs}</echo>
 			<echo>In: ${in}</echo>
 			<echo>Out: ${out}</echo>
-			<property name="finalOut" value="${out}/generated-sources/texen/org/ajmm/obsearch/"/>
-
 			<fmpp
               sourceRoot="${in}" outputRoot="${out}"
-              data="types: csv(${in}/Types.csv)"
+              data="types: csv(${defs}/Types.csv)"
 				      excludes="Types.csv">
      </fmpp>
 	</target>
