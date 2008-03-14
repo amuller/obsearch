@@ -179,7 +179,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return getIndex().totalBoxes();
     }
 
-    public void close() throws DatabaseException {
+    public void close() throws DatabaseException, OBException {
         getIndex().close();
     }
 

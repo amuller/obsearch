@@ -68,13 +68,14 @@ public final class BDBOBStore${Type}
      * ${type}s as a primary indexing method.
      * @param db
      *                The database to be stored.
+		 * @param seq     Sequences database.
      * @param name
      *                Name of the database.
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStore${Type}(String name, Database db) throws DatabaseException {
-        super(name, db);
+    public BDBOBStore${Type}(String name, Database db, Database seq) throws DatabaseException {
+        super(name, db, seq);
     }
 
     public Result delete(${type} key) throws OBStorageException {

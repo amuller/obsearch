@@ -1,5 +1,13 @@
 package org.ajmm.obsearch.index;
 
+import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
+import org.ajmm.obsearch.exception.PivotsUnavailableException;
+
+import cern.colt.list.IntArrayList;
+
+
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -29,5 +37,34 @@ package org.ajmm.obsearch.index;
 // TODO unify IncrementalPivotSelector and PivotSelector, find common
 // functionality and create a better interface.
 public interface IncrementalPivotSelector {
+    
+    /**
+     * Generates pivots from all the elements found in the DB.
+     * @param pivotCount The # of pivots that will be generated.
+     * @return A list of the  ids of the pivots.
+     * @throws OBStorageException
+     *             If something goes wrong with the DB
+     * @throws OBException
+     *             User generated exception
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     * @throws PivotsUnavailableException
+     *             If not all the pivots requested were found.
+     */
+    int[] generatePivots(short pivotCount) throws OBException,
+    IllegalAccessException, InstantiationException, OBStorageException,
+    PivotsUnavailableException;
 
+    /**
+     * Generates pivots from the elements (object ids) given in the array elements.
+     * Generates pivotsCount  pivots.
+     * @param pivotCount
+     * @param elements
+     * @return A list of the ids of the pivots.
+     */
+    int[] generatePivots(short pivotCount, IntArrayList elements) throws OBException,
+    IllegalAccessException, InstantiationException, OBStorageException,
+    PivotsUnavailableException; 
 }

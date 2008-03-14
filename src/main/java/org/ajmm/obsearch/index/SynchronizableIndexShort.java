@@ -5,6 +5,7 @@ import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
@@ -59,7 +60,7 @@ public class SynchronizableIndexShort < O extends OBShort >
         this.index = source;
     }
 
-    public int databaseSize() throws DatabaseException {
+    public int databaseSize() throws DatabaseException, OBStorageException {
         return this.getIndex().databaseSize();
     }
 

@@ -12,6 +12,8 @@ import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Sequence;
+import com.sleepycat.je.SequenceConfig;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -39,10 +41,22 @@ import com.sleepycat.je.OperationStatus;
  */
 
 public class BDBOBStore implements OBStore {
+    
+
     /**
      * Berkeley DB database.
      */
     protected Database db;
+    
+    /**
+     * Database for sequences.
+     */
+    protected Database sequence;
+    
+    /**
+     * Sequence counter
+     */
+    protected Sequence counter;
 
     /**
      * Name of the database.
@@ -60,13 +74,22 @@ public class BDBOBStore implements OBStore {
      *                The database to be stored.
      * @param name
      *                Name of the database.
+     * @param sequences
+     *                Database used to store sequences.
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStore(String name, Database db) throws DatabaseException {
+    public BDBOBStore(String name, Database db, Database sequences) throws DatabaseException {
         this.db = db;
         this.name = name;
         this.duplicates = db.getConfig().getSortedDuplicates();
+        this.sequence = sequences;
+        // initialize sequences
+        SequenceConfig config = new SequenceConfig();
+        config.setAllowCreate(true);
+        DatabaseEntry key =
+            new DatabaseEntry((name + "_seq").getBytes());
+        this.counter = sequence.openSequence(null, key, config);
     }
 
     public void close() throws OBStorageException {
@@ -183,18 +206,34 @@ public class BDBOBStore implements OBStore {
             super.finalize();
         }
     }
-    
-    public long size()  throws OBStorageException{
-        long res;
-        
-        try{
-            res = db.count();
-        }catch(DatabaseException e){
-            throw new OBStorageException(e);
-        }
-        return res;
-    }
        
+   }
+   
+   
+   
+   public long size()  throws OBStorageException{
+       long res;
+       
+       try{
+           res = db.count();
+       }catch(DatabaseException e){
+           throw new OBStorageException(e);
+       }
+       return res;
+   }
+   
+   /**
+    * Returns the next id from the database (incrementing sequences). 
+    * @return The next id that can be inserted. 
+    */
+   public long nextId() throws OBStorageException{
+       long res ;
+       try{
+           res =  this.counter.get(null, 1);
+       }catch(DatabaseException e){
+           throw new OBStorageException(e);
+       }
+       return res;
    }
 
 }

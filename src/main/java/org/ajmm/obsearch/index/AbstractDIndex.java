@@ -37,6 +37,7 @@ import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreInt;
 
 import com.sleepycat.bind.tuple.TupleInput;
+import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.DatabaseException;
 
 /**
@@ -92,8 +93,8 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
      * @param pivotSelector
      *                The pivot selection mechanism to be used. (64 pivots can
      *                create 2^64 different buckets, so we have limited the # of
-     *                pivots available. If you need more pivots, then you would have
-     *                to use the Smapped P+Tree (PPTree*).
+     *                pivots available. If you need more pivots, then you would
+     *                have to use the Smapped P+Tree (PPTree*).
      * @param type
      *                The type that will be stored in this index.
      * @param nextLevelThreshold
@@ -165,22 +166,26 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
         return null;
     }
 
-    /**
-     * Returns an iterator
-     * @param object
-     * @return
-     */
-    protected abstract BucketIterator getBuckets(O object,
-            AbstractOBPriorityQueue p);
-
     @Override
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             DatabaseException, OutOfRangeException, OBException {
-        // get n pivots. Create the bps functions, and store their values.
-        // do the same for all the remaining levels.
+        // get n pivots. 
+        // ask the bucket for each object and insert those who are not excluded.
+        // repeat iteratively with the objects that could not be inserted until the remaining
+        // objects are small enough.
+        
         frozen = true;
     }
+    
+    /**
+     * Returns the bucket information for the given object. 
+     * It will be ca
+     * @param object
+     * @param level
+     * @return
+     */
+    protected abstract Bucket getBucket(O object, int level );
 
     @Override
     public int getBox(O object) throws OBException {
@@ -200,6 +205,16 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
             IllegalAccessException, InstantiationException {
         // need an object bucket that will always be sorted, and that will find
         // efficiently objects based on the first pivot.
+        // TODO: fix this!!!
+        int nextId = (int) A.nextId();
+
+        TupleOutput out = new TupleOutput();
+        object.store(out);
+        this.A.put(nextId, out.getBufferBytes());
+
+        if (this.isFrozen()) {
+            // store the SMAP vector.
+        }
         return null;
     }
 
