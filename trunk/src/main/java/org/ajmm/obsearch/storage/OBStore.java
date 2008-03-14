@@ -119,4 +119,11 @@ public interface OBStore {
      *                 the nature of the error.
      */
     long size() throws OBStorageException;
+    
+    // TODO: put all the ids in longs and not in ints.
+    /**
+     * Returns the next id from the database (incrementing sequences). 
+     * @return The next id that can be inserted. 
+     */
+    long nextId() throws OBStorageException;
 }

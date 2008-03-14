@@ -176,7 +176,7 @@ public abstract class AbstractParallelIndex < O extends OB > implements
 
     }
 
-    public void close() throws DatabaseException {
+    public void close() throws DatabaseException, OBException {
         getIndex().close();
     }
 

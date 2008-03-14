@@ -9,6 +9,7 @@ import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
@@ -104,7 +105,7 @@ public class ParallelIndexShort < O extends OBShort >
         return index;
     }
 
-    public int databaseSize() throws DatabaseException {
+    public int databaseSize() throws DatabaseException, OBStorageException {
         return this.getIndex().databaseSize();
     }
 

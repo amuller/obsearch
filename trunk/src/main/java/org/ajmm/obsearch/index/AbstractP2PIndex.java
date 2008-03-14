@@ -59,6 +59,7 @@ import org.ajmm.obsearch.exception.BoxNotAvailableException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import org.ajmm.obsearch.index.AbstractSynchronizableIndex.TimeStampIterator;
@@ -2300,7 +2301,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * @throws DatabaseException
      *             If something goes wrong with the DB
      */
-    public void close() throws DatabaseException {
+    public void close() throws DatabaseException, OBException {
         manager.stopNetwork();
         getIndex().close();
     }
@@ -2311,7 +2312,7 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
      * @throws DatabaseException
      *             If something goes wrong with the DB
      */
-    public int databaseSize() throws DatabaseException {
+    public int databaseSize() throws DatabaseException, OBStorageException {
         return getIndex().databaseSize();
     }
 
