@@ -117,7 +117,7 @@ public class PPTreeShort < O extends OBShort >
      */
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
             PivotSelector < O > pivotSelector, Class<O> type) throws DatabaseException,
-            IOException {
+            IOException, OBException {
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
                 pivotSelector,type);
     }
@@ -148,7 +148,7 @@ public class PPTreeShort < O extends OBShort >
      */
     public PPTreeShort(File databaseDirectory, short pivots, byte od,
             short minInput, short maxInput, PivotSelector < O > pivotSelector, Class<O> type)
-            throws DatabaseException, IOException {
+            throws DatabaseException, IOException, OBException {
         super(databaseDirectory, pivots, od, pivotSelector, type);
         assert minInput < maxInput;
         this.minInput = minInput;

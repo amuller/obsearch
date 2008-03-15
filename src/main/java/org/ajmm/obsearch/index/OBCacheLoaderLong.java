@@ -28,9 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * OBCacheLoader defines objects that can load objects possibly from
  * secondary storage 
  */
-public interface OBCacheLoader< O > {
+public interface OBCacheLoaderLong< O > {
     
-    O loadObject(int i) throws DatabaseException, 
+    O loadObject(long i) throws DatabaseException, 
     OutOfRangeException, OBException, InstantiationException , 
     IllegalAccessException, OBStorageException;
     /**

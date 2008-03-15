@@ -33,7 +33,7 @@ import org.ajmm.obsearch.ob.OB${Type};
  * @since 0.7
  */
 
-public class OBPriorityQueue${Type}<O extends OB${Type}> extends AbstractOBPriorityQueue<OBResult${Type}<O>> {
+    public final class OBPriorityQueue${Type}<O extends OB${Type}> extends AbstractOBPriorityQueue<OBResult${Type}<O>> {
 
     /**
      * Create the priority queue with k elements. This is how you set the k

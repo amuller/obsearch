@@ -27,14 +27,22 @@ import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
+import org.ajmm.obsearch.exception.PivotsUnavailableException;
+import org.ajmm.obsearch.index.d.BucketContainer;
+import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreInt;
+import org.ajmm.obsearch.storage.OBStoreLong;
+import org.apache.log4j.Logger;
+
+import cern.colt.list.IntArrayList;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -43,14 +51,26 @@ import com.sleepycat.je.DatabaseException;
 /**
  * AbstractDIndex contains functionality common to specializations of the
  * D-Index for primitive types.
+ * @param <
+ *                O > The OB object that will be stored.
+ * @param <
+ *                B > The Object bucket that will be used.
+ * @param < Q > The query object type.
+ * @param < BC> The Bucket container.
  * @author Arnoldo Jose Muller Molina
  */
-public abstract class AbstractDIndex < O extends OB > implements Index < O > {
+public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, BC extends BucketContainer<O,B,Q> >
+        implements Index < O > {
+    /**
+     * Logger.
+     */
+    private static final transient Logger logger = Logger
+    .getLogger(AbstractDIndex.class);
 
     /**
      * The pivot selector used by the index.
      */
-    private PivotSelector < O > pivotSelector;
+    private IncrementalPivotSelector pivotSelector;
 
     /**
      * The type used to instantiate objects of type O.
@@ -65,12 +85,18 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
     /**
      * Pivots will be stored here for quick access.
      */
-    protected transient O[][] pivots;
+    protected transient ArrayList < ArrayList < O >> pivots;
+
+    /**
+     * This is the id for the exclusion bucket. (to avoid computing 2^m^h all
+     * the time)
+     */
+    protected long exclusionBucketId;
 
     /**
      * We store here the pivots when we want to de-serialize/ serialize them.
      */
-    private byte[][][] pivotBytes;
+    private ArrayList < ArrayList < byte[] >> pivotBytes;
 
     /**
      * Factory used by this class and by subclasses to create appropiate storage
@@ -83,6 +109,36 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
      * Objects are stored by their id's here.
      */
     protected transient OBStoreInt A;
+
+    /**
+     * We store the buckets in this storage device.
+     */
+    protected transient OBStoreLong Buckets;
+
+    /**
+     * # of pivots to be used.
+     */
+    protected byte pivotsCount;
+
+    /**
+     * Cache used for storing recently accessed objects O.
+     */
+    private transient OBCache < O > aCache;
+
+    /**
+     * Cache used for storing recently accessed Buckets.
+     */
+    private transient OBCacheLong < BC > bucketContainerCache;
+
+    /**
+     * How many pivots will be used on each level of the hash table.
+     */
+    private float nextLevelThreshold;
+    
+    /**
+     * Masks used to speedup the generation of hash table codes.
+     */
+    protected long[] masks;
 
     /**
      * Initializes this abstract class.
@@ -105,13 +161,32 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
      *                 objects.
      */
     protected AbstractDIndex(OBStoreFactory fact, byte pivotCount,
-            PivotSelector < O > pivotSelector, Class < O > type,
-            float nextLevelThreshold) throws OBStorageException {
+            IncrementalPivotSelector<O> pivotSelector, Class < O > type,
+            float nextLevelThreshold) throws OBStorageException, OBException {
         this.pivotSelector = pivotSelector;
         this.type = type;
-        initStorageDevices();
+        init();
+        this.pivotsCount = pivotCount;
+        OBAsserts.chkAssert(pivotCount > 0, "Pivot count must be > 0");
+        OBAsserts.chkAssert(nextLevelThreshold > 0 && nextLevelThreshold <= 0,
+                "Threshold must be  > 0 && <= 1");
+        this.nextLevelThreshold = nextLevelThreshold;
     }
 
+    private void init() throws OBStorageException{
+        initStorageDevices();
+        // initialize the masks;
+        int i = 0;
+        int mask = 1;
+        this.masks = new long[64];
+        while(i < 64){
+            logger.debug(Long.toBinaryString(mask));
+            masks[i] = mask;
+            mask = mask << 1;
+            i++;
+        }
+    }
+    
     /**
      * Initializes storage devices required by this class.
      * @throws OBStorageException
@@ -119,6 +194,7 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
      */
     protected void initStorageDevices() throws OBStorageException {
         this.A = fact.createOBStoreInt("A", false);
+        this.Buckets = fact.createOBStoreLong("Buckets", false);
         initSpecializedStorageDevices();
     }
 
@@ -153,10 +229,24 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
 
     @Override
     public Result delete(O object) throws DatabaseException, OBException,
-            IllegalAccessException, InstantiationException, NotFrozenException {
-        // get the bucket, erase the object from the bucket and return the
-        // bucket.
-        return null;
+            IllegalAccessException, InstantiationException, NotFrozenException {       
+        
+
+        if (this.isFrozen()) {
+            B b = getBucket(object);            
+            long bucketId = getBucketStorageId(b);
+            BC bc = this.bucketContainerCache.get(bucketId);
+            Result res = bc.delete(b, object);
+            if(res.getStatus() == Result.Status.EXISTS){
+                this.Buckets.put(bucketId, bc.getBytes()); // update the bucket container.
+                this.A.delete(res.getId());
+            }
+            return res;
+        }
+        else{        
+            throw new NotFrozenException();
+        }
+
     }
 
     @Override
@@ -170,22 +260,176 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
     public void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             DatabaseException, OutOfRangeException, OBException {
-        // get n pivots. 
+        // get n pivots.
         // ask the bucket for each object and insert those who are not excluded.
-        // repeat iteratively with the objects that could not be inserted until the remaining
+        // repeat iteratively with the objects that could not be inserted until
+        // the remaining
         // objects are small enough.
-        
-        frozen = true;
+        try {
+            // the initial list of object from which we will generate the pivots
+            IntArrayList elementsSource = null;
+            // After generating the pivots, we put here the objects that fell
+            // into the exclusion bucket.
+            IntArrayList elementsDestination = new IntArrayList(
+                    (int) A.size() / 4);
+            short pivotSize = this.pivotsCount;
+            int level = 0;
+            int maxBucketSize = 0;
+            do {
+                // generate pivots for the current souce elements.
+                // when elementsSource == null, all the elements in the DB are
+                // used.
+                int[] pivots = this.pivotSelector.generatePivots(pivotSize,
+                        elementsSource, this);
+                putPivots(pivots);
+                int i = 0;
+                int max;
+                if (elementsSource == null) {
+                    max = (int) A.size();
+                } else {
+                    max = elementsSource.size();
+                }
+                while (i < max) {
+                    O o = getObjectFreeze(i, elementsSource);
+                    B b = getBucket(o, level);
+                    if (b.isExclusionBucket()) {
+                        elementsDestination.add(idMap(i, elementsSource));
+                    } else {
+                        insertBucket(b, o);
+                    }
+                    i++;
+                }
+                elementsSource = elementsDestination;
+                elementsDestination = new IntArrayList((int) elementsSource
+                        .size() / 4);
+                pivotSize = (short) (pivotSize * this.nextLevelThreshold);
+                level++;
+            } while (elementsDestination.size() <= maxBucketSize); // size of
+            // excluded
+            // elements
+            // is small
+            // enough.
+            // now we just have to store the bucket id for the exclusion bucket,
+            // and store those objects in the the exclusion bucket.
+            double id = level * (Math.pow(2, pivotSize));
+            OBAsserts.chkAssert(id <= Long.MAX_VALUE,
+                    "Exceeded bucket id addressing at level: " + (level - 1)
+                            + ", aborting");
+            this.exclusionBucketId = Math.round(id);
+            // now we can insert the remaining objects.
+            int i = 0;
+            while (i < elementsDestination.size()) {
+                O o = getObjectFreeze(i, elementsDestination);
+                B b = getBucket(o, level - 1);
+                assert (b.isExclusionBucket());
+                insertBucket(b, o);
+                i++;
+            }
+            // We have inserted all objects, we only have to store
+            // the pivots into bytes.
+            pivotBytes = new ArrayList < ArrayList < byte[] >>();
+            for (ArrayList < O > pivotLevel : this.pivots) {
+                ArrayList < byte[] > bytesLevel = new ArrayList < byte[] >();
+                for (O pivot : pivotLevel) {
+                    TupleOutput out = new TupleOutput();
+                    pivot.store(out);
+                    bytesLevel.add(out.getBufferBytes());
+                }
+                pivotBytes.add(bytesLevel);
+            }
+            frozen = true;
+        } catch (PivotsUnavailableException e) {
+            throw new OBException(e);
+        }
     }
-    
+
     /**
-     * Returns the bucket information for the given object. 
-     * It will be ca
+     * Stores the given bucket b into the {@link #Buckets} storage device. The
+     * given bucket b should have been returned by {@link #getBucket(OB, int)}
+     * @param b
+     *                The bucket in which we will insert the object.
      * @param object
-     * @param level
+     *                The object to insert.
+     * @return A result object with the new id of the object if the object
+     *                was inserted successfully.
+     * @throws OBStorageException
+     */
+    private Result insertBucket(B b, O object) throws OBStorageException, IllegalIdException,
+    IllegalAccessException, InstantiationException, DatabaseException,
+    OutOfRangeException, OBException {
+        // get the bucket id.
+        long bucketId = getBucketStorageId(b);
+        // if the bucket is the exclusion bucket
+        // get the bucket container from the cache.
+        BC bc = this.bucketContainerCache.get(bucketId);
+        Result res = new Result();        
+        synchronized (bc) {
+            res = bc.exists(b, object);
+            if(res.getStatus() != Result.Status.EXISTS){
+                int newId = (int)this.Buckets.nextId();
+                b.setId(newId);
+                bc.insert(b);
+                Buckets.put(bucketId, bc.getBytes());
+                res.setStatus(Result.Status.OK);
+                res.setId(newId);
+            }                            
+        }
+        return res;
+    }
+
+    private void putPivots(int[] pivotIds) throws IllegalIdException,
+            IllegalAccessException, InstantiationException, DatabaseException,
+            OutOfRangeException, OBException {
+        ArrayList < O > level = new ArrayList < O >(pivotIds.length);
+        for (int i : pivotIds) {
+            level.add(getObject(i));
+        }
+        this.pivots.add(level);
+    }
+
+    /**
+     * If elementSource == null returns id, otherwise it returns
+     * elementSource[id]
      * @return
      */
-    protected abstract Bucket getBucket(O object, int level );
+    private int idMap(int id, IntArrayList elementSource) {
+        if (elementSource == null) {
+            return id;
+        } else {
+            return elementSource.get(id);
+        }
+    }
+
+    /**
+     * Auxiliary function used in freeze to get objects directly from the DB, or
+     * by using an array of object ids.
+     */
+    private O getObjectFreeze(int id, IntArrayList elementSource)
+            throws IllegalIdException, IllegalAccessException,
+            InstantiationException, DatabaseException, OutOfRangeException,
+            OBException {
+
+        return getObject(idMap(id, elementSource));
+
+    }
+
+    /**
+     * Returns the bucket information for the given object and a certain level.
+     * @param object
+     *                The object that will be calculated
+     * @param level
+     *                The level to calculate.
+     * @return The bucket information for the given object.
+     */
+    protected abstract B getBucket(O object, int level);
+    
+    /**
+     * Returns the bucket information for the given object.
+     * @param object
+     *                The object that will be calculated
+     * @return The bucket information for the given object.
+     */
+    protected abstract B getBucket(O object);
 
     @Override
     public int getBox(O object) throws OBException {
@@ -194,10 +438,10 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
     }
 
     @Override
-    public O getObject(int i) throws DatabaseException, IllegalIdException,
+    public O getObject(int id) throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException, OBException {
         // get the object from A, this is easy.
-        return null;
+        return aCache.get(id);
     }
 
     @Override
@@ -206,16 +450,35 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
         // need an object bucket that will always be sorted, and that will find
         // efficiently objects based on the first pivot.
         // TODO: fix this!!!
-        int nextId = (int) A.nextId();
-
-        TupleOutput out = new TupleOutput();
-        object.store(out);
-        this.A.put(nextId, out.getBufferBytes());
-
+        Result res = new Result();
+        res.setStatus(Result.Status.OK);
         if (this.isFrozen()) {
-            // store the SMAP vector.
+            B b = getBucket(object);            
+            res = this.insertBucket(b, object);
         }
-        return null;
+        else{        
+            res.setId( (int) A.nextId());
+        }
+        if(res.getStatus() == Result.Status.OK){
+            TupleOutput out = new TupleOutput();
+            object.store(out);
+            this.A.put(res.getId(), out.getBufferBytes());            
+        }
+        return res;
+    }
+    
+    /**
+     * Returns the bucket's storage id code
+     * @param bucket The bucket that will be processed.
+     * @return The exact location in the storage system for the given bucket.
+     */
+    private long getBucketStorageId(B bucket){
+        if(bucket.isExclusionBucket()){
+            return this.exclusionBucketId;
+        }else
+        {
+            return bucket.getStorageBucket();
+        }
     }
 
     @Override
@@ -226,8 +489,9 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
     @Override
     public O readObject(TupleInput in) throws InstantiationException,
             IllegalAccessException, OBException {
-        // TODO Auto-generated method stub
-        return null;
+        O res = type.newInstance();
+        res.load(in);
+        return res;
     }
 
     @Override
@@ -248,6 +512,34 @@ public abstract class AbstractDIndex < O extends OB > implements Index < O > {
     public int totalBoxes() {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+    /**
+     * Initializes the object cache {@link #cache}.
+     * @throws DatabaseException
+     *                 If something goes wrong with the DB.
+     */
+    protected void initCache() throws OBException {
+        if (aCache == null) {
+            aCache = new OBCache < O >(new ALoader());
+        }
+    }
+
+    private class ALoader implements OBCacheLoader < O > {
+
+        public int getDBSize() throws OBStorageException {
+            return (int) A.size();
+        }
+
+        public O loadObject(int i) throws DatabaseException,
+                OutOfRangeException, OBException, InstantiationException,
+                IllegalAccessException {
+            O res = type.newInstance();
+            TupleInput in = new TupleInput(A.getValue(i));
+            res.load(in);
+            return res;
+        }
+
     }
 
 }

@@ -45,8 +45,8 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  * @since 0.8
  */
-public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends AbstractIncrementalPivotSelector<O> implements
-        IncrementalPivotSelector {
+public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends AbstractIncrementalPivotSelector<O>
+         {
 
     private int retries = 7;
     /**
@@ -61,19 +61,18 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
      * @param index Index used to load and search objects
      * @param pivotable Object used to determine which objects are suitable for being pivots.
      */
-    public IncrementalKMeansPPPivotSelectorShort(Index<O> index, Pivotable<O> pivotable){
-        this.index = index;
+    public IncrementalKMeansPPPivotSelectorShort( Pivotable<O> pivotable){
         this.pivotable = pivotable;
     }
     
-    public int[] generatePivots(short pivotsCount) throws OBException,
+    public int[] generatePivots(short pivotsCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
-        return generatePivots(pivotsCount,null);
+        return generatePivots(pivotsCount,null, index);
     }
     
-    public int[] generatePivots(short pivotsCount, IntArrayList elements) throws OBException,
+    public int[] generatePivots(short pivotsCount, IntArrayList elements, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
