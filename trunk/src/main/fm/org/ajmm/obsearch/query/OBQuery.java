@@ -33,7 +33,7 @@ import org.ajmm.obsearch.result.OBPriorityQueue${Type};
  */
 
 
-public class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
+public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
 
 
     /**
@@ -78,6 +78,35 @@ public class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
         this.result = result;
     }
 
+   /**
+    * Returns true if we should calculate the real distance.
+    * @param smapDistance The lower-resolution distance calculated
+    * with SMAP.
+    * 
+    */
+    public boolean isCandidate(${type} smapDistance){
+        return result.isCandidate(smapDistance);
+    }
+
+   /**
+    * Add the given object, object id and distance of type float to the
+    * queue. Updates the range of the query as needed if the range
+    * shrinks after this insertion.
+    * @param id
+    *            The id of the object to be used
+    * @param obj
+    *            The object to be added
+    * @param distance
+    *            The distance to be added
+    * @throws IllegalAccessException
+    *             If there is a problem when instantiating objects O
+    * @throws InstantiationException
+    *             If there is a problem when instantiating objects O
+    */
+    public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
+				result.add(id,obj,distance);
+				distance = result.updateRange(distance);
+		}
 }
 
 </#list>

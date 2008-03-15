@@ -341,7 +341,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws DatabaseException
      *                 If something goes wrong with the DB.
      */
-    protected void initCache() throws DatabaseException {
+    protected void initCache() throws DatabaseException, OBException {
         if (cache == null) {
             int size = databaseSize();
             cache = new OBCache < O >(new ALoader());

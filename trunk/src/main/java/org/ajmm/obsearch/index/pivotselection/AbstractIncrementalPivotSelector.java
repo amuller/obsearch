@@ -6,6 +6,7 @@ import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
 
@@ -36,7 +37,8 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class AbstractIncrementalPivotSelector < O extends OB > {
+public abstract class AbstractIncrementalPivotSelector < O extends OB >
+        implements IncrementalPivotSelector < O > {
 
     /**
      * Index used to access objects.
@@ -49,10 +51,10 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB > {
      * avoid using them as pivots.
      */
     protected Pivotable < O > pivotable;
-    
-    // TODO: The id auto increment must be initialized properly. We should leave this 
+
+    // TODO: The id auto increment must be initialized properly. We should leave
+    // this
     // auto-increment to the underlying storage system.
-    
 
     /**
      * Returns the given object. If elements != null, then the returned item id
@@ -60,7 +62,8 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB > {
      * @param i
      *                The id in the database or in elements of the object that
      *                will be accessed.
-     * @param elements Elements that will be searched.
+     * @param elements
+     *                Elements that will be searched.
      * @return O object of the corresponding id.
      * @throws IllegalAccessException
      * @throws InstantiationException

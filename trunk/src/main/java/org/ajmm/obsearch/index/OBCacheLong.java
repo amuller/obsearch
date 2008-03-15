@@ -12,6 +12,7 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import com.sleepycat.je.DatabaseException;
 
 import cern.colt.map.OpenIntObjectHashMap;
+import cern.colt.map.OpenLongObjectHashMap;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -47,15 +48,15 @@ import cern.colt.map.OpenIntObjectHashMap;
  * @since 0.7
  */
 
-public final class OBCache < O > {
+public final class OBCacheLong < O > {
 
     /**
      * The map that stores the cache.
      */
     // private ConcurrentHashMap< Integer,O > map;
-    private OpenIntObjectHashMap map;
+    private OpenLongObjectHashMap map;
 
-    private OBCacheLoader < O > loader;
+    private OBCacheLoaderLong < O > loader;
 
     /**
      * Initialize the cache with the given amount of elements.
@@ -63,10 +64,10 @@ public final class OBCache < O > {
      *                Number of elements that the internal hash table will be
      *                initialized with.
      */
-    public OBCache(OBCacheLoader < O > loader) throws  OBException{
+    public OBCacheLong(OBCacheLoaderLong < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
-        map = new OpenIntObjectHashMap(2 * loader.getDBSize(), 0, 0.5);
+        map = new OpenLongObjectHashMap(2 * loader.getDBSize(), 0, 0.5);
         }catch(Exception e){
             throw new OBException(e);
         }
@@ -80,7 +81,7 @@ public final class OBCache < O > {
      * @param id
      *                the id to be removed
      */
-    public void remove(int id) {
+    public void remove(long id) {
         map.removeKey(id);
     }
 
@@ -90,7 +91,7 @@ public final class OBCache < O > {
      *                internal id.
      * @return null if no object is found
      */
-    public O get(final int id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+    public O get(final long id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
         // return map.get(id);
         // SoftReference<O>
         SoftReference < O > ref = (SoftReference < O >) map.get(id);

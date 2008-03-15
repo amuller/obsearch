@@ -105,7 +105,7 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
      */
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
             byte od, PivotSelector < O > pivotSelector, int cpus, Class<O> type)
-            throws DatabaseException, IOException {
+            throws DatabaseException, IOException, OBException {
         this(databaseDirectory, pivots, od, Short.MIN_VALUE, Short.MAX_VALUE,
                 pivotSelector, cpus, type);
     }
@@ -137,7 +137,7 @@ public class UnsafeNCorePPTreeShort < O extends OBShort >
     public UnsafeNCorePPTreeShort(File databaseDirectory, short pivots,
             byte od, short minInput, short maxInput,
             PivotSelector < O > pivotSelector, int cpus, Class<O> type)
-            throws DatabaseException, IOException {
+            throws DatabaseException, IOException, OBException {
         super(databaseDirectory, pivots, od, minInput, maxInput, pivotSelector, type);
 
         this.cpus = cpus;
