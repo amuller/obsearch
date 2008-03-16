@@ -14,7 +14,7 @@ import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.DatabaseException;
 
-public final class BucketContainerShort<O extends OBShort> implements
+public final class BucketContainerShort < O extends OBShort > implements
         BucketContainer < O, ObjectBucketShort, OBQueryShort < O >> {
     /**
      * Number of pivots for this bucket.
@@ -58,10 +58,22 @@ public final class BucketContainerShort<O extends OBShort> implements
      */
     private Index < O > index;
 
-    
+    /**
+     * Creates a new container with the given index and byte data
+     * @param index
+     *                Index to use to get objects.
+     * @param data
+     *                Bytes from which everything will be parsed.
+     */
+    public BucketContainerShort(Index < O > index, byte[] data) {
+        this.index = index;
+        this.data = data;
+    }
+
     @Override
-    public Result delete(ObjectBucketShort bucket, O object) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException{
+    public Result delete(ObjectBucketShort bucket, O object)
+            throws OBException, DatabaseException, IllegalIdException,
+            IllegalAccessException, InstantiationException {
         ArrayList < ObjectBucketShort > v = getSmapVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
@@ -76,21 +88,21 @@ public final class BucketContainerShort<O extends OBShort> implements
             }
         }
         // if an object was removed.
-        if(res.getStatus() == Result.Status.EXISTS){
+        if (res.getStatus() == Result.Status.EXISTS) {
             updateData();
         }
         return res;
     }
-    
+
     /**
      * Read dataView and update data[]
      */
-    private void updateData(){
+    private void updateData() {
         ArrayList < ObjectBucketShort > v = getSmapVectors();
         TupleOutput out = new TupleOutput();
         out.writeInt(v.size());
-        for(ObjectBucketShort b : v){
-            for(short j: b.getSmapVector()){
+        for (ObjectBucketShort b : v) {
+            for (short j : b.getSmapVector()) {
                 out.writeShort(j);
             }
             out.writeInt(b.getId());
@@ -122,16 +134,15 @@ public final class BucketContainerShort<O extends OBShort> implements
         return dataView;
     }
 
-    
     @Override
     public byte[] getBytes() {
         return data;
     }
 
-    
     @Override
-    public Result exists(ObjectBucketShort bucket, O object) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException{
+    public Result exists(ObjectBucketShort bucket, O object)
+            throws OBException, DatabaseException, IllegalIdException,
+            IllegalAccessException, InstantiationException {
         ArrayList < ObjectBucketShort > v = getSmapVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
@@ -139,7 +150,7 @@ public final class BucketContainerShort<O extends OBShort> implements
         while (it.hasNext()) {
             ObjectBucketShort j = it.next();
             if (j.smapEqual(bucket)
-                    && index.getObject(j.getId()).distance(object) == 0) {               
+                    && index.getObject(j.getId()).distance(object) == 0) {
                 res.setStatus(Result.Status.EXISTS);
                 res.setId(j.getId());
                 return res;
@@ -147,9 +158,10 @@ public final class BucketContainerShort<O extends OBShort> implements
         }
         return res;
     }
-    
-    public Result insert(ObjectBucketShort bucket) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException{
+
+    public Result insert(ObjectBucketShort bucket) throws OBException,
+            DatabaseException, IllegalIdException, IllegalAccessException,
+            InstantiationException {
         Result res = new Result();
         res.setStatus(Result.Status.OK);
         ArrayList < ObjectBucketShort > v = getSmapVectors();
@@ -164,9 +176,46 @@ public final class BucketContainerShort<O extends OBShort> implements
      *      org.ajmm.obsearch.OB)
      */
     @Override
-    public void search(OBQueryShort < O > query, O object) {
-        // TODO Auto-generated method stub
-
+    public boolean search(OBQueryShort < O > query, ObjectBucketShort b
+           ) throws IllegalAccessException, DatabaseException,
+            OBException, InstantiationException, IllegalIdException {
+        O object = query.getObject();
+        boolean res = true;
+        TupleInput in = new TupleInput(data);
+        int items = in.readInt();
+        int i = 0;
+        short[] smapVector = b.getSmapVector();
+        short range = query.getDistance();
+        // for every item in this bucket.
+        while (i < items) {
+            // calculate L-inf
+            short max = Short.MIN_VALUE;
+            short t;
+            int cx = 0;
+            while (cx < smapVector.length) {
+                t = (short) Math.abs(smapVector[cx] - in.readShort());
+                if (t > max) {
+                    max = t;
+                    // inefficient, we have to read all the bytes in the bucket :(
+                    // need to skip bytes.
+                   /* if (t > range) {
+                        break; // finish this loop this slice won't be
+                        // matched
+                    }*/
+                }
+                cx++;
+            }
+            if (query.isCandidate(max)) {
+                int id = in.readInt(); // read the id
+                O toCompare = index.getObject(id);
+                short realDistance = object.distance(toCompare);
+                if (realDistance <= range) {
+                    query.add(id, toCompare, realDistance);
+                }
+            }
+            i++;
+        }
+        return res;
     }
 
 }

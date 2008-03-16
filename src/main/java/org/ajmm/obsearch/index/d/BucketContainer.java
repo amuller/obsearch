@@ -49,29 +49,31 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         {@link org.ajmm.obsearch.Result.Status#NOT_EXISTS} if the object
      *         is not in the database.
      */
-    Result delete(B bucket, O object) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException;
+    Result delete(B bucket, O object) throws OBException, DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
      * Inserts the given object with the given bucket details to this bucket.
-     * Warning: This method assumes that object does not exist in the DB.
-     * In bucket, an id will be provided by the caller.
+     * Warning: This method assumes that object does not exist in the DB. In
+     * bucket, an id will be provided by the caller.
      * @param bucket
      *                This will should match this bucket's id. Used to pass
-     *                additional information such as the SMAP vector.                
+     *                additional information such as the SMAP vector.
      * @return If {@link org.ajmm.obsearch.Result.Status#OK} or
      *         {@link org.ajmm.obsearch.Result.Status#EXISTS} then the result
      *         will hold the id of the inserted object and the operation is
      *         successful.
      */
-    Result insert(B bucket) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException;
-    
+    Result insert(B bucket) throws OBException, DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException;
+
     /**
-     * Returns true if the object and its bucket definition exist 
-     * in this container
-     * @param bucket The bucket associated to object
-     * @param object The object that will be inserted
+     * Returns true if the object and its bucket definition exist in this
+     * container
+     * @param bucket
+     *                The bucket associated to object
+     * @param object
+     *                The object that will be inserted
      * @return true if object exists in this container.
      * @throws OBException
      * @throws DatabaseException
@@ -82,10 +84,8 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         id if the object exists in the database, otherwise
      *         {@link org.ajmm.obsearch.Result.Status#NOT_EXISTS} is returned.
      */
-    Result exists(B bucket, O object) throws OBException, DatabaseException, IllegalIdException,
-    IllegalAccessException, InstantiationException;
-    
-    
+    Result exists(B bucket, O object) throws OBException, DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
      * Get the byte representation of this bucket.
@@ -94,14 +94,19 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
     byte[] getBytes();
 
     /**
-     * Searches the given object with the given searchContainer parameters.
-     * The searchContainer will be updated as necessary.
+     * Searches the given object with the given searchContainer parameters. The
+     * searchContainer will be updated as necessary.
      * @param query
      *                The search parameters (range, priority queue with the
      *                closest elements)
-     * @param object The object that will be searched.
-     * 
+     * @param bucket
+     *                The object of the given object.
+     * @param object
+     *                The object that will be searched.
+     * @return true if we should continue searching to the next level.
      */
-    void search(Q query, O object);
+    boolean search(Q query, B bucket) throws IllegalAccessException,
+            DatabaseException, OBException, InstantiationException,
+            IllegalIdException;
 
 }

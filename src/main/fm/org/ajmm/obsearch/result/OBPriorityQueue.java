@@ -59,7 +59,7 @@ import org.ajmm.obsearch.ob.OB${Type};
     public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
             // recycle objects.
-            if (queue.peek().getDistance() >= distance) {// biggest object in
+            if (queue.peek().getDistance() > distance) {// biggest object in
                 // the heap is
                 // bigger than d
                 OBResult${Type}<O> c = queue.poll();
