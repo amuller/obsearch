@@ -147,7 +147,7 @@ implements IndexShort<O>{
      * @param distance Distance of the pivot and the object we are processing
      * @return Returns 0 if d(o,p) <= median - p . Returns 1 if d(o,p) > median +p. Returns 2 otherwise. 
      */
-    private int bps(short median, short distance, short p ){
+    private int bps(short median, short distance, short p){
         if(distance <= median - p){
             return 0;
         }else if(distance > median + p){
@@ -204,8 +204,8 @@ implements IndexShort<O>{
     }
 
     protected BucketContainerShort < O > instantiateBucketContainer(byte []  data){
-                   return new BucketContainerShort < O >(this, data);
-           }
+             return new BucketContainerShort < O >(this, data);
+    }
 
     /* (non-Javadoc)
      * @see org.ajmm.obsearch.index.IndexShort#intersectingBoxes(org.ajmm.obsearch.ob.OBShort, short)
