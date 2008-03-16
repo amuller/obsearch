@@ -85,9 +85,6 @@ public abstract class ObjectBucket {
     public ObjectBucket(long bucket, int level, boolean exclusionBucket, int id) {
         super();
         this.bucket = bucket;
-        if(level < 0){
-            throw new IllegalArgumentException("Level cannot be less or equal than 0");
-        }
         this.level = level;
         this.exclusionBucket = exclusionBucket;
         this.id = id;
