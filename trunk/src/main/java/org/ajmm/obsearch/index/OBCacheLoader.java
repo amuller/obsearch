@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.index;
 
+import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
@@ -32,7 +33,7 @@ public interface OBCacheLoader< O > {
     
     O loadObject(int i) throws DatabaseException, 
     OutOfRangeException, OBException, InstantiationException , 
-    IllegalAccessException, OBStorageException;
+    IllegalAccessException, OBStorageException, IllegalIdException;
     /**
      * Returns the size of the DB
      * @return the size of the DB.

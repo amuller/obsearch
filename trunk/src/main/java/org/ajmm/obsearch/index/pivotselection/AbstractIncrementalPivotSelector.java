@@ -40,10 +40,7 @@ import com.sleepycat.je.DatabaseException;
 public abstract class AbstractIncrementalPivotSelector < O extends OB >
         implements IncrementalPivotSelector < O > {
 
-    /**
-     * Index used to access objects.
-     */
-    protected Index < O > index;
+    
 
     /**
      * Pivotable objects determine if a given object is suitable. For example,
@@ -71,13 +68,18 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
      * @throws IllegalIdException
      * @throws OBException
      */
-    protected final O getObject(int i, IntArrayList elements)
+    protected final O getObject(int i, IntArrayList elements, Index<O> index)
             throws IllegalAccessException, InstantiationException,
             DatabaseException, IllegalIdException, OBException {
-        if (elements == null) {
-            return index.getObject(elements.get(i));
-        } else {
-            return index.getObject(i);
+
+        return index.getObject(mapId(i, elements));
+    }
+    
+    protected int mapId(int i, IntArrayList elements) {
+        if (elements != null) {
+            return elements.get(i);
+        }else{
+            return i;
         }
     }
 

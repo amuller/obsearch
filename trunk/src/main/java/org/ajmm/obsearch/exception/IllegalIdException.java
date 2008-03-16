@@ -30,7 +30,16 @@ package org.ajmm.obsearch.exception;
 
 public class IllegalIdException
         extends OBException {
+    private int id;
     public String toString(){
-        return "Illegal id was received :(";
+        return "Illegal id was received :( : " + id;
     }
+    public  IllegalIdException(int id){
+        this.id = id;
+    }
+    
+    public IllegalIdException(){
+        this.id = -1;
+    }
+    
 }

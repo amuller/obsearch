@@ -68,9 +68,9 @@ public class ObjectBucketShort
      * @return true if both vectors are equal.
      */
     public boolean smapEqual(ObjectBucketShort other){
-        assert this.getBucket() == other.getBucket();
+        /*assert this.getBucket() == other.getBucket();
         assert this.getStorageBucket() == other.getStorageBucket();
-        assert this.isExclusionBucket() == other.isExclusionBucket();
+        assert this.isExclusionBucket() == other.isExclusionBucket();*/
         return Arrays.equals(this.smapVector, other.smapVector);
     }
 
@@ -80,6 +80,10 @@ public class ObjectBucketShort
      */
     public void setSmapVector(short[] smapVector) {
         this.smapVector = smapVector;
+    }
+    
+    public int getPivotSize(){
+        return smapVector.length;
     }
 
 }

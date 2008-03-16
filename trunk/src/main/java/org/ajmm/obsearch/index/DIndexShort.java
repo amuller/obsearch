@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.ajmm.obsearch.Index;
@@ -18,6 +19,7 @@ import org.ajmm.obsearch.index.d.ObjectBucketShort;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
+import org.ajmm.obsearch.result.OBResultShort;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
 
@@ -78,23 +80,19 @@ implements IndexShort<O>{
         
         int i = 0;
         ArrayList < O > piv = super.pivots.get(level);
-        short[] medians = median.get(level);
         short[] smapVector = new short[piv.size()]; 
         long bucketId = 0;
-        boolean exclusionBucket = false;
         while (i < piv.size()) {
             short distance = piv.get(i).distance(object);
-            smapVector[i] = distance;
-            int r = bps(medians[i], distance, p);
-            if(r == 1){
-                bucketId = bucketId | super.masks[level];
-            }else if(r == 2){
-                exclusionBucket = true;
-            }
+            smapVector[i] = distance;          
             i++;
         }
-        return new ObjectBucketShort(bucketId, level, smapVector, exclusionBucket, -1);
+        ObjectBucketShort res =  new ObjectBucketShort(bucketId,level, smapVector, false, -1);
+        updateBucket(res, level, p);
+        return res;
     }
+    
+    
     
     /**
      * Calculate a new bucket based on the smap vector of the given b
@@ -116,7 +114,7 @@ implements IndexShort<O>{
             short distance = smapVector[i];
             int r = bps(medians[i], distance, p);
             if(r == 1){
-                bucketId = bucketId | super.masks[level];
+                bucketId = bucketId | super.masks[i];
             }else if(r == 2){
                 exclusionBucket = true;
             }
@@ -124,7 +122,8 @@ implements IndexShort<O>{
         }
         b.setBucket(bucketId);
         b.setExclusionBucket(exclusionBucket);
-        assert b.getLevel() == level;
+        b.setLevel(level);
+        
     }
 
     @Override
@@ -172,21 +171,31 @@ implements IndexShort<O>{
             max = elementsSource.size();
         }
         short[] medians = new short[pivots.size()];
-        logger.debug("Calculating medians for level: " + level);
+        logger.debug("Calculating medians for level: " + level + " max: " + max);
+        assert pivots.size() > 0;
         while (i < pivots.size()) {
             O p = pivots.get(i);
             int cx = 0;
             ShortArrayList medianData = new ShortArrayList(max);
             // calculate median for pivot p
             while (cx < max) {
-                O o = getObjectFreeze(i, elementsSource);
+                O o = getObjectFreeze(cx, elementsSource);
                 medianData.add(p.distance(o));
                 cx++;
             }
+          
             medians[i] = median(medianData);
             i++;
         }
+        assert i > 0;
+        if(logger.isDebugEnabled()){
+            logger.debug("Found medians: " + Arrays.toString(medians));
+        }
+        if(median == null){
+            median = new ArrayList<short[]>();
+        }
         this.median.add(medians);
+        assert super.pivots.size() == median.size(): "Piv: " + super.pivots.size() + " Med: " + median.size();
     }
 
     private short median(ShortArrayList medianData) {
@@ -195,8 +204,8 @@ implements IndexShort<O>{
     }
 
     protected BucketContainerShort < O > instantiateBucketContainer(byte []  data){
-        return new BucketContainerShort < O >(this, data);
-    }
+                   return new BucketContainerShort < O >(this, data);
+           }
 
     /* (non-Javadoc)
      * @see org.ajmm.obsearch.index.IndexShort#intersectingBoxes(org.ajmm.obsearch.ob.OBShort, short)
@@ -245,16 +254,16 @@ implements IndexShort<O>{
         int i = 0;
         ObjectBucketShort  b = null;
         while(i < pivots.size()){// search through all the levels.
-            b =  getBucket(object, i, (short)(p - r));
+            b =  getBucket(object, i, (short)(p + r));
             if(! b.isExclusionBucket()){
-                BucketContainerShort<O> bc = super.bucketContainerCache.get(b.getStorageBucket());
+                BucketContainerShort<O> bc = super.bucketContainerCache.get(super.getBucketStorageId(b));
                 bc.search(q,b);
                 return;
             }
             if(r <= p){
                 this.updateBucket(b, i, (short)(p - r));
                 if(! b.isExclusionBucket()){
-                    BucketContainerShort<O> bc = super.bucketContainerCache.get(b.getStorageBucket());
+                    BucketContainerShort<O> bc = super.bucketContainerCache.get(super.getBucketStorageId(b));
                     bc.search(q, b);
                 }
             }else{
@@ -268,7 +277,23 @@ implements IndexShort<O>{
     }
 
    
-
+    @Override
+    public Result exists(O object) throws DatabaseException, OBException,
+            IllegalAccessException, InstantiationException {
+        OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >((byte)1);
+        searchOB(object, (short)0, result);
+        Result res = new Result();
+        res.setStatus(Result.Status.NOT_EXISTS);
+        if(result.getSize() ==1){
+            Iterator<OBResultShort<O>> it = result.iterator();
+            OBResultShort<O> r = it.next();
+            if(r.getObject().equals(object)){
+                res.setId(r.getId());
+                res.setStatus(Result.Status.EXISTS);
+            }
+        }
+        return  res;
+    }
     
 
     
