@@ -51,14 +51,14 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
      * Creates a new OBQuery${Type} object.
      * @param object
      *            The object that will be matched.
-     * @param distance
-     *            The distance to be used for the match.
+     * @param range
+     *            The range to be used for the match.
      * @param result
      *            The priority queue were the results will be stored.
      */
-    public OBQuery${Type}(O object, ${type} distance, OBPriorityQueue${Type}<O> result){
+    public OBQuery${Type}(O object, ${type} range, OBPriorityQueue${Type}<O> result){
 
-        super(object,-1,distance);
+        super(object,-1,range);
         this.result = result;
     }
 

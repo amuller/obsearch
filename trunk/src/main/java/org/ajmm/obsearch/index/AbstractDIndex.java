@@ -128,7 +128,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     /**
      * Cache used for storing recently accessed Buckets.
      */
-    private transient OBCacheLong < BC > bucketContainerCache;
+    protected transient OBCacheLong < BC > bucketContainerCache;
 
     /**
      * How many pivots will be used on each level of the hash table.
@@ -173,8 +173,9 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         this.nextLevelThreshold = nextLevelThreshold;
     }
 
-    private void init() throws OBStorageException{
+    private void init() throws OBStorageException, OBException{
         initStorageDevices();
+        initCache();
         // initialize the masks;
         int i = 0;
         int mask = 1;
@@ -195,21 +196,9 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     protected void initStorageDevices() throws OBStorageException {
         this.A = fact.createOBStoreInt("A", false);
         this.Buckets = fact.createOBStoreLong("Buckets", false);
-        initSpecializedStorageDevices();
     }
 
-    /**
-     * This method will be called by {@link #initSpecializedStorageDevices()} to
-     * initialize other storage devices required by the subclasses. If your
-     * subclass is not an immediate subclass of
-     * {@link #AbstractDIndex(OBStoreFactory, short, PivotSelector, Class)},
-     * then you should always call super.
-     * {@link #initSpecializedStorageDevices()} after initializing your device.
-     * @throws OBStorageException
-     *                 If the storage device could not be created.
-     */
-    protected abstract void initSpecializedStorageDevices()
-            throws OBStorageException;
+   
 
     /**
      * Subclasses must call this method after they have closed the storage
@@ -282,6 +271,8 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 int[] pivots = this.pivotSelector.generatePivots(pivotSize,
                         elementsSource, this);
                 putPivots(pivots);
+                // calculate medians required to be able to use the bps function.
+                calculateMedians(level, elementsSource);
                 int i = 0;
                 int max;
                 if (elementsSource == null) {
@@ -342,6 +333,16 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             throw new OBException(e);
         }
     }
+    /**
+     * Calculate median values for pivots of level i based on the elementsSource.
+     * If elementsSource == null, all the objects in the DB are used.
+     * @param level The level that will be processed.
+     * @param elementsSource The objects that will be processed to generate median data information.
+     * @throws OBStorageException if something goes wrong with the storage device.
+     */
+    protected abstract void calculateMedians(int level, IntArrayList elementsSource) throws OBStorageException, IllegalIdException,
+    IllegalAccessException, InstantiationException, DatabaseException,
+    OutOfRangeException, OBException ;
 
     /**
      * Stores the given bucket b into the {@link #Buckets} storage device. The
@@ -404,7 +405,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      * Auxiliary function used in freeze to get objects directly from the DB, or
      * by using an array of object ids.
      */
-    private O getObjectFreeze(int id, IntArrayList elementSource)
+    protected O getObjectFreeze(int id, IntArrayList elementSource)
             throws IllegalIdException, IllegalAccessException,
             InstantiationException, DatabaseException, OutOfRangeException,
             OBException {
@@ -421,7 +422,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      *                The level to calculate.
      * @return The bucket information for the given object.
      */
-    protected abstract B getBucket(O object, int level);
+    protected abstract B getBucket(O object, int level) throws OBException;
     
     /**
      * Returns the bucket information for the given object.
@@ -429,7 +430,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      *                The object that will be calculated
      * @return The bucket information for the given object.
      */
-    protected abstract B getBucket(O object);
+    protected abstract B getBucket(O object) throws OBException;
 
     @Override
     public int getBox(O object) throws OBException {
@@ -523,6 +524,9 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         if (aCache == null) {
             aCache = new OBCache < O >(new ALoader());
         }
+        if(this.bucketContainerCache == null){
+            this.bucketContainerCache = new OBCacheLong<BC>(new BucketLoader());
+        }
     }
 
     private class ALoader implements OBCacheLoader < O > {
@@ -538,6 +542,27 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             TupleInput in = new TupleInput(A.getValue(i));
             res.load(in);
             return res;
+        }
+
+    }
+    
+    /**
+     * Get a bucket container fromt he given data.
+     * @param data The data from which the bucket container will be loaded.
+     * @return A new bucket container ready to be used.
+     */
+    protected abstract BC instantiateBucketContainer(byte []  data);
+    
+    private class BucketLoader implements OBCacheLoaderLong < BC > {
+
+        public int getDBSize() throws OBStorageException {
+            return   (int) Buckets.size();
+        }
+
+        public BC loadObject(long i) throws DatabaseException,
+                OutOfRangeException, OBException, InstantiationException,
+                IllegalAccessException {
+            return instantiateBucketContainer(Buckets.getValue(i));
         }
 
     }
