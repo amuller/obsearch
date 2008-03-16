@@ -81,6 +81,8 @@ public class OBSlice implements OBShort {
      */
     public final short distance(final OBShort object) throws OBException {
         OBSlice b = (OBSlice) object;
+        assert this.tree != null;
+        assert b.tree != null;
         if (this.tree.getSize() < b.tree.getSize()) {
             return distance(this.tree, b.tree);
         } else {

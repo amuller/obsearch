@@ -103,10 +103,35 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *                The object of the given object.
      * @param object
      *                The object that will be searched.
-     * @return true if we should continue searching to the next level.
      */
-    boolean search(Q query, B bucket) throws IllegalAccessException,
+    void search(Q query, B bucket) throws IllegalAccessException,
             DatabaseException, OBException, InstantiationException,
             IllegalIdException;
+    
+    /**
+     * # of objects in this container.
+     * @return The # of objects in this container.
+     */
+    int size();
+    
+    /**
+     * # of pivots for this container.
+     * @return
+     */
+    int getPivots();
+    
+    /**
+     * Sets the # of pivots for this container.
+     */
+    void setPivots(int pivots);
 
+    /**
+     * @return the level
+     */
+    public int getLevel();
+
+    /**
+     * @param level the level to set
+     */
+    public void setLevel(int level);
 }

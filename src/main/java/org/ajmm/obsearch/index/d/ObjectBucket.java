@@ -25,7 +25,7 @@ package org.ajmm.obsearch.index.d;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class ObjectBucket {
+public abstract class ObjectBucket {
     
     /**
      * The bucket number of the object.
@@ -79,14 +79,13 @@ public class ObjectBucket {
      * Creates a new bucket with the given bucket number and
      * the specified level.
      * @param bucket Bucket number.
-     * @param level Level within the hash table.
      * @param exclusionBucket If true, the corresponding object is in the exclusion zone.
      * @param optional id of the object.
      */
     public ObjectBucket(long bucket, int level, boolean exclusionBucket, int id) {
         super();
         this.bucket = bucket;
-        if(level <= 0){
+        if(level < 0){
             throw new IllegalArgumentException("Level cannot be less or equal than 0");
         }
         this.level = level;
@@ -108,15 +107,7 @@ public class ObjectBucket {
         this.id = id;
     }
 
-    /**
-     * 
-     * @return Returns the bucket number used on disk.
-     */
-    public long getStorageBucket(){
-        
-        return (level +1) * bucket;                
-        
-    }
+   
 
     /**
      * @return the exclusionBucket
@@ -131,5 +122,11 @@ public class ObjectBucket {
     public void setExclusionBucket(boolean exclusionBucket) {
         this.exclusionBucket = exclusionBucket;
     }
+    
+    /**
+     * Returns the # of pivots.
+     * @return
+     */
+    public abstract int getPivotSize();
 
 }

@@ -67,7 +67,7 @@ public class IndexSmokeTUtil {
     /**
      * Creates a new smoke tester. Loads test properties.
      * @throws IOException
-     *             If the properties file cannot be found.
+     *                 If the properties file cannot be found.
      */
     public IndexSmokeTUtil() throws IOException {
         testProperties = TUtils.getTestProperties();
@@ -76,9 +76,9 @@ public class IndexSmokeTUtil {
     /**
      * Initialize the index.
      * @param index
-     *            Index to be initialized.
+     *                Index to be initialized.
      * @throws Exception
-     *             If something goes wrong.
+     *                 If something goes wrong.
      */
     public void initIndex(IndexShort < OBSlice > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
@@ -96,12 +96,14 @@ public class IndexSmokeTUtil {
                 OBSlice s = new OBSlice(line);
                 if (shouldProcessSlice(s)) {
                     Result res = index.insert(s);
-                    assertTrue(res.getStatus() == Result.Status.OK);
+                    assertTrue(
+                            "Returned status: " + res.getStatus().toString(),
+                            res.getStatus() == Result.Status.OK);
                     assertEquals(realIndex, res.getId());
                     // If we insert before freezing, we should
                     // be getting a Result.EXISTS if we try to insert
                     // again!
-                    assertTrue(! index.isFrozen());
+                    assertTrue(!index.isFrozen());
                     res = index.insert(s);
                     assertTrue(res.getStatus() == Result.Status.EXISTS);
                     assertEquals(res.getId(), realIndex);
@@ -112,9 +114,7 @@ public class IndexSmokeTUtil {
 
         }
         r.close();
-        
-        
-        
+
         // "learn the data".
         logger.info("freezing");
         index.freeze();
@@ -137,13 +137,13 @@ public class IndexSmokeTUtil {
                     // the -1
                     res = index.insert(s);
                     assertEquals(res.getId(), i);
-                    assertTrue(res.getStatus() == Result.Status.EXISTS );
+                    assertTrue(res.getStatus() == Result.Status.EXISTS);
                     i++;
                 }
                 if (i % 10000 == 0) {
                     logger.info("Exists/insert : " + i);
                 }
-               
+
             }
             re = r.readLine();
         }
@@ -158,21 +158,21 @@ public class IndexSmokeTUtil {
      * Creates a database, fills it with data. Performs several queries and
      * compares the result with the sequential search.
      * @param index
-     *            The index that will be tested
+     *                The index that will be tested
      * @exception If
-     *                something goes wrong.
+     *                    something goes wrong.
      */
     protected void tIndex(IndexShort < OBSlice > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
-        
+
         int cx = 0;
-       
+
         initIndex(index);
-        search(index, (short)3,(byte)3);
-        search(index, (short)10,(byte)3);
+        search(index, (short) 3, (byte) 3);
+        search(index, (short) 10, (byte) 3);
         int i = 0;
-       // int realIndex = 0;
+        // int realIndex = 0;
         // test special methods that only apply to
         // SynchronizableIndex
         if (index instanceof SynchronizableIndex) {
@@ -193,11 +193,12 @@ public class IndexSmokeTUtil {
                     // iterator and confirm that it is in the database.
                     OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
                             (byte) 1);
-                    // it should be  set to 0, but it won't work with 0.
+                    // it should be set to 0, but it won't work with 0.
                     index2.searchOB(o, (short) 5, x);
                     Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
                     assertTrue(" Size found:" + x.getSize() + " item # " + cx
-                            + " : " + o + " db size: " + index.databaseSize(), x.getSize() == 1);
+                            + " : " + o + " db size: " + index.databaseSize(),
+                            x.getSize() == 1);
                     while (it3.hasNext()) {
                         OBResultShort < OBSlice > j = it3.next();
                         assertTrue(j.getObject().equals(o));
@@ -234,15 +235,17 @@ public class IndexSmokeTUtil {
         index.close();
         Directory.deleteDirectory(dbFolder);
     }
-    
+
     /**
      * Perform all the searches with
-     * @param x the index that will be used
+     * @param x
+     *                the index that will be used
      * @param range
      * @param k
      */
-    public  void search(IndexShort< OBSlice > index, short range, byte k) throws Exception{
-     // assertEquals(index.aDB.count(), index.bDB.count());
+    public void search(IndexShort < OBSlice > index, short range, byte k)
+            throws Exception {
+        // assertEquals(index.aDB.count(), index.bDB.count());
         // assertEquals(index.aDB.count(), index.bDB.count());
         // index.stats();
         // it is time to Search
@@ -343,9 +346,9 @@ public class IndexSmokeTUtil {
     /**
      * if x is in j.
      * @param x
-     *            item to search.
+     *                item to search.
      * @param j
-     *            array to search.
+     *                array to search.
      * @return true if x is in j.
      */
     public static boolean isIn(int x, int[] j) {
@@ -360,10 +363,10 @@ public class IndexSmokeTUtil {
     /**
      * We only process slices of this size.
      * @param x
-     *            Slice
+     *                Slice
      * @return true if the slice is within the size we want.
      * @throws Exception
-     *             If something goes wrong.
+     *                 If something goes wrong.
      */
     public static boolean shouldProcessSlice(OBSlice x) throws Exception {
         return x.size() <= 100;
@@ -372,7 +375,7 @@ public class IndexSmokeTUtil {
     /**
      * Parse a line in the slices file.
      * @param line
-     *            A line in the file
+     *                A line in the file
      * @return null if the line is a comment or a String if the line is a valid
      *         tree representation
      */
@@ -396,17 +399,17 @@ public class IndexSmokeTUtil {
     /**
      * Sequential search.
      * @param max
-     *            Search all the ids in the database until max
+     *                Search all the ids in the database until max
      * @param o
-     *            The object to search
+     *                The object to search
      * @param result
-     *            The queue were the results are stored
+     *                The queue were the results are stored
      * @param index
-     *            the index to search
+     *                the index to search
      * @param range
-     *            The range to employ
+     *                The range to employ
      * @throws Exception
-     *             If something goes really bad.
+     *                 If something goes really bad.
      */
     public static void searchSequential(int max, OBSlice o,
             OBPriorityQueueShort < OBSlice > result,

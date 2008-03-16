@@ -98,12 +98,12 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
         do{
             ind = r.nextInt(databaseSize);
             centroidIds[currentCenter] = ind;
-            currentObject = getObject(centroidIds[currentCenter], elements);
+            currentObject = getObject(centroidIds[currentCenter], elements, index);
         }while(! pivotable.canBeUsedAsPivot(currentObject));
         
         int i = 0;
         while (i < databaseSize) {
-            O toCompare = getObject(i, elements);
+            O toCompare = getObject(i, elements, index);
             closestDistances[i] = currentObject.distance( toCompare);
             potential += closestDistances[i];
             i++;
@@ -127,7 +127,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
                         continue;
                     }
                     if (probability <= closestDistances[ind]){
-                        tempB = getObject(ind, elements);
+                        tempB = getObject(ind, elements, index);
                         if(pivotable.canBeUsedAsPivot(tempB)){
                             break;
                         }
@@ -135,7 +135,9 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
                     
                     probability -= closestDistances[ind];
                 }
-
+                if(tempB == null){
+                    throw new PivotsUnavailableException();
+                }
                 // Compute the new potential
                 short newPotential = 0;
                 
@@ -143,7 +145,9 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
                     if (contains(ind, centroidIds, centerCount)) {
                         continue;
                     }
-                    O tempA = getObject(i, elements);
+                    O tempA = getObject(i, elements, index);
+                    assert tempA != null;
+                    assert tempB != null;
                     newPotential += Math.min(tempA.distance( tempB),
                             closestDistances[i]);
                 }
@@ -161,12 +165,12 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
             centroidIds[centerCount] = bestIndex;
             
             potential = bestPotential;
-            O tempB = getObject(bestIndex,elements);
+            O tempB = getObject(bestIndex,elements, index);
             for (i = 0; i < databaseSize; i++) {
                 if (contains(ind, centroidIds, centerCount)) {
                     continue;
                 }
-                O tempA = getObject(i, elements);
+                O tempA = getObject(i, elements, index);
                 closestDistances[i] = (short)Math.min(tempA.distance( tempB),
                         closestDistances[i]);
             }                        

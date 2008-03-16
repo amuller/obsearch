@@ -93,8 +93,9 @@ public class BDBFactory implements OBStoreFactory {
 
     public OBStore createOBStore(String name, boolean temp) throws OBStorageException{       
         OBStore res = null;
+        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         try{
-            res = new BDBOBStore(name, env.openDatabase(null, name, null), env.openDatabase(null, name + "seq", null));
+            res = new BDBOBStore(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
@@ -124,7 +125,7 @@ public OBStore${Type} createOBStore${Type}(String name, boolean temp) throws OBS
         OBStore${Type} res = null;
         try{
             DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-            res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", null));
+            res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
