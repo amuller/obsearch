@@ -419,7 +419,6 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         BC bc = this.bucketContainerCache.get(bucketId);
         if (bc.getBytes() == null) { // it was just created for the first time.
             bc.setPivots(pivots.get(b.getLevel()).size());
-            bc.setLevel(b.getLevel());
         }
         Result res = new Result();
         synchronized (bc) {

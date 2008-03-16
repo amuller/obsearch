@@ -125,13 +125,5 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      */
     void setPivots(int pivots);
 
-    /**
-     * @return the level
-     */
-    public int getLevel();
-
-    /**
-     * @param level the level to set
-     */
-    public void setLevel(int level);
+    
 }

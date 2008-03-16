@@ -18,13 +18,6 @@ public final class BucketContainerShort < O extends OBShort > implements
         BucketContainer < O, ObjectBucketShort, OBQueryShort < O >> {
 
     /**
-     * Level of this bucket.
-     */
-    private int level;
-
-    
-
-    /**
      * The storage id.
      */
     private long storage;
@@ -97,14 +90,11 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert pivots != 0;
         out.writeInt(pivots);
         out.writeInt(v.size());
-        out.writeInt(level);
         for (ObjectBucketShort b : v) {
-            int p = 1;
             assert pivots == b.getSmapVector().length : " pivots: " + pivots
                     + " item: " + b.getSmapVector().length;
             for (short j : b.getSmapVector()) {
                 out.writeShort(j);
-                p++;
             }
             out.writeInt(b.getId());
         }
@@ -120,7 +110,6 @@ public final class BucketContainerShort < O extends OBShort > implements
                 in = new TupleInput(data);
                 pivots = in.readInt();
                 count = in.readInt();
-                level = in.readInt();
             } else {
                 count = 0;
                 assert pivots != 0;
@@ -136,7 +125,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                     cx++;
                 }
                 int id = in.readInt();
-                view.add(new ObjectBucketShort(this.bucketId, this.level,
+                view.add(new ObjectBucketShort(this.bucketId, -1,
                         tuple, false, id));
                 i++;
             }
@@ -211,8 +200,8 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert this.bucketId == b.getBucket();
         
         int items = in.readInt();
-        level = in.readInt();
-        assert level == b.getLevel(): " Level: " + level + " bucket level: " + b.getLevel();
+
+
         int i = 0;
         short[] smapVector = b.getSmapVector();
         short range = query.getDistance();
@@ -270,19 +259,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         this.pivots = pivots;
     }
 
-    /**
-     * @return the level
-     */
-    public int getLevel() {
-        return level;
-    }
-
-    /**
-     * @param level the level to set
-     */
-    public void setLevel(int level) {
-        this.level = level;
-    }
+    
 
     
 }
