@@ -22,10 +22,7 @@ public final class BucketContainerShort < O extends OBShort > implements
      */
     private int level;
 
-    /**
-     * if the bucket is the exclusion bucket.
-     */
-    private boolean exclusionBucket;
+    
 
     /**
      * The storage id.
@@ -140,7 +137,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                 }
                 int id = in.readInt();
                 view.add(new ObjectBucketShort(this.bucketId, this.level,
-                        tuple, this.exclusionBucket, id));
+                        tuple, false, id));
                 i++;
             }
             dataView = view;
@@ -180,6 +177,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             DatabaseException, IllegalIdException, IllegalAccessException,
             InstantiationException {
         Result res = new Result();
+        //assert this.exclusionBucket == bucket.isExclusionBucket(): "Container: " + this.exclusionBucket + " bucket: " + bucket.isExclusionBucket();
         assert pivots == bucket.getSmapVector().length: " pivots: " + pivots +" obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
         ArrayList < ObjectBucketShort > v = getSmapVectors();
@@ -210,8 +208,11 @@ public final class BucketContainerShort < O extends OBShort > implements
         pivots = in.readInt();
         assert pivots == b.getSmapVector().length;
         
+        assert this.bucketId == b.getBucket();
+        
         int items = in.readInt();
         level = in.readInt();
+        assert level == b.getLevel(): " Level: " + level + " bucket level: " + b.getLevel();
         int i = 0;
         short[] smapVector = b.getSmapVector();
         short range = query.getDistance();
@@ -236,7 +237,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                 cx++;
             }
             int id = in.readInt(); // read the id
-            if (query.isCandidate(max)) {                
+            if (max <= query.getDistance() && query.isCandidate(max)) {                
                 O toCompare = index.getObject(id);
                 short realDistance = object.distance(toCompare);
                 if (realDistance <= range) {

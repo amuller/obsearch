@@ -287,6 +287,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             int level = 0;
             int maxBucketSize = 0;
             pivots = new ArrayList < ArrayList < O >>();
+            int insertedObjects = 0;
             boolean cont = true;
             do {
                 // generate pivots for the current souce elements.
@@ -313,6 +314,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                         elementsDestination.add(idMap(i, elementsSource));
                     } else {
                         insertBucket(b, o);
+                        insertedObjects++;
                         BC bc = this.bucketContainerCache
                                 .get(getBucketStorageId(b));
                         if (maxBucketSize < bc.size()) {
@@ -342,7 +344,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             
             // now we just have to store the bucket id for the exclusion bucket,
             // and store those objects in the the exclusion bucket.
-            double id = level * (Math.pow(2, pivotSize));
+            double id = this.accum[level-1] + (Math.pow(2, pivotSize));
             OBAsserts.chkAssert(id <= Long.MAX_VALUE,
                     "Exceeded bucket id addressing at level: " + (level - 1)
                             + ", aborting");
@@ -355,8 +357,10 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 B b = getBucket(o, level - 1);
                 assert (b.isExclusionBucket());
                 insertBucket(b, o);
+                insertedObjects++;
                 i++;
             }
+            assert A.size() == insertedObjects;
             // We have inserted all objects, we only have to store
             // the pivots into bytes.
             pivotBytes = new ArrayList < ArrayList < byte[] >>();
@@ -413,7 +417,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         // if the bucket is the exclusion bucket
         // get the bucket container from the cache.
         BC bc = this.bucketContainerCache.get(bucketId);
-        if (bc.getBytes() == null) { // it was just created.
+        if (bc.getBytes() == null) { // it was just created for the first time.
             bc.setPivots(pivots.get(b.getLevel()).size());
             bc.setLevel(b.getLevel());
         }
