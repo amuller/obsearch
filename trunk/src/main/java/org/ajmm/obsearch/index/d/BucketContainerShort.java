@@ -2,6 +2,8 @@ package org.ajmm.obsearch.index.d;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
@@ -39,7 +41,7 @@ public final class BucketContainerShort < O extends OBShort > implements
     /**
      * High-level view of our smap vectors. Created lazily.
      */
-    private ArrayList < ObjectBucketShort > dataView = null;
+    private List < ObjectBucketShort > dataView = null;
 
     /**
      * We need the index to perform some extra operations.
@@ -72,7 +74,7 @@ public final class BucketContainerShort < O extends OBShort > implements
     public Result delete(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        ArrayList < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getSmapVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
@@ -96,7 +98,7 @@ public final class BucketContainerShort < O extends OBShort > implements
      * Read dataView and update data[]
      */
     private void updateData() {
-        ArrayList < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getSmapVectors();
         TupleOutput out = new TupleOutput();
         assert pivots != 0;
         out.writeInt(pivots);
@@ -113,7 +115,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         this.data = out.getBufferBytes();
     }
 
-    private ArrayList < ObjectBucketShort > getSmapVectors() {
+    private List < ObjectBucketShort > getSmapVectors() {
 
         if (dataView == null) {
             int count;
@@ -127,8 +129,8 @@ public final class BucketContainerShort < O extends OBShort > implements
                 count = 0;
                 assert pivots != 0;
             }
-            ArrayList < ObjectBucketShort > view = new ArrayList < ObjectBucketShort >(
-                    count);
+            List < ObjectBucketShort > view = new LinkedList < ObjectBucketShort >(
+                    );
             int i = 0;
             while (i < count) {
                 int cx = 0;
@@ -159,7 +161,7 @@ public final class BucketContainerShort < O extends OBShort > implements
     public Result exists(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        ArrayList < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getSmapVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
@@ -187,7 +189,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert pivots == bucket.getSmapVector().length : " pivots: " + pivots
                 + " obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
-        ArrayList < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getSmapVectors();
         v.add(bucket);
         updateData();
         return res;

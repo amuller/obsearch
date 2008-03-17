@@ -42,7 +42,7 @@ import com.sleepycat.je.DatabaseException;
 public class KMeansPPPivotSelector < O extends OB > implements
         PivotSelector < O > {
 
-    private int retries = 7;
+    private int retries = 1;
     /**
      * Logger.
      */

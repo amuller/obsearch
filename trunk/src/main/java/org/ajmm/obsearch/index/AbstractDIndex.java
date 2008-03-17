@@ -155,7 +155,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     /**
      * Max level of buckets to be allowed.
      */
-    private int maxLevel = 12;
+    private int maxLevel = 20;
 
     /**
      * Accumulated pivots per level (2 ^ pivots per level) so that we can
