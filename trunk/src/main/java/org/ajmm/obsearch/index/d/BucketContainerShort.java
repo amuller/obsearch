@@ -17,22 +17,17 @@ import com.sleepycat.je.DatabaseException;
 public final class BucketContainerShort < O extends OBShort > implements
         BucketContainer < O, ObjectBucketShort, OBQueryShort < O >> {
 
-    /**
-     * The storage id.
-     */
-    private long storage;
-
-    /**
-     * Bucket id within a level.
-     */
-    private long bucketId;
+   
 
     /**
      * # of pivots in this Bucket container.
      */
     private int pivots;
-    
-    
+
+    /**
+     * Level of the bucket (debugging purposes)
+     */
+    private int level;
 
     /**
      * The data in this bucket, it is updated every time we insert or delete an
@@ -55,6 +50,22 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert index != null;
         this.index = index;
         this.data = data;
+        readFromData();
+    }
+
+    private int readFromData() {
+        if (data != null) {
+            return readFromDataAux(new TupleInput(data));
+        } else {
+            return 0;
+        }
+    }
+
+    private int readFromDataAux(TupleInput in) {
+        pivots = in.readInt();
+        int count = in.readInt();
+        level = in.readInt();
+        return count;
     }
 
     @Override
@@ -70,14 +81,14 @@ public final class BucketContainerShort < O extends OBShort > implements
             if (j.smapEqual(bucket)
                     && index.getObject(j.getId()).distance(object) == 0) {
                 it.remove();
-                res.setStatus(Result.Status.EXISTS);
+                res.setStatus(Result.Status.OK);
                 res.setId(j.getId());
             }
         }
         // if an object was removed.
-        if (res.getStatus() == Result.Status.EXISTS) {
-            updateData();
-        }
+        // if (res.getStatus() == Result.Status.EXISTS) {
+        updateData();
+        // }
         return res;
     }
 
@@ -90,6 +101,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert pivots != 0;
         out.writeInt(pivots);
         out.writeInt(v.size());
+        out.writeInt(level);
         for (ObjectBucketShort b : v) {
             assert pivots == b.getSmapVector().length : " pivots: " + pivots
                     + " item: " + b.getSmapVector().length;
@@ -108,8 +120,9 @@ public final class BucketContainerShort < O extends OBShort > implements
             TupleInput in = null;
             if (data != null) {
                 in = new TupleInput(data);
-                pivots = in.readInt();
-                count = in.readInt();
+
+                count = readFromDataAux(in);
+
             } else {
                 count = 0;
                 assert pivots != 0;
@@ -125,13 +138,13 @@ public final class BucketContainerShort < O extends OBShort > implements
                     cx++;
                 }
                 int id = in.readInt();
-                view.add(new ObjectBucketShort(this.bucketId, -1,
-                        tuple, false, id));
+                view.add(new ObjectBucketShort(-1, -1, tuple, false,
+                        id));
                 i++;
             }
             dataView = view;
-            if(data != null){
-                //assert in.available() == 0 : "available: " + in.available();
+            if (data != null) {
+                // assert in.available() == 0 : "available: " + in.available();
             }
         }
         return dataView;
@@ -152,11 +165,13 @@ public final class BucketContainerShort < O extends OBShort > implements
         res.setStatus(Result.Status.NOT_EXISTS);
         while (it.hasNext()) {
             ObjectBucketShort j = it.next();
-            if (j.smapEqual(bucket)
-                    && index.getObject(j.getId()).distance(object) == 0) {
-                res.setStatus(Result.Status.EXISTS);
-                res.setId(j.getId());
-                return res;
+            if (j.smapEqual(bucket)) {
+                O o2 = index.getObject(j.getId());
+                if (o2.distance(object) == 0) {
+                    res.setStatus(Result.Status.EXISTS);
+                    res.setId(j.getId());
+                    return res;
+                }
             }
         }
         return res;
@@ -166,8 +181,11 @@ public final class BucketContainerShort < O extends OBShort > implements
             DatabaseException, IllegalIdException, IllegalAccessException,
             InstantiationException {
         Result res = new Result();
-        //assert this.exclusionBucket == bucket.isExclusionBucket(): "Container: " + this.exclusionBucket + " bucket: " + bucket.isExclusionBucket();
-        assert pivots == bucket.getSmapVector().length: " pivots: " + pivots +" obj " + bucket.getSmapVector().length;
+        // assert this.exclusionBucket == bucket.isExclusionBucket():
+        // "Container: " + this.exclusionBucket + " bucket: " +
+        // bucket.isExclusionBucket();
+        assert pivots == bucket.getSmapVector().length : " pivots: " + pivots
+                + " obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
         ArrayList < ObjectBucketShort > v = getSmapVectors();
         v.add(bucket);
@@ -192,21 +210,17 @@ public final class BucketContainerShort < O extends OBShort > implements
             return;
         }
         O object = query.getObject();
-        boolean res = true;
-        TupleInput in = new TupleInput(data);
-        pivots = in.readInt();
-        assert pivots == b.getSmapVector().length;
-        
-        assert this.bucketId == b.getBucket();
-        
-        int items = in.readInt();
 
+        TupleInput in = new TupleInput(data);
+        int count = readFromDataAux(in);
+        assert pivots == b.getSmapVector().length;
+        assert b.getLevel() == level;
 
         int i = 0;
         short[] smapVector = b.getSmapVector();
         short range = query.getDistance();
         // for every item in this bucket.
-        while (i < items) {
+        while (i < count) {
             // calculate L-inf
             short max = Short.MIN_VALUE;
             short t;
@@ -226,7 +240,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                 cx++;
             }
             int id = in.readInt(); // read the id
-            if (max <= query.getDistance() && query.isCandidate(max)) {                
+            if (max <= query.getDistance() && query.isCandidate(max)) {
                 O toCompare = index.getObject(id);
                 short realDistance = object.distance(toCompare);
                 if (realDistance <= range) {
@@ -235,7 +249,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             }
             i++;
         }
-        //assert in.available() == 0 : "Avail: " + in.available();
+        // assert in.available() == 0 : "Avail: " + in.available();
     }
 
     /*
@@ -259,7 +273,19 @@ public final class BucketContainerShort < O extends OBShort > implements
         this.pivots = pivots;
     }
 
-    
+    /**
+     * @return the level
+     */
+    public int getLevel() {
+        return level;
+    }
 
-    
+    /**
+     * @param level
+     *                the level to set
+     */
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
 }

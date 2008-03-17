@@ -126,4 +126,6 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
     void setPivots(int pivots);
 
     
+    int  getLevel();
+    void setLevel(int level);
 }

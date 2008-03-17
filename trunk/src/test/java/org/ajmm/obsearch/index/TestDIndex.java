@@ -57,9 +57,9 @@ public class TestDIndex
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
        IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
         BDBFactory fact = Utils.getFactory();
-        DIndexShort<OBSlice> d = new DIndexShort<OBSlice>(fact, (byte)10,
+        DIndexShort<OBSlice> d = new DIndexShort<OBSlice>(fact, (byte)15,
             sel, OBSlice.class,
-            0.8f, (short)3);
+            0.8f, (short)11);
 
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(d);

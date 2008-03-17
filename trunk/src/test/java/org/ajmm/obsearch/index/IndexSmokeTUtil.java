@@ -310,7 +310,7 @@ public class IndexSmokeTUtil {
                     OBPriorityQueueShort < OBSlice > x1 = it.next();
                     assertEquals("Error in query line: " + i + " slice: "
                             + line, x2, x1);
-
+                    try{
                     // test the other search method
                     OBPriorityQueueShort < OBSlice > x3 = new OBPriorityQueueShort < OBSlice >(
                             k);
@@ -328,9 +328,14 @@ public class IndexSmokeTUtil {
                         }
                         box++;
                     }
+                    
+                    }catch(UnsupportedOperationException e){ 
+                        // some indexes do not support boxes
+                    }
 
                     i++;
                 }
+                
             }
             if (i == querySize) {
                 logger.warn("Finishing test at i : " + i);

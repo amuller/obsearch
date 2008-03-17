@@ -21,6 +21,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -155,12 +156,12 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      * Max level of buckets to be allowed.
      */
     private int maxLevel = 12;
-    
+
     /**
-     * Accumulated pivots per level (2 ^ pivots per level) so that
-     * we can quickly compute the correct storage device
+     * Accumulated pivots per level (2 ^ pivots per level) so that we can
+     * quickly compute the correct storage device
      */
-    private long [] accum;
+    private long[] accum;
 
     /**
      * Initializes this abstract class.
@@ -313,10 +314,12 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                     if (b.isExclusionBucket()) {
                         elementsDestination.add(idMap(i, elementsSource));
                     } else {
+                        b.setId(idMap(i, elementsSource));
                         insertBucket(b, o);
                         insertedObjects++;
                         BC bc = this.bucketContainerCache
                                 .get(getBucketStorageId(b));
+                        assert bc.exists(b, o).getStatus() == Result.Status.EXISTS;
                         if (maxBucketSize < bc.size()) {
                             maxBucketSize = bc.size();
                         }
@@ -338,23 +341,18 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             } while (elementsSource.size() > maxBucketSize
                     && level < this.maxLevel && cont && pivotSize >= 1);
 
-            // we have to store the accumulated # of pivots per level (2 ^ accum_pivots_per_level)
+            // we have to store the accumulated # of pivots per level (2 ^
+            // accum_pivots_per_level)
             // so that we can calculate the bucket.
-            
-            
-            // now we just have to store the bucket id for the exclusion bucket,
-            // and store those objects in the the exclusion bucket.
-            double id = this.accum[level-1] + (Math.pow(2, pivotSize));
-            OBAsserts.chkAssert(id <= Long.MAX_VALUE,
-                    "Exceeded bucket id addressing at level: " + (level - 1)
-                            + ", aborting");
-            this.exclusionBucketId = Math.round(id);
+
+            this.exclusionBucketId = -1;
             // now we can insert the remaining objects.
             logger.debug("Inserting remaining objects");
-             int i = 0;
+            int i = 0;
             while (i < elementsSource.size()) {
                 O o = getObjectFreeze(i, elementsSource);
                 B b = getBucket(o, level - 1);
+                b.setId(idMap(i, elementsSource));
                 assert (b.isExclusionBucket());
                 insertBucket(b, o);
                 insertedObjects++;
@@ -417,21 +415,25 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         // if the bucket is the exclusion bucket
         // get the bucket container from the cache.
         BC bc = this.bucketContainerCache.get(bucketId);
-        if (bc.getBytes() == null) { // it was just created for the first time.
+        if (bc.getBytes() == null) { // it was just created for the first
+                                        // time.
             bc.setPivots(pivots.get(b.getLevel()).size());
+            bc.setLevel(b.getLevel());
+        } else {
+            assert bc.getPivots() == b.getPivotSize() : " Pivot size: "
+                    + bc.getPivots() + " b pivot size: " + b.getPivotSize();
+            assert bc.getLevel() == b.getLevel();
         }
         Result res = new Result();
         synchronized (bc) {
             res = bc.exists(b, object);
             if (res.getStatus() != Result.Status.EXISTS) {
-                int newId = (int) this.Buckets.nextId();
-                b.setId(newId);
+
                 assert bc.getPivots() == b.getPivotSize() : "BC: "
                         + bc.getPivots() + " b: " + b.getPivotSize();
                 bc.insert(b);
                 Buckets.put(bucketId, bc.getBytes());
                 res.setStatus(Result.Status.OK);
-                res.setId(newId);
             }
         }
         return res;
@@ -447,13 +449,18 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             level.add(p);
         }
         this.pivots.add(level);
-        // TODO: change this to level storage devices, so that we can use longs completely.
+        // TODO: change this to level storage devices, so that we can use longs
+        // completely.
         this.accum = new long[pivots.size()];
-        int i =0;
-        long currentAccum = 0;
-        for(ArrayList<O> p : pivots){
-            accum[i] = currentAccum;
-            currentAccum += Math.pow(2, p.size());                
+        int i = 0;
+        BigInteger currentAccum = BigInteger.ZERO;
+        BigInteger max = new BigInteger(Long.MAX_VALUE + "");
+        for (ArrayList < O > p : pivots) {
+            if (currentAccum.compareTo(max) != -1) {
+                throw new OBException("Bucket size exceeded!");
+            }
+            accum[i] = currentAccum.longValue();
+            currentAccum = currentAccum.add(new BigInteger("2").pow(p.size()));
             i++;
         }
     }
@@ -522,9 +529,18 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         Result res = new Result();
         res.setStatus(Result.Status.OK);
         if (this.isFrozen()) {
-            B b = getBucket(object);
-            res = this.insertBucket(b, object);
-        } else {
+            res = exists(object);
+            if (res.getStatus() == Result.Status.NOT_EXISTS) {
+                TupleOutput out = new TupleOutput();
+                object.store(out);
+                int id = (int) A.nextId();
+                this.A.put(id, out.getBufferBytes());
+                B b = getBucket(object);
+                b.setId(id);
+                res = this.insertBucket(b, object);       
+                res.setId(id);
+            }            
+        } else { // before freeze
             TupleOutput out = new TupleOutput();
             object.store(out);
             byte[] key = out.getBufferBytes();
@@ -540,12 +556,11 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 TupleInput in = new TupleInput(value);
                 res.setId(in.readInt());
             }
-        }
-
-        if (res.getStatus() == Result.Status.OK) {
-            TupleOutput out = new TupleOutput();
-            object.store(out);
-            this.A.put(res.getId(), out.getBufferBytes());
+            if (res.getStatus() == Result.Status.OK) {
+                out = new TupleOutput();
+                object.store(out);
+                this.A.put(res.getId(), out.getBufferBytes());
+            }
         }
 
         return res;
