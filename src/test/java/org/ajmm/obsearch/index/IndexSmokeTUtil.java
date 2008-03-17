@@ -374,7 +374,7 @@ public class IndexSmokeTUtil {
      *                 If something goes wrong.
      */
     public static boolean shouldProcessSlice(OBSlice x) throws Exception {
-        return x.size() <= 100;
+        return x.size() <= 500;
     }
 
     /**
