@@ -95,6 +95,7 @@ public class BDBOBStore implements OBStore {
     public void close() throws OBStorageException {
         try {
             db.close();
+            sequence.close();
         } catch (DatabaseException d) {
             throw new OBStorageException(d);
         }
