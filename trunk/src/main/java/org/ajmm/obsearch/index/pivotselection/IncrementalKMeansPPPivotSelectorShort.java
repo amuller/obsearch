@@ -62,15 +62,10 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
      * @param pivotable Object used to determine which objects are suitable for being pivots.
      */
     public IncrementalKMeansPPPivotSelectorShort( Pivotable<O> pivotable){
-        this.pivotable = pivotable;
+        super(pivotable);
     }
     
-    public int[] generatePivots(short pivotsCount, Index<O> index) throws OBException,
-    IllegalAccessException, InstantiationException, OBStorageException,
-    PivotsUnavailableException
-    {
-        return generatePivots(pivotsCount,null, index);
-    }
+    
     
     public int[] generatePivots(short pivotsCount, IntArrayList elements, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
@@ -81,12 +76,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
         // we need to prepare the index for freezing!
         short k = pivotsCount;
         float potential = 0;
-        int databaseSize;
-        if(elements == null){
-            databaseSize = index.databaseSize();
-        }else{
-            databaseSize = elements.size();
-        }
+        int databaseSize = max(elements,index);
         centroidIds = new int[k]; // keep track of the selected centroids
         short[] closestDistances = new short[databaseSize];
         OBRandom r = new OBRandom();

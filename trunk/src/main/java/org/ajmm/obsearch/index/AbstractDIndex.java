@@ -162,6 +162,14 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      * quickly compute the correct storage device
      */
     private long[] accum;
+    
+    public long searchedBoxesTotal = 0;
+
+    public long queryCount = 0;    
+
+    public long smapRecordsCompared = 0;
+
+    public long distanceComputations = 0;
 
     /**
      * Initializes this abstract class.

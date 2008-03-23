@@ -103,8 +103,9 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *                The object of the given object.
      * @param object
      *                The object that will be searched.
+     * @return # of distance computations executed.
      */
-    void search(Q query, B bucket) throws IllegalAccessException,
+    long search(Q query, B bucket) throws IllegalAccessException,
             DatabaseException, OBException, InstantiationException,
             IllegalIdException;
     

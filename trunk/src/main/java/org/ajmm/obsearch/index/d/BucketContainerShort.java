@@ -203,13 +203,14 @@ public final class BucketContainerShort < O extends OBShort > implements
      * (non-Javadoc)
      * @see org.ajmm.obsearch.index.d.BucketContainer#search(java.lang.Object,
      *      org.ajmm.obsearch.OB)
+     *      returns the # of distance computations.
      */
     @Override
-    public void search(OBQueryShort < O > query, ObjectBucketShort b)
+    public long search(OBQueryShort < O > query, ObjectBucketShort b)
             throws IllegalAccessException, DatabaseException, OBException,
             InstantiationException, IllegalIdException {
         if (data == null) {
-            return;
+            return 0;
         }
         O object = query.getObject();
 
@@ -222,6 +223,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         short[] smapVector = b.getSmapVector();
         short range = query.getDistance();
         // for every item in this bucket.
+        long res = 0;
         while (i < count) {
             // calculate L-inf
             short max = Short.MIN_VALUE;
@@ -245,6 +247,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 O toCompare = index.getObject(id);
                 short realDistance = object.distance(toCompare);
+                res++;
                 if (realDistance <= range) {
                     query.add(id, toCompare, realDistance);
                 }
@@ -252,6 +255,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             i++;
         }
         // assert in.available() == 0 : "Avail: " + in.available();
+        return res;
     }
 
     /*

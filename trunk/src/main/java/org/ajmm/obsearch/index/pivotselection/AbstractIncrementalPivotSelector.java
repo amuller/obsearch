@@ -6,6 +6,8 @@ import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
+import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
@@ -41,7 +43,10 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
         implements IncrementalPivotSelector < O > {
 
     
-
+    
+    protected AbstractIncrementalPivotSelector(Pivotable < O > pivotable){
+        this.pivotable = pivotable;
+    }
     /**
      * Pivotable objects determine if a given object is suitable. For example,
      * in the case of trees, very big trees will become a burden and we should
@@ -81,6 +86,30 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
         }else{
             return i;
         }
+    }
+    
+    public int[] generatePivots(short pivotsCount, Index<O> index) throws OBException,
+    IllegalAccessException, InstantiationException, OBStorageException,
+    PivotsUnavailableException
+    {
+        return generatePivots(pivotsCount,null, index);
+    }
+    
+    /**
+     * Returns the max # of elements. if source != null then source.size()
+     * otherwise index.databaseSize();
+     * @param source The source of data (can be null)
+     * @param index The underlying index.
+     * @return The max # of elements of source if source != null or of index if source == null.
+     */
+    protected int max(IntArrayList source, Index < O > index)throws OBStorageException, DatabaseException{
+        int max;
+        if (source == null) {
+            max = index.databaseSize();
+        } else {
+            max = source.size();            
+        }
+        return max;
     }
 
 }
