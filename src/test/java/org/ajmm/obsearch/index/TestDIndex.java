@@ -8,6 +8,7 @@ import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
 import org.ajmm.obsearch.index.pivotselection.IncrementalDummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalKMeansPPPivotSelectorShort;
 import org.ajmm.obsearch.index.utils.Directory;
@@ -55,7 +56,9 @@ public class TestDIndex
     public void testPPTree() throws Exception {
         
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-       IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
+       //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
+        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                30, 30);
         BDBFactory fact = Utils.getFactory();
         DIndexShort<OBSlice> d = new DIndexShort<OBSlice>(fact, (byte)15,
             sel, OBSlice.class,

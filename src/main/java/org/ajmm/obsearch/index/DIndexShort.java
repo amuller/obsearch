@@ -298,7 +298,7 @@ public final class DIndexShort < O extends OBShort >
         OBQueryShort < O > q = new OBQueryShort < O >(object, r, result);
         int i = 0;
         ObjectBucketShort b = null;
-        
+        super.queryCount++;
         while (i < pivots.size()) {// search through all the levels.
             b = getBucket(object, i, (short) 0);
             
@@ -306,7 +306,9 @@ public final class DIndexShort < O extends OBShort >
       
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(super.getBucketStorageId(b));
-                bc.search(q, b);
+                super.distanceComputations += bc.search(q, b);
+                super.smapRecordsCompared+= bc.size();
+                super.searchedBoxesTotal++;
             i++;
             
             // debug search
@@ -320,8 +322,10 @@ public final class DIndexShort < O extends OBShort >
         }
         // finally, search the exclusion bucket :)
         BucketContainerShort < O > bc = super.bucketContainerCache
-                .get(super.exclusionBucketId);
-        bc.search(q, b);
+                .get(super.exclusionBucketId);        
+        super.distanceComputations += bc.search(q, b);
+        super.smapRecordsCompared+= bc.size();
+        super.searchedBoxesTotal++;
     }
 
     @Override

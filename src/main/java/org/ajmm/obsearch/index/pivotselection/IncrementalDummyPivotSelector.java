@@ -34,6 +34,10 @@ import cern.colt.list.IntArrayList;
 
 public class IncrementalDummyPivotSelector < O extends OB >
         extends AbstractIncrementalPivotSelector < O > {
+    
+    public IncrementalDummyPivotSelector(){
+        super(null);
+    }
 
     @Override
     public int[] generatePivots(short pivotCount, Index<O> index)
