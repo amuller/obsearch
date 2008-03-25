@@ -176,6 +176,9 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
     public long smapRecordsCompared = 0;
 
     public long distanceComputations = 0;
+    
+    
+    
 
     /**
      * Initializes this abstract class.
@@ -305,8 +308,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             IntArrayList elementsSource = null;
             // After generating the pivots, we put here the objects that fell
             // into the exclusion bucket.
-            IntArrayList elementsDestination = new IntArrayList(
-                    (int) A.size() / 4);
+            
             short pivotSize = this.pivotsCount;
             int maxBucketSize = 0;
             pivots = new ArrayList < O >();
@@ -333,7 +335,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             while (i < max) {
                 O o = getObjectFreeze(i, elementsSource);
                 B b = getBucket(o);
-
+                updateProbabilities(b);
                 b.setId(idMap(i, elementsSource));
                 insertBucket(b, o);
                 insertedObjects++;
@@ -345,6 +347,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
                 i++;
             }
+            normalizeProbs();
             logger.debug("Max bucket size: " + maxBucketSize);
             // We have inserted all objects, we only have to store
             // the pivots into bytes.
@@ -363,6 +366,15 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             throw new OBException(e);
         }
     }
+    
+    /**
+     * 
+     * Updates probability information.
+     * @param b
+     */
+    protected abstract void updateProbabilities(B b);
+    
+    protected abstract void normalizeProbs() throws OBStorageException;
 
     /**
      * Calculate median values for pivots of level i based on the
