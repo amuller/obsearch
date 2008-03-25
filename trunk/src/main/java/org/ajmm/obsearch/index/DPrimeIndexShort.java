@@ -45,8 +45,23 @@ public final class DPrimeIndexShort < O extends OBShort >
      * Median data for each level and pivot.
      */
     private short[] median;
-    
-    
+
+    /**
+     * Obtain max distance per pivot... hack. Remove this in the future.
+     */
+    private short maxDistance;
+
+    /**
+     * For each pivot, we have here how many objects fall in distance x. Max:
+     * right of the median Min: left of the median
+     */
+    private int[][] distanceDistributionRight;
+
+    private int[][] distanceDistributionLeft;
+
+    protected float[][] normalizedProbsRight;
+
+    protected float[][] normalizedProbsLeft;
 
     /**
      * Logger.
@@ -202,13 +217,19 @@ public final class DPrimeIndexShort < O extends OBShort >
             // calculate median for pivot p
             while (cx < max) {
                 O o = getObjectFreeze(cx, elementsSource);
-                medianData.add(p.distance(o));
+                short d = p.distance(o);
+                if (maxDistance < d) {
+                    maxDistance = d;
+                }
+                medianData.add(d);
                 cx++;
             }
 
             median[i] = median(medianData);
             i++;
         }
+        logger.info("max distance: " + maxDistance);
+        maxDistance++;
         assert i > 0;
         if (logger.isDebugEnabled()) {
             logger.debug("Found medians: " + Arrays.toString(median));
@@ -216,6 +237,40 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         assert super.pivots.size() == median.length : "Piv: "
                 + super.pivots.size() + " Med: " + median.length;
+        this.distanceDistributionRight = new int[pivots.size()][maxDistance];
+        this.distanceDistributionLeft = new int[pivots.size()][maxDistance];
+    }
+
+    /**
+     * Updates probability information.
+     * @param b
+     */
+    protected void updateProbabilities(ObjectBucketShort b) {
+        int i = 0;
+        while (i < pivots.size()) {
+            if (bps(median[i], b.getSmapVector()[i]) == 1) {
+                this.distanceDistributionRight[i][b.getSmapVector()[i]]++;
+            } else {
+                this.distanceDistributionLeft[i][b.getSmapVector()[i]]++;
+            }
+            i++;
+        }
+    }
+
+    protected void normalizeProbs() throws OBStorageException {
+        normalizedProbsRight = new float[pivots.size()][this.maxDistance];
+        normalizedProbsLeft = new float[pivots.size()][this.maxDistance];
+        long total = A.size();
+        int i = 0;
+        while (i < pivots.size()) {
+            int cx = 0;
+            while (cx < maxDistance) {
+                normalizedProbsRight[i][cx] = ((float) distanceDistributionRight[i][cx] / (float) total);
+                normalizedProbsLeft[i][cx] = ((float) distanceDistributionLeft[i][cx] / (float) total);
+                cx++;
+            }
+            i++;
+        }
     }
 
     private short median(ShortArrayList medianData) {
@@ -320,25 +375,51 @@ public final class DPrimeIndexShort < O extends OBShort >
      * @param pivotIndex
      */
     private void doIt(ObjectBucketShort b, OBQueryShort < O > q,
-            int pivotIndex, long block) throws NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException,
-            OutOfRangeException, OBException {
+            int pivotIndex, long block) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
         if (pivotIndex < super.pivots.size()) {
             int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
                     q.getDistance());
+            if (r == 2) { // if we have to do both
+                short[] smap = b.getSmapVector();
+               if(this.distanceDistributionRight[pivotIndex][smap[pivotIndex]] > this.distanceDistributionLeft[pivotIndex][smap[pivotIndex]]){
+                   // do 1 first
+                   long newBlock = block | super.masks[pivotIndex];
+                   if (super.filter.get(pivotIndex).contains(newBlock)) {
+                       doIt(b, q, pivotIndex + 1, newBlock);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
+                       doIt(b, q, pivotIndex + 1, block);
+                   }
+                   
+               }else{
+                   // 0 first
+                   if (super.filter.get(pivotIndex).contains(block)) {
+                       doIt(b, q, pivotIndex + 1, block);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   long newBlock = block | super.masks[pivotIndex];
+                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
+                       
+                       doIt(b, q, pivotIndex + 1, newBlock);
+                   }
+               }
 
-            if (r == 2 || r == 0 && super.filter.get(pivotIndex).contains(block)) {
-                doIt(b, q, pivotIndex + 1, block);
-            }
-            // repeat the range just in case we have reduced it
-            r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex], q
-                    .getDistance());
-            if (r == 2 || r == 1) {
-                long newBlock = block | super.masks[pivotIndex];
-                if( super.filter.get(pivotIndex).contains(newBlock)) {
-                    doIt(b, q, pivotIndex + 1, newBlock);
+            } else { // only one of the sides is selected
+                if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
+                    doIt(b, q, pivotIndex + 1, block);
+                } else {
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt(b, q, pivotIndex + 1, newBlock);
+                    }
                 }
             }
+
         } else {
             // we have finished
             BucketContainerShort < O > bc = super.bucketContainerCache
