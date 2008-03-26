@@ -532,7 +532,7 @@ public class PPTreeShort < O extends OBShort >
                     max = Short.MIN_VALUE;
                     // STATS
                     while (i < pivotsCount) {
-                        t = (short) Math.abs(tuple[i] - in.readShortFast());
+                        t = (short) Math.abs(tuple[i] - in.readShort());
                         if (t > max) {
                             max = t;
                             if (t > r) {

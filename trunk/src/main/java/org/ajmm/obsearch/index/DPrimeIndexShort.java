@@ -252,17 +252,38 @@ public final class DPrimeIndexShort < O extends OBShort >
          
             i++;
         }
+        
+        
     }
+    
+    
 
     protected void normalizeProbs() throws OBStorageException {
         normalizedProbs = new float[pivots.size()][this.maxDistance];
         long total = A.size();
         int i = 0;
         while (i < pivots.size()) {
-            int cx = 0;
-            while (cx < maxDistance) {
-                normalizedProbs[i][cx] = ((float) distanceDistribution[i][cx] / (float) total);
-                cx++;
+
+            // calculate accum distances
+            int m = this.median[i];
+            // initialize center
+            normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total);
+            m --;
+            // process the left side of the median
+            while(m >= 0){
+                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total) + normalizedProbs[i][m + 1];
+                m--;
+            }
+            // process the right side of the median
+           
+            m = this.median[i] + 1; // do not include the median.
+            if(m < normalizedProbs[i].length){
+                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total);
+                m++;
+            }
+            while (m < normalizedProbs[i].length) {
+                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total)  + normalizedProbs[i][m - 1];
+                m++;
             }
             i++;
         }
@@ -367,26 +388,14 @@ public final class DPrimeIndexShort < O extends OBShort >
     }
     // assuming that this query goes beyond the median.
     private float calculateZero(ObjectBucketShort b, OBQueryShort < O > q, int pivotIndex){
-        short m = this.median[pivotIndex];
-        short base = (short)Math.max(b.getSmapVector()[pivotIndex] - q.getDistance(), 0);
-        float res = 0;
-        while(base <= m){
-            res += this.distanceDistribution[pivotIndex][base];
-            base++;
-        }
-        return res;
+        short base = (short)Math.max(b.getSmapVector()[pivotIndex] - q.getDistance(), 0);       
+        return this.normalizedProbs[pivotIndex][base];
     }
     
  // assuming that this query goes beyond the median.
     private float calculateOne(ObjectBucketShort b, OBQueryShort < O > q, int pivotIndex){
-        short m = this.median[pivotIndex];
         short top = (short)Math.min(b.getSmapVector()[pivotIndex] + q.getDistance(), maxDistance);
-        float res = 0;
-        while(m <= top){
-            res += this.distanceDistribution[pivotIndex][m];
-            m++;
-        }
-        return res;
+        return this.normalizedProbs[pivotIndex][top];
     }
 
     /**
