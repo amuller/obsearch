@@ -300,7 +300,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             this.filter = new ArrayList<SimpleBloomFilter<Long>>();
             
             while(i < pivotsCount){
-                filter.add(new SimpleBloomFilter<Long>(i * 1000, (int)Math.pow(2, i)));
+                filter.add(new SimpleBloomFilter<Long>(i * 100000, (int)Math.pow(2, i)));
                 i++;
             }
             

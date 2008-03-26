@@ -274,62 +274,63 @@ public final class DIndexShort < O extends OBShort >
      *      short, org.ajmm.obsearch.result.OBPriorityQueueShort)
      */
     @Override
-    /*
-     * public void searchOB(O object, short r, OBPriorityQueueShort < O >
-     * result) throws NotFrozenException, DatabaseException,
-     * InstantiationException, IllegalIdException, IllegalAccessException,
-     * OutOfRangeException, OBException { OBQueryShort<O> q = new OBQueryShort<O>(object,r,
-     * result); int i = 0; ObjectBucketShort b = null; while(i <
-     * pivots.size()){// search through all the levels. b = getBucket(object, i,
-     * (short)(p + r)); if(! b.isExclusionBucket()){ BucketContainerShort<O> bc =
-     * super.bucketContainerCache.get(super.getBucketStorageId(b));
-     * bc.search(q,b); return; } if(r <= p){ this.updateBucket(b, i, (short)(p -
-     * r)); if(! b.isExclusionBucket()){ BucketContainerShort<O> bc =
-     * super.bucketContainerCache.get(super.getBucketStorageId(b)); bc.search(q,
-     * b); } }else{ throw new UnsupportedOperationException("Only supporting
-     * ranges < p"); } i++; } // finally, search the exclusion bucket :)
-     * BucketContainerShort<O> bc =
-     * super.bucketContainerCache.get(super.exclusionBucketId); bc.search(q, b); }
-     */
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result)
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-        if(r > p){
-            throw new UnsupportedOperationException();
-        }
-        OBQueryShort < O > q = new OBQueryShort < O >(object, r, result);
+
+        OBQueryShort < O > q = new OBQueryShort < O >(object, r,
+
+        result);
         int i = 0;
         ObjectBucketShort b = null;
-        super.queryCount++;
         while (i < pivots.size()) {// search through all the levels.
-            b = getBucket(object, i, (short) 0);
-            
-            assert !b.isExclusionBucket();
-      
-                BucketContainerShort < O > bc = super.bucketContainerCache
-                        .get(super.getBucketStorageId(b));
-                super.distanceComputations += bc.search(q, b);
-                super.smapRecordsCompared+= bc.size();
-                super.searchedBoxesTotal++;
+            b = getBucket(object, i, (short) (p + q.getDistance()));
+            if (!b.isExclusionBucket()) {
+                BucketContainerShort < O > bc =
+
+                super.bucketContainerCache.get(super.getBucketStorageId(b));
+                bc.search(q, b);
+                return;
+            }
+            if (q.getDistance() <= p) {
+                this.updateBucket(b, i, (short) (p - q.getDistance()));
+
+                if (!b.isExclusionBucket()) {
+                    BucketContainerShort < O > bc =
+
+                    super.bucketContainerCache.get(super.getBucketStorageId(b));
+                    bc.search(q, b);
+                }
+            } else {
+                throw new UnsupportedOperationException(
+                        "Only supportingranges < p");
+            }
             i++;
-            
-            // debug search
-            /*ObjectBucketShort debug = getBucket(object, i, (short) p);
-            if(! debug.isExclusionBucket() || i +1 == pivots.size() ){
-                BucketContainerShort < O > bc2 = super.bucketContainerCache
-                .get(super.getBucketStorageId(debug));
-                bc2.exists(debug, object);
-                bc2.search(q, debug);
-            }*/
-        }
-        // finally, search the exclusion bucket :)
+        } // finally, search the exclusion bucket :)
         BucketContainerShort < O > bc = super.bucketContainerCache
-                .get(super.exclusionBucketId);        
-        super.distanceComputations += bc.search(q, b);
-        super.smapRecordsCompared+= bc.size();
-        super.searchedBoxesTotal++;
+                .get(super.exclusionBucketId);
+        bc.search(q, b);
     }
+
+    /*
+     * public void searchOB(O object, short r, OBPriorityQueueShort < O >
+     * result) throws NotFrozenException, DatabaseException,
+     * InstantiationException, IllegalIdException, IllegalAccessException,
+     * OutOfRangeException, OBException { if(r > p){ throw new
+     * UnsupportedOperationException(); } OBQueryShort < O > q = new
+     * OBQueryShort < O >(object, r, result); int i = 0; ObjectBucketShort b =
+     * null; super.queryCount++; while (i < pivots.size()) {// search through
+     * all the levels. b = getBucket(object, i, (short) 0); assert
+     * !b.isExclusionBucket(); BucketContainerShort < O > bc =
+     * super.bucketContainerCache .get(super.getBucketStorageId(b));
+     * super.distanceComputations += bc.search(q, b);
+     * super.smapRecordsCompared+= bc.size(); super.searchedBoxesTotal++; i++; } //
+     * finally, search the exclusion bucket :) BucketContainerShort < O > bc =
+     * super.bucketContainerCache .get(super.exclusionBucketId);
+     * super.distanceComputations += bc.search(q, b);
+     * super.smapRecordsCompared+= bc.size(); super.searchedBoxesTotal++; }
+     */
 
     @Override
     public Result exists(O object) throws DatabaseException, OBException,
