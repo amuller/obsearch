@@ -2,6 +2,7 @@ package org.ajmm.obsearch.example;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.HashMap;
 
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.index.IndexShort;
@@ -60,10 +61,11 @@ public class Benchmark {
         BufferedReader r = new BufferedReader(new FileReader(query));
         String re = r.readLine();
         int i = 0;
-
+        HashMap<String, Integer> queries = new HashMap<String,Integer>();
         while (re != null) {
             String line = IndexSmokeTUtil.parseLine(re);
-            if (line != null) {
+            if (line != null && ! queries.containsKey(line)) {
+                queries.put(line, Integer.MAX_VALUE);
                 OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
                         k);
                 if (i % 100 == 0) {
@@ -75,11 +77,12 @@ public class Benchmark {
                     index.searchOB(s, range, x);
                     i++;
                 }
+                if (i == 5000) {
+                    logger.warn("Finishing test at i : " + i);
+                    break;
+                }
             }
-            if (i == 2000) {
-                logger.warn("Finishing test at i : " + i);
-                break;
-            }
+            
             re = r.readLine();
         }
         times++;

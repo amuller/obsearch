@@ -375,6 +375,10 @@ public final class DPrimeIndexShort < O extends OBShort >
             doIt1(b, q, 0, 0);
         }else if(hackOne == 0){
             doIt(b,q,0,0);
+        }else if(hackOne == 2){
+            doIt2(b,q,0,0);
+        }else if(hackOne == 3){
+            doIt3(b,q,0,0);
         }
         /*
          * while (i < pivots.size()) {// search through all the levels. b =
@@ -445,6 +449,116 @@ public final class DPrimeIndexShort < O extends OBShort >
                     long newBlock = block | super.masks[pivotIndex];
                     if (super.filter.get(pivotIndex).contains(newBlock)) {
                         doIt1(b, q, pivotIndex + 1, newBlock);
+                    }
+                }
+            }
+
+        } else {
+            // we have finished
+            BucketContainerShort < O > bc = super.bucketContainerCache
+                    .get(block);
+            super.distanceComputations += bc.search(q, b);
+            searchedBoxesTotal++;
+            smapRecordsCompared += bc.size();
+        }
+    }
+    // based on the center of the query!
+    private void doIt2(ObjectBucketShort b, OBQueryShort < O > q,
+            int pivotIndex, long block) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
+        if (pivotIndex < super.pivots.size()) {
+            int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                    q.getDistance());
+            if (r == 2) { // if we have to do both
+               if(b.getSmapVector()[pivotIndex] > median[pivotIndex] ){
+                   // do 1 first
+                   long newBlock = block | super.masks[pivotIndex];
+                   if (super.filter.get(pivotIndex).contains(newBlock)) {
+                       doIt2(b, q, pivotIndex + 1, newBlock);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
+                       doIt2(b, q, pivotIndex + 1, block);
+                   }
+                   
+               }else{
+                   // 0 first
+                   if (super.filter.get(pivotIndex).contains(block)) {
+                       doIt2(b, q, pivotIndex + 1, block);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   long newBlock = block | super.masks[pivotIndex];
+                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
+                       
+                       doIt2(b, q, pivotIndex + 1, newBlock);
+                   }
+               }
+
+            } else { // only one of the sides is selected
+                if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
+                    doIt2(b, q, pivotIndex + 1, block);
+                } else {
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt2(b, q, pivotIndex + 1, newBlock);
+                    }
+                }
+            }
+
+        } else {
+            // we have finished
+            BucketContainerShort < O > bc = super.bucketContainerCache
+                    .get(block);
+            super.distanceComputations += bc.search(q, b);
+            searchedBoxesTotal++;
+            smapRecordsCompared += bc.size();
+        }
+    }
+    // calculate opposite of doIt1
+    private void doIt3(ObjectBucketShort b, OBQueryShort < O > q,
+            int pivotIndex, long block) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
+        if (pivotIndex < super.pivots.size()) {
+            int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                    q.getDistance());
+            if (r == 2) { // if we have to do both
+               if(! (calculateOne(b,q,pivotIndex) > calculateZero(b,q,pivotIndex))){
+                   // do 1 first
+                   long newBlock = block | super.masks[pivotIndex];
+                   if (super.filter.get(pivotIndex).contains(newBlock)) {
+                       doIt3(b, q, pivotIndex + 1, newBlock);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
+                       doIt3(b, q, pivotIndex + 1, block);
+                   }
+                   
+               }else{
+                   // 0 first
+                   if (super.filter.get(pivotIndex).contains(block)) {
+                       doIt3(b, q, pivotIndex + 1, block);
+                   }
+                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
+                           q.getDistance());
+                   long newBlock = block | super.masks[pivotIndex];
+                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
+                       
+                       doIt3(b, q, pivotIndex + 1, newBlock);
+                   }
+               }
+
+            } else { // only one of the sides is selected
+                if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
+                    doIt3(b, q, pivotIndex + 1, block);
+                } else {
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt3(b, q, pivotIndex + 1, newBlock);
                     }
                 }
             }
