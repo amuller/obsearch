@@ -53,7 +53,7 @@ public class Benchmark {
     }
     
     public static void benchAux(IndexShort < OBSlice > index, String query, short range, byte k) throws Exception{
-        
+        try{
         int times = 0;
         long time = System.currentTimeMillis();
         while(times < 10){ // repeat 10 times
@@ -85,7 +85,9 @@ public class Benchmark {
         times++;
         }
        logger.info("r: "  +  range + " k " + k + " time: " + ((System.currentTimeMillis() - time) / 1000));
-        
+        }catch(UnsupportedOperationException e){
+            logger.info("Skipping method");
+        }
     }
     
     public static void bench(IndexShort < OBSlice > index, String query, String db) throws Exception{

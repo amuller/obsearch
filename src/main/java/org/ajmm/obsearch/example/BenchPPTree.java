@@ -5,6 +5,7 @@ import java.io.File;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
+import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.apache.log4j.Logger;
@@ -29,13 +30,20 @@ public class BenchPPTree {
         String dbData = args[2]; 
         Directory.deleteDirectory(dbFolder);
         dbFolder.mkdirs();
-        KMeansPPPivotSelector ps = new KMeansPPPivotSelector < OBSlice >(
+       /* KMeansPPPivotSelector ps = new KMeansPPPivotSelector < OBSlice >(
                 new AcceptAll < OBSlice >());
+          
+                */
+        
+        byte pivots = Byte.parseByte(args[3]);
+        logger.debug("Doing pivots: " + pivots); 
+        
+        FixedPivotSelector ps = new FixedPivotSelector();
         
                 
         
         PPTreeShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
-                (byte) 30, (byte) 12, (short) 0, (short) (500 * 2), ps, OBSlice.class);
+                pivots, (byte) 12, (short) 0, (short) (500 * 2), ps, OBSlice.class);
 
         Benchmark.bench(index, query, dbData);
         

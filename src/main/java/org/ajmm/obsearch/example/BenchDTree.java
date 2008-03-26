@@ -8,6 +8,7 @@ import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
 import org.ajmm.obsearch.index.pivotselection.IncrementalDummyPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalFixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalKMeansPPPivotSelectorShort;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
@@ -40,13 +41,16 @@ public class BenchDTree {
         logger.debug("Doing pivots: " + pivots);
         
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-      IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-              30, 30);
+      //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+     //         30, 30);
+      
+      IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+      
         
         BDBFactory fact = new BDBFactory(dbFolder);
         DIndexShort<OBSlice> index = new DIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
-            0.8f, (short)11);
+            0.9f, (short)3);
 
         Benchmark.bench(index, query, dbData);
         
