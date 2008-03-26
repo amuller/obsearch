@@ -295,6 +295,9 @@ public final class DIndexShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
+        if(r > p){
+            throw new UnsupportedOperationException();
+        }
         OBQueryShort < O > q = new OBQueryShort < O >(object, r, result);
         int i = 0;
         ObjectBucketShort b = null;

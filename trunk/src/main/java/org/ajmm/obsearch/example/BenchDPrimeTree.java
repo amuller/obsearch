@@ -9,6 +9,7 @@ import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
 import org.ajmm.obsearch.index.pivotselection.IncrementalDummyPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalFixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalKMeansPPPivotSelectorShort;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
@@ -37,14 +38,19 @@ public class BenchDPrimeTree {
         dbFolder.mkdirs();
         byte pivots = Byte.parseByte(args[3]);
         logger.debug("Doing pivots: " + pivots);
+        int hackOne = Integer.parseInt(args[4]);
+        
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-      IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-              30, 30);
+      //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+      //        30, 30);
+        
+        IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
         
         BDBFactory fact = new BDBFactory(dbFolder);
         DPrimeIndexShort<OBSlice> index = new DPrimeIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
              (short)3);
+        index.hackOne = hackOne;
        
         Benchmark.bench(index, query, dbData);
         
