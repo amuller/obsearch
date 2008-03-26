@@ -50,7 +50,7 @@ public class BenchDTree {
         BDBFactory fact = new BDBFactory(dbFolder);
         DIndexShort<OBSlice> index = new DIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
-            0.9f, (short)3);
+            0.95f, (short)10);
 
         Benchmark.bench(index, query, dbData);
         
