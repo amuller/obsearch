@@ -37,7 +37,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         implements IndexShort < O > {
     
     // 0 = doIt 1 doIt1
-    public int hackOne = 1;
+    public int hackOne = 6;
 
     /**
      * P parameter that indicates the maximum radius that we will accept.
@@ -371,13 +371,25 @@ public final class DPrimeIndexShort < O extends OBShort >
         ObjectBucketShort b = null;
         this.queryCount++;
         b = getBucket(object);
-        if(hackOne == 1){
-            doIt1(b, q, 0, 0);
-        }else if(hackOne == 0){
+        
+        if(hackOne >= 4){
+            
+            
+         // we have finished
+            BucketContainerShort < O > bc = super.bucketContainerCache
+                    .get(b.getBucket());
+            super.distanceComputations += bc.search(q, b);
+            searchedBoxesTotal++;
+            smapRecordsCompared += bc.size();
+        }
+        
+        if(hackOne == 0 || hackOne == 4){
             doIt(b,q,0,0);
-        }else if(hackOne == 2){
+        }else if(hackOne == 1 || hackOne == 5){
+            doIt1(b, q, 0, 0);
+        } else if(hackOne == 2 || hackOne == 6 ){
             doIt2(b,q,0,0);
-        }else if(hackOne == 3){
+        }else if(hackOne == 3 || hackOne == 7){
             doIt3(b,q,0,0);
         }
         /*
@@ -454,14 +466,13 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-            // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(block);
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
+           
+            s(block,b,q);
         }
     }
+    
+  
+    
     // based on the center of the query!
     private void doIt2(ObjectBucketShort b, OBQueryShort < O > q,
             int pivotIndex, long block) throws NotFrozenException,
@@ -508,13 +519,9 @@ public final class DPrimeIndexShort < O extends OBShort >
                 }
             }
 
-        } else {
-            // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(block);
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
+        } else{
+           
+            s(block,b,q);
         }
     }
     // calculate opposite of doIt1
@@ -564,12 +571,8 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-            // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(block);
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
+            s(block,b,q);
+           
         }
     }
     
@@ -600,12 +603,21 @@ public final class DPrimeIndexShort < O extends OBShort >
                 }
             }
         } else {
-            // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(block);
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
+            s(block,b,q);
+        }
+    }
+    
+    private void s(long block, ObjectBucketShort b, OBQueryShort < O > q) throws NotFrozenException, DatabaseException,
+    InstantiationException, IllegalIdException, IllegalAccessException,
+    OutOfRangeException, OBException{
+        
+        if( block != b.getBucket() || hackOne < 4){
+        // we have finished
+        BucketContainerShort < O > bc = super.bucketContainerCache
+                .get(block);
+        super.distanceComputations += bc.search(q, b);
+        searchedBoxesTotal++;
+        smapRecordsCompared += bc.size();
         }
     }
 
