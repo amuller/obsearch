@@ -37,7 +37,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         implements IndexShort < O > {
     
     // 0 = doIt 1 doIt1
-    public int hackOne = 6;
+    public int hackOne = 5;
 
     /**
      * P parameter that indicates the maximum radius that we will accept.
@@ -61,6 +61,12 @@ public final class DPrimeIndexShort < O extends OBShort >
     private int[][] distanceDistribution;
 
     protected float[][] normalizedProbs;
+    
+    
+    /**
+     * Cache used to store recently accessed mbr :)
+     */
+    protected transient OBCacheLong < short[][] > mbrCache;
 
 
     /**
