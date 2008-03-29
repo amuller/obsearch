@@ -366,6 +366,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 insertedObjects++;
                 i++;
             }
+            logger.debug("Bucket count: " + A.size());
             assert A.size() == insertedObjects;
             // We have inserted all objects, we only have to store
             // the pivots into bytes.

@@ -2,6 +2,11 @@
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
+<#if type == "int">
+<#assign Type2 = "Integer">
+<#else>
+<#assign Type2 = Type>
+</#if>
 <@pp.changeOutputFile name="OBQuery"+Type+".java" />
 package org.ajmm.obsearch.query;
 import org.ajmm.obsearch.ob.OB${Type};
@@ -42,6 +47,24 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     protected OBPriorityQueue${Type}<O> result;
 
     /**
+     * Minimum part of the rectangle of the query.
+     */ 
+		protected ${type}[] min;
+
+		
+		/**
+     * Maximum part of the rectangle of the query.
+     */ 
+		protected ${type}[] max;
+
+		
+		/**
+     * SMAPed vector
+     */ 
+
+		protected ${type}[] smap;
+
+    /**
      * Constructor.
      */
     public OBQuery${Type}(){
@@ -61,6 +84,57 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
         super(object,-1,range);
         this.result = result;
     }
+
+		/**
+		 * Returns true if the given rectangle collides
+     * with this query.
+     * @param rectangle The rectangle to search.
+     */
+		public boolean collides(${type}[][] rectangle){
+				${type}[] minOther = rectangle[0];
+				${type}[] maxOther = rectangle[1];
+				boolean res = true;
+				assert minOther.length == smap.length;
+				int i = 0;
+				while (i < minOther.length) {
+				    if(max[i] < minOther[i] || min[i] > maxOther[i]){
+								res =false;
+								break;
+						}
+				    i++;
+				}
+				return res;
+		}
+
+		/**
+     * Creates a new OBQuery${Type} object.
+     * @param object
+     *            The object that will be matched.
+     * @param range
+     *            The range to be used for the match.
+     * @param result
+     *            The priority queue were the results will be stored.
+		 * @param smap 
+     *            SMAP vector representation of the given object.
+     */
+    public OBQuery${Type}(O object, ${type} range, OBPriorityQueue${Type}<O> result, ${type}[] smap){
+
+        this(object,range,result);
+				this.smap = smap;
+				updateRectangle();
+				
+    }
+
+		private void updateRectangle(){
+				int i = 0;
+				min = new ${type}[smap.length];
+				max = new ${type}[smap.length];
+				while (i < smap.length) {
+				    min[i] = (${type})Math.max(smap[i] - distance, 0);
+						max[i] = (${type})Math.min(smap[i] + distance, ${Type2}.MAX_VALUE);
+				    i++;
+				}
+		}
 
     /**
      * @return The current results of the matching.
@@ -105,7 +179,11 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     */
     public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
 				result.add(id,obj,distance);
-				distance = result.updateRange(distance);
+				${type} temp = result.updateRange(distance);
+				if(temp != distance){
+						distance = temp;
+						updateRectangle();
+        }
 		}
 }
 

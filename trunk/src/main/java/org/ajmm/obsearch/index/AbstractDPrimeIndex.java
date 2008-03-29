@@ -177,7 +177,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
     public long distanceComputations = 0;
     
-    
+    // boxes avoided by using the MBR optimization.
+    public long avoidedBoxesWithMBR = 0;
     
 
     /**
@@ -212,7 +213,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
     }
 
-    private void init() throws OBStorageException, OBException {
+    protected void init() throws OBStorageException, OBException {
         initStorageDevices();
         initCache();
         // initialize the masks;
@@ -225,7 +226,11 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             mask = mask << 1;
             i++;
         }
+   
     }
+    
+   
+
 
     /**
      * Initializes storage devices required by this class.
@@ -251,7 +256,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             preFreeze.close();
         }
         fact.close();
-
+        
     }
 
     @Override
@@ -273,7 +278,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             if (res.getStatus() == Result.Status.EXISTS) {
                 // update the bucket
                 // container.
-                this.Buckets.put(bucketId, bc.getBytes());
+                putBucket(bucketId, bc);
                 this.A.delete(res.getId());
             }
             return res;
@@ -349,6 +354,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             }
             normalizeProbs();
             logger.debug("Max bucket size: " + maxBucketSize);
+            logger.debug("Bucket count: " + A.size());
             // We have inserted all objects, we only have to store
             // the pivots into bytes.
             pivotBytes = new ArrayList < byte[] >();
@@ -430,12 +436,35 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 assert bc.getPivots() == b.getPivotSize() : "BC: "
                         + bc.getPivots() + " b: " + b.getPivotSize();
                 bc.insert(b);
-                Buckets.put(bucketId, bc.getBytes());
+               putBucket(bucketId, bc);
                 res.setStatus(Result.Status.OK);
             }
         }
         return res;
     }
+    
+    /**
+     * 
+     * @param bucket
+     */
+    private void putBucket(long bucketId, BC bc) throws OBStorageException,
+    IllegalIdException, IllegalAccessException, InstantiationException,
+    DatabaseException, OutOfRangeException, OBException{
+        
+        Buckets.put(bucketId, bc.getBytes());
+        // we have to update the MBRs
+        putMBR(bucketId, bc);
+    }
+    
+    /**
+     * Puts the MBR of the container in the DB.
+     * @param bc
+     */
+    protected abstract void putMBR(long id, BC bc) throws OBStorageException,
+    IllegalIdException, IllegalAccessException, InstantiationException,
+    DatabaseException, OutOfRangeException, OBException;
+        
+    
     
     /** updates the filters! **/
     private void updateFilters(long x){

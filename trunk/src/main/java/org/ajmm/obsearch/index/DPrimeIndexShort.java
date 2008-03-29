@@ -22,6 +22,7 @@ import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.ajmm.obsearch.storage.OBStoreFactory;
+import org.ajmm.obsearch.storage.OBStoreLong;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
@@ -35,7 +36,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         extends
         AbstractDPrimeIndex < O, ObjectBucketShort, OBQueryShort < O >, BucketContainerShort < O > >
         implements IndexShort < O > {
-    
+
     // 0 = doIt 1 doIt1
     public int hackOne = 5;
 
@@ -61,13 +62,16 @@ public final class DPrimeIndexShort < O extends OBShort >
     private int[][] distanceDistribution;
 
     protected float[][] normalizedProbs;
-    
-    
+
     /**
      * Cache used to store recently accessed mbr :)
      */
     protected transient OBCacheLong < short[][] > mbrCache;
 
+    /**
+     * Storage used to hold MBRs :)
+     */
+    protected transient OBStoreLong mbrs;
 
     /**
      * Logger.
@@ -100,6 +104,43 @@ public final class DPrimeIndexShort < O extends OBShort >
             short p) throws OBStorageException, OBException {
         super(fact, pivotCount, pivotSelector, type);
         this.p = p;
+    }
+
+    protected void init() throws OBStorageException, OBException {
+        super.init();
+        if (this.mbrCache == null) {
+            mbrCache = new OBCacheLong < short[][] >(new MBRLoader());
+        }
+
+    }
+
+    protected void initStorageDevices() throws OBStorageException {
+        super.initStorageDevices();
+        // init mbr storage.
+        this.mbrs = fact.createOBStoreLong("MBRs", false);
+    }
+
+    public void close() throws OBStorageException {
+        this.mbrs.close();
+        super.close();
+    }
+
+    /**
+     * Puts the MBR of the container in the DB.
+     * @param bc
+     */
+    protected void putMBR(long id, BucketContainerShort < O > bc)
+            throws OBStorageException, IllegalIdException,
+            IllegalAccessException, InstantiationException, DatabaseException,
+            OutOfRangeException, OBException {
+        short[][] mbr = bc.getMBR();
+        TupleOutput out = new TupleOutput();
+        for (short[] m : mbr) {
+            for (short d : m) {
+                out.writeShort(d);
+            }
+        }
+        this.mbrs.put(id, out.getBufferBytes());
     }
 
     protected ObjectBucketShort getBucket(O object, short p) throws OBException {
@@ -254,15 +295,12 @@ public final class DPrimeIndexShort < O extends OBShort >
         int i = 0;
         while (i < pivots.size()) {
 
-           this.distanceDistribution[i][b.getSmapVector()[i]]++;
-         
+            this.distanceDistribution[i][b.getSmapVector()[i]]++;
+
             i++;
         }
-        
-        
+
     }
-    
-    
 
     protected void normalizeProbs() throws OBStorageException {
         normalizedProbs = new float[pivots.size()][this.maxDistance];
@@ -274,21 +312,23 @@ public final class DPrimeIndexShort < O extends OBShort >
             int m = this.median[i];
             // initialize center
             normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total);
-            m --;
+            m--;
             // process the left side of the median
-            while(m >= 0){
-                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total) + normalizedProbs[i][m + 1];
+            while (m >= 0) {
+                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total)
+                        + normalizedProbs[i][m + 1];
                 m--;
             }
             // process the right side of the median
-           
+
             m = this.median[i] + 1; // do not include the median.
-            if(m < normalizedProbs[i].length){
+            if (m < normalizedProbs[i].length) {
                 normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total);
                 m++;
             }
             while (m < normalizedProbs[i].length) {
-                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total)  + normalizedProbs[i][m - 1];
+                normalizedProbs[i][m] = ((float) distanceDistribution[i][m] / (float) total)
+                        + normalizedProbs[i][m - 1];
                 m++;
             }
             i++;
@@ -372,31 +412,23 @@ public final class DPrimeIndexShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-        OBQueryShort < O > q = new OBQueryShort < O >(object, r, result);
 
-        ObjectBucketShort b = null;
+        ObjectBucketShort b = getBucket(object);
+        OBQueryShort < O > q = new OBQueryShort < O >(object, r, result, b.getSmapVector());
+
         this.queryCount++;
-        b = getBucket(object);
-        
-        if(hackOne >= 4){
-            
-            
-         // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(b.getBucket());
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
-        }
-        
-        if(hackOne == 0 || hackOne == 4){
-            doIt(b,q,0,0);
-        }else if(hackOne == 1 || hackOne == 5){
-            doIt1(b, q, 0, 0);
-        } else if(hackOne == 2 || hackOne == 6 ){
-            doIt2(b,q,0,0);
-        }else if(hackOne == 3 || hackOne == 7){
-            doIt3(b,q,0,0);
+
+        // find first the center of the query.
+        BucketContainerShort < O > bc = super.bucketContainerCache.get(b
+                .getBucket());
+        super.distanceComputations += bc.search(q, b);
+        searchedBoxesTotal++;
+        smapRecordsCompared += bc.size();
+
+        if (hackOne == 5) {
+            doIt1(b, q, 0, 0); // keep
+        } else if (hackOne == 6) {
+            doIt2(b, q, 0, 0); // keep.
         }
         /*
          * while (i < pivots.size()) {// search through all the levels. b =
@@ -408,15 +440,20 @@ public final class DPrimeIndexShort < O extends OBShort >
          * bc.search(q, b);
          */
     }
+
     // assuming that this query goes beyond the median.
-    private float calculateZero(ObjectBucketShort b, OBQueryShort < O > q, int pivotIndex){
-        short base = (short)Math.max(b.getSmapVector()[pivotIndex] - q.getDistance(), 0);       
+    private float calculateZero(ObjectBucketShort b, OBQueryShort < O > q,
+            int pivotIndex) {
+        short base = (short) Math.max(b.getSmapVector()[pivotIndex]
+                - q.getDistance(), 0);
         return this.normalizedProbs[pivotIndex][base];
     }
-    
- // assuming that this query goes beyond the median.
-    private float calculateOne(ObjectBucketShort b, OBQueryShort < O > q, int pivotIndex){
-        short top = (short)Math.min(b.getSmapVector()[pivotIndex] + q.getDistance(), maxDistance);
+
+    // assuming that this query goes beyond the median.
+    private float calculateOne(ObjectBucketShort b, OBQueryShort < O > q,
+            int pivotIndex) {
+        short top = (short) Math.min(b.getSmapVector()[pivotIndex]
+                + q.getDistance(), maxDistance);
         return this.normalizedProbs[pivotIndex][top];
     }
 
@@ -434,31 +471,34 @@ public final class DPrimeIndexShort < O extends OBShort >
             int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
                     q.getDistance());
             if (r == 2) { // if we have to do both
-               if(calculateOne(b,q,pivotIndex) > calculateZero(b,q,pivotIndex)){
-                   // do 1 first
-                   long newBlock = block | super.masks[pivotIndex];
-                   if (super.filter.get(pivotIndex).contains(newBlock)) {
-                       doIt1(b, q, pivotIndex + 1, newBlock);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
-                       doIt1(b, q, pivotIndex + 1, block);
-                   }
-                   
-               }else{
-                   // 0 first
-                   if (super.filter.get(pivotIndex).contains(block)) {
-                       doIt1(b, q, pivotIndex + 1, block);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   long newBlock = block | super.masks[pivotIndex];
-                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
-                       
-                       doIt1(b, q, pivotIndex + 1, newBlock);
-                   }
-               }
+                if (calculateOne(b, q, pivotIndex) > calculateZero(b, q,
+                        pivotIndex)) {
+                    // do 1 first
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt1(b, q, pivotIndex + 1, newBlock);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    if ((r == 2 || r == 0)
+                            && super.filter.get(pivotIndex).contains(block)) {
+                        doIt1(b, q, pivotIndex + 1, block);
+                    }
+
+                } else {
+                    // 0 first
+                    if (super.filter.get(pivotIndex).contains(block)) {
+                        doIt1(b, q, pivotIndex + 1, block);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    long newBlock = block | super.masks[pivotIndex];
+                    if ((r == 2 || r == 1)
+                            && super.filter.get(pivotIndex).contains(newBlock)) {
+
+                        doIt1(b, q, pivotIndex + 1, newBlock);
+                    }
+                }
 
             } else { // only one of the sides is selected
                 if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
@@ -472,13 +512,11 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-           
-            s(block,b,q);
+
+            s(block, b, q);
         }
     }
-    
-  
-    
+
     // based on the center of the query!
     private void doIt2(ObjectBucketShort b, OBQueryShort < O > q,
             int pivotIndex, long block) throws NotFrozenException,
@@ -488,31 +526,33 @@ public final class DPrimeIndexShort < O extends OBShort >
             int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
                     q.getDistance());
             if (r == 2) { // if we have to do both
-               if(b.getSmapVector()[pivotIndex] > median[pivotIndex] ){
-                   // do 1 first
-                   long newBlock = block | super.masks[pivotIndex];
-                   if (super.filter.get(pivotIndex).contains(newBlock)) {
-                       doIt2(b, q, pivotIndex + 1, newBlock);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
-                       doIt2(b, q, pivotIndex + 1, block);
-                   }
-                   
-               }else{
-                   // 0 first
-                   if (super.filter.get(pivotIndex).contains(block)) {
-                       doIt2(b, q, pivotIndex + 1, block);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   long newBlock = block | super.masks[pivotIndex];
-                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
-                       
-                       doIt2(b, q, pivotIndex + 1, newBlock);
-                   }
-               }
+                if (b.getSmapVector()[pivotIndex] > median[pivotIndex]) {
+                    // do 1 first
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt2(b, q, pivotIndex + 1, newBlock);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    if ((r == 2 || r == 0)
+                            && super.filter.get(pivotIndex).contains(block)) {
+                        doIt2(b, q, pivotIndex + 1, block);
+                    }
+
+                } else {
+                    // 0 first
+                    if (super.filter.get(pivotIndex).contains(block)) {
+                        doIt2(b, q, pivotIndex + 1, block);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    long newBlock = block | super.masks[pivotIndex];
+                    if ((r == 2 || r == 1)
+                            && super.filter.get(pivotIndex).contains(newBlock)) {
+
+                        doIt2(b, q, pivotIndex + 1, newBlock);
+                    }
+                }
 
             } else { // only one of the sides is selected
                 if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
@@ -525,11 +565,12 @@ public final class DPrimeIndexShort < O extends OBShort >
                 }
             }
 
-        } else{
-           
-            s(block,b,q);
+        } else {
+
+            s(block, b, q);
         }
     }
+
     // calculate opposite of doIt1
     private void doIt3(ObjectBucketShort b, OBQueryShort < O > q,
             int pivotIndex, long block) throws NotFrozenException,
@@ -539,31 +580,34 @@ public final class DPrimeIndexShort < O extends OBShort >
             int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
                     q.getDistance());
             if (r == 2) { // if we have to do both
-               if(! (calculateOne(b,q,pivotIndex) > calculateZero(b,q,pivotIndex))){
-                   // do 1 first
-                   long newBlock = block | super.masks[pivotIndex];
-                   if (super.filter.get(pivotIndex).contains(newBlock)) {
-                       doIt3(b, q, pivotIndex + 1, newBlock);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   if ((r== 2 || r == 0) && super.filter.get(pivotIndex).contains(block)) {
-                       doIt3(b, q, pivotIndex + 1, block);
-                   }
-                   
-               }else{
-                   // 0 first
-                   if (super.filter.get(pivotIndex).contains(block)) {
-                       doIt3(b, q, pivotIndex + 1, block);
-                   }
-                   r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                           q.getDistance());
-                   long newBlock = block | super.masks[pivotIndex];
-                   if ((r== 2 || r == 1) && super.filter.get(pivotIndex).contains(newBlock)) {
-                       
-                       doIt3(b, q, pivotIndex + 1, newBlock);
-                   }
-               }
+                if (!(calculateOne(b, q, pivotIndex) > calculateZero(b, q,
+                        pivotIndex))) {
+                    // do 1 first
+                    long newBlock = block | super.masks[pivotIndex];
+                    if (super.filter.get(pivotIndex).contains(newBlock)) {
+                        doIt3(b, q, pivotIndex + 1, newBlock);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    if ((r == 2 || r == 0)
+                            && super.filter.get(pivotIndex).contains(block)) {
+                        doIt3(b, q, pivotIndex + 1, block);
+                    }
+
+                } else {
+                    // 0 first
+                    if (super.filter.get(pivotIndex).contains(block)) {
+                        doIt3(b, q, pivotIndex + 1, block);
+                    }
+                    r = bpsRange(median[pivotIndex],
+                            b.getSmapVector()[pivotIndex], q.getDistance());
+                    long newBlock = block | super.masks[pivotIndex];
+                    if ((r == 2 || r == 1)
+                            && super.filter.get(pivotIndex).contains(newBlock)) {
+
+                        doIt3(b, q, pivotIndex + 1, newBlock);
+                    }
+                }
 
             } else { // only one of the sides is selected
                 if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
@@ -577,11 +621,11 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-            s(block,b,q);
-           
+            s(block, b, q);
+
         }
     }
-    
+
     /**
      * Does the match for the given index for the given pivot.
      * @param b
@@ -589,14 +633,15 @@ public final class DPrimeIndexShort < O extends OBShort >
      * @param pivotIndex
      */
     private void doIt(ObjectBucketShort b, OBQueryShort < O > q,
-            int pivotIndex, long block) throws NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException,
-            OutOfRangeException, OBException {
+            int pivotIndex, long block) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
         if (pivotIndex < super.pivots.size()) {
             int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
                     q.getDistance());
 
-            if (r == 2 || r == 0 && super.filter.get(pivotIndex).contains(block)) {
+            if (r == 2 || r == 0
+                    && super.filter.get(pivotIndex).contains(block)) {
                 doIt(b, q, pivotIndex + 1, block);
             }
             // repeat the range just in case we have reduced it
@@ -604,26 +649,29 @@ public final class DPrimeIndexShort < O extends OBShort >
                     .getDistance());
             if (r == 2 || r == 1) {
                 long newBlock = block | super.masks[pivotIndex];
-                if( super.filter.get(pivotIndex).contains(newBlock)) {
+                if (super.filter.get(pivotIndex).contains(newBlock)) {
                     doIt(b, q, pivotIndex + 1, newBlock);
                 }
             }
         } else {
-            s(block,b,q);
+            s(block, b, q);
         }
     }
-    
-    private void s(long block, ObjectBucketShort b, OBQueryShort < O > q) throws NotFrozenException, DatabaseException,
-    InstantiationException, IllegalIdException, IllegalAccessException,
-    OutOfRangeException, OBException{
+
+    private void s(long block, ObjectBucketShort b, OBQueryShort < O > q)
+            throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException {
         
-        if( block != b.getBucket() || hackOne < 4){
-        // we have finished
-        BucketContainerShort < O > bc = super.bucketContainerCache
-                .get(block);
-        super.distanceComputations += bc.search(q, b);
-        searchedBoxesTotal++;
-        smapRecordsCompared += bc.size();
+        short[][] rect = this.mbrCache.get(block);
+        
+        if (rect != null && block != b.getBucket() && q.collides(rect)) { 
+            // we have finished
+            BucketContainerShort < O > bc = super.bucketContainerCache
+                    .get(block);
+            super.distanceComputations += bc.search(q, b);
+            searchedBoxesTotal++;
+            smapRecordsCompared += bc.size();
         }
     }
 
@@ -644,6 +692,35 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
         }
         return res;
+    }
+
+    private class MBRLoader implements OBCacheLoaderLong < short[][] > {
+
+        public int getDBSize() throws OBStorageException {
+            return (int) mbrs.size();
+        }
+
+        public short[][] loadObject(long id) throws DatabaseException,
+                OutOfRangeException, OBException, InstantiationException,
+                IllegalAccessException, IllegalIdException {
+            byte[] data = mbrs.getValue(id);
+            if (data != null) {
+                TupleInput in = new TupleInput(data);
+                short[][] res = new short[2][pivots.size()];
+                for (short[] m : res) {
+                    int i = 0;
+                    while (i < m.length) {
+                        m[i] = in.readShort();
+                        i++;
+                    }
+                }
+                return res;
+            }else{
+                return null;
+            }
+           
+        }
+
     }
 
 }

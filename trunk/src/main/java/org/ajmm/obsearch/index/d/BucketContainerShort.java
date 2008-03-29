@@ -19,8 +19,6 @@ import com.sleepycat.je.DatabaseException;
 public final class BucketContainerShort < O extends OBShort > implements
         BucketContainer < O, ObjectBucketShort, OBQueryShort < O >> {
 
-   
-
     /**
      * # of pivots in this Bucket container.
      */
@@ -129,8 +127,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                 count = 0;
                 assert pivots != 0;
             }
-            List < ObjectBucketShort > view = new LinkedList < ObjectBucketShort >(
-                    );
+            List < ObjectBucketShort > view = new LinkedList < ObjectBucketShort >();
             int i = 0;
             while (i < count) {
                 int cx = 0;
@@ -140,8 +137,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                     cx++;
                 }
                 int id = in.readInt();
-                view.add(new ObjectBucketShort(-1, -1, tuple, false,
-                        id));
+                view.add(new ObjectBucketShort(-1, -1, tuple, false, id));
                 i++;
             }
             dataView = view;
@@ -199,11 +195,40 @@ public final class BucketContainerShort < O extends OBShort > implements
         return getSmapVectors().size();
     }
 
+    public short[][] getMBR() {
+        short[][] res = null;
+        List < ObjectBucketShort > v = getSmapVectors();
+        if (v.size() > 0) {
+            int pivotSize = v.get(0).getPivotSize();
+            res = new short[2][pivotSize];
+            int i = 0;
+            // initialize result.
+            while(i < pivotSize){
+                res[0][i] = Short.MAX_VALUE;
+                i++;
+            }
+            for (ObjectBucketShort o : v) {
+                // min = 0, max = 1.
+                i = 0;
+                short [] smap = o.getSmapVector();
+                while(i < smap.length){
+                    if( smap[i] < res[0][i]){
+                        res[0][i] = smap[i];
+                    }
+                    if(smap[i]  > res[1][i]){
+                        res[1][i] = smap[i];
+                    }
+                    i++;
+                }
+            }
+        }
+        return res;
+    }
+
     /*
      * (non-Javadoc)
      * @see org.ajmm.obsearch.index.d.BucketContainer#search(java.lang.Object,
-     *      org.ajmm.obsearch.OB)
-     *      returns the # of distance computations.
+     *      org.ajmm.obsearch.OB) returns the # of distance computations.
      */
     @Override
     public long search(OBQueryShort < O > query, ObjectBucketShort b)
