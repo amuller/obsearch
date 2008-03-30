@@ -268,7 +268,14 @@ public interface Index < O extends OB > {
             IllegalAccessException, OBException;
     
     
+    /**
+     * Resets all the stats counters.
+     */
+    void resetStats();
     
-    
+    /**
+     * @return A human-readable list of stats relevant for this index.
+     */
+    String getStats();
 
 }

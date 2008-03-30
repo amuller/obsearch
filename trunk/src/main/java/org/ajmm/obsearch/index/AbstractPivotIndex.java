@@ -1165,4 +1165,25 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      */
     public abstract float distance(O a, O b) throws OBException;
 
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#getStats()
+     */
+    @Override
+    public String getStats() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#resetStats()
+     */
+    @Override
+    public void resetStats() {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    
+    
+
 }

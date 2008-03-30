@@ -19,11 +19,14 @@ package org.ajmm.obsearch.index;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
@@ -43,10 +46,12 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.d.BucketContainer;
 import org.ajmm.obsearch.index.d.ObjectBucket;
+import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreInt;
 import org.ajmm.obsearch.storage.OBStoreLong;
+import org.ajmm.obsearch.storage.TupleLong;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
@@ -197,10 +202,11 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      */
     protected AbstractDIndex(OBStoreFactory fact, byte pivotCount,
             IncrementalPivotSelector < O > pivotSelector, Class < O > type,
-            float nextLevelThreshold) throws OBStorageException, OBException {
+            float nextLevelThreshold, int maxLevel) throws OBStorageException, OBException {
         this.pivotSelector = pivotSelector;
         this.type = type;
         this.fact = fact;
+        this.maxLevel = maxLevel;
         init();
         this.pivotsCount = pivotCount;
         OBAsserts.chkAssert(pivotCount > 0, "Pivot count must be > 0");
@@ -302,13 +308,17 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             pivots = new ArrayList < ArrayList < O >>();
             int insertedObjects = 0;
             boolean cont = true;
+            int totalPivots = 0;
             do {
                 // generate pivots for the current souce elements.
                 // when elementsSource == null, all the elements in the DB are
                 // used.
                 int[] pivots = this.pivotSelector.generatePivots(pivotSize,
                         elementsSource, this);
+                totalPivots += pivots.length;
                 logger.debug("Pivots: " + Arrays.toString(pivots));
+                logger.debug("Pivots  Level: " + pivots.length);
+                
                 putPivots(pivots);
                 // calculate medians required to be able to use the bps
                 // function.
@@ -345,14 +355,18 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 }
                 elementsSource = elementsDestination;
                 elementsDestination = new IntArrayList((int) elementsSource
-                        .size() / 4);
+                        .size() );
                 pivotSize = (short) (pivotSize * this.nextLevelThreshold);
+                if(pivotSize == 0){
+                    pivotSize = 3;
+                }
                 level++;
                 logger.debug("Max bucket size: " + maxBucketSize
                         + "exclusion: " + elementsSource.size());
             } while (elementsSource.size() > maxBucketSize
-                    && level < this.maxLevel && cont && pivotSize >= 1);
-
+                  && level <= maxLevel   );
+            logger.debug("Total pivots: " + totalPivots);
+            logger.debug("Max Level: " + level);
             // we have to store the accumulated # of pivots per level (2 ^
             // accum_pivots_per_level)
             // so that we can calculate the bucket.
@@ -370,7 +384,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 insertedObjects++;
                 i++;
             }
-            logger.debug("Bucket count: " + A.size());
+            logger.debug("Bucket count: " + Buckets.size());
             assert A.size() == insertedObjects;
             // We have inserted all objects, we only have to store
             // the pivots into bytes.
@@ -387,6 +401,16 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             frozen = true;
             // TODO: enable this and debug the deadlock issue.
             // this.preFreeze.deleteAll();
+            Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
+            StaticBin1D s = new StaticBin1D();
+            while(it.hasNext()){
+                TupleLong t = it.next();
+                BC bc = this.bucketContainerCache.get(t.getKey());
+                s.add(bc.size());
+            } // add exlucion
+            
+            logger.debug(StatsUtil.mightyIOStats("Bucket distribution", s));
+            
         } catch (PivotsUnavailableException e) {
             throw new OBException(e);
         }
@@ -589,8 +613,12 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         if (bucket.isExclusionBucket()) {
             return this.exclusionBucketId;
         } else {
-            return accum[bucket.getLevel()] + bucket.getBucket();
+            return getBucketStorageIdAux(bucket.getLevel(), bucket.getBucket());
         }
+    }
+    
+    protected long getBucketStorageIdAux(int level, long baseBucket) {
+        return accum[level] + baseBucket;
     }
 
     @Override

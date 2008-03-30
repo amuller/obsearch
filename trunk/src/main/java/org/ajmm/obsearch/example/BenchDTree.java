@@ -40,6 +40,13 @@ public class BenchDTree {
         byte pivots = Byte.parseByte(args[3]);
         logger.debug("Doing pivots: " + pivots);
         
+        short p = Short.parseShort(args[4]);
+        logger.debug("P: " + p);
+        float prob = Float.parseFloat(args[5]);
+        logger.debug("Prob: "  + prob);
+        
+        int maxLevel = Integer.parseInt(args[6]);
+        logger.debug("MAX: "  + prob);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
       //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
      //         30, 30);
@@ -50,14 +57,11 @@ public class BenchDTree {
         BDBFactory fact = new BDBFactory(dbFolder);
         DIndexShort<OBSlice> index = new DIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
-            0.95f, (short)10);
+            prob, p, maxLevel);
 
         Benchmark.bench(index, query, dbData);
         
-        logger.info("Query count: " + index.queryCount);
-        logger.info("Total boxes: " + index.searchedBoxesTotal);        
-        logger.info("Smap records: " + index.smapRecordsCompared);
-        logger.info("Distance computations: " + index.distanceComputations);
+        logger.info(index.getStats());
 
         
         }catch(Exception e){

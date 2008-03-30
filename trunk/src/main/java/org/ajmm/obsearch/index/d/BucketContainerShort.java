@@ -125,7 +125,7 @@ public final class BucketContainerShort < O extends OBShort > implements
 
             } else {
                 count = 0;
-                assert pivots != 0;
+                
             }
             List < ObjectBucketShort > view = new LinkedList < ObjectBucketShort >();
             int i = 0;

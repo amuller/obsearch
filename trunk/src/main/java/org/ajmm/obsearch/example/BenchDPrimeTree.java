@@ -39,7 +39,7 @@ public class BenchDPrimeTree {
         byte pivots = Byte.parseByte(args[3]);
         logger.debug("Doing pivots: " + pivots);
         int hackOne = Integer.parseInt(args[4]);
-        
+        logger.debug("Hack: " + hackOne);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
       //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
       //        30, 30);
@@ -54,10 +54,7 @@ public class BenchDPrimeTree {
        
         Benchmark.bench(index, query, dbData);
         
-        logger.info("Query count: " + index.queryCount);
-        logger.info("Total boxes: " + index.searchedBoxesTotal);        
-        logger.info("Smap records: " + index.smapRecordsCompared);
-        logger.info("Distance computations: " + index.distanceComputations);
+       logger.info(index.getStats());
 
         
         }catch(Exception e){

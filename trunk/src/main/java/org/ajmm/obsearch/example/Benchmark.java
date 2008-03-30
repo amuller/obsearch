@@ -45,11 +45,12 @@ public class Benchmark {
 
         }
         r.close();
-
+       
         // "learn the data".
         logger.info("freezing");
         index.freeze();
-        
+        logger.debug("Distance count creation: "+ OBSlice.count);
+        OBSlice.count = 0;
         
     }
     
@@ -95,6 +96,7 @@ public class Benchmark {
     
     public static void bench(IndexShort < OBSlice > index, String query, String db) throws Exception{
         initIndex(index, query, db);
+        index.resetStats();
         benchAux(index, query, (short)2, (byte)1 );
         benchAux(index, query, (short)2, (byte)1 );
         benchAux(index, query, (short)3, (byte)1 );
@@ -104,5 +106,6 @@ public class Benchmark {
         benchAux(index, query, (short)7, (byte)3 );
         benchAux(index, query, (short)10, (byte)1 );
         benchAux(index, query, (short)10, (byte)3 );
+        logger.debug("Real Distance count search: "+ OBSlice.count);
     }
 }

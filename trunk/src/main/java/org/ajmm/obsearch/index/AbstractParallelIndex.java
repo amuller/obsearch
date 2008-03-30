@@ -202,4 +202,28 @@ public abstract class AbstractParallelIndex < O extends OB > implements
             IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }
+
+
+
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#getStats()
+     */
+    @Override
+    public String getStats() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#resetStats()
+     */
+    @Override
+    public void resetStats() {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    
 }

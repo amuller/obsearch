@@ -126,6 +126,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     }
 
 		private void updateRectangle(){
+				if(smap != null){
 				int i = 0;
 				min = new ${type}[smap.length];
 				max = new ${type}[smap.length];
@@ -133,6 +134,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 				    min[i] = (${type})Math.max(smap[i] - distance, 0);
 						max[i] = (${type})Math.min(smap[i] + distance, ${Type2}.MAX_VALUE);
 				    i++;
+				}
 				}
 		}
 
