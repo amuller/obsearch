@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.storage.bdb;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -41,18 +43,19 @@ import com.sleepycat.je.SequenceConfig;
  */
 
 public class BDBOBStore implements OBStore {
-    
 
+    protected StaticBin1D stats = new StaticBin1D();
+    
     /**
      * Berkeley DB database.
      */
     protected Database db;
-    
+
     /**
      * Database for sequences.
      */
     protected Database sequence;
-    
+
     /**
      * Sequence counter
      */
@@ -79,7 +82,8 @@ public class BDBOBStore implements OBStore {
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStore(String name, Database db, Database sequences) throws DatabaseException {
+    public BDBOBStore(String name, Database db, Database sequences)
+            throws DatabaseException {
         this.db = db;
         this.name = name;
         this.duplicates = db.getConfig().getSortedDuplicates();
@@ -87,8 +91,7 @@ public class BDBOBStore implements OBStore {
         // initialize sequences
         SequenceConfig config = new SequenceConfig();
         config.setAllowCreate(true);
-        DatabaseEntry key =
-            new DatabaseEntry((name + "_seq").getBytes());
+        DatabaseEntry key = new DatabaseEntry((name + "_seq").getBytes());
         this.counter = sequence.openSequence(null, key, config);
     }
 
@@ -109,7 +112,7 @@ public class BDBOBStore implements OBStore {
                 r.setStatus(Result.Status.NOT_EXISTS);
             } else if (res.SUCCESS == res) {
                 r.setStatus(Result.Status.OK);
-            } else {                
+            } else {
                 assert false;
             }
         } catch (Exception e) {
@@ -130,111 +133,131 @@ public class BDBOBStore implements OBStore {
         return this.name;
     }
 
-    public byte[] getValue(byte[] key) throws IllegalArgumentException, OBStorageException{
-        if(duplicates){
+    public byte[] getValue(byte[] key) throws IllegalArgumentException,
+            OBStorageException {
+        if (duplicates) {
             throw new IllegalArgumentException();
         }
         DatabaseEntry search = new DatabaseEntry(key);
         DatabaseEntry value = new DatabaseEntry();
-        try{
+        try {
             OperationStatus res = db.get(null, search, value, null);
-            if(res == OperationStatus.SUCCESS){
+            if (res == OperationStatus.SUCCESS) {
+                if(this.stats != null){
+                    stats.add(value.getData().length);
+                }
                 return value.getData();
-            }else{
+            } else {
                 return null;
             }
-        }catch(DatabaseException e){
+        } catch (DatabaseException e) {
             throw new OBStorageException(e);
         }
     }
 
-    public Result put(byte[] key, byte[] value) throws OBStorageException{
-        
+    public Result put(byte[] key, byte[] value) throws OBStorageException {
+
         DatabaseEntry k = new DatabaseEntry(key);
         DatabaseEntry v = new DatabaseEntry(value);
         Result res = new Result();
-        try{            
+        try {
             OperationStatus r = db.put(null, k, v);
-            if(r == OperationStatus.SUCCESS){ 
+            if (r == OperationStatus.SUCCESS) {
                 res.setStatus(Result.Status.OK);
             } // Result() is always initialized with error.
-        }catch(DatabaseException e){
+        } catch (DatabaseException e) {
             throw new OBStorageException(e);
         }
         return res;
     }
 
-   public boolean allowsDuplicatedData(){
-       return duplicates;
-   }
-   
-   /**
-    * Base class used to iterate over cursors.
-    * @param <O> The type of tuple that will be returned by the iterator.
-    */
-   protected abstract class CursorIterator<O> implements Iterator< O >{
-
-    protected Cursor cursor;
-    private boolean cursorClosed = false;
-    protected DatabaseEntry keyEntry = new DatabaseEntry();
-    protected DatabaseEntry dataEntry = new DatabaseEntry();
-    protected OperationStatus retVal;
-
-    protected void closeCursor() {
-        try{
-            synchronized(cursor){
-                if(!cursorClosed){
-                    cursor.close();
-                    cursorClosed = true;
-                }
-            }
-        }catch(DatabaseException e){
-            throw new NoSuchElementException("Could not close the internal cursor");
-        }
+    public boolean allowsDuplicatedData() {
+        return duplicates;
     }
 
     /**
-     * Currently not supported. To be supported in the future.
+     * Base class used to iterate over cursors.
+     * @param <O>
+     *                The type of tuple that will be returned by the iterator.
      */
-    public void remove() {
-        throw new UnsupportedOperationException();
+    protected abstract class CursorIterator < O > implements Iterator < O > {
+
+        protected Cursor cursor;
+
+        private boolean cursorClosed = false;
+
+        protected DatabaseEntry keyEntry = new DatabaseEntry();
+
+        protected DatabaseEntry dataEntry = new DatabaseEntry();
+
+        protected OperationStatus retVal;
+
+        protected void closeCursor() {
+            try {
+                synchronized (cursor) {
+                    if (!cursorClosed) {
+                        cursor.close();
+                        cursorClosed = true;
+                    }
+                }
+            } catch (DatabaseException e) {
+                throw new NoSuchElementException(
+                        "Could not close the internal cursor");
+            }
+        }
+
+        /**
+         * Currently not supported. To be supported in the future.
+         */
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void finalize() throws Throwable {
+            try {
+                closeCursor();
+            } finally {
+                super.finalize();
+            }
+        }
+
     }
 
-    public void finalize() throws Throwable {
-        try{
-            closeCursor();
-        }finally{
-            super.finalize();
+    public long size() throws OBStorageException {
+        long res;
+
+        try {
+            res = db.count();
+        } catch (DatabaseException e) {
+            throw new OBStorageException(e);
         }
+        return res;
     }
-       
-   }
-   
-   
-   
-   public long size()  throws OBStorageException{
-       long res;
-       
-       try{
-           res = db.count();
-       }catch(DatabaseException e){
-           throw new OBStorageException(e);
-       }
-       return res;
-   }
-   
-   /**
-    * Returns the next id from the database (incrementing sequences). 
-    * @return The next id that can be inserted. 
-    */
-   public long nextId() throws OBStorageException{
-       long res ;
-       try{
-           res =  this.counter.get(null, 1);
-       }catch(DatabaseException e){
-           throw new OBStorageException(e);
-       }
-       return res;
-   }
+
+    /**
+     * Returns the next id from the database (incrementing sequences).
+     * @return The next id that can be inserted.
+     */
+    public long nextId() throws OBStorageException {
+        long res;
+        try {
+            res = this.counter.get(null, 1);
+        } catch (DatabaseException e) {
+            throw new OBStorageException(e);
+        }
+        return res;
+    }
+
+    @Override
+    public StaticBin1D getReadStats() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setReadStats(StaticBin1D stats) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

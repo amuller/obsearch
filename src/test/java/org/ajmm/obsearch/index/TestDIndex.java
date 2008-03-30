@@ -62,7 +62,7 @@ public class TestDIndex
         BDBFactory fact = Utils.getFactory();
         DIndexShort<OBSlice> d = new DIndexShort<OBSlice>(fact, (byte)15,
             sel, OBSlice.class,
-            0.8f, (short)11);
+            .90f, (short)4, 30);
 
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(d);

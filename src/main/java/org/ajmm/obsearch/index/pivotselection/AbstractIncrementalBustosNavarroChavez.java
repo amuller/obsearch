@@ -48,7 +48,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      * Logger.
      */
     private static final transient Logger logger = Logger
-            .getLogger(IncrementalKMeansPPPivotSelectorShort.class);
+            .getLogger(AbstractIncrementalBustosNavarroChavez.class);
 
     private int l;
 

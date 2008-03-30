@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,6 +18,7 @@ import org.ajmm.obsearch.index.d.BucketContainer;
 import org.ajmm.obsearch.index.d.BucketContainerShort;
 import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.index.d.ObjectBucketShort;
+import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
@@ -73,9 +76,9 @@ public final class DIndexShort < O extends OBShort >
      */
     public DIndexShort(OBStoreFactory fact, byte pivotCount,
             IncrementalPivotSelector < O > pivotSelector, Class < O > type,
-            float nextLevelThreshold, short p) throws OBStorageException,
+            float nextLevelThreshold, short p, int maxLevel) throws OBStorageException,
             OBException {
-        super(fact, pivotCount, pivotSelector, type, nextLevelThreshold);
+        super(fact, pivotCount, pivotSelector, type, nextLevelThreshold, maxLevel);
         this.p = p;
     }
 
@@ -303,14 +306,87 @@ public final class DIndexShort < O extends OBShort >
                     bc.search(q, b);
                 }
             } else {
-                throw new UnsupportedOperationException(
-                        "Only supportingranges < p");
+                // we have to do a depth search
+                // one way of doing this is to count the # of - in the string (this count is c)
+                // create a number n of c bits, and increment the number one by one.
+                // by replacing the ith bit of n in the original bit string, we have all the 
+                // possibilities! An efficient implementation:
+                // Create an array  a with the indexes  that must be replaced (with -)
+                // 1) Take each bit i of n and set the a[i] th bit of the block number 
+                // 2) n++
+                // 3) repeat 2^n - 1 times.
+                // PROBLEM: we should go first for the blocks that have greater
+                // possibility of having values.
+                doIt2(b,q,i, 0 , (long)0);
             }
             i++;
         } // finally, search the exclusion bucket :)
         BucketContainerShort < O > bc = super.bucketContainerCache
                 .get(super.exclusionBucketId);
         bc.search(q, b);
+    }
+    
+   
+    
+    private void doIt2(ObjectBucketShort b, OBQueryShort < O > q, int level,
+            int pivotIndex, long block) throws NotFrozenException, DatabaseException,
+            InstantiationException, IllegalIdException, IllegalAccessException,
+            OutOfRangeException, OBException{
+        if(pivotIndex < pivots.get(level).size()){
+            short[] medians = median.get(level);
+            int r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
+            
+            if (r == 2) { // if we have to do both
+                if (b.getSmapVector()[pivotIndex] > medians[pivotIndex]) {
+                    // do 1 first
+                    long newBlock = block | super.masks[pivotIndex];
+
+                        doIt2(b, q, level, pivotIndex + 1, newBlock);
+                    
+                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
+                   
+                    if ((r == 2 || r == 0)
+                            ) {
+                        doIt2(b, q, level, pivotIndex + 1, block);
+                    }
+
+                } else {
+                    // 0 first
+
+                        doIt2(b, q, level, pivotIndex + 1, block);
+                    
+                 
+                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
+                    long newBlock = block | super.masks[pivotIndex];
+                    if ((r == 2 || r == 1)) {
+
+                        doIt2(b, q,level, pivotIndex + 1, newBlock);
+                    }
+                }
+
+            } else { // only one of the sides is selected
+                if (r == 0 ) {
+                    doIt2(b, q,level, pivotIndex + 1, block);
+                } else {
+                    long newBlock = block | super.masks[pivotIndex];
+
+                        doIt2(b, q,level,  pivotIndex + 1, newBlock);
+                    
+                }
+            }
+            
+        }else{
+            // search
+            // we have finished
+            long blockId = super.getBucketStorageIdAux(b.getLevel(), block);
+            BucketContainerShort < O > bc = super.bucketContainerCache
+                    .get(blockId);
+            if(bc.size() != 0 ){
+                super.distanceComputations += bc.search(q, b);
+                searchedBoxesTotal++;
+                smapRecordsCompared += bc.size();
+            }
+        }
     }
 
     /*
@@ -351,4 +427,31 @@ public final class DIndexShort < O extends OBShort >
         return res;
     }
 
+    public String getStats(){
+        StringBuilder res = new StringBuilder();
+        res.append("Query count: " + queryCount);
+        res.append("\n");
+        res.append("Total boxes: " + searchedBoxesTotal);        
+        res.append("\n");
+        res.append("Smap records: " +smapRecordsCompared);
+        res.append("\n");
+        res.append("Distance computations: " + distanceComputations);
+        res.append("\n");
+        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));    
+        res.append("\n");
+        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));   
+        res.append("\n");
+        return res.toString();
+    }
+    
+    public void resetStats(){
+        queryCount = 0;
+        searchedBoxesTotal = 0;
+        smapRecordsCompared = 0;
+        distanceComputations = 0;
+        A.setReadStats(new StaticBin1D());
+        Buckets.setReadStats(new StaticBin1D());
+    }
+    
+    
 }

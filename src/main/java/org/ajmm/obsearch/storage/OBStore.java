@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.storage;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.util.Iterator;
 
 import org.ajmm.obsearch.Result;
@@ -126,4 +128,17 @@ public interface OBStore {
      * @return The next id that can be inserted. 
      */
     long nextId() throws OBStorageException;
+    
+    /**
+     * Returns the read stats, it contains the avg # of bytes read
+     *  the std deviation and also the number of reads.
+     * @return
+     */
+    StaticBin1D getReadStats();
+    
+    /**
+     * Sets the stats object to the given stats.
+     * If null, then we stop storing the stats info.
+     */
+    void setReadStats(StaticBin1D stats);
 }

@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -19,6 +21,7 @@ import org.ajmm.obsearch.index.d.BucketContainerShort;
 import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.index.d.ObjectBucketShort;
 import org.ajmm.obsearch.index.utils.ShortUtils;
+import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
@@ -723,6 +726,34 @@ public final class DPrimeIndexShort < O extends OBShort >
            
         }
 
+    }
+    
+    public String getStats(){
+        StringBuilder res = new StringBuilder();
+        res.append("Query count: " + queryCount);
+        res.append("\n");
+        res.append("Total boxes: " + searchedBoxesTotal);     
+        res.append("\n");
+        res.append("Smap records: " +smapRecordsCompared);
+        res.append("\n");
+        res.append("Distance computations: " + distanceComputations);
+        res.append("\n");
+        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));    
+        res.append("\n");
+        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats())); 
+        res.append("\n");
+        res.append(StatsUtil.mightyIOStats("MBR", this.mbrs.getReadStats()));
+        return res.toString();
+    }
+    
+    public void resetStats(){
+        queryCount = 0;
+        searchedBoxesTotal = 0;
+        smapRecordsCompared = 0;
+        distanceComputations = 0;
+        A.setReadStats(new StaticBin1D());
+        Buckets.setReadStats(new StaticBin1D());
+        mbrs.setReadStats(new StaticBin1D());
     }
 
 }

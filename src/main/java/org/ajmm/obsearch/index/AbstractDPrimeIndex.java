@@ -19,6 +19,8 @@ package org.ajmm.obsearch.index;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
@@ -46,10 +49,12 @@ import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.d.BucketContainer;
 import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.index.d.SimpleBloomFilter;
+import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreInt;
 import org.ajmm.obsearch.storage.OBStoreLong;
+import org.ajmm.obsearch.storage.TupleLong;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
@@ -373,7 +378,16 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 pivot.store(out);
                 pivotBytes.add(out.getBufferBytes());
             }
-
+            
+            Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
+            StaticBin1D s = new StaticBin1D();
+            while(it.hasNext()){
+                TupleLong t = it.next();
+                BC bc = this.bucketContainerCache.get(t.getKey());
+                s.add(bc.size());
+            } // add exlucion
+            logger.debug(StatsUtil.mightyIOStats("Bucket distribution", s));
+            
             frozen = true;
             // TODO: enable this and debug the deadlock issue.
             // this.preFreeze.deleteAll();

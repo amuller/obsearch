@@ -43,6 +43,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
 
 public class OBSlice implements OBShort {
 
+    public static long count = 0;
 
     /**
      * The root node of the tree.
@@ -81,6 +82,7 @@ public class OBSlice implements OBShort {
      */
     public final short distance(final OBShort object) throws OBException {
         OBSlice b = (OBSlice) object;
+        count++;
         assert this.tree != null;
         assert b.tree != null;
         if (this.tree.getSize() < b.tree.getSize()) {
