@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index;
+package org.ajmm.obsearch.cache;
 
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;

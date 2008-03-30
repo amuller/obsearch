@@ -10,6 +10,8 @@ import java.util.List;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.asserts.OBAsserts;
+import org.ajmm.obsearch.cache.OBCache;
+import org.ajmm.obsearch.cache.OBCacheLoader;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
