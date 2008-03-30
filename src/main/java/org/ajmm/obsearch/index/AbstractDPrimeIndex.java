@@ -24,12 +24,18 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.asserts.OBAsserts;
+import org.ajmm.obsearch.cache.OBCache;
+import org.ajmm.obsearch.cache.OBCacheLoader;
+import org.ajmm.obsearch.cache.OBCacheLoaderLong;
+import org.ajmm.obsearch.cache.OBCacheLong;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -96,7 +102,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
     /**
      * Filter used to avoid unnecessary block accesses.
      */
-   protected ArrayList< SimpleBloomFilter<Long>> filter;
+   //protected ArrayList< SimpleBloomFilter<Long>> filter;
+   protected ArrayList< HashSet<Long>> filter;
 
     /**
      * We store here the pivots when we want to de-serialize/ serialize them.
@@ -302,10 +309,12 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             
             // initialize bloom filter
             int i = 0;
-            this.filter = new ArrayList<SimpleBloomFilter<Long>>();
+            //this.filter = new ArrayList<SimpleBloomFilter<Long>>();
+            this.filter = new ArrayList<HashSet<Long>>();
             
             while(i < pivotsCount){
-                filter.add(new SimpleBloomFilter<Long>(i * 1000, (int)Math.pow(2, i)));
+                //filter.add(new SimpleBloomFilter<Long>(i * 1000, (int)Math.pow(2, i)));
+                filter.add(new HashSet<Long>());
                 i++;
             }
             

@@ -67,6 +67,10 @@ public class TestDPrimeIndex
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(d);
         //logger.info("Boxes per search: " + d.totalBoxAccess/ d.queryCount);
+        logger.info("Query count: " + d.queryCount);
+        logger.info("Total boxes: " +d.searchedBoxesTotal);        
+        logger.info("Smap records: " + d.smapRecordsCompared);
+        logger.info("Distance computations: " + d.distanceComputations);
     }
 
 }

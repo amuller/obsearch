@@ -7,6 +7,8 @@ import java.util.Iterator;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.cache.OBCacheLoaderLong;
+import org.ajmm.obsearch.cache.OBCacheLong;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
