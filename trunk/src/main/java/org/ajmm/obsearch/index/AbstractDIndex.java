@@ -317,7 +317,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                         elementsSource, this);
                 totalPivots += pivots.length;
                 logger.debug("Pivots: " + Arrays.toString(pivots));
-                logger.debug("Pivots  Level: " + pivots.length);
+                logger.debug("Pivots  Length: " + pivots.length);
                 
                 putPivots(pivots);
                 // calculate medians required to be able to use the bps
@@ -353,6 +353,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                     // we got stuck, break the loop.
                     cont = false;
                 }
+                logger.debug(  (float)elementsDestination.size() / (float)A.size() + "% pass to next level");
                 elementsSource = elementsDestination;
                 elementsDestination = new IntArrayList((int) elementsSource
                         .size() );
@@ -361,6 +362,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                     pivotSize = 3;
                 }
                 level++;
+              
                 logger.debug("Max bucket size: " + maxBucketSize
                         + "exclusion: " + elementsSource.size());
             } while (elementsSource.size() > maxBucketSize

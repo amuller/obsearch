@@ -48,10 +48,10 @@ public class BenchDTree {
         int maxLevel = Integer.parseInt(args[6]);
         logger.debug("MAX: "  + prob);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-      //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-     //         30, 30);
+      IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+              30, 30);
       
-      IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+     // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
       
         
         BDBFactory fact = new BDBFactory(dbFolder);
