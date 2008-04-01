@@ -24,6 +24,7 @@ import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.ajmm.obsearch.storage.OBStoreFactory;
+import org.ajmm.obsearch.storage.TupleBytes;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
@@ -76,9 +77,10 @@ public final class DIndexShort < O extends OBShort >
      */
     public DIndexShort(OBStoreFactory fact, byte pivotCount,
             IncrementalPivotSelector < O > pivotSelector, Class < O > type,
-            float nextLevelThreshold, short p, int maxLevel) throws OBStorageException,
-            OBException {
-        super(fact, pivotCount, pivotSelector, type, nextLevelThreshold, maxLevel);
+            float nextLevelThreshold, short p, int maxLevel)
+            throws OBStorageException, OBException {
+        super(fact, pivotCount, pivotSelector, type, nextLevelThreshold,
+                maxLevel);
         this.p = p;
     }
 
@@ -281,112 +283,157 @@ public final class DIndexShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-
-        OBQueryShort < O > q = new OBQueryShort < O >(object, r,
-
-        result);
+        
+        short range = r;
+        OBQueryShort < O > q = null;
+        
         int i = 0;
         ObjectBucketShort b = null;
         while (i < pivots.size()) {// search through all the levels.
-            b = getBucket(object, i, (short) (p + q.getDistance()));
+            
+            if(q != null){
+                b = getBucket(object, i, (short) (p + q.getDistance()));
+                q = new OBQueryShort < O >(object, q.getDistance(),
+                    result, b.getSmapVector());
+            }else{
+                b = getBucket(object, i, (short) (p + r));
+                q = new OBQueryShort < O >(object, r,
+                        result, b.getSmapVector());
+            }
             if (!b.isExclusionBucket()) {
-                BucketContainerShort < O > bc =
-
-                super.bucketContainerCache.get(super.getBucketStorageId(b));
-                bc.search(q, b);
+                
+                searchRange(b,q,i, b.getBucket());
                 return;
             }
             if (q.getDistance() <= p) {
                 this.updateBucket(b, i, (short) (p - q.getDistance()));
 
                 if (!b.isExclusionBucket()) {
-                    BucketContainerShort < O > bc =
-
-                    super.bucketContainerCache.get(super.getBucketStorageId(b));
-                    bc.search(q, b);
+                    
+                    searchRange(b,q,i, b.getBucket());
                 }
             } else {
                 // we have to do a depth search
-                // one way of doing this is to count the # of - in the string (this count is c)
-                // create a number n of c bits, and increment the number one by one.
-                // by replacing the ith bit of n in the original bit string, we have all the 
+                // one way of doing this is to count the # of - in the string
+                // (this count is c)
+                // create a number n of c bits, and increment the number one by
+                // one.
+                // by replacing the ith bit of n in the original bit string, we
+                // have all the
                 // possibilities! An efficient implementation:
-                // Create an array  a with the indexes  that must be replaced (with -)
-                // 1) Take each bit i of n and set the a[i] th bit of the block number 
+                // Create an array a with the indexes that must be replaced
+                // (with -)
+                // 1) Take each bit i of n and set the a[i] th bit of the block
+                // number
                 // 2) n++
                 // 3) repeat 2^n - 1 times.
                 // PROBLEM: we should go first for the blocks that have greater
                 // possibility of having values.
-                doIt2(b,q,i, 0 , (long)0);
+                doIt2(b, q, i, 0, (long) 0);
             }
             i++;
         } // finally, search the exclusion bucket :)
-        BucketContainerShort < O > bc = super.bucketContainerCache
-                .get(super.exclusionBucketId);
-        bc.search(q, b);
+      
+        searchRange(b,q,-1,-1);
     }
-    
-   
-    
+
+    /**
+     * Search only the elastic buckets with the p1.
+     * @param b
+     * @param q
+     * @param level
+     */
+    private void searchRange( ObjectBucketShort b, OBQueryShort < O > q,
+            int level, long bucket) throws OBStorageException, NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
+        byte[] low = this.getBucketStorageIdAux(bucket, level, q.getLow()[0]);
+        byte[] high = this.getBucketStorageIdAux(bucket, level, q.getHigh()[0]);
+        Iterator < TupleBytes > it = Buckets.processRangeRaw(low, high);
+        while (it.hasNext()) {
+            TupleBytes t = it.next();
+            // search the Bucket container.
+            BucketContainerShort<O> bc = this.instantiateBucketContainer(t.getValue());
+            super.distanceComputations += bc.search(q, b);
+            searchedBoxesTotal++;
+            smapRecordsCompared += bc.size();
+
+        }
+    }
+
     private void doIt2(ObjectBucketShort b, OBQueryShort < O > q, int level,
-            int pivotIndex, long block) throws NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException,
-            OutOfRangeException, OBException{
-        if(pivotIndex < pivots.get(level).size()){
+            int pivotIndex, long block) throws NotFrozenException,
+            DatabaseException, InstantiationException, IllegalIdException,
+            IllegalAccessException, OutOfRangeException, OBException {
+        if (pivotIndex < pivots.get(level).size()) {
             short[] medians = median.get(level);
-            int r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
-            
+            int r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex],
+                    (short) (q.getDistance() - p));
+
             if (r == 2) { // if we have to do both
                 if (b.getSmapVector()[pivotIndex] > medians[pivotIndex]) {
                     // do 1 first
                     long newBlock = block | super.masks[pivotIndex];
 
-                        doIt2(b, q, level, pivotIndex + 1, newBlock);
-                    
-                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
-                   
-                    if ((r == 2 || r == 0)
-                            ) {
+                    doIt2(b, q, level, pivotIndex + 1, newBlock);
+
+                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex],
+                            (short) (q.getDistance() - p));
+
+                    if ((r == 2 || r == 0)) {
                         doIt2(b, q, level, pivotIndex + 1, block);
                     }
 
                 } else {
                     // 0 first
 
-                        doIt2(b, q, level, pivotIndex + 1, block);
-                    
-                 
-                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex], (short)(q.getDistance() - p));
+                    doIt2(b, q, level, pivotIndex + 1, block);
+
+                    r = bps(medians[pivotIndex], b.getSmapVector()[pivotIndex],
+                            (short) (q.getDistance() - p));
                     long newBlock = block | super.masks[pivotIndex];
                     if ((r == 2 || r == 1)) {
 
-                        doIt2(b, q,level, pivotIndex + 1, newBlock);
+                        doIt2(b, q, level, pivotIndex + 1, newBlock);
                     }
                 }
 
             } else { // only one of the sides is selected
-                if (r == 0 ) {
-                    doIt2(b, q,level, pivotIndex + 1, block);
+                if (r == 0) {
+                    doIt2(b, q, level, pivotIndex + 1, block);
                 } else {
                     long newBlock = block | super.masks[pivotIndex];
 
-                        doIt2(b, q,level,  pivotIndex + 1, newBlock);
-                    
+                    doIt2(b, q, level, pivotIndex + 1, newBlock);
+
                 }
             }
-            
-        }else{
+
+        } else {
             // search
             // we have finished
-            long blockId = super.getBucketStorageIdAux(b.getLevel(), block);
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(blockId);
-            if(bc.size() != 0 ){
-                super.distanceComputations += bc.search(q, b);
-                searchedBoxesTotal++;
-                smapRecordsCompared += bc.size();
-            }
+            this.searchRange( b, q, level, block);
+
         }
+    }
+
+    protected byte[] getBucketStorageIdAux(ObjectBucketShort bucket) {
+        long block = bucket.getBucket();
+        int level = bucket.getLevel();
+        short p1 = bucket.getSmapVector()[0];
+        return getBucketStorageIdAux(block, level, p1);
+    }
+
+    protected byte[] getBucketStorageIdAux(long block, int level, short p1) {
+        TupleOutput out = new TupleOutput();
+        out.writeInt(level);
+        out.writeLong(block);
+        out.writeShort(p1);
+        return out.getBufferBytes();
+    }
+
+    protected byte[] getExclusionBucketId(ObjectBucketShort bucket) {
+        return getBucketStorageIdAux(-1, -1, bucket.getSmapVector()[0]);
     }
 
     /*
@@ -413,7 +460,7 @@ public final class DIndexShort < O extends OBShort >
             IllegalAccessException, InstantiationException {
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
-        searchOB(object, (short) 3, result);
+        searchOB(object, (short) 0, result);
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
         if (result.getSize() == 1) {
@@ -427,24 +474,24 @@ public final class DIndexShort < O extends OBShort >
         return res;
     }
 
-    public String getStats(){
+    public String getStats() {
         StringBuilder res = new StringBuilder();
         res.append("Query count: " + queryCount);
         res.append("\n");
-        res.append("Total boxes: " + searchedBoxesTotal);        
+        res.append("Total boxes: " + searchedBoxesTotal);
         res.append("\n");
-        res.append("Smap records: " +smapRecordsCompared);
+        res.append("Smap records: " + smapRecordsCompared);
         res.append("\n");
         res.append("Distance computations: " + distanceComputations);
         res.append("\n");
-        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));    
+        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));
         res.append("\n");
-        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));   
+        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));
         res.append("\n");
         return res.toString();
     }
-    
-    public void resetStats(){
+
+    public void resetStats() {
         queryCount = 0;
         searchedBoxesTotal = 0;
         smapRecordsCompared = 0;
@@ -452,6 +499,5 @@ public final class DIndexShort < O extends OBShort >
         A.setReadStats(new StaticBin1D());
         Buckets.setReadStats(new StaticBin1D());
     }
-    
-    
+
 }

@@ -41,7 +41,7 @@ public interface OBStoreFactory {
      * @return An OBStore ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore createOBStore(String name, boolean temp) throws OBStorageException;
+    OBStore<TupleBytes> createOBStore(String name, boolean temp) throws OBStorageException;
     
     
 <#list types as t>

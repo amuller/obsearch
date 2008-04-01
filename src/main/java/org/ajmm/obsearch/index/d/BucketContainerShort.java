@@ -72,7 +72,7 @@ public final class BucketContainerShort < O extends OBShort > implements
     public Result delete(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        List < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
@@ -96,7 +96,7 @@ public final class BucketContainerShort < O extends OBShort > implements
      * Read dataView and update data[]
      */
     private void updateData() {
-        List < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getVectors();
         TupleOutput out = new TupleOutput();
         assert pivots != 0;
         out.writeInt(pivots);
@@ -113,7 +113,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         this.data = out.getBufferBytes();
     }
 
-    private List < ObjectBucketShort > getSmapVectors() {
+    private List < ObjectBucketShort > getVectors() {
 
         if (dataView == null) {
             int count;
@@ -157,7 +157,7 @@ public final class BucketContainerShort < O extends OBShort > implements
     public Result exists(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        List < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
@@ -185,19 +185,19 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert pivots == bucket.getSmapVector().length : " pivots: " + pivots
                 + " obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
-        List < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getVectors();
         v.add(bucket);
         updateData();
         return res;
     }
 
     public int size() {
-        return getSmapVectors().size();
+        return getVectors().size();
     }
 
     public short[][] getMBR() {
         short[][] res = null;
-        List < ObjectBucketShort > v = getSmapVectors();
+        List < ObjectBucketShort > v = getVectors();
         if (v.size() > 0) {
             int pivotSize = v.get(0).getPivotSize();
             res = new short[2][pivotSize];

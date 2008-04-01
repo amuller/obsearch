@@ -4,7 +4,7 @@
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="Tuple"+Type+".java" />
 package org.ajmm.obsearch.storage;
-
+import org.ajmm.obsearch.storage.Tuple;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -32,15 +32,15 @@ package org.ajmm.obsearch.storage;
  * @author Arnoldo Jose Muller Molina
  */
 
-public final class Tuple${Type} {
+public final class Tuple${Type} extends Tuple{
 
     private ${type} key;
     
-    private byte[] value;
+    
 
     public Tuple${Type}(${type} key, byte[] value) {
+				super(value);
         this.key = key;
-        this.value = value;
     }
 
     /**
@@ -51,13 +51,6 @@ public final class Tuple${Type} {
         return key;
     }
 
-    /**
-     * 
-     * @return The value.
-     */
-    public byte[] getValue() {
-        return value;
-    }
     
 }
 

@@ -37,7 +37,7 @@ import org.ajmm.obsearch.Result;
  * @author Arnoldo Jose Muller Molina
  */
 
-public interface OBStore${Type} extends OBStore {
+public interface OBStore${Type} extends OBStore<Tuple${Type}> {
     
 
     /**

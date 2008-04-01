@@ -25,24 +25,18 @@ package org.ajmm.obsearch.storage;
  * @author Arnoldo Jose Muller Molina
  */
 
-public final class Tuple {
+public  class Tuple {
 
-    private byte[] key;
+   
     
     private byte[] value;
 
-    public Tuple(byte[] key, byte[] value) {
-        this.key = key;
+    public Tuple(byte[] value) {
+     
         this.value = value;
     }
 
-    /**
-     * 
-     * @return The key.
-     */
-    public byte[] getKey() {
-        return key;
-    }
+    
 
     /**
      * 

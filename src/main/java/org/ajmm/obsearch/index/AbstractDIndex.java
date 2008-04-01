@@ -34,7 +34,9 @@ import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
+import org.ajmm.obsearch.cache.OBCacheByteArray;
 import org.ajmm.obsearch.cache.OBCacheLoader;
+import org.ajmm.obsearch.cache.OBCacheLoaderByteArray;
 import org.ajmm.obsearch.cache.OBCacheLoaderLong;
 import org.ajmm.obsearch.cache.OBCacheLong;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -51,6 +53,7 @@ import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreInt;
 import org.ajmm.obsearch.storage.OBStoreLong;
+import org.ajmm.obsearch.storage.TupleBytes;
 import org.ajmm.obsearch.storage.TupleLong;
 import org.apache.log4j.Logger;
 
@@ -101,11 +104,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      */
     protected transient ArrayList < ArrayList < O >> pivots;
 
-    /**
-     * This is the id for the exclusion bucket. (to avoid computing 2^m^h all
-     * the time)
-     */
-    protected long exclusionBucketId;
+    
 
     /**
      * We store here the pivots when we want to de-serialize/ serialize them.
@@ -127,7 +126,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     /**
      * We store the buckets in this storage device.
      */
-    protected transient OBStoreLong Buckets;
+    protected transient OBStore<TupleBytes> Buckets;
 
     /**
      * Required during pre-freeze to make only one copy of an object is
@@ -149,7 +148,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     /**
      * Cache used for storing recently accessed Buckets.
      */
-    protected transient OBCacheLong < BC > bucketContainerCache;
+    protected transient OBCacheByteArray < BC > bucketContainerCache;
 
     /**
      * How many pivots will be used on each level of the hash table.
@@ -237,7 +236,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      */
     protected void initStorageDevices() throws OBStorageException {
         this.A = fact.createOBStoreInt("A", false);
-        this.Buckets = fact.createOBStoreLong("Buckets", false);
+        this.Buckets = fact.createOBStore("Buckets", false);
         if (!this.isFrozen()) {
             this.preFreeze = fact.createOBStore("pre", true);
         }
@@ -270,10 +269,10 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
 
         if (this.isFrozen()) {
             B b = getBucket(object);
-            long bucketId = getBucketStorageId(b);
+            byte[] bucketId = getBucketStorageId(b);
             BC bc = this.bucketContainerCache.get(bucketId);
             Result res = bc.delete(b, object);
-            if (res.getStatus() == Result.Status.EXISTS) {
+            if (res.getStatus() == Result.Status.OK) {
                 // update the bucket
                 // container.
                 this.Buckets.put(bucketId, bc.getBytes());
@@ -283,8 +282,9 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         } else {
             throw new NotFrozenException();
         }
-
     }
+    
+    
 
     @Override
     public void freeze() throws IOException, AlreadyFrozenException,
@@ -373,7 +373,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             // accum_pivots_per_level)
             // so that we can calculate the bucket.
 
-            this.exclusionBucketId = -1;
+            
             // now we can insert the remaining objects.
             logger.debug("Inserting remaining objects");
             int i = 0;
@@ -403,10 +403,10 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             frozen = true;
             // TODO: enable this and debug the deadlock issue.
             // this.preFreeze.deleteAll();
-            Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
+            Iterator<TupleBytes> it = Buckets.processAll();
             StaticBin1D s = new StaticBin1D();
             while(it.hasNext()){
-                TupleLong t = it.next();
+                TupleBytes t = it.next();
                 BC bc = this.bucketContainerCache.get(t.getKey());
                 s.add(bc.size());
             } // add exlucion
@@ -450,7 +450,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             IllegalIdException, IllegalAccessException, InstantiationException,
             DatabaseException, OutOfRangeException, OBException {
         // get the bucket id.
-        long bucketId = getBucketStorageId(b);
+        byte[] bucketId = getBucketStorageId(b);
         // if the bucket is the exclusion bucket
         // get the bucket container from the cache.
         BC bc = this.bucketContainerCache.get(bucketId);
@@ -611,17 +611,27 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      *                The bucket that will be processed.
      * @return The exact location in the storage system for the given bucket.
      */
-    protected long getBucketStorageId(B bucket) {
+    protected byte[] getBucketStorageId(B bucket) {
         if (bucket.isExclusionBucket()) {
-            return this.exclusionBucketId;
+            return getExclusionBucketId(bucket);
         } else {
-            return getBucketStorageIdAux(bucket.getLevel(), bucket.getBucket());
+            return getBucketStorageIdAux(bucket);
         }
     }
     
-    protected long getBucketStorageIdAux(int level, long baseBucket) {
-        return accum[level] + baseBucket;
-    }
+    /**
+     * Returns the key of the given bucket.
+     * @param bucket Bucket to process.
+     * @return key of the bucket in bytes.
+     */
+    protected abstract byte[] getBucketStorageIdAux(B bucket) ;
+    
+    /**
+     * Returns the exclusion bucket id.
+     * @return Returns the exclusion bucket id.
+     */
+    protected abstract byte[] getExclusionBucketId(B bucket) ;
+    
 
     @Override
     public boolean isFrozen() {
@@ -640,8 +650,6 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     public void relocateInitialize(File dbPath) throws DatabaseException,
             NotFrozenException, IllegalAccessException, InstantiationException,
             OBException, IOException {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -666,7 +674,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             aCache = new OBCache < O >(new ALoader());
         }
         if (this.bucketContainerCache == null) {
-            this.bucketContainerCache = new OBCacheLong < BC >(
+            this.bucketContainerCache = new OBCacheByteArray < BC >(
                     new BucketLoader());
         }
     }
@@ -700,13 +708,13 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      */
     protected abstract BC instantiateBucketContainer(byte[] data);
 
-    private class BucketLoader implements OBCacheLoaderLong < BC > {
+    private class BucketLoader implements OBCacheLoaderByteArray < BC > {
 
         public int getDBSize() throws OBStorageException {
             return (int) Buckets.size();
         }
 
-        public BC loadObject(long i) throws DatabaseException,
+        public BC loadObject(byte[] i) throws DatabaseException,
                 OutOfRangeException, OBException, InstantiationException,
                 IllegalAccessException {
             byte[] data = Buckets.getValue(i);

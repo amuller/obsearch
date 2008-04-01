@@ -7,7 +7,10 @@ import java.util.NoSuchElementException;
 
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.OBStorageException;
+import org.ajmm.obsearch.index.utils.ByteArrayComparator;
 import org.ajmm.obsearch.storage.OBStore;
+import org.ajmm.obsearch.storage.Tuple;
+import org.ajmm.obsearch.storage.TupleBytes;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -42,10 +45,12 @@ import com.sleepycat.je.SequenceConfig;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class BDBOBStore implements OBStore {
+public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore < T > {
+
+    private static ByteArrayComparator comp = new ByteArrayComparator();
 
     protected StaticBin1D stats = new StaticBin1D();
-    
+
     /**
      * Berkeley DB database.
      */
@@ -82,7 +87,7 @@ public class BDBOBStore implements OBStore {
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStore(String name, Database db, Database sequences)
+    public AbstractBDBOBStore(String name, Database db, Database sequences)
             throws DatabaseException {
         this.db = db;
         this.name = name;
@@ -143,7 +148,7 @@ public class BDBOBStore implements OBStore {
         try {
             OperationStatus res = db.get(null, search, value, null);
             if (res == OperationStatus.SUCCESS) {
-                if(this.stats != null){
+                if (this.stats != null) {
                     stats.add(value.getData().length);
                 }
                 return value.getData();
@@ -180,7 +185,7 @@ public class BDBOBStore implements OBStore {
      * @param <O>
      *                The type of tuple that will be returned by the iterator.
      */
-    protected abstract class CursorIterator < O > implements Iterator < O > {
+    protected abstract class CursorIterator < T > implements Iterator < T > {
 
         protected Cursor cursor;
 
@@ -191,6 +196,101 @@ public class BDBOBStore implements OBStore {
         protected DatabaseEntry dataEntry = new DatabaseEntry();
 
         protected OperationStatus retVal;
+
+        private T next = null;
+
+        private byte[] max;
+
+        private byte[] current;
+
+        private boolean full;
+
+        protected CursorIterator(byte[] min, byte[] max)
+                throws OBStorageException {
+            this(min, max, false);
+        }
+
+        protected CursorIterator(byte[] min, byte[] max, boolean full)
+                throws OBStorageException {
+            this.max = max;
+            this.current = min;
+            this.full = full;
+            try {
+                this.cursor = db.openCursor(null, null);
+                keyEntry.setData(current);
+                if (!full) {
+                    retVal = cursor
+                            .getSearchKeyRange(keyEntry, dataEntry, null);
+                } else {
+                    retVal = cursor.getFirst(keyEntry, dataEntry, null);
+                }
+            } catch (DatabaseException e) {
+                throw new OBStorageException(e);
+            }
+            loadNext();
+        }
+
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        /**
+         * Loads data from keyEntry and dataEntry and puts it into next. If we
+         * go beyond max, we set next to null so that everybody will work
+         * properly.
+         */
+        private void loadNext() throws NoSuchElementException {
+            if (retVal == OperationStatus.SUCCESS) {
+                current = keyEntry.getData();
+                
+                int c = -1;  // full mode
+                if(! full) {
+                    c = comp.compare(current, max);
+                }
+                if (c <= 0) {
+                    next = createTuple(current, dataEntry.getData());
+                    stats.add(dataEntry.getData().length);
+                } else { // end of the loop
+                    next = null;
+                    // close the cursor
+                    closeCursor();
+                }
+            } else { // we are done
+                next = null;
+                // close the cursor
+                closeCursor();
+            }
+        }
+
+        /**
+         * Creates a tuple from the given key and value.
+         * @param key
+         *                raw key.
+         * @param value
+         *                raw value.
+         * @return A new tuple of type T created from the raw data key and
+         *         value.
+         */
+        protected abstract T createTuple(byte[] key, byte[] value);
+
+        public T next() {
+            synchronized (keyEntry) {
+                if (next == null) {
+                    throw new NoSuchElementException(
+                            "You tried to access an iterator with no next elements");
+                }
+                T res = next;
+                try {
+                    retVal = cursor.getNext(keyEntry, dataEntry, null);
+                } catch (DatabaseException e) {
+                    throw new NoSuchElementException("Berkeley DB's error: "
+                            + e.getMessage());
+                }
+                // get the next elements.
+                loadNext();
+                return res;
+            }
+        }
 
         protected void closeCursor() {
             try {
@@ -250,14 +350,53 @@ public class BDBOBStore implements OBStore {
 
     @Override
     public StaticBin1D getReadStats() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.stats;
     }
 
     @Override
     public void setReadStats(StaticBin1D stats) {
-        // TODO Auto-generated method stub
+        this.stats = stats;
+    }
 
+    /**
+     * @see org.ajmm.obsearch.storage.OBStore#processRangeRaw(byte[], byte[])
+     */
+    @Override
+    public Iterator < TupleBytes > processRangeRaw(byte[] low, byte[] high)
+            throws OBStorageException {
+        return new ByteArrayIterator(low, high);
+    }
+
+    
+
+    
+
+    /**
+     * Iterator used to process range results.
+     */
+    /*
+     * TODO: I am leaving the closing of the cursor to the last iteration or the
+     * finalize method (whichever happens first). We should test if this is ok,
+     * or if there is an issue with this because Berkeley's iterator explicitly
+     * have a "close" method.
+     */
+    protected class ByteArrayIterator
+            extends CursorIterator < TupleBytes > {
+
+        protected ByteArrayIterator(byte[] min, byte[] max)
+                throws OBStorageException {
+            super(min, max);
+        }
+
+        protected ByteArrayIterator(byte[] min, byte[] max, boolean full)
+                throws OBStorageException {
+            super(min, max, full);
+        }
+
+        @Override
+        protected TupleBytes createTuple(byte[] key, byte[] value) {
+            return new TupleBytes(key, value);
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ajmm.obsearch;
+package org.ajmm.obsearch.index.utils;
 
 import java.io.File;
 import java.io.IOException;

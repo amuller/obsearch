@@ -31,6 +31,8 @@ import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStore${Type};
 </#list>
 
+import org.ajmm.obsearch.storage.TupleBytes;
+
 import org.ajmm.obsearch.storage.OBStoreFactory;
 
 import com.sleepycat.je.DatabaseConfig;
@@ -91,11 +93,11 @@ public class BDBFactory implements OBStoreFactory {
         }
     }
 
-    public OBStore createOBStore(String name, boolean temp) throws OBStorageException{       
+    public OBStore<TupleBytes> createOBStore(String name, boolean temp) throws OBStorageException{       
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
         try{
-            res = new BDBOBStore(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
+            res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }

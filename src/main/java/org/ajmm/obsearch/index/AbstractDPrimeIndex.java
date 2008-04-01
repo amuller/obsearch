@@ -287,7 +287,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             long bucketId = getBucketStorageId(b);
             BC bc = this.bucketContainerCache.get(bucketId);
             Result res = bc.delete(b, object);
-            if (res.getStatus() == Result.Status.EXISTS) {
+            if (res.getStatus() == Result.Status.OK) {
                 // update the bucket
                 // container.
                 putBucket(bucketId, bc);

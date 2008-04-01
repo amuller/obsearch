@@ -21,7 +21,7 @@ import java.util.Random;
 import junit.framework.TestCase;
 
 import org.ajmm.obsearch.exception.OBStorageException;
-
+import org.ajmm.obsearch.storage.Tuple${Type};
 /*
 OBSearch: a distributed similarity search engine
 This project is to similarity search what 'bit-torrent' is to downloads.

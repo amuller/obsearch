@@ -20,6 +20,7 @@
 
 <@pp.changeOutputFile name="BDBOBStore"+Type+".java" />
 package org.ajmm.obsearch.storage.bdb;
+
 /*
 		OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -48,6 +49,8 @@ import org.ajmm.obsearch.storage.Tuple${Type};
 
 import com.sleepycat.bind.tuple.${binding}Binding;
 import com.sleepycat.bind.tuple.TupleOutput;
+import com.sleepycat.bind.tuple.TupleInput;
+
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
@@ -61,7 +64,7 @@ import com.sleepycat.je.OperationStatus;
   */
 
 public final class BDBOBStore${Type}
-        extends BDBOBStore implements OBStore${Type} {
+        extends AbstractBDBOBStore<Tuple${Type}> implements OBStore${Type} {
 
     /**
      * Builds a new Storage system by receiving a Berkeley DB database that uses
@@ -94,24 +97,15 @@ public final class BDBOBStore${Type}
         return out.getBufferBytes();
     }
 
-    /**
-     * Loads the given value to a DatabaseEntry entry
-     * @param value
-     *                The value to load
-     * @param entry
-     *                The place where we will put the entry.
-     */
-    private void loadIntoEntry(${type} value, DatabaseEntry entry) {
-				entry.setData(getBytes(value));
-    }
 
-    /**
+		/**
      * Converts the value of the given entry into its primitive type.
      * @param entry
      *                The place where we will put the entry.
      */
-    private ${type} entryToValue(DatabaseEntry entry) {
-        return ${binding}Binding.entryTo${Type}(entry);
+    private ${type} bytesToValue(byte[] entry) {
+        TupleInput in = new TupleInput(entry);
+        return in.read${binding2}();
     }
 
     public byte[] getValue(${type} key) throws IllegalArgumentException,
@@ -129,6 +123,11 @@ public final class BDBOBStore${Type}
         return new ${Type}Iterator(low, high);
     }
 
+		public Iterator < Tuple${Type} > processAll()
+            throws OBStorageException {
+        return new ${Type}Iterator();
+    }
+
     /**
      * Iterator used to process range results.
      */
@@ -140,68 +139,17 @@ public final class BDBOBStore${Type}
      */
     final class ${Type}Iterator extends CursorIterator < Tuple${Type} > {
         
-        private Tuple${Type} next = null;
-
-        private ${type} max;
-
-        private ${type} current;
-
+       
         private ${Type}Iterator(${type} min, ${type} max) throws OBStorageException {
-            this.max = max;
-            this.current = min;
-            try {
-                this.cursor = db.openCursor(null, null);
-                loadIntoEntry(current, keyEntry);
-                retVal = cursor.getSearchKeyRange(keyEntry, dataEntry, null);
-            } catch (DatabaseException e) {
-                throw new OBStorageException(e);
-            }
-            loadNext();
+						super(getBytes(min), getBytes(max));
         }
 
-        public boolean hasNext() {
-            return next != null;
+				private ${Type}Iterator() throws OBStorageException {
+						super(null, null,true);
         }
 
-        /**
-         * Loads data from keyEntry and dataEntry and puts it into next. If we
-         * go beyond max, we set next to null so that everybody will work
-         * properly.
-         */
-        private void loadNext() throws NoSuchElementException {
-            if (retVal == OperationStatus.SUCCESS) {
-                current = entryToValue(keyEntry);
-                if (current <= max) {
-                    next = new Tuple${Type}(current, dataEntry.getData());
-                } else { // end of the loop
-                    next = null;
-                    // close the cursor
-                    closeCursor();
-                }
-            } else { // we are done
-                next = null;
-                // close the cursor
-                closeCursor();
-            }
-        }
-        
-        public Tuple${Type} next() {
-            synchronized (keyEntry) {
-                if (next == null) {
-                    throw new NoSuchElementException(
-                            "You tried to access an iterator with no next elements");
-                }
-                Tuple${Type} res = next;
-                try {
-                    retVal = cursor.getNext(keyEntry, dataEntry, null);
-                } catch (DatabaseException e) {
-                    throw new NoSuchElementException("Berkeley DB's error: "
-                            + e.getMessage());
-                }
-                // get the next elements.
-                loadNext();
-                return res;
-            }
+				protected Tuple${Type} createTuple(byte[] key, byte[] value) {
+            return new Tuple${Type}(bytesToValue(key),value);
         }
     }
 }
