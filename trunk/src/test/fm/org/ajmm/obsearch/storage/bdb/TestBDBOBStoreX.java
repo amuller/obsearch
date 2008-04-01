@@ -9,7 +9,7 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
+
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.storage.StorageValidation${Type};
 import org.junit.Before;

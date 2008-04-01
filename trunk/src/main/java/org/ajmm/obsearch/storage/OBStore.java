@@ -36,7 +36,7 @@ import org.ajmm.obsearch.exception.OBStorageException;
  * @author Arnoldo Jose Muller Molina
  */
 
-public interface OBStore {
+public interface OBStore<T extends Tuple> {
 
     /**
      * Get the name of this storage system.
@@ -141,4 +141,20 @@ public interface OBStore {
      * If null, then we stop storing the stats info.
      */
     void setReadStats(StaticBin1D stats);
+    
+    /**
+     * Iterates through the database by using the given low and high keys.
+     * @param low Lowest value to get.
+     * @param high Highest value to get.
+     * @return An iterator used to traverse the DB.
+     * @throws OBStorageException
+     */
+    Iterator<TupleBytes> processRangeRaw(byte[] low, byte[] high)throws OBStorageException;
+    
+    /**
+     * Process all the elements in the DB. Useful for debugging.
+     * @return An iterator that goes through all the data in the DB.
+     * @throws OBStorageException
+     */
+    Iterator<T> processAll()throws OBStorageException;
 }

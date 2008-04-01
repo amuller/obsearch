@@ -4,7 +4,6 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
@@ -12,6 +11,8 @@ import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShor
 import org.ajmm.obsearch.index.pivotselection.IncrementalDummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalKMeansPPPivotSelectorShort;
 import org.ajmm.obsearch.index.utils.Directory;
+import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
+import org.ajmm.obsearch.index.utils.TUtils;
 import org.ajmm.obsearch.storage.bdb.BDBFactory;
 import org.ajmm.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
@@ -62,7 +63,7 @@ public class TestDIndex
         BDBFactory fact = Utils.getFactory();
         DIndexShort<OBSlice> d = new DIndexShort<OBSlice>(fact, (byte)15,
             sel, OBSlice.class,
-            .90f, (short)4, 30);
+            .90f, (short)4, 10);
 
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(d);

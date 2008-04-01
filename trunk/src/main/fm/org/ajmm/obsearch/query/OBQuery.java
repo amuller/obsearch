@@ -121,6 +121,10 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 
         this(object,range,result);
 				this.smap = smap;
+				if(smap != null){
+						min = new ${type}[smap.length];
+				max = new ${type}[smap.length];
+				}
 				updateRectangle();
 				
     }
@@ -128,14 +132,26 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 		private void updateRectangle(){
 				if(smap != null){
 				int i = 0;
-				min = new ${type}[smap.length];
-				max = new ${type}[smap.length];
 				while (i < smap.length) {
 				    min[i] = (${type})Math.max(smap[i] - distance, 0);
 						max[i] = (${type})Math.min(smap[i] + distance, ${Type2}.MAX_VALUE);
 				    i++;
 				}
 				}
+		}
+
+		/**
+		 * Return low of the query rectangle.
+     */ 
+		public ${type}[] getLow(){
+				return min;
+		}
+
+		/**
+		 * Return low of the query rectangle.
+     */ 
+		public ${type}[] getHigh(){
+				return max;
 		}
 
     /**

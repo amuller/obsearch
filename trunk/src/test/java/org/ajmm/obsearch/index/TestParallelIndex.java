@@ -4,9 +4,9 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.utils.Directory;
+import org.ajmm.obsearch.index.utils.TUtils;
 import org.junit.Test;
 
 /*

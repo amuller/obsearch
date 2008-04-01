@@ -4,8 +4,8 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.index.utils.Directory;
+import org.ajmm.obsearch.index.utils.TUtils;
 
 public class Utils extends TestCase{
 

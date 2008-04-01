@@ -5,10 +5,11 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
+import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
+import org.ajmm.obsearch.index.utils.TUtils;
 import org.junit.Before;
 
 public class TestUnsafeNCorePPTreeShort extends TestCase{
@@ -29,7 +30,7 @@ public class TestUnsafeNCorePPTreeShort extends TestCase{
         assertTrue(dbFolder.mkdirs());
         DummyPivotSelector ps = new DummyPivotSelector();
         IndexShort < OBSlice > index = new UnsafeNCorePPTreeShort < OBSlice >(dbFolder,
-                (byte) 30, (byte) 8, (short) 0, (short) 200,ps,2, OBSlice.class);
+                (byte) 30, (byte) 8, (short) 0, (short) (IndexSmokeTUtil.maxSliceSize * 2),ps,2, OBSlice.class);
 
         IndexSmokeTUtil t = new IndexSmokeTUtil();
         t.tIndex(index);

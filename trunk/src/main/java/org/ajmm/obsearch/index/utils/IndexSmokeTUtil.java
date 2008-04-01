@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index;
+package org.ajmm.obsearch.index.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,12 +15,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.Result;
-import org.ajmm.obsearch.TUtils;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.index.IndexShort;
+import org.ajmm.obsearch.index.SynchronizableIndexShort;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
-import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
@@ -162,7 +162,7 @@ public class IndexSmokeTUtil {
      * @exception If
      *                    something goes wrong.
      */
-    protected void tIndex(IndexShort < OBSlice > index) throws Exception {
+    public void tIndex(IndexShort < OBSlice > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
 
@@ -374,8 +374,10 @@ public class IndexSmokeTUtil {
      *                 If something goes wrong.
      */
     public static boolean shouldProcessSlice(OBSlice x) throws Exception {
-        return x.size() <= 500;
+        return x.size() <= maxSliceSize;
     }
+    
+    public static int maxSliceSize = 500;
 
     /**
      * Parse a line in the slices file.

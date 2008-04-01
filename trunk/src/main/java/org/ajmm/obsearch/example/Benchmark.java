@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.index.IndexSmokeTUtil;
+import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.log4j.Logger;
 
