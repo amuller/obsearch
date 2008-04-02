@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index.d;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,6 +10,8 @@ import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.index.utils.IntegerHolder;
+import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 
@@ -46,6 +49,12 @@ public final class BucketContainerShort < O extends OBShort > implements
      */
     private Index < O > index;
 
+    private static final int UNIT_SIZE = Short.SIZE / 8;
+
+    private static final int BASE = 4 * 3; // pivots count level
+
+    private int TUPLE_SIZE;
+
     public BucketContainerShort(Index < O > index, byte[] data) {
         assert index != null;
         this.index = index;
@@ -63,6 +72,7 @@ public final class BucketContainerShort < O extends OBShort > implements
 
     private int readFromDataAux(TupleInput in) {
         pivots = in.readInt();
+        TUPLE_SIZE = pivots * UNIT_SIZE + Index.ID_SIZE;
         int count = in.readInt();
         level = in.readInt();
         return count;
@@ -97,6 +107,7 @@ public final class BucketContainerShort < O extends OBShort > implements
      */
     private void updateData() {
         List < ObjectBucketShort > v = getVectors();
+        Collections.sort(v);
         TupleOutput out = new TupleOutput();
         assert pivots != 0;
         out.writeInt(pivots);
@@ -125,7 +136,7 @@ public final class BucketContainerShort < O extends OBShort > implements
 
             } else {
                 count = 0;
-                
+
             }
             List < ObjectBucketShort > view = new LinkedList < ObjectBucketShort >();
             int i = 0;
@@ -203,19 +214,19 @@ public final class BucketContainerShort < O extends OBShort > implements
             res = new short[2][pivotSize];
             int i = 0;
             // initialize result.
-            while(i < pivotSize){
+            while (i < pivotSize) {
                 res[0][i] = Short.MAX_VALUE;
                 i++;
             }
             for (ObjectBucketShort o : v) {
                 // min = 0, max = 1.
                 i = 0;
-                short [] smap = o.getSmapVector();
-                while(i < smap.length){
-                    if( smap[i] < res[0][i]){
+                short[] smap = o.getSmapVector();
+                while (i < smap.length) {
+                    if (smap[i] < res[0][i]) {
                         res[0][i] = smap[i];
                     }
-                    if(smap[i]  > res[1][i]){
+                    if (smap[i] > res[1][i]) {
                         res[1][i] = smap[i];
                     }
                     i++;
@@ -268,6 +279,132 @@ public final class BucketContainerShort < O extends OBShort > implements
                 }
                 cx++;
             }
+            int id = in.readInt(); // read the id
+            if (max <= query.getDistance() && query.isCandidate(max)) {
+                O toCompare = index.getObject(id);
+                short realDistance = object.distance(toCompare);
+                res++;
+                if (realDistance <= range) {
+                    query.add(id, toCompare, realDistance);
+                }
+            }
+            i++;
+        }
+        // assert in.available() == 0 : "Avail: " + in.available();
+        return res;
+    }
+
+    /**
+     * Gets the ith pivot tuple from the given in. Assumes that
+     * @param i
+     * @param in
+     * @return
+     */
+    private short getIthPivot0(int i, MyTupleInput in) {
+        setIth(i, in);
+        return in.readShort();
+    }
+
+    private void setIth(int i, MyTupleInput in) {
+        in.setOffset(this.BASE + i * TUPLE_SIZE);
+    }
+
+    /**
+     * Searches the data by using a binary search to reduce SMAP vector
+     * computations.
+     * @param query
+     * @param b
+     * @return
+     * @throws IllegalAccessException
+     * @throws DatabaseException
+     * @throws OBException
+     * @throws InstantiationException
+     * @throws IllegalIdException
+     */
+    public long searchSorted(OBQueryShort < O > query, ObjectBucketShort b,
+            IntegerHolder smapComputations) throws IllegalAccessException,
+            DatabaseException, OBException, InstantiationException,
+            IllegalIdException {
+        if (data == null) {
+            return 0;
+        }
+        O object = query.getObject();
+
+        MyTupleInput in = new MyTupleInput(data);
+        int count = readFromDataAux(in);
+        assert pivots == b.getSmapVector().length;
+        assert b.getLevel() == level;
+        // value to search
+        short value = query.getLow()[0];
+        // now we can start binary searching the bytes.
+        
+        
+        // Adapted from wikipedia
+        // http://en.wikipedia.org/wiki/Binary_search
+        
+        int low = 0;
+        int high = count;
+        while (low < high) {
+            int mid = (low + high)/2;
+            if (getIthPivot0(mid,in) < value){
+                low = mid + 1; 
+            }
+            else{
+                 //can't be high = mid-1: here A[mid] >= value,
+                 //so high can't be < mid if A[mid] == value
+                 high = mid;
+            }            
+        }
+        // base will hold the tuple from which we will start processing
+        int base;
+        short currentP0;
+        // high == low, using high or low depends on taste 
+        if (low < count){
+           base = low;
+           currentP0 = getIthPivot0(low,in);
+        }
+        else{
+            return 0; // not found       
+        }
+        count = count - base;
+        setIth(base, in);
+        
+        int i = 0;
+        short[] smapVector = b.getSmapVector();
+        short range = query.getDistance();
+        short top = query.getHigh()[0];
+        // for every item in this bucket.
+        long res = 0;
+        while (i < count && currentP0 <= top) {
+            // calculate L-inf
+            short max = Short.MIN_VALUE;
+            short t;
+            int cx = 0;
+            // L-inf
+           
+            smapComputations.inc();
+            // LOOP ***************************
+            // this is a loop, split for efficency reasons
+            // beginning of the loop.
+            short pivotValue = in.readShort();
+            currentP0 = pivotValue;
+            t = (short) Math.abs(smapVector[cx] - pivotValue);
+            if (t > max) {
+                max = t;                    
+            }
+            // read next pivot value                
+            cx++;            
+            while (cx < smapVector.length) {
+                pivotValue = in.readShort();
+                t = (short) Math.abs(smapVector[cx] - pivotValue);
+                if (t > max) {
+                    max = t;                    
+                }
+                // read next pivot value                
+                cx++;
+            } 
+            // LOOP ***************************
+            
             int id = in.readInt(); // read the id
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 O toCompare = index.getObject(id);

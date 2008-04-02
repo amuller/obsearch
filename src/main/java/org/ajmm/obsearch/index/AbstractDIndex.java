@@ -165,11 +165,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      */
     private int maxLevel = 20;
 
-    /**
-     * Accumulated pivots per level (2 ^ pivots per level) so that we can
-     * quickly compute the correct storage device
-     */
-    private long[] accum;
+    
     
     public long searchedBoxesTotal = 0;
 
@@ -488,20 +484,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             level.add(p);
         }
         this.pivots.add(level);
-        // TODO: change this to level storage devices, so that we can use longs
-        // completely.
-        this.accum = new long[pivots.size()];
-        int i = 0;
-        BigInteger currentAccum = BigInteger.ZERO;
-        BigInteger max = new BigInteger(Long.MAX_VALUE + "");
-        for (ArrayList < O > p : pivots) {
-            if (currentAccum.compareTo(max) != -1) {
-                throw new OBException("Bucket size exceeded!");
-            }
-            accum[i] = currentAccum.longValue();
-            currentAccum = currentAccum.add(new BigInteger("2").pow(p.size()));
-            i++;
-        }
+        
     }
 
     /**

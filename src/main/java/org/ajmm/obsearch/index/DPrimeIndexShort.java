@@ -20,6 +20,7 @@ import org.ajmm.obsearch.index.d.BucketContainer;
 import org.ajmm.obsearch.index.d.BucketContainerShort;
 import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.index.d.ObjectBucketShort;
+import org.ajmm.obsearch.index.utils.IntegerHolder;
 import org.ajmm.obsearch.index.utils.ShortUtils;
 import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.ob.OBShort;
@@ -42,8 +43,10 @@ public final class DPrimeIndexShort < O extends OBShort >
         AbstractDPrimeIndex < O, ObjectBucketShort, OBQueryShort < O >, BucketContainerShort < O > >
         implements IndexShort < O > {
 
-    // 0 = doIt 1 doIt1
     public int hackOne = 5;
+
+    // use binary search hack
+    public boolean binarySearchHack = true;
 
     /**
      * P parameter that indicates the maximum radius that we will accept.
@@ -139,13 +142,17 @@ public final class DPrimeIndexShort < O extends OBShort >
             IllegalAccessException, InstantiationException, DatabaseException,
             OutOfRangeException, OBException {
         short[][] mbr = bc.getMBR();
-        TupleOutput out = new TupleOutput();
-        for (short[] m : mbr) {
-            for (short d : m) {
-                out.writeShort(d);
+        if (mbr != null) {
+            TupleOutput out = new TupleOutput();
+            for (short[] m : mbr) {
+                for (short d : m) {
+                    out.writeShort(d);
+                }
             }
+            this.mbrs.put(id, out.getBufferBytes());
+        } else {
+            assert bc.size() == 0;
         }
-        this.mbrs.put(id, out.getBufferBytes());
     }
 
     protected ObjectBucketShort getBucket(O object, short p) throws OBException {
@@ -419,16 +426,12 @@ public final class DPrimeIndexShort < O extends OBShort >
             OutOfRangeException, OBException {
 
         ObjectBucketShort b = getBucket(object);
-        OBQueryShort < O > q = new OBQueryShort < O >(object, r, result, b.getSmapVector());
+        OBQueryShort < O > q = new OBQueryShort < O >(object, r, result, b
+                .getSmapVector());
 
         this.queryCount++;
 
-        // find first the center of the query.
-        BucketContainerShort < O > bc = super.bucketContainerCache.get(b
-                .getBucket());
-        super.distanceComputations += bc.search(q, b);
-        searchedBoxesTotal++;
-        smapRecordsCompared += bc.size();
+        this.s(b.getBucket(), b, q, false);
 
         if (hackOne == 5) {
             doIt1(b, q, 0, 0); // keep
@@ -518,7 +521,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         } else {
 
-            s(block, b, q);
+            s(block, b, q, true);
         }
     }
 
@@ -572,111 +575,50 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         } else {
 
-            s(block, b, q);
-        }
-    }
-
-    // calculate opposite of doIt1
-    private void doIt3(ObjectBucketShort b, OBQueryShort < O > q,
-            int pivotIndex, long block) throws NotFrozenException,
-            DatabaseException, InstantiationException, IllegalIdException,
-            IllegalAccessException, OutOfRangeException, OBException {
-        if (pivotIndex < super.pivots.size()) {
-            int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                    q.getDistance());
-            if (r == 2) { // if we have to do both
-                if (!(calculateOne(b, q, pivotIndex) > calculateZero(b, q,
-                        pivotIndex))) {
-                    // do 1 first
-                    long newBlock = block | super.masks[pivotIndex];
-                    if (super.filter.get(pivotIndex).contains(newBlock)) {
-                        doIt3(b, q, pivotIndex + 1, newBlock);
-                    }
-                    r = bpsRange(median[pivotIndex],
-                            b.getSmapVector()[pivotIndex], q.getDistance());
-                    if ((r == 2 || r == 0)
-                            && super.filter.get(pivotIndex).contains(block)) {
-                        doIt3(b, q, pivotIndex + 1, block);
-                    }
-
-                } else {
-                    // 0 first
-                    if (super.filter.get(pivotIndex).contains(block)) {
-                        doIt3(b, q, pivotIndex + 1, block);
-                    }
-                    r = bpsRange(median[pivotIndex],
-                            b.getSmapVector()[pivotIndex], q.getDistance());
-                    long newBlock = block | super.masks[pivotIndex];
-                    if ((r == 2 || r == 1)
-                            && super.filter.get(pivotIndex).contains(newBlock)) {
-
-                        doIt3(b, q, pivotIndex + 1, newBlock);
-                    }
-                }
-
-            } else { // only one of the sides is selected
-                if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
-                    doIt3(b, q, pivotIndex + 1, block);
-                } else {
-                    long newBlock = block | super.masks[pivotIndex];
-                    if (super.filter.get(pivotIndex).contains(newBlock)) {
-                        doIt3(b, q, pivotIndex + 1, newBlock);
-                    }
-                }
-            }
-
-        } else {
-            s(block, b, q);
-
+            s(block, b, q, true);
         }
     }
 
     /**
-     * Does the match for the given index for the given pivot.
+     * @param block
+     *                The block to be processed
      * @param b
+     *                The block of the object
      * @param q
-     * @param pivotIndex
+     *                The query
+     * @param ignoreSameBlocks
+     *                if true, if block == b.getBucket() nothing happens.
+     * @throws NotFrozenException
+     * @throws DatabaseException
+     * @throws InstantiationException
+     * @throws IllegalIdException
+     * @throws IllegalAccessException
+     * @throws OutOfRangeException
+     * @throws OBException
      */
-    private void doIt(ObjectBucketShort b, OBQueryShort < O > q,
-            int pivotIndex, long block) throws NotFrozenException,
+    private void s(long block, ObjectBucketShort b, OBQueryShort < O > q,
+            boolean ignoreSameBlocks) throws NotFrozenException,
             DatabaseException, InstantiationException, IllegalIdException,
             IllegalAccessException, OutOfRangeException, OBException {
-        if (pivotIndex < super.pivots.size()) {
-            int r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex],
-                    q.getDistance());
 
-            if (r == 2 || r == 0
-                    && super.filter.get(pivotIndex).contains(block)) {
-                doIt(b, q, pivotIndex + 1, block);
-            }
-            // repeat the range just in case we have reduced it
-            r = bpsRange(median[pivotIndex], b.getSmapVector()[pivotIndex], q
-                    .getDistance());
-            if (r == 2 || r == 1) {
-                long newBlock = block | super.masks[pivotIndex];
-                if (super.filter.get(pivotIndex).contains(newBlock)) {
-                    doIt(b, q, pivotIndex + 1, newBlock);
-                }
-            }
-        } else {
-            s(block, b, q);
-        }
-    }
-
-    private void s(long block, ObjectBucketShort b, OBQueryShort < O > q)
-            throws NotFrozenException, DatabaseException,
-            InstantiationException, IllegalIdException, IllegalAccessException,
-            OutOfRangeException, OBException {
-        
         short[][] rect = this.mbrCache.get(block);
-        
-        if (rect != null && block != b.getBucket() && q.collides(rect)) { 
-            // we have finished
-            BucketContainerShort < O > bc = super.bucketContainerCache
-                    .get(block);
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
+
+        if (rect != null && q.collides(rect)) {
+
+            if (!ignoreSameBlocks || block != b.getBucket()) {
+                // we have finished
+                BucketContainerShort < O > bc = super.bucketContainerCache
+                        .get(block);
+                if (this.binarySearchHack) {
+                    IntegerHolder h = new IntegerHolder(0);
+                    super.distanceComputations += bc.searchSorted(q, b, h);
+                    smapRecordsCompared += h.getValue();
+                } else {
+                    super.distanceComputations += bc.search(q, b);
+                    smapRecordsCompared += bc.size();
+                }
+                searchedBoxesTotal++;
+            }
         }
     }
 
@@ -720,33 +662,33 @@ public final class DPrimeIndexShort < O extends OBShort >
                     }
                 }
                 return res;
-            }else{
+            } else {
                 return null;
             }
-           
+
         }
 
     }
-    
-    public String getStats(){
+
+    public String getStats() {
         StringBuilder res = new StringBuilder();
         res.append("Query count: " + queryCount);
         res.append("\n");
-        res.append("Total boxes: " + searchedBoxesTotal);     
+        res.append("Total boxes: " + searchedBoxesTotal);
         res.append("\n");
-        res.append("Smap records: " +smapRecordsCompared);
+        res.append("Smap records: " + smapRecordsCompared);
         res.append("\n");
         res.append("Distance computations: " + distanceComputations);
         res.append("\n");
-        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));    
+        res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));
         res.append("\n");
-        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats())); 
+        res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));
         res.append("\n");
         res.append(StatsUtil.mightyIOStats("MBR", this.mbrs.getReadStats()));
         return res.toString();
     }
-    
-    public void resetStats(){
+
+    public void resetStats() {
         queryCount = 0;
         searchedBoxesTotal = 0;
         smapRecordsCompared = 0;

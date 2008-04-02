@@ -28,7 +28,7 @@ import java.util.Arrays;
  */
 
 public class ObjectBucketShort
-        extends ObjectBucket {
+        extends ObjectBucket implements Comparable<ObjectBucketShort>{
 
     /**
      * SMAP vector of the object.
@@ -85,5 +85,21 @@ public class ObjectBucketShort
     public int getPivotSize(){
         return smapVector.length;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(ObjectBucketShort o) {
+        if(smapVector[0] < o.smapVector[0]){
+            return -1;
+        }else if (smapVector[0] > o.smapVector[0]){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    
+    
 
 }

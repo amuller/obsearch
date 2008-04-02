@@ -68,7 +68,6 @@ public class MyTupleInput
      */
     public void setOffset(int offset) {
         off = offset;
-        mark = 0;
     }
 
     /**
