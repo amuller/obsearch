@@ -278,4 +278,8 @@ public interface Index < O extends OB > {
      */
     String getStats();
 
+    /**
+     * Size in bytes of the IDs used in OBSearch.
+     */
+    int ID_SIZE = Integer.SIZE / 8;
 }

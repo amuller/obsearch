@@ -46,7 +46,7 @@ public class BenchDTree {
         logger.debug("Prob: "  + prob);
         
         int maxLevel = Integer.parseInt(args[6]);
-        logger.debug("MAX: "  + prob);
+        logger.debug("MAX: "  + maxLevel);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
       IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
               30, 30);
