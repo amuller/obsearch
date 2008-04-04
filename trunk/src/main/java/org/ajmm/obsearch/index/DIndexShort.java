@@ -286,7 +286,7 @@ public final class DIndexShort < O extends OBShort >
         
         short range = r;
         OBQueryShort < O > q = null;
-        
+        queryCount++;
         int i = 0;
         ObjectBucketShort b = null;
         while (i < pivots.size()) {// search through all the levels.
@@ -360,6 +360,7 @@ public final class DIndexShort < O extends OBShort >
 
         }
     }
+    
 
     private void doIt2(ObjectBucketShort b, OBQueryShort < O > q, int level,
             int pivotIndex, long block) throws NotFrozenException,
