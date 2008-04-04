@@ -45,8 +45,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
     public int hackOne = 5;
 
-    // use binary search hack
-    public boolean binarySearchHack = true;
+   
 
     /**
      * P parameter that indicates the maximum radius that we will accept.
@@ -609,14 +608,11 @@ public final class DPrimeIndexShort < O extends OBShort >
                 // we have finished
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(block);
-                if (this.binarySearchHack) {
+           
                     IntegerHolder h = new IntegerHolder(0);
                     super.distanceComputations += bc.searchSorted(q, b, h);
                     smapRecordsCompared += h.getValue();
-                } else {
-                    super.distanceComputations += bc.search(q, b);
-                    smapRecordsCompared += bc.size();
-                }
+                
                 searchedBoxesTotal++;
             }
         }
