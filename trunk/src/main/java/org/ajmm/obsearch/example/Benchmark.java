@@ -33,7 +33,7 @@ public class Benchmark {
             String line = IndexSmokeTUtil.parseLine(re);
             if (line != null) {
                 OBSlice s = new OBSlice(line);
-                if (IndexSmokeTUtil.shouldProcessSlice(s)) {
+                if (shouldProcessSlice(s)) {
                     Result res = index.insert(s);
                     if(res.getStatus() != Result.Status.OK){
                         throw new Exception("Could not insert");
@@ -54,11 +54,13 @@ public class Benchmark {
         
     }
     
+    public static int totalTimes = 10;
+    
     public static void benchAux(IndexShort < OBSlice > index, String query, short range, byte k) throws Exception{
         try{
         int times = 0;
         long time = System.currentTimeMillis();
-        while(times < 10){ // repeat 10 times
+        while(times < totalTimes){ // repeat 10 times
         BufferedReader r = new BufferedReader(new FileReader(query));
         String re = r.readLine();
         int i = 0;
@@ -74,7 +76,7 @@ public class Benchmark {
                 }
 
                 OBSlice s = new OBSlice(line);
-                if (IndexSmokeTUtil.shouldProcessSlice(s)) {
+                if (shouldProcessSlice(s)) {
                     index.searchOB(s, range, x);
                     i++;
                 }
@@ -96,16 +98,46 @@ public class Benchmark {
     
     public static void bench(IndexShort < OBSlice > index, String query, String db) throws Exception{
         initIndex(index, query, db);
+        logger.info("Current stats: " + index.getStats());
+        index.resetStats();
+        logger.info("Real distance count after DB creation");
+        printDistanceCount();
+        logger.debug("Searching ");
+        
+        benchAux(index, query, (short)2, (byte)1 );
+        printDistanceCount();
         index.resetStats();
         benchAux(index, query, (short)2, (byte)1 );
-        benchAux(index, query, (short)2, (byte)1 );
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)3, (byte)1 );
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)3, (byte)3 );
-        
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)7, (byte)1 );
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)7, (byte)3 );
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)10, (byte)1 );
+        printDistanceCount();
+        index.resetStats();
         benchAux(index, query, (short)10, (byte)3 );
-        logger.debug("Real Distance count search: "+ OBSlice.count);
+        printDistanceCount();
+        index.resetStats();        
     }
+    
+    public static void printDistanceCount(){       
+        logger.debug("Real Distance count search: "+ OBSlice.count);
+        OBSlice.count = 0;
+    }
+    
+    public static boolean shouldProcessSlice(OBSlice x) throws Exception {
+        return x.size() <= maxSliceSize;
+    }
+    
+    public static int maxSliceSize = 500;
 }
