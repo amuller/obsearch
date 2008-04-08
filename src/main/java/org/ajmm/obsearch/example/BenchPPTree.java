@@ -43,7 +43,7 @@ public class BenchPPTree {
                 
         
         PPTreeShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
-                pivots, (byte) 12, (short) 0, (short) (500 * 2), ps, OBSlice.class);
+                pivots, (byte) 12, (short) 0, (short) (Benchmark.maxSliceSize * 2), ps, OBSlice.class);
 
         Benchmark.bench(index, query, dbData);
         

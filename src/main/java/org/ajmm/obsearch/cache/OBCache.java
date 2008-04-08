@@ -83,6 +83,10 @@ public final class OBCache < O > {
     public void remove(int id) {
         map.removeKey(id);
     }
+    
+    public void removeAll(){
+        map.clear();
+    }
 
     /**
      * Gets the given object, returns null if the object is not found.

@@ -30,7 +30,7 @@ public class BenchSequential {
             BDBFactory fact = new BDBFactory(dbFolder);
             SequentialSearchShort < OBSlice > index = new SequentialSearchShort < OBSlice >(
                     fact, OBSlice.class);
-            //Benchmark.totalTimes=1;
+            Benchmark.totalTimes=1;
             Benchmark.bench(index, query, dbData);
             logger.info(index.getStats());
         } catch (Exception e) {
