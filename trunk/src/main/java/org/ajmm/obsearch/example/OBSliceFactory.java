@@ -6,7 +6,7 @@ import org.ajmm.obsearch.index.utils.OBFactory;
 
 public class OBSliceFactory implements OBFactory<OBSlice> {
 
-    public  int maxSliceSize = 500;
+    public static  int maxSliceSize = 500;
     
     
     
