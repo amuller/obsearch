@@ -2,6 +2,8 @@ package org.ajmm.obsearch.example;
 
 import java.io.File;
 
+import org.ajmm.obsearch.example.ted.OBTed;
+import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.DIndexShort;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
@@ -48,21 +50,38 @@ public class BenchDTree {
         int maxLevel = Integer.parseInt(args[6]);
         logger.debug("MAX: "  + maxLevel);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-      IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-              1000, 1000);
-      
+     
+      String mode = args[7];
+      logger.debug("Mode: " + mode);
+      BDBFactory fact = new BDBFactory(dbFolder);
      // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
-      
+      if(mode.equals("ted")){
+          
+          IncrementalBustosNavarroChavezShort<OBTed> ps = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+                  1000, 1000);
+          
+          DIndexShort<OBTed> index = new DIndexShort<OBTed>(fact, pivots,
+                  ps, OBTed.class,
+                  prob, p, maxLevel);
+
+              Benchmark < OBTed > b = new Benchmark < OBTed >(
+                      new OBTedFactory());
+              b.bench(index, query, dbData);
+          
+      }else{
+          IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                  1000, 1000);
         
-        BDBFactory fact = new BDBFactory(dbFolder);
         DIndexShort<OBSlice> index = new DIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
             prob, p, maxLevel);
 
-        Benchmark.bench(index, query, dbData);
+        Benchmark < OBSlice > b = new Benchmark < OBSlice >(
+                new OBSliceFactory());
+        b.bench(index, query, dbData);
         
-        logger.info(index.getStats());
-
+       
+      }
         
         }catch(Exception e){
             e.printStackTrace();

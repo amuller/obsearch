@@ -1081,5 +1081,38 @@ public class PPTreeShort < O extends OBShort >
         short result = ((OBShort) a).distance((OBShort) b);
         return normalizeFirstPassAux(result);
     }
+    
+    public String getStats() {      
+       StringBuilder sb = new StringBuilder();
+        sb.append("Query count: " + queryCount);
+        sb.append("\n");
+        sb.append("Initial hyper rect: "+
+                 initialHyperRectangleTotal);
+        sb.append("\n");
+        sb.append("Final hyper rect: " + finalHyperRectangleTotal);
+        sb.append("\n");
+        sb.append("Final pyramid total: " + finalPyramidTotal);
+        sb.append("\n");
+        sb.append("Smap records: " + smapRecordsCompared);
+        sb.append("\n");
+        sb.append("Distance computations " + distanceComputations);
+        
+        return sb.toString();
+    }
+
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#resetStats()
+     */
+    @Override
+    public void resetStats() {
+       
+        initialHyperRectangleTotal = 0;
+         queryCount = 0;
+         finalHyperRectangleTotal = 0;
+         finalPyramidTotal = 0;
+        smapRecordsCompared = 0;
+        distanceComputations = 0;
+        
+    }
 
 }

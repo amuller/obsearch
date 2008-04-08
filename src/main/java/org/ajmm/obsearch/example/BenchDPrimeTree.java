@@ -2,6 +2,8 @@ package org.ajmm.obsearch.example;
 
 import java.io.File;
 
+import org.ajmm.obsearch.example.ted.OBTed;
+import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.DIndexShort;
 import org.ajmm.obsearch.index.DPrimeIndexShort;
 import org.ajmm.obsearch.index.IndexShort;
@@ -18,10 +20,10 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 public class BenchDPrimeTree {
-    
+
     private static final Logger logger = Logger.getLogger("BenchDPrimeTree");
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
         try {
             PropertyConfigurator.configure("obexample.log4j");
         } catch (final Exception e) {
@@ -30,35 +32,48 @@ public class BenchDPrimeTree {
             e.printStackTrace();
             System.exit(48);
         }
-        try{
-        File dbFolder = new File(args[0]);
-        String query = args[1];
-        String dbData = args[2]; 
-        Directory.deleteDirectory(dbFolder);
-        dbFolder.mkdirs();
-        byte pivots = Byte.parseByte(args[3]);
-        logger.debug("Doing pivots: " + pivots);
-        int hackOne = Integer.parseInt(args[4]);
-        logger.debug("Hack: " + hackOne);
-        
-       
-      //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-      //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-        //      10000, 1000);
-        
-        IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
-        
-        BDBFactory fact = new BDBFactory(dbFolder);
-        DPrimeIndexShort<OBSlice> index = new DPrimeIndexShort<OBSlice>(fact, pivots,
-            ps, OBSlice.class,
-             (short)3);
-        index.hackOne = hackOne;
-        Benchmark.bench(index, query, dbData);
-        
-      
+        try {
+            File dbFolder = new File(args[0]);
+            String query = args[1];
+            String dbData = args[2];
+            Directory.deleteDirectory(dbFolder);
+            dbFolder.mkdirs();
+            byte pivots = Byte.parseByte(args[3]);
+            logger.debug("Doing pivots: " + pivots);
+            int hackOne = Integer.parseInt(args[4]);
+            logger.debug("Hack: " + hackOne);
 
-        
-        }catch(Exception e){
+            String mode = args[5];
+            logger.debug("Mode: " + mode);
+            // IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new
+            // IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
+            // IncrementalBustosNavarroChavezShort<OBSlice> ps = new
+            // IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+            // 10000, 1000);
+            IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+            BDBFactory fact = new BDBFactory(dbFolder);
+            if (mode.equals("ted")) {
+                
+                DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
+                        fact, pivots, ps, OBTed.class, (short) 3);
+                index.hackOne = hackOne;
+                Benchmark < OBTed > b = new Benchmark < OBTed >(
+                        new OBTedFactory());
+                b.bench(index, query, dbData);
+
+            } else { // default mode OBSlice
+              
+
+               
+                DPrimeIndexShort < OBSlice > index = new DPrimeIndexShort < OBSlice >(
+                        fact, pivots, ps, OBSlice.class, (short) 3);
+                index.hackOne = hackOne;
+                Benchmark < OBSlice > b = new Benchmark < OBSlice >(
+                        new OBSliceFactory());
+                b.bench(index, query, dbData);
+            }
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

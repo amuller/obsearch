@@ -5,6 +5,7 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.example.OBSliceFactory;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
@@ -56,9 +57,9 @@ public class TestPPTree
         assertTrue(dbFolder.mkdirs());
         DummyPivotSelector ps = new DummyPivotSelector();
         IndexShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
-                (byte) 30, (byte) 8, (short) 0, (short) (IndexSmokeTUtil.maxSliceSize * 2), ps, OBSlice.class);
+                (byte) 30, (byte) 8, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2), ps, OBSlice.class);
 
-        IndexSmokeTUtil t = new IndexSmokeTUtil();
+        IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(index);
     }
 

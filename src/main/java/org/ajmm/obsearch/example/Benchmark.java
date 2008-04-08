@@ -7,18 +7,26 @@ import java.util.HashMap;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
+import org.ajmm.obsearch.index.utils.OBFactory;
+import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.apache.log4j.Logger;
 
-public class Benchmark {
+public class Benchmark<O extends OBShort> {
+    
+    private OBFactory<O> factory;
 
     /**
      * Logger.
      */
     private static transient final Logger logger = Logger
             .getLogger(Benchmark.class);
+    
+    public Benchmark(OBFactory <O> factory){
+        this.factory = factory;
+    }
 
-    public static void initIndex(IndexShort < OBSlice > index, String query,
+    protected  void initIndex(IndexShort < O > index, String query,
             String db) throws Exception {
 
         logger.debug("query file: " + query);
@@ -31,8 +39,8 @@ public class Benchmark {
         while (re != null) {
             String line = IndexSmokeTUtil.parseLine(re);
             if (line != null) {
-                OBSlice s = new OBSlice(line);
-                if (shouldProcessSlice(s)) {
+                O s = factory.create(line);
+                if (factory.shouldProcess(s)) {
                     Result res = index.insert(s);
                     if (res.getStatus() != Result.Status.OK) {
                         throw new Exception("Could not insert");
@@ -55,7 +63,7 @@ public class Benchmark {
 
     public static int totalTimes = 10;
 
-    public static void benchAux(IndexShort < OBSlice > index, String query,
+    protected  void benchAux(IndexShort < O > index, String query,
             short range, byte k) throws Exception {
         OBSlice.count = 0;
         index.resetStats();
@@ -71,14 +79,14 @@ public class Benchmark {
                     String line = IndexSmokeTUtil.parseLine(re);
                     if (line != null && !queries.containsKey(line)) {
                         queries.put(line, Integer.MAX_VALUE);
-                        OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
+                        OBPriorityQueueShort < O > x = new OBPriorityQueueShort < O >(
                                 k);
                         if (i % 100 == 0) {
                             logger.info("Matching " + i);
                         }
 
-                        OBSlice s = new OBSlice(line);
-                        if (shouldProcessSlice(s)) {
+                        O s = factory.create(line);
+                        if (factory.shouldProcess(s)) {
                             index.searchOB(s, range, x);
                             i++;
                         }
@@ -106,7 +114,7 @@ public class Benchmark {
         }
     }
 
-    public static void bench(IndexShort < OBSlice > index, String query,
+    public  void bench(IndexShort < O > index, String query,
             String db) throws Exception {
         initIndex(index, query, db);
         logger.info("Current stats: " + index.getStats());
