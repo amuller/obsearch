@@ -49,7 +49,7 @@ public class BenchPPTree {
                 PPTreeShort < OBTed > index = new PPTreeShort < OBTed >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) (Benchmark.maxSliceSize * 2), ps, OBTed.class);
-
+                OBTedFactory.maxSliceSize = 30;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
                 b.bench(index, query, dbData);

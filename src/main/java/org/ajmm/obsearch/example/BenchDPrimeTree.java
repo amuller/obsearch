@@ -58,6 +58,7 @@ public class BenchDPrimeTree {
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
                         fact, pivots, ps, OBTed.class, (short) 3);
                 index.hackOne = hackOne;
+                OBTedFactory.maxSliceSize = 30;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
                 b.bench(index, query, dbData);

@@ -38,7 +38,7 @@ public class BenchSequential {
                 
                 SequentialSearchShort < OBTed > index = new SequentialSearchShort < OBTed >(
                         fact, OBTed.class);
-               
+                OBTedFactory.maxSliceSize = 30;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
                 b.bench(index, query, dbData);
