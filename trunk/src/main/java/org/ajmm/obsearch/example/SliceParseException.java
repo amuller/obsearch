@@ -41,7 +41,7 @@ public class SliceParseException
      * @param e
      *            Exception that was thrown
      */
-    SliceParseException(final String x, final Exception e) {
+    public SliceParseException(final String x, final Exception e) {
         super(x, e);
     }
 

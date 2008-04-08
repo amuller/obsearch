@@ -5,6 +5,7 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.example.OBSliceFactory;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
@@ -65,7 +66,7 @@ public class TestDIndex
             sel, OBSlice.class,
             .90f, (short)4, 10);
 
-        IndexSmokeTUtil t = new IndexSmokeTUtil();
+        IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);
     }
 

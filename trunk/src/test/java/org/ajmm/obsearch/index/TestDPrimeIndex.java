@@ -5,6 +5,9 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.example.OBSliceFactory;
+import org.ajmm.obsearch.example.ted.OBTed;
+import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
@@ -54,18 +57,18 @@ public class TestDPrimeIndex
      * Tests on the P+Tree.
      * @throws Exception If something goes really bad.
      */
-    public void testPPTree() throws Exception {
+    public void testPrimeTree() throws Exception {
         
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
        //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
-        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+        IncrementalBustosNavarroChavezShort<OBTed> sel = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
                 30, 30);
         BDBFactory fact = Utils.getFactory();
-        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(fact, (byte)14,
-            sel, OBSlice.class,
+        DPrimeIndexShort<OBTed> d = new DPrimeIndexShort<OBTed>(fact, (byte)14,
+            sel, OBTed.class,
              (short)11);
 
-        IndexSmokeTUtil t = new IndexSmokeTUtil();
+        IndexSmokeTUtil<OBTed> t = new IndexSmokeTUtil<OBTed>(new OBTedFactory());
         t.tIndex(d);
         //logger.info("Boxes per search: " + d.totalBoxAccess/ d.queryCount);
         logger.info("Query count: " + d.queryCount);

@@ -21,6 +21,7 @@ import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.SynchronizableIndexShort;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
+import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
@@ -51,8 +52,10 @@ import org.apache.log4j.Logger;
  * @since 0.7
  */
 
-public class IndexSmokeTUtil {
+public class IndexSmokeTUtil<O extends OBShort> {
 
+    private OBFactory<O> factory;
+    
     /**
      * Properties for the test.
      */
@@ -63,14 +66,17 @@ public class IndexSmokeTUtil {
      */
     private static transient final Logger logger = Logger
             .getLogger(IndexSmokeTUtil.class);
+    
+    
 
     /**
      * Creates a new smoke tester. Loads test properties.
      * @throws IOException
      *                 If the properties file cannot be found.
      */
-    public IndexSmokeTUtil() throws IOException {
+    public IndexSmokeTUtil(OBFactory<O> factory) throws IOException {
         testProperties = TUtils.getTestProperties();
+        this.factory =factory;
     }
 
     /**
@@ -80,7 +86,7 @@ public class IndexSmokeTUtil {
      * @throws Exception
      *                 If something goes wrong.
      */
-    public void initIndex(IndexShort < OBSlice > index) throws Exception {
+    public void initIndex(IndexShort < O > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File db = new File(testProperties.getProperty("test.db.input"));
         logger.debug("query file: " + query);
@@ -93,8 +99,8 @@ public class IndexSmokeTUtil {
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
-                OBSlice s = new OBSlice(line);
-                if (shouldProcessSlice(s)) {
+                O s = factory.create(line);
+                if (factory.shouldProcess(s)) {
                     Result res = index.insert(s);
                     assertTrue(
                             "Returned status: " + res.getStatus().toString(),
@@ -128,8 +134,8 @@ public class IndexSmokeTUtil {
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
-                OBSlice s = new OBSlice(line);
-                if (shouldProcessSlice(s)) {
+                O s = factory.create(line);
+                if (factory.shouldProcess(s)) {
                     Result res = index.exists(s);
                     assertTrue(res.getStatus() == Result.Status.EXISTS);
                     assertEquals(i, res.getId());
@@ -162,7 +168,7 @@ public class IndexSmokeTUtil {
      * @exception If
      *                    something goes wrong.
      */
-    public void tIndex(IndexShort < OBSlice > index) throws Exception {
+    public void tIndex(IndexShort < O > index) throws Exception {
         File query = new File(testProperties.getProperty("test.query.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
 
@@ -221,7 +227,7 @@ public class IndexSmokeTUtil {
         i = 0;
         int max = index.databaseSize();
         while (i < max) {
-            OBSlice x = index.getObject(i);
+            O x = index.getObject(i);
             Result ex = index.exists(x);
             assertTrue(ex.getStatus() == Result.Status.EXISTS);
             assertTrue(ex.getId() == i);
@@ -243,7 +249,7 @@ public class IndexSmokeTUtil {
      * @param range
      * @param k
      */
-    public void search(IndexShort < OBSlice > index, short range, byte k)
+    public void search(IndexShort < O > index, short range, byte k)
             throws Exception {
         // assertEquals(index.aDB.count(), index.bDB.count());
         // assertEquals(index.aDB.count(), index.bDB.count());
@@ -255,7 +261,7 @@ public class IndexSmokeTUtil {
         File query = new File(testProperties.getProperty("test.query.input"));
         File dbFolder = new File(testProperties.getProperty("test.db.path"));
         BufferedReader r = new BufferedReader(new FileReader(query));
-        List < OBPriorityQueueShort < OBSlice >> result = new LinkedList < OBPriorityQueueShort < OBSlice >>();
+        List < OBPriorityQueueShort < O >> result = new LinkedList < OBPriorityQueueShort < O >>();
         re = r.readLine();
         int i = 0;
         int realIndex = index.databaseSize();
@@ -263,14 +269,14 @@ public class IndexSmokeTUtil {
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
-                OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
+                OBPriorityQueueShort < O > x = new OBPriorityQueueShort < O >(
                         k);
                 if (i % 100 == 0) {
                     logger.info("Matching " + i);
                 }
 
-                OBSlice s = new OBSlice(line);
-                if (shouldProcessSlice(s)) {
+                O s = factory.create(line);
+                if (factory.shouldProcess(s)) {
                     index.searchOB(s, range, x);
                     result.add(x);
                     i++;
@@ -291,7 +297,7 @@ public class IndexSmokeTUtil {
         // index.stats();
 
         // now we compare the results we got with the sequential search
-        Iterator < OBPriorityQueueShort < OBSlice >> it = result.iterator();
+        Iterator < OBPriorityQueueShort < O >> it = result.iterator();
         r.close();
         r = new BufferedReader(new FileReader(query));
         re = r.readLine();
@@ -302,17 +308,17 @@ public class IndexSmokeTUtil {
                 if (i % 300 == 0) {
                     logger.info("Matching " + i + " of " + maxQuery);
                 }
-                OBSlice s = new OBSlice(line);
-                if (IndexSmokeTUtil.shouldProcessSlice(s)) {
-                    OBPriorityQueueShort < OBSlice > x2 = new OBPriorityQueueShort < OBSlice >(
+                O s = factory.create(line);
+                if (factory.shouldProcess(s)) {
+                    OBPriorityQueueShort < O > x2 = new OBPriorityQueueShort < O >(
                             k);
                     searchSequential(realIndex, s, x2, index, range);
-                    OBPriorityQueueShort < OBSlice > x1 = it.next();
+                    OBPriorityQueueShort < O > x1 = it.next();
                     assertEquals("Error in query line: " + i + " slice: "
                             + line, x2, x1);
                     try{
                     // test the other search method
-                    OBPriorityQueueShort < OBSlice > x3 = new OBPriorityQueueShort < OBSlice >(
+                    OBPriorityQueueShort < O > x3 = new OBPriorityQueueShort < O >(
                             k);
                     int[] inter = index.intersectingBoxes(s, range);
                     index.searchOB(s, range, x3, inter);
@@ -418,12 +424,12 @@ public class IndexSmokeTUtil {
      * @throws Exception
      *                 If something goes really bad.
      */
-    public static void searchSequential(int max, OBSlice o,
-            OBPriorityQueueShort < OBSlice > result,
-            IndexShort < OBSlice > index, short range) throws Exception {
+    public  void searchSequential(int max, O o,
+            OBPriorityQueueShort < O > result,
+            IndexShort < O > index, short range) throws Exception {
         int i = 0;
         while (i < max) {
-            OBSlice obj = index.getObject(i);
+            O obj = index.getObject(i);
             short res = o.distance(obj);
             if (res <= range) {
                 result.add(i, obj, res);

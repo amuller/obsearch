@@ -5,6 +5,7 @@ package org.ajmm.obsearch.index;
 
 import java.io.File;
 import org.ajmm.obsearch.example.OBSlice;
+import org.ajmm.obsearch.example.OBSliceFactory;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
@@ -57,8 +58,8 @@ public class TestExtentedPyramidIndex
         assertTrue(dbFolder.mkdirs());
         DummyPivotSelector ps = new DummyPivotSelector();
         IndexShort < OBSlice > index = new ExtendedPyramidIndexShort < OBSlice >(
-                dbFolder, (byte) 15, (short) 0, (short) (IndexSmokeTUtil.maxSliceSize * 2), ps, OBSlice.class);
-        IndexSmokeTUtil t = new IndexSmokeTUtil();
+                dbFolder, (byte) 15, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2), ps, OBSlice.class);
+        IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(index);
     }
 

@@ -2,6 +2,8 @@ package org.ajmm.obsearch.example;
 
 import java.io.File;
 
+import org.ajmm.obsearch.example.ted.OBTed;
+import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.SequentialSearchShort;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.storage.bdb.BDBFactory;
@@ -28,11 +30,31 @@ public class BenchSequential {
             Directory.deleteDirectory(dbFolder);
             dbFolder.mkdirs();
             BDBFactory fact = new BDBFactory(dbFolder);
-            SequentialSearchShort < OBSlice > index = new SequentialSearchShort < OBSlice >(
-                    fact, OBSlice.class);
-            Benchmark.totalTimes=1;
-            Benchmark.bench(index, query, dbData);
-            logger.info(index.getStats());
+
+            String mode = args[3];
+            logger.debug("Mode: " + mode);
+            Benchmark.totalTimes = 1;
+            if (mode.equals("ted")) {
+                
+                SequentialSearchShort < OBTed > index = new SequentialSearchShort < OBTed >(
+                        fact, OBTed.class);
+               
+                Benchmark < OBTed > b = new Benchmark < OBTed >(
+                        new OBTedFactory());
+                b.bench(index, query, dbData);
+                logger.info(index.getStats());
+                
+
+            } else {
+                SequentialSearchShort < OBSlice > index = new SequentialSearchShort < OBSlice >(
+                        fact, OBSlice.class);
+               
+                Benchmark < OBSlice > b = new Benchmark < OBSlice >(
+                        new OBSliceFactory());
+                b.bench(index, query, dbData);
+                logger.info(index.getStats());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
