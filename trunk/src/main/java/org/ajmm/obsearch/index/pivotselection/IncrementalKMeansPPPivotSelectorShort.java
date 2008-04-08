@@ -61,7 +61,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
      * @param index Index used to load and search objects
      * @param pivotable Object used to determine which objects are suitable for being pivots.
      */
-    public IncrementalKMeansPPPivotSelectorShort( Pivotable<O> pivotable){
+    public IncrementalKMeansPPPivotSelectorShort(Pivotable<O> pivotable){
         super(pivotable);
     }
     

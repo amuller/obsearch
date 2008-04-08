@@ -4,7 +4,7 @@ log4j.rootLogger=DEBUG, A2
 # A2 is set to be a ConsoleAppender.
 log4j.appender.A2=org.apache.log4j.ConsoleAppender
 log4j.appender.A2.layout=org.apache.log4j.PatternLayout
-log4j.appender.A2.layout.ConversionPattern=%d{dd MMM yyyy HH:mm:ss} [%t] %-5p %c{2} %x - %m%n
+log4j.appender.A2.layout.ConversionPattern=%d{ddMMMyyyy HH:mm:ss}%-5p %c{1} - %m%n
 
 # use a file for output
 log4j.appender.A1=org.apache.log4j.FileAppender

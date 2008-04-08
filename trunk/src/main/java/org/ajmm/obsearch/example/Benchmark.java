@@ -90,7 +90,7 @@ public class Benchmark {
         }
         times++;
         }
-       logger.info("r: "  +  range + " k " + k + " time: " + ((System.currentTimeMillis() - time) / 1000));
+       logger.info("r "  +  range + " k " + k + " time: " + ((System.currentTimeMillis() - time) / 1000));
         }catch(UnsupportedOperationException e){
             logger.info("Skipping method");
         }
