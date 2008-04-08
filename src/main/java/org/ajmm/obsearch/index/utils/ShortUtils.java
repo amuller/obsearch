@@ -40,7 +40,7 @@ public class ShortUtils {
      * @return
      */
     public static short[] getTuple(int[] pivots, int objectId,
-            Index<OBShort>  index) throws DatabaseException,
+            Index<? extends OBShort>  index) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException
 

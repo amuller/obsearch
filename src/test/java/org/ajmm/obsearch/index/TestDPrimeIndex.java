@@ -57,9 +57,9 @@ public class TestDPrimeIndex
     public void testPPTree() throws Exception {
         
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
-       IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
-       // IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-       //         30, 30);
+       //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
+        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                30, 30);
         BDBFactory fact = Utils.getFactory();
         DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(fact, (byte)14,
             sel, OBSlice.class,

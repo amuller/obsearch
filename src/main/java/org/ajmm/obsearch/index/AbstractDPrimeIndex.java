@@ -357,6 +357,9 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 updateProbabilities(b);
                 b.setId(idMap(i, elementsSource));
                 insertBucket(b, o);
+                if(logger.isDebugEnabled() && (i % 10000 == 0)){
+                    logger.debug("Inserted: " + i);
+                }
                 insertedObjects++;
                 BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
                 assert bc.exists(b, o).getStatus() == Result.Status.EXISTS;

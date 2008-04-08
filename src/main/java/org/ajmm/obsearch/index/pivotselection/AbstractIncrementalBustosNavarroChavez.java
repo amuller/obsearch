@@ -1,6 +1,9 @@
 package org.ajmm.obsearch.index.pivotselection;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import org.ajmm.obsearch.Index;
@@ -50,9 +53,9 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     private static final transient Logger logger = Logger
             .getLogger(AbstractIncrementalBustosNavarroChavez.class);
 
-    private int l;
+    protected int l;
 
-    private int m;
+    protected int m;
 
     /**
      * Receives the object that accepts pivots as possible candidates. Selects l
@@ -68,6 +71,11 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
         this.l = l;
         this.m = m;
     }
+    
+    /**
+     * Resets the internal cache.
+     */
+    protected abstract void resetCache();
 
     @Override
     public int[] generatePivots(short pivotCount, IntArrayList elements,
@@ -75,7 +83,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
         try {
-
+            resetCache();
             int max;
             if (elements == null) {
                 max = index.databaseSize();
@@ -86,11 +94,15 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             Random r = new Random();
             // select m objects from which we will select pivots
             int i = 0;
+            
+            int[] x = select(l, r, elements, index, null);
+            int[] y = select(l, r, elements, index, null);
+            
+            
             while (i < pivotCount) {
                 int[] possiblePivots = select(m, r, elements, index, pivotList);
                 // select l pairs of objects to validate the pivots.
-                int[] x = select(l, r, elements, index, null);
-                int[] y = select(l, r, elements, index, null);
+              
                 // select the pivot in possiblePivots that maximizes the median
                 // projected distances.
                 logger.debug("Selecting pivot: " + i);
@@ -99,15 +111,43 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
                 pivotList.add(selectedPivot);
                 i++;
             }
+            
+          
 
             // return the pivots.
             pivotList.trimToSize();
-            return pivotList.elements();
+            int[] result = pivotList.elements();
+            // validate selected pivots.
+            assert validatePivots(result, x[0], index);
+            
+            // we should reverse the result so that 
+            // p1 has more pruning effect?
+            
+            int[] reversedResult = new int[result.length];
+            i =0;
+            int cx = result.length-1;
+            while(i < result.length){
+                reversedResult[i] = result[cx];
+                cx--;
+                i++;
+            }
+            
+            return reversedResult;
         } catch (DatabaseException d) {
             throw new OBStorageException(d);
         }
 
     }
+    
+    /**
+     * Validates that the lower layers have been processing everything fine.
+     * @param pivots the pivots that were selected
+     * @param id Id of the object 
+     * @param index Index from which we will load objects.
+     */
+    protected abstract boolean validatePivots(int[] pivots, int id, Index<O> index)throws DatabaseException,
+    IllegalIdException, IllegalAccessException, InstantiationException,
+    OBException ;
 
     /**
      * Selects the best pivot based on the previousPivots and the possible set
@@ -141,6 +181,9 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
                 bestPivot = pivotId;
             }
         }
+        // we have to calculate again the best pivot inside the cache.
+        pivots[pivots.length - 1] = bestPivot;
+        calculateMedian(pivots, x, y, index);
         return bestPivot;
     }
 
