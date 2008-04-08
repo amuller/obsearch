@@ -49,7 +49,7 @@ public class BenchDTree {
         logger.debug("MAX: "  + maxLevel);
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
       IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-              30, 30);
+              1000, 1000);
       
      // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
       

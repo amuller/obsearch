@@ -1,5 +1,8 @@
 package org.ajmm.obsearch.index.pivotselection;
 
+import java.util.Arrays;
+import java.util.HashMap;
+
 import hep.aida.bin.StaticBin1D;
 
 import org.ajmm.obsearch.Index;
@@ -39,16 +42,22 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
         extends AbstractIncrementalBustosNavarroChavez<O> {
     
     /**
+     * Keeps track of the SMAP values of objects.
+     */
+    private HashMap<Integer, short[]> smapCache;
+    
+    /**
      * Receives the object that accepts pivots as possible candidates. Selects l
      * pairs of objects to compare which set of pivots is better, and selects m
      * possible pivot candidates from the data set.
      * @param pivotable
-     * @param l
-     * @param m
+     * @param l pairs of objects to select
+     * @param m m possible pivot candidates to be randomly picked.
      */
     public IncrementalBustosNavarroChavezShort(Pivotable < O > pivotable,
             int l, int m) {
         super(pivotable, l , m);
+        smapCache = new HashMap<Integer, short[]>(l);
     }
 
     @Override
@@ -58,13 +67,50 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
         StaticBin1D data = new StaticBin1D();  
         int i = 0;
         while ( i < x.length){
-            short[] tupleA = ShortUtils.getTuple(pivots, x[i], (Index<OBShort>)index);
-            short[] tupleB = ShortUtils.getTuple(pivots, y[i], (Index<OBShort>)index);
+            short[] tupleA = getTuple(pivots, x[i], (Index<OBShort>)index);
+            short[] tupleB = getTuple(pivots, y[i], (Index<OBShort>)index);
             short distance = ShortUtils.lInfinite(tupleA, tupleB);
             data.add(distance);
             i++;
         }                
         return data.mean();
     }
+    
+    protected void resetCache(){
+        smapCache = new HashMap<Integer, short[]>(l);
+    }
+    
+    private short[] getTuple(int[] pivots, int id, Index<OBShort>index  )throws DatabaseException,
+    IllegalIdException, IllegalAccessException, InstantiationException,
+    OBException{
+        short[] t = smapCache.get(id);
+        if(t == null){
+            t = new short[pivots.length];
+            smapCache.put(id, t);
+            assert pivots.length == 1;
+        }else{          
+            short [] td = new short[pivots.length];
+            System.arraycopy(t, 0, td, 0, t.length );
+            smapCache.put(id, td);
+            t = td;
+        }
+        int i = pivots.length-1;
+        t[i] = index.getObject(id).distance(index.getObject(pivots[i]));
+        return t;
+    }
+
+    /* (non-Javadoc)
+     * @see org.ajmm.obsearch.index.pivotselection.AbstractIncrementalBustosNavarroChavez#validatePivots(int[], int)
+     */
+    @Override
+    protected boolean validatePivots(int[] pivots, int id, Index<O> index) throws DatabaseException,
+    IllegalIdException, IllegalAccessException, InstantiationException,
+    OBException {
+        short[] real = ShortUtils.getTuple(pivots, id, index);
+        short[] localTuple = smapCache.get(id);
+        return Arrays.equals(real, localTuple);
+    }
+    
+    
 
 }

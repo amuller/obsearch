@@ -44,7 +44,7 @@ public class BenchDPrimeTree {
        
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
       //IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-      //        30, 30);
+        //      10000, 1000);
         
         IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
         
@@ -55,7 +55,7 @@ public class BenchDPrimeTree {
         index.hackOne = hackOne;
         Benchmark.bench(index, query, dbData);
         
-       logger.info(index.getStats());
+      
 
         
         }catch(Exception e){
