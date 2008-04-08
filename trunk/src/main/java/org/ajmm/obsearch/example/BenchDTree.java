@@ -63,7 +63,7 @@ public class BenchDTree {
           DIndexShort<OBTed> index = new DIndexShort<OBTed>(fact, pivots,
                   ps, OBTed.class,
                   prob, p, maxLevel);
-
+          OBTedFactory.maxSliceSize = 30;
               Benchmark < OBTed > b = new Benchmark < OBTed >(
                       new OBTedFactory());
               b.bench(index, query, dbData);
