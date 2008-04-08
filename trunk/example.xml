@@ -116,7 +116,7 @@
 
 <target name="bench" depends="maven">
 
-<!--
+
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDPrimeTree"  failonerror="true">
 <jvmarg value="-server" />
 <jvmarg value="-Xmx${memory}M" />
@@ -128,11 +128,12 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
 				<arg value="5"/>
+				<arg value="ted"/>
 			</java>
 
--->
+
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
 <jvmarg value="-server" />
 <jvmarg value="-Xmx${memory}M" />
@@ -144,10 +145,11 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
 				<arg value="10"/>
 				<arg value=".95"/>
 				<arg value="9"/>
+				<arg value="ted"/>
 			</java>
 
 
@@ -162,7 +164,8 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
+				<arg value="ted"/>
 			</java>
 
 
@@ -177,6 +180,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>		
+				<arg value="ted"/>
 			</java>
 
 <!--

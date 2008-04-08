@@ -48,12 +48,13 @@ public class BenchDPrimeTree {
             // IncrementalKMeansPPPivotSelectorShort<OBSlice> ps = new
             // IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
             // IncrementalBustosNavarroChavezShort<OBSlice> ps = new
-            // IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-            // 10000, 1000);
-            IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+            // 
+            //
             BDBFactory fact = new BDBFactory(dbFolder);
             if (mode.equals("ted")) {
-                
+                IncrementalBustosNavarroChavezShort<OBTed> ps = new
+                IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+                         1000, 1000);
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
                         fact, pivots, ps, OBTed.class, (short) 3);
                 index.hackOne = hackOne;
@@ -62,9 +63,7 @@ public class BenchDPrimeTree {
                 b.bench(index, query, dbData);
 
             } else { // default mode OBSlice
-              
-
-               
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
                 DPrimeIndexShort < OBSlice > index = new DPrimeIndexShort < OBSlice >(
                         fact, pivots, ps, OBSlice.class, (short) 3);
                 index.hackOne = hackOne;
