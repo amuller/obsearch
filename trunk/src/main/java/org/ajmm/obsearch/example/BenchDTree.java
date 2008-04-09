@@ -2,6 +2,7 @@ package org.ajmm.obsearch.example;
 
 import java.io.File;
 
+import org.ajmm.obsearch.cache.OBStringFactory;
 import org.ajmm.obsearch.example.ted.OBTed;
 import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.DIndexShort;
@@ -68,6 +69,16 @@ public class BenchDTree {
                       new OBTedFactory());
               b.bench(index, query, dbData);
           
+      }else if(mode.equals("lev")){
+          IncrementalBustosNavarroChavezShort<OBString> ps = new IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
+                  1000, 1000);
+          
+          DIndexShort<OBString> index = new DIndexShort<OBString>(fact, pivots,
+                  ps, OBString.class,
+                  prob, p, maxLevel);
+              Benchmark < OBString > b = new Benchmark < OBString >(
+                      new OBStringFactory());
+              b.bench(index, query, dbData);
       }else{
           IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                   1000, 1000);

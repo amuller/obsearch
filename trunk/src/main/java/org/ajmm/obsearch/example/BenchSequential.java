@@ -2,6 +2,7 @@ package org.ajmm.obsearch.example;
 
 import java.io.File;
 
+import org.ajmm.obsearch.cache.OBStringFactory;
 import org.ajmm.obsearch.example.ted.OBTed;
 import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.SequentialSearchShort;
@@ -45,7 +46,15 @@ public class BenchSequential {
                 logger.info(index.getStats());
                 
 
-            } else {
+            } else if(mode.equals("lev")){
+                SequentialSearchShort < OBString> index = new SequentialSearchShort < OBString>(
+                        fact, OBString.class);
+                Benchmark < OBString> b = new Benchmark < OBString>(
+                        new OBStringFactory());
+                b.bench(index, query, dbData);
+                logger.info(index.getStats());
+            }
+            else {
                 SequentialSearchShort < OBSlice > index = new SequentialSearchShort < OBSlice >(
                         fact, OBSlice.class);
                
