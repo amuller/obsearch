@@ -45,11 +45,11 @@ public class BenchPPTree {
             String mode = args[4];
             logger.debug("Mode: " + mode);
             if (mode.equals("ted")) {
-                
+                OBTedFactory.maxSliceSize = 20;
                 PPTreeShort < OBTed > index = new PPTreeShort < OBTed >(
                         dbFolder, pivots, (byte) 12, (short) 0,
-                        (short) (Benchmark.maxSliceSize * 2), ps, OBTed.class);
-                OBTedFactory.maxSliceSize = 20;
+                        (short) (OBTedFactory.maxSliceSize * 2), ps, OBTed.class);
+               
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
                 b.bench(index, query, dbData);
