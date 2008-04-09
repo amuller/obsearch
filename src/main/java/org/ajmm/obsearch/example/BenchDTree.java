@@ -58,12 +58,12 @@ public class BenchDTree {
       if(mode.equals("ted")){
           
           IncrementalBustosNavarroChavezShort<OBTed> ps = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
-                  1000, 1000);
+                  100, 1000);
           
           DIndexShort<OBTed> index = new DIndexShort<OBTed>(fact, pivots,
                   ps, OBTed.class,
                   prob, p, maxLevel);
-          OBTedFactory.maxSliceSize = 30;
+          OBTedFactory.maxSliceSize = 20;
               Benchmark < OBTed > b = new Benchmark < OBTed >(
                       new OBTedFactory());
               b.bench(index, query, dbData);
