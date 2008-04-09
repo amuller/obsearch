@@ -39,13 +39,13 @@ public class Benchmark<O extends OBShort> {
         String re = r.readLine();
         int realIndex = 0;
         while (re != null && realIndex <= MAX_DATA) {
-            String line = IndexSmokeTUtil.parseLine(re);
+            String line = re;
             if (line != null) {
                 O s = factory.create(line);
                 if (factory.shouldProcess(s)) {
                     Result res = index.insert(s);
                     if (res.getStatus() != Result.Status.OK) {
-                        throw new Exception("Could not insert status: " + res.getStatus().toString()                                );
+                        throw new Exception("Could not insert status: " + res.getStatus().toString()  + " line: <" + line + ">");
                     }
                     realIndex++;
                     
@@ -63,6 +63,8 @@ public class Benchmark<O extends OBShort> {
         OBSlice.count = 0;
 
     }
+    
+    
 
     public static int totalTimes = 10;
 
