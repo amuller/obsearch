@@ -45,9 +45,10 @@ public class Benchmark<O extends OBShort> {
                 if (factory.shouldProcess(s)) {
                     Result res = index.insert(s);
                     if (res.getStatus() != Result.Status.OK) {
-                        throw new Exception("Could not insert");
+                        throw new Exception("Could not insert status: " + res.getStatus().toString()                                );
                     }
                     realIndex++;
+                    
                 }
             }
             re = r.readLine();

@@ -9,6 +9,7 @@ import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.apache.log4j.Logger;
