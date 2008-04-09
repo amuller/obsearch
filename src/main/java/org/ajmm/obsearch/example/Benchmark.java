@@ -15,6 +15,8 @@ import org.apache.log4j.Logger;
 public class Benchmark<O extends OBShort> {
     
     private OBFactory<O> factory;
+    
+    protected int MAX_DATA = Integer.MAX_VALUE;
 
     /**
      * Logger.
@@ -36,7 +38,7 @@ public class Benchmark<O extends OBShort> {
         BufferedReader r = new BufferedReader(new FileReader(db));
         String re = r.readLine();
         int realIndex = 0;
-        while (re != null) {
+        while (re != null && realIndex <= MAX_DATA) {
             String line = IndexSmokeTUtil.parseLine(re);
             if (line != null) {
                 O s = factory.create(line);
@@ -49,7 +51,7 @@ public class Benchmark<O extends OBShort> {
                 }
             }
             re = r.readLine();
-
+            
         }
         r.close();
 
@@ -117,6 +119,11 @@ public class Benchmark<O extends OBShort> {
     public  void bench(IndexShort < O > index, String query,
             String db) throws Exception {
         initIndex(index, query, db);
+        
+        search(index, query);
+    }
+    
+    protected void search(IndexShort < O > index, String query) throws Exception{
         logger.info("Current stats: " + index.getStats());
         index.resetStats();
         logger.info("Real distance count after DB creation");
@@ -140,7 +147,6 @@ public class Benchmark<O extends OBShort> {
         benchAux(index, query, (short) 10, (byte) 1);
 
         benchAux(index, query, (short) 10, (byte) 3);
-
     }
 
     public static void printDistanceCount() {
