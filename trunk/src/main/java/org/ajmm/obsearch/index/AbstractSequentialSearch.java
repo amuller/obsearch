@@ -37,6 +37,8 @@ public class AbstractSequentialSearch<O extends OB> implements Index<O> {
     
     protected long distanceComputations = 0;
     
+   
+    
     private StaticBin1D dataSize = new StaticBin1D();
     
     /**

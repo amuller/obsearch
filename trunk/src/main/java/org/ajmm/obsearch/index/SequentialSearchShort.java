@@ -15,7 +15,10 @@ import com.sleepycat.je.DatabaseException;
 
 public class SequentialSearchShort<O extends OBShort>
         extends AbstractSequentialSearch<O> implements IndexShort<O> {
-
+    
+    protected long[] distanceDistribution = new long[Short.MAX_VALUE + 1];
+    
+    
     public SequentialSearchShort(OBStoreFactory fact, Class < O > type) throws OBStorageException, OBException {
        super(fact,type);
     }
@@ -69,6 +72,7 @@ public class SequentialSearchShort<O extends OBShort>
             O other = super.aCache.get(i);
             super.distanceComputations++;
             short distance = other.distance(object);
+            distanceDistribution[distance]++;
             if(distance <= r){
                 result.add(i, other, distance);
             }
@@ -77,6 +81,25 @@ public class SequentialSearchShort<O extends OBShort>
         }
     }
 
+    public String getStats(){
+        StringBuilder res = new StringBuilder(super.getStats());
+        res.append("\n");
+        res.append("Distance Distribution");
+        res.append("\n");
+        int i = 0;
+        while(i < distanceDistribution.length){
+            if(distanceDistribution[i] != 0){
+                res.append(i + " " + distanceDistribution[i] );
+                res.append("\n");
+            }
+            i++;
+        }
+        return res.toString();
+    }
     
+    public void resetStats(){
+        super.resetStats();
+        distanceDistribution = new long[Short.MAX_VALUE + 1];
+    }
 
 }
