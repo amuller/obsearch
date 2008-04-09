@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.example;
 
+import java.util.Arrays;
+
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.ob.OBShort;
 
@@ -34,8 +36,22 @@ public class OBString implements OBShort {
 
     private char[] str;
     
+    public OBString(){
+        
+    }
+    
     public OBString(String str){
         this.str = str.toCharArray();
+    }
+    
+    public boolean equals(Object obj){
+        OBString other = (OBString) obj;
+        return Arrays.equals(str, other.str);
+    }
+    
+    public int hashCode(){
+        // TODO cache this.
+        return Arrays.hashCode(str);
     }
     
     // Levenshtein distance implementation.
