@@ -61,14 +61,14 @@ public class TestDPrimeIndex
         
       //IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
        //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
-        IncrementalBustosNavarroChavezShort<OBTed> sel = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 30, 30);
         BDBFactory fact = Utils.getFactory();
-        DPrimeIndexShort<OBTed> d = new DPrimeIndexShort<OBTed>(fact, (byte)14,
-            sel, OBTed.class,
+        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(fact, (byte)14,
+            sel, OBSlice.class,
              (short)11);
 
-        IndexSmokeTUtil<OBTed> t = new IndexSmokeTUtil<OBTed>(new OBTedFactory());
+        IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);
         //logger.info("Boxes per search: " + d.totalBoxAccess/ d.queryCount);
         logger.info("Query count: " + d.queryCount);

@@ -100,6 +100,8 @@ public class ObjectBucketShort
         }
     }
     
-    
+    public String toString(){
+        return Arrays.toString(smapVector);
+    }
 
 }
