@@ -53,10 +53,10 @@ public class BenchDPrimeTree {
             //
             BDBFactory fact = new BDBFactory(dbFolder);
             if (mode.equals("ted")) {
-                IncrementalBustosNavarroChavezShort<OBTed> ps = new
-                IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
-                         317, 317);
-               // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+                //IncrementalBustosNavarroChavezShort<OBTed> ps = new
+                //IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+                //         317, 317);
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
                         fact, pivots, ps, OBTed.class, (short) 3);
                 index.hackOne = hackOne;
@@ -67,10 +67,10 @@ public class BenchDPrimeTree {
                 b.bench(index, query, dbData);
 
             }else if (mode.equals("lev")) {
-                IncrementalBustosNavarroChavezShort<OBString> ps = new
-                IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
-                         1000, 1000);
-                //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
+                //IncrementalBustosNavarroChavezShort<OBString> ps = new
+                //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
+                //         1000, 1000);
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                         fact, pivots, ps, OBString.class, (short) 3);
                 index.hackOne = hackOne;                
