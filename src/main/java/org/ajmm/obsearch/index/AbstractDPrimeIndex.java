@@ -360,10 +360,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 insertBucket(b, o);
                 if(logger.isDebugEnabled() && (i % 10000 == 0)){
                     logger.debug("Inserted: " + i);
-                    bucketStats();
-                    if(i == 50000){
-                        System.exit(0);
-                    }
+                    bucketStats();                   
                 }
                 insertedObjects++;
                 BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
