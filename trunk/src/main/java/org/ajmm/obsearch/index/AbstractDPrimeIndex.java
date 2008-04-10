@@ -107,7 +107,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
     /**
      * Filter used to avoid unnecessary block accesses.
      */
-   //protected ArrayList< SimpleBloomFilter<Long>> filter;
+   // protected ArrayList< SimpleBloomFilter<Long>> filter;
    protected ArrayList< HashSet<Long>> filter;
 
     /**
@@ -314,11 +314,12 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             
             // initialize bloom filter
             int i = 0;
-            //this.filter = new ArrayList<SimpleBloomFilter<Long>>();
+            // this.filter = new ArrayList<SimpleBloomFilter<Long>>();
             this.filter = new ArrayList<HashSet<Long>>();
             
             while(i < pivotsCount){
-                //filter.add(new SimpleBloomFilter<Long>(i * 1000, (int)Math.pow(2, i)));
+                // filter.add(new SimpleBloomFilter<Long>(i * 1000,
+                // (int)Math.pow(2, i)));
                 filter.add(new HashSet<Long>());
                 i++;
             }
@@ -359,6 +360,10 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 insertBucket(b, o);
                 if(logger.isDebugEnabled() && (i % 10000 == 0)){
                     logger.debug("Inserted: " + i);
+                    bucketStats();
+                    if(i == 50000){
+                        System.exit(0);
+                    }
                 }
                 insertedObjects++;
                 BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
@@ -382,14 +387,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 pivotBytes.add(out.getBufferBytes());
             }
             
-            Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
-            StaticBin1D s = new StaticBin1D();
-            while(it.hasNext()){
-                TupleLong t = it.next();
-                BC bc = this.bucketContainerCache.get(t.getKey());
-                s.add(bc.size());
-            } // add exlucion
-            logger.debug(StatsUtil.mightyIOStats("Bucket distribution", s));
+            bucketStats();
             
             frozen = true;
             // TODO: enable this and debug the deadlock issue.
@@ -399,8 +397,20 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         }
     }
     
+    private void bucketStats() throws OBStorageException, DatabaseException,   IllegalIdException, IllegalAccessException, InstantiationException, OBException{
+        
+        Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
+        StaticBin1D s = new StaticBin1D();
+        while(it.hasNext()){
+            TupleLong t = it.next();
+            BC bc = this.bucketContainerCache.get(t.getKey());
+            s.add(bc.size());
+        } // add exlucion
+        logger.info(StatsUtil.mightyIOStats("Bucket distribution", s));
+        
+    }
+    
     /**
-     * 
      * Updates probability information.
      * @param b
      */
@@ -470,7 +480,6 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
     }
     
     /**
-     * 
      * @param bucket
      */
     private void putBucket(long bucketId, BC bc) throws OBStorageException,
@@ -492,7 +501,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         
     
     
-    /** updates the filters! **/
+    /** updates the filters! * */
     private void updateFilters(long x){
         String s = Long.toBinaryString(x);
         int max = s.length();
@@ -500,9 +509,9 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         int cx = 0;
         while(i >= 0){
             long j  = Long.parseLong(s.substring(i , max), 2);
-            //if(! filter.get(cx).contains(j)){
+            // if(! filter.get(cx).contains(j)){
                 filter.get(cx).add(j);
-            //}            
+            // }
             i--;
             cx++;
         }

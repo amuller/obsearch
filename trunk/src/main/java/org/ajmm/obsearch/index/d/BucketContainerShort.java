@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
@@ -107,8 +108,8 @@ public final class BucketContainerShort < O extends OBShort > implements
      */
     private void updateData() {
         List < ObjectBucketShort > v = getVectors();
-        Collections.sort(v);
-        TupleOutput out = new TupleOutput();
+        //Collections.sort(v);
+        TupleOutput out = new TupleOutput(new byte[(TUPLE_SIZE * (v.size() + 1)) + BASE]);
         assert pivots != 0;
         out.writeInt(pivots);
         out.writeInt(v.size());
@@ -152,9 +153,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                 i++;
             }
             dataView = view;
-            if (data != null) {
-                // assert in.available() == 0 : "available: " + in.available();
-            }
+            
         }
         return dataView;
     }
@@ -197,7 +196,21 @@ public final class BucketContainerShort < O extends OBShort > implements
                 + " obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
         List < ObjectBucketShort > v = getVectors();
-        v.add(bucket);
+        
+        
+        ListIterator < ObjectBucketShort > it = v.listIterator();
+        while (it.hasNext()) {
+            ObjectBucketShort other = it.next();
+            if ((bucket.compareTo(other) <= 0)) {   
+                if(it.hasPrevious()){
+                    it.previous();
+                }
+                break;
+            }
+        }
+              
+        it.add(bucket);
+        
         updateData();
         return res;
     }
