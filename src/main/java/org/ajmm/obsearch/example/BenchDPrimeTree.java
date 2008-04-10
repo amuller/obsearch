@@ -53,14 +53,15 @@ public class BenchDPrimeTree {
             //
             BDBFactory fact = new BDBFactory(dbFolder);
             if (mode.equals("ted")) {
-//                IncrementalBustosNavarroChavezShort<OBTed> ps = new
-//                IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
-//                         100, 1000);
-                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+                IncrementalBustosNavarroChavezShort<OBTed> ps = new
+                IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+                         317, 317);
+               // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
                         fact, pivots, ps, OBTed.class, (short) 3);
                 index.hackOne = hackOne;
                 OBTedFactory.maxSliceSize = 20;
+                Benchmark.totalTimes = 1;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
                 b.bench(index, query, dbData);
