@@ -47,6 +47,7 @@ public class BenchPPTree {
             String mode = args[4];
             logger.debug("Mode: " + mode);
             if (mode.equals("ted")) {
+                Benchmark.totalTimes = 1;
                 OBTedFactory.maxSliceSize = 20;
                 PPTreeShort < OBTed > index = new PPTreeShort < OBTed >(
                         dbFolder, pivots, (byte) 12, (short) 0,
