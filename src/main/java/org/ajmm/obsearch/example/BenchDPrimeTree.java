@@ -67,7 +67,7 @@ public class BenchDPrimeTree {
                 b.bench(index, query, dbData);
 
             }else if (mode.equals("lev")) {
-                IncrementalBustosNavarroChavezShort<OBString> ps = new
+                //IncrementalBustosNavarroChavezShort<OBString> ps = new
                 //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
                 //         1000, 1000);
                 IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
