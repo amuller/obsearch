@@ -525,7 +525,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         ArrayList < O > level = new ArrayList < O >(pivotIds.length);
         for (int i : pivotIds) {
             O p = getObject(i);
-
+            logger.debug("Pivot: " + i + p.toString());
             pivots.add(p);
         }
 
