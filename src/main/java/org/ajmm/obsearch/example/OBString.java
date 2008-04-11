@@ -32,67 +32,106 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class OBString implements OBShort {
+public final class OBString implements OBShort {
 
-    private char[] str;
+    private String str;
     
     public OBString(){
         
     }
     
     public OBString(String str){
-        this.str = str.toCharArray();
+        this.str = str;
     }
     
     public boolean equals(Object obj){
         OBString other = (OBString) obj;
-        return Arrays.equals(str, other.str);
+        return str.equals(other.str);
     }
     
     public int hashCode(){
         // TODO cache this.
-        return Arrays.hashCode(str);
+        return str.hashCode();
     }
     
     // Levenshtein distance implementation.
     @Override
     public short distance(OBShort object) throws OBException {
-        OBString other = (OBString) object;
-       
-        int m = str.length;
-        int n = other.str.length;
-        // d is a table with m+1 rows and n+1 columns
-        int d[][] = new int[m+1][n+1];
-        // intialize
-        
-
-        for(int i = 0; i < m ;i++){
-            d[i][0] = i;
-        }
-        for(int j = 0; j<  n; j++){
-            d[0][j] = j;
-        }
-        
-        for(int i = 1; i <= m ;i++){
-            for(int j = 1; j<=  n; j++){
-                
-                short cost;
-                if( str[i-1] == other.str[j-1]){
-                    cost = 0;
-                }else{
-                    cost = 1;
-                }
-                               
-                d[i][j] = min(
-                                     d[i-1][j] + 1,     // deletion
-                                     d[i][j-1] + 1,     // insertion
-                                     d[i-1][j-1] + cost   // substitution
-                                 );
-            }
-        }
-      
-        return (short)d[m][n];        
+         return LD(str, ((OBString)object).str);
     }
+    
+  //*****************************
+    // Compute Levenshtein distance
+    //*****************************
+
+    public short LD (String s, String t) {
+    int d[][]; // matrix
+    int n; // length of s
+    int m; // length of t
+    int i; // iterates through s
+    int j; // iterates through t
+    char s_i; // ith character of s
+    char t_j; // jth character of t
+    int cost; // cost
+
+      // Step 1
+
+      n = s.length ();
+      m = t.length ();
+      if (n == 0) {
+        return (short)m;
+      }
+      if (m == 0) {
+        return (short)n;
+      }
+      d = new int[n+1][m+1];
+
+      // Step 2
+
+      for (i = 0; i <= n; i++) {
+        d[i][0] = i;
+      }
+
+      for (j = 0; j <= m; j++) {
+        d[0][j] = j;
+      }
+
+      // Step 3
+
+      for (i = 1; i <= n; i++) {
+
+        s_i = s.charAt (i - 1);
+
+        // Step 4
+
+        for (j = 1; j <= m; j++) {
+
+          t_j = t.charAt (j - 1);
+
+          // Step 5
+
+          if (s_i == t_j) {
+            cost = 0;
+          }
+          else {
+            cost = 1;
+          }
+
+          // Step 6
+
+          d[i][j] = min (d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1] + cost);
+
+        }
+
+      }
+
+      // Step 7
+
+      return (short)d[n][m];
+
+    }
+
+  
             
     private int min(int a, int b, int c){
         return Math.min(Math.min(a, b),c);
@@ -100,12 +139,16 @@ public class OBString implements OBShort {
 
     @Override
     public void load(TupleInput in) throws OBException {
-        str= in.readString().toCharArray();        
+        str= in.readString();      
     }
 
     @Override
     public void store(TupleOutput out) {
-        out.writeString(new String(str));
+        out.writeString(str);
+    }
+    
+    public String toString(){
+        return new String(str);
     }
 
 }
