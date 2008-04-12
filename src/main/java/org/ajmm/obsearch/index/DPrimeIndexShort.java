@@ -148,7 +148,9 @@ public final class DPrimeIndexShort < O extends OBShort >
                     out.writeShort(d);
                 }
             }
+            this.mbrCache.remove(id);
             this.mbrs.put(id, out.getBufferBytes());
+            
         } else {
             assert bc.size() == 0;
         }

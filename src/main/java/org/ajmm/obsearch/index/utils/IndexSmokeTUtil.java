@@ -135,9 +135,10 @@ public class IndexSmokeTUtil<O extends OBShort> {
             String line = parseLine(re);
             if (line != null) {
                 O s = factory.create(line);
+             
                 if (factory.shouldProcess(s)) {
                     Result res = index.exists(s);
-                    assertTrue(res.getStatus() == Result.Status.EXISTS);
+                    assertTrue("Str: " + line + " line: " + i, res.getStatus() == Result.Status.EXISTS);
                     assertEquals(i, res.getId());
                     // attempt to insert the object again, and get
                     // the -1
