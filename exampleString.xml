@@ -121,7 +121,6 @@
 <jvmarg value="-server" />
 <jvmarg value="-Xmx${memory}M" />
 <jvmarg value="-Xms${memory}M"/>
-<jvmarg value="-ea" />
 				<jvmarg value="-XX:+UseParallelGC"/>
 				<jvmarg value="-XX:+UseParallelOldGC"/>
         <jvmarg value="-XX:+UseMembar"/>
