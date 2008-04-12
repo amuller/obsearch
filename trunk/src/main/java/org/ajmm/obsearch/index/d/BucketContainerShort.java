@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index.d;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -32,6 +33,8 @@ public final class BucketContainerShort < O extends OBShort > implements
      * Level of the bucket (debugging purposes)
      */
     private int level;
+    
+    private int size;
 
     /**
      * The data in this bucket, it is updated every time we insert or delete an
@@ -56,7 +59,7 @@ public final class BucketContainerShort < O extends OBShort > implements
 
     private int TUPLE_SIZE;
 
-    short[][] mbr;
+    short[][] mbr = null;
 
     public BucketContainerShort(Index < O > index, byte[] data) {
         assert index != null;
@@ -75,12 +78,18 @@ public final class BucketContainerShort < O extends OBShort > implements
 
     private int readFromDataAux(TupleInput in) {
         pivots = in.readInt();
-        TUPLE_SIZE = pivots * UNIT_SIZE + Index.ID_SIZE;
+        updateTupleSize(pivots);
         int count = in.readInt();
+        size = count;
         level = in.readInt();
         return count;
     }
+    
+    private void updateTupleSize(int pivots){
+        TUPLE_SIZE = pivots * UNIT_SIZE + Index.ID_SIZE;
+    }
 
+    // need to update this thing.
     @Override
     public Result delete(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
@@ -94,6 +103,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             if (j.smapEqual(bucket)
                     && index.getObject(j.getId()).distance(object) == 0) {
                 it.remove();
+                size--;
                 res.setStatus(Result.Status.OK);
                 res.setId(j.getId());
             }
@@ -102,6 +112,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         // if an object was removed.
         // if (res.getStatus() == Result.Status.EXISTS) {
         updateData();
+        
         // }
         return res;
     }
@@ -114,6 +125,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         // Collections.sort(v);
         TupleOutput out = new TupleOutput(
                 new byte[(TUPLE_SIZE * (v.size() + 1)) + BASE]);
+        assert size == v.size();
         assert pivots != 0;
         out.writeInt(pivots);
         out.writeInt(v.size());
@@ -126,8 +138,37 @@ public final class BucketContainerShort < O extends OBShort > implements
             }
             out.writeInt(b.getId());
         }
-        this.data = out.getBufferBytes();
-        getMBR();
+        this.data = out.getBufferBytes(); 
+        readFromData();
+    }
+    
+    private byte[] initHeader(int size, int pivots, int level){  
+        updateTupleSize(pivots);
+        TupleOutput out = new TupleOutput(new byte[BASE]);
+        out.writeInt(pivots);
+        out.writeInt(size);
+        out.writeInt(level);
+        this.size = size;
+        this.pivots = pivots;
+        this.level = level;
+        return out.getBufferBytes();
+    }
+    
+    private void updateHeader(int size, int pivots, int level){
+        
+        byte[] source = initHeader(size, pivots, level); 
+        System.arraycopy(source, 0, data, 0, BASE );
+    }
+    
+    
+    
+    private byte[] serializeBucket(ObjectBucketShort b){
+        TupleOutput out = new TupleOutput(new byte[TUPLE_SIZE]);
+        for (short j : b.getSmapVector()) {
+            out.writeShort(j);
+        }
+        out.writeInt(b.getId());
+        return out.toByteArray();
     }
 
     private List < ObjectBucketShort > getVectors() {
@@ -172,20 +213,32 @@ public final class BucketContainerShort < O extends OBShort > implements
     public Result exists(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
-        List < ObjectBucketShort > v = getVectors();
-        Iterator < ObjectBucketShort > it = v.iterator();
+        
         Result res = new Result();
         res.setStatus(Result.Status.NOT_EXISTS);
-        while (it.hasNext()) {
-            ObjectBucketShort j = it.next();
-            if (j.smapEqual(bucket)) {
-                O o2 = index.getObject(j.getId());
-                if (o2.distance(object) == 0) {
-                    res.setStatus(Result.Status.EXISTS);
-                    res.setId(j.getId());
-                    return res;
+        if(data != null){
+        MyTupleInput in = new MyTupleInput(data);
+        int low = binSearch(bucket.getSmapVector()[0], in);   
+        
+        if (low < size()) {
+            // if it was found.
+            
+            while( low < size()){
+                ObjectBucketShort tuple = this.getIthSMAP(low, in);
+                if(tuple.getSmapVector()[0] != bucket.getSmapVector()[0]){
+                    break;
                 }
+                if (Arrays.equals(tuple.getSmapVector(), bucket.getSmapVector())) {
+                    O o2 = index.getObject(tuple.getId());
+                    if (o2.distance(object) == 0) {
+                        res.setStatus(Result.Status.EXISTS);
+                        res.setId(tuple.getId());
+                        break;
+                    }
+                }
+                low++;
             }
+        } 
         }
         return res;
     }
@@ -200,49 +253,74 @@ public final class BucketContainerShort < O extends OBShort > implements
         assert pivots == bucket.getSmapVector().length : " pivots: " + pivots
                 + " obj " + bucket.getSmapVector().length;
         res.setStatus(Result.Status.OK);
-        List < ObjectBucketShort > v = getVectors();
-
-        ListIterator < ObjectBucketShort > it = v.listIterator();
-        while (it.hasNext()) {
-            ObjectBucketShort other = it.next();
-            if ((bucket.compareTo(other) <= 0)) {
-                if (it.hasPrevious()) {
-                    it.previous();
-                }
-                break;
-            }
+        
+        if(data == null){
+            size = 0;
+            data = initHeader(0, bucket.getPivotSize(), bucket.getLevel());
         }
+      
+        
+        MyTupleInput in = new MyTupleInput(data);
+        int low = binSearch(bucket.getSmapVector()[0], in);     
+       byte[] ndata =  new byte[data.length + TUPLE_SIZE]; // will copy some garbage at the end.
 
-        it.add(bucket);
+       int tupleArrayIndex = this.getByteArrayIndex(low);
+        // copy the data before the tuple that will be inserted.
+        System.arraycopy(data, 0, ndata, 0, Math.max(tupleArrayIndex  , 0));
+        // copy the tuple to be inserted
+        System.arraycopy(serializeBucket(bucket), 0, ndata, tupleArrayIndex, TUPLE_SIZE);
+        // copy the remaining of the data.
+        System.arraycopy(data, tupleArrayIndex , ndata,  getByteArrayIndex(low+1), data.length - ( tupleArrayIndex));
+        
+       data = ndata;
+        size++;
+        updateHeader(size,bucket.getPivotSize(), bucket.getLevel());
+       
+     
         updateMBR(bucket);
-        updateData();
+       
         return res;
     }
 
     public int size() {
-        return getVectors().size();
+        return size;
     }
 
     public short[][] getMBR() {
 
         if (mbr == null) {
-            List < ObjectBucketShort > v = getVectors();
-            if (v.size() > 0) {                
-                for (ObjectBucketShort o : v) {
-                    // min = 0, max = 1.
-                    updateMBR(o);
-                }
-            }
+            initMBR();
             // leave mbr null if there are no pivots.
         }
+        /*int pivotSize = mbr[0].length;
+        short[][] res = new short[2][pivotSize];
+        int i = 0;
+        while(i < pivotSize){
+            res[0][i] = mbr[0][i];
+            res[1][i] = mbr[1][i];
+            i++;
+        }*/
         return mbr;
     }
     
-    
+    private void initMBR(){
+        
+        
+        MyTupleInput in = new MyTupleInput(data);
+        int i = 0;
+        while(i < this.size){
+            updateMBR(this.getIthSMAP(i, in));
+            i++;
+        }
+    }
 
     private void updateMBR(ObjectBucketShort o) {
+        updateMBR(o.getSmapVector());
+    }
+    
+    private void updateMBR(short[] smap){
         if(mbr == null){
-            int pivotSize = o.getPivotSize();
+            int pivotSize = smap.length;
             mbr = new short[2][pivotSize];
             int i = 0;
             // initialize result.
@@ -250,10 +328,11 @@ public final class BucketContainerShort < O extends OBShort > implements
                 mbr[0][i] = Short.MAX_VALUE;
                 i++;
             }
+            initMBR();
         }
         
         int i = 0;
-        short[] smap = o.getSmapVector();
+       
         while (i < smap.length) {
             if (smap[i] < mbr[0][i]) {
                 mbr[0][i] = smap[i];
@@ -335,7 +414,46 @@ public final class BucketContainerShort < O extends OBShort > implements
     }
 
     private void setIth(int i, MyTupleInput in) {
-        in.setOffset(this.BASE + i * TUPLE_SIZE);
+        in.setOffset(getByteArrayIndex(i));
+    }
+    
+    /**
+     * Returns the byte index for the ith tuple. (to access directly the data byte array).
+     * @param i
+     * @return
+     */
+    private int getByteArrayIndex(int i){
+        return this.BASE + (i * TUPLE_SIZE);
+    }
+    
+    private ObjectBucketShort getIthSMAP(int i, MyTupleInput in) {
+        setIth(i, in);
+        int cx = 0;
+        short[] res = new short[pivots];
+        while(cx < this.pivots){
+            res[cx] = in.readShort();
+            cx++;
+        }
+        int id = in.readInt();
+        return new ObjectBucketShort(res, id);
+    }
+    
+    private int binSearch(short value, MyTupleInput in){
+        int low = 0;
+        int high = size();
+        
+        while (low < high) {
+            int mid = (low + high) / 2;
+            if (getIthPivot0(mid, in) < value) {
+                low = mid + 1;
+            } else {
+                // can't be high = mid-1: here A[mid] >= value,
+                // so high can't be < mid if A[mid] == value
+                high = mid;
+            }
+        }
+        return low;
+        
     }
 
     /**
@@ -358,41 +476,29 @@ public final class BucketContainerShort < O extends OBShort > implements
             return 0;
         }
         O object = query.getObject();
+        
+      
 
         MyTupleInput in = new MyTupleInput(data);
-        int count = readFromDataAux(in);
+        //readFromDataAux(in);
         assert pivots == b.getSmapVector().length;
         assert b.getLevel() == level;
         // value to search
         short value = query.getLow()[0];
         // now we can start binary searching the bytes.
 
-        // Adapted from wikipedia
-        // http://en.wikipedia.org/wiki/Binary_search
-
-        int low = 0;
-        int high = count;
-        while (low < high) {
-            int mid = (low + high) / 2;
-            if (getIthPivot0(mid, in) < value) {
-                low = mid + 1;
-            } else {
-                // can't be high = mid-1: here A[mid] >= value,
-                // so high can't be < mid if A[mid] == value
-                high = mid;
-            }
-        }
+        int low = binSearch(value, in);       
         // base will hold the tuple from which we will start processing
         int base;
         short currentP0;
         // high == low, using high or low depends on taste
-        if (low < count) {
+        if (low < size()) {
             base = low;
             currentP0 = getIthPivot0(low, in);
         } else {
             return 0; // not found
         }
-        count = count - base;
+        int count = size() - base;
         setIth(base, in);
 
         int i = 0;

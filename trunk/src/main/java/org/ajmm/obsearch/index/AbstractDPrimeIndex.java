@@ -154,10 +154,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
      */
     protected transient OBCacheLong < BC > bucketContainerCache;
 
-    /**
-     * How many pivots will be used on each level of the hash table.
-     */
-    private float nextLevelThreshold;
+    
 
     /**
      * Masks used to speedup the generation of hash table codes.

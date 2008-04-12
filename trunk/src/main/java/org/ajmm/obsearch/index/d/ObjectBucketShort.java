@@ -54,6 +54,17 @@ public class ObjectBucketShort
         super(bucket, level, exclusionBucket,id);
         this.smapVector = smapVector;
     }
+    
+    /**
+     * Constructor used when you only want to return the smap and the id 
+     * of an object (for searching purposes), use with care!
+     * @param smapVector
+     * @param id
+     */
+    public ObjectBucketShort(short[] smapVector,
+            int id) {
+        this(-1L,-1,smapVector, false, id);
+    }
 
     /**
      * @return the smapVector
