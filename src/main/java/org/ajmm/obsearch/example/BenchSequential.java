@@ -28,12 +28,15 @@ public class BenchSequential {
             File dbFolder = new File(args[0]);
             String query = args[1];
             String dbData = args[2];
-            Directory.deleteDirectory(dbFolder);
-            dbFolder.mkdirs();
+            
             BDBFactory fact = new BDBFactory(dbFolder);
 
             String mode = args[3];
             logger.debug("Mode: " + mode);
+            dbData = dbData + File.separator + mode;
+            Directory.deleteDirectory(dbFolder);
+            dbFolder.mkdirs();
+            
             Benchmark.totalTimes = 1;
             if (mode.equals("ted")) {
                 

@@ -27,7 +27,7 @@
 	
 	<!-- System related properties -->
 	
-	<property name="memory" value="3700"/>
+	<property name="memory" value="7700"/>
 
 	<!-- p2p related properties -->
 	<property name="name" value="seeder"/>
@@ -129,7 +129,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="60"/>
+				<arg value="40"/>
 				<arg value="5"/>
 				<arg value="lev"/>
 			</java>
@@ -146,7 +146,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="60"/>
+				<arg value="40"/>
 				<arg value="10"/>
 				<arg value=".95"/>
 				<arg value="9"/>
@@ -165,7 +165,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="60"/>
+				<arg value="40"/>
 				<arg value="lev"/>
 			</java>
 
