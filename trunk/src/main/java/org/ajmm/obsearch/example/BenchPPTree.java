@@ -45,7 +45,8 @@ public class BenchPPTree {
 
             String mode = args[4];
             logger.debug("Mode: " + mode);
-            dbData = dbData + File.separator + mode;
+            
+            dbFolder = new File(dbFolder, mode);
             Directory.deleteDirectory(dbFolder);
             dbFolder.mkdirs();
             
