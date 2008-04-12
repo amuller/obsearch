@@ -81,7 +81,7 @@ public class Benchmark<O extends OBShort> {
                 int i = 0;
                 HashMap < String, Integer > queries = new HashMap < String, Integer >();
                 while (re != null) {
-                    String line = IndexSmokeTUtil.parseLine(re);
+                    String line = re;
                     if (line != null && !queries.containsKey(line)) {
                         queries.put(line, Integer.MAX_VALUE);
                         OBPriorityQueueShort < O > x = new OBPriorityQueueShort < O >(
