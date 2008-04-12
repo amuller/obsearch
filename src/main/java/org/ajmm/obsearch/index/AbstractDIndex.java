@@ -175,6 +175,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
 
     public long distanceComputations = 0;
 
+    public long dataRead = 0;
     /**
      * Initializes this abstract class.
      * @param fact

@@ -676,6 +676,8 @@ public final class DPrimeIndexShort < O extends OBShort >
         res.append("\n");
         res.append("Distance computations: " + distanceComputations);
         res.append("\n");
+        res.append("Data read: " + dataRead);
+        res.append("\n");
         res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));
         res.append("\n");
         res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));
@@ -689,6 +691,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         searchedBoxesTotal = 0;
         smapRecordsCompared = 0;
         distanceComputations = 0;
+        super.dataRead = 0;
         A.setReadStats(new StaticBin1D());
         Buckets.setReadStats(new StaticBin1D());
         mbrs.setReadStats(new StaticBin1D());

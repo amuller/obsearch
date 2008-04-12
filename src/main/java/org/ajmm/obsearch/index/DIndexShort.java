@@ -18,6 +18,7 @@ import org.ajmm.obsearch.index.d.BucketContainer;
 import org.ajmm.obsearch.index.d.BucketContainerShort;
 import org.ajmm.obsearch.index.d.ObjectBucket;
 import org.ajmm.obsearch.index.d.ObjectBucketShort;
+import org.ajmm.obsearch.index.utils.IntegerHolder;
 import org.ajmm.obsearch.index.utils.StatsUtil;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
@@ -284,7 +285,7 @@ public final class DIndexShort < O extends OBShort >
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
         
-        short range = r;
+        
         OBQueryShort < O > q = null;
         queryCount++;
         int i = 0;
@@ -338,7 +339,7 @@ public final class DIndexShort < O extends OBShort >
     }
 
     /**
-     * Search only the elastic buckets with the p1.
+     * Search an elastic bucket.
      * @param b
      * @param q
      * @param level
@@ -347,18 +348,14 @@ public final class DIndexShort < O extends OBShort >
             int level, long bucket) throws OBStorageException, NotFrozenException,
             DatabaseException, InstantiationException, IllegalIdException,
             IllegalAccessException, OutOfRangeException, OBException {
-        byte[] low = this.getBucketStorageIdAux(bucket, level, q.getLow()[0]);
-        byte[] high = this.getBucketStorageIdAux(bucket, level, q.getHigh()[0]);
-        Iterator < TupleBytes > it = Buckets.processRangeRaw(low, high);
-        while (it.hasNext()) {
-            TupleBytes t = it.next();
-            // search the Bucket container.
-            BucketContainerShort<O> bc = this.instantiateBucketContainer(t.getValue());
-            super.distanceComputations += bc.search(q, b);
-            searchedBoxesTotal++;
-            smapRecordsCompared += bc.size();
 
-        }
+        BucketContainerShort<O> bc = this.bucketContainerCache.get(this.getBucketStorageIdAux(bucket, level));
+        IntegerHolder smapRecords = new IntegerHolder(0);       
+        
+        super.distanceComputations += bc.searchSorted(q, b, smapRecords);
+        smapRecordsCompared += smapRecords.getValue();
+        searchedBoxesTotal++;
+       
     }
     
 
@@ -421,20 +418,18 @@ public final class DIndexShort < O extends OBShort >
     protected byte[] getBucketStorageIdAux(ObjectBucketShort bucket) {
         long block = bucket.getBucket();
         int level = bucket.getLevel();
-        short p1 = bucket.getSmapVector()[0];
-        return getBucketStorageIdAux(block, level, p1);
+        return getBucketStorageIdAux(block, level);
     }
 
-    protected byte[] getBucketStorageIdAux(long block, int level, short p1) {
+    protected byte[] getBucketStorageIdAux(long block, int level) {
         TupleOutput out = new TupleOutput();
         out.writeInt(level);
         out.writeLong(block);
-        out.writeShort(p1);
         return out.getBufferBytes();
     }
 
     protected byte[] getExclusionBucketId(ObjectBucketShort bucket) {
-        return getBucketStorageIdAux(-1, -1, bucket.getSmapVector()[0]);
+        return getBucketStorageIdAux(-1, -1);
     }
 
     /*
@@ -485,6 +480,8 @@ public final class DIndexShort < O extends OBShort >
         res.append("\n");
         res.append("Distance computations: " + distanceComputations);
         res.append("\n");
+        res.append("Data read: " + dataRead);
+        res.append("\n");
         res.append(StatsUtil.mightyIOStats("A", A.getReadStats()));
         res.append("\n");
         res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));
@@ -495,6 +492,7 @@ public final class DIndexShort < O extends OBShort >
     public void resetStats() {
         queryCount = 0;
         searchedBoxesTotal = 0;
+        super.dataRead = 0;
         smapRecordsCompared = 0;
         distanceComputations = 0;
         A.setReadStats(new StaticBin1D());
