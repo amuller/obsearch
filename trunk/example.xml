@@ -27,7 +27,7 @@
 	
 	<!-- System related properties -->
 	
-	<property name="memory" value="8000"/>
+	<property name="memory" value="3700"/>
 
 	<!-- p2p related properties -->
 	<property name="name" value="seeder"/>
