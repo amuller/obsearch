@@ -186,6 +186,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
     public long distanceComputations = 0;
     
+    public long dataRead = 0;
+    
     // boxes avoided by using the MBR optimization.
     public long avoidedBoxesWithMBR = 0;
     
