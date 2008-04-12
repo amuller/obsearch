@@ -33,7 +33,8 @@ public class BenchSequential {
 
             String mode = args[3];
             logger.debug("Mode: " + mode);
-            dbData = dbData + File.separator + mode;
+            
+            dbFolder = new File(dbFolder, mode);
             Directory.deleteDirectory(dbFolder);
             dbFolder.mkdirs();
             

@@ -53,7 +53,8 @@ public class BenchDTree {
      
       String mode = args[7];
       logger.debug("Mode: " + mode);
-      dbData = dbData + File.separator + mode;
+      
+      dbFolder = new File(dbFolder, mode);
       Directory.deleteDirectory(dbFolder);
       dbFolder.mkdirs();
       
