@@ -32,8 +32,7 @@ public class BenchPPTree {
             File dbFolder = new File(args[0]);
             String query = args[1];
             String dbData = args[2];
-            Directory.deleteDirectory(dbFolder);
-            dbFolder.mkdirs();
+            
             /*
              * KMeansPPPivotSelector ps = new KMeansPPPivotSelector < OBSlice >(
              * new AcceptAll < OBSlice >());
@@ -46,6 +45,10 @@ public class BenchPPTree {
 
             String mode = args[4];
             logger.debug("Mode: " + mode);
+            dbData = dbData + File.separator + mode;
+            Directory.deleteDirectory(dbFolder);
+            dbFolder.mkdirs();
+            
             if (mode.equals("ted")) {
                 Benchmark.totalTimes = 1;
                 OBTedFactory.maxSliceSize = 20;

@@ -37,8 +37,7 @@ public class BenchDTree {
         File dbFolder = new File(args[0]);
         String query = args[1];
         String dbData = args[2]; 
-        Directory.deleteDirectory(dbFolder);
-        dbFolder.mkdirs();
+        
         
         byte pivots = Byte.parseByte(args[3]);
         logger.debug("Doing pivots: " + pivots);
@@ -54,6 +53,10 @@ public class BenchDTree {
      
       String mode = args[7];
       logger.debug("Mode: " + mode);
+      dbData = dbData + File.separator + mode;
+      Directory.deleteDirectory(dbFolder);
+      dbFolder.mkdirs();
+      
       BDBFactory fact = new BDBFactory(dbFolder);
      // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
       if(mode.equals("ted")){

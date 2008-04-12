@@ -295,7 +295,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         assert super.pivots.size() == median.length : "Piv: "
                 + super.pivots.size() + " Med: " + median.length;
-        this.distanceDistribution = new int[pivots.size()][maxDistance];
+        this.distanceDistribution = new int[pivots.size()][maxDistance + 1];
     }
 
     /**
@@ -314,7 +314,7 @@ public final class DPrimeIndexShort < O extends OBShort >
     }
 
     protected void normalizeProbs() throws OBStorageException {
-        normalizedProbs = new float[pivots.size()][this.maxDistance];
+        normalizedProbs = new float[pivots.size()][this.maxDistance + 1];
         long total = A.size();
         int i = 0;
         while (i < pivots.size()) {
@@ -451,16 +451,14 @@ public final class DPrimeIndexShort < O extends OBShort >
     // assuming that this query goes beyond the median.
     private float calculateZero(ObjectBucketShort b, OBQueryShort < O > q,
             int pivotIndex) {
-        short base = (short) Math.max(b.getSmapVector()[pivotIndex]
-                - q.getDistance(), 0);
+        short base = (short) Math.max(q.getLow()[pivotIndex], 0);
         return this.normalizedProbs[pivotIndex][base];
     }
 
     // assuming that this query goes beyond the median.
     private float calculateOne(ObjectBucketShort b, OBQueryShort < O > q,
             int pivotIndex) {
-        short top = (short) Math.min(b.getSmapVector()[pivotIndex]
-                + q.getDistance(), maxDistance);
+        short top = (short) Math.min(q.getHigh()[pivotIndex], maxDistance);
         return this.normalizedProbs[pivotIndex][top];
     }
 
