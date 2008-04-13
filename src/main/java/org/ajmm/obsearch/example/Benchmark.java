@@ -17,6 +17,9 @@ public class Benchmark<O extends OBShort> {
     private OBFactory<O> factory;
     
     protected int MAX_DATA = Integer.MAX_VALUE;
+    
+    // only process 1000 randomly selected queries.
+    public int MAX_QUERIES = 1000;
 
     /**
      * Logger.
@@ -66,7 +69,7 @@ public class Benchmark<O extends OBShort> {
     
     
 
-    public static int totalTimes = 10;
+    public static int totalTimes = 2;
 
     protected  void benchAux(IndexShort < O > index, String query,
             short range, byte k) throws Exception {
@@ -86,16 +89,18 @@ public class Benchmark<O extends OBShort> {
                         queries.put(line, Integer.MAX_VALUE);
                         OBPriorityQueueShort < O > x = new OBPriorityQueueShort < O >(
                                 k);
-                        if (i % 100 == 0) {
-                            logger.info("Matching " + i);
-                        }
+                       
 
                         O s = factory.create(line);
                         if (factory.shouldProcess(s)) {
                             index.searchOB(s, range, x);
+                            if (i % 100 == 0) {
+                                logger.info("Matching " + i);
+                            }
                             i++;
+                            
                         }
-                        if (i == 5000) {
+                        if (i == this.MAX_QUERIES) {
                             logger.warn("Finishing test at i : " + i);
                             break;
                         }

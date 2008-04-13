@@ -148,9 +148,9 @@ public final class DPrimeIndexShort < O extends OBShort >
                     out.writeShort(d);
                 }
             }
-            this.mbrCache.remove(id);
-            this.mbrs.put(id, out.getBufferBytes());
             
+            this.mbrs.put(id, out.getBufferBytes());
+            this.mbrCache.remove(id);            
         } else {
             assert bc.size() == 0;
         }
@@ -608,7 +608,7 @@ public final class DPrimeIndexShort < O extends OBShort >
                 // we have finished
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(block);
-           
+                super.dataRead += bc.getBytes().length;
                     IntegerHolder h = new IntegerHolder(0);
                     super.distanceComputations += bc.searchSorted(q, b, h);
                     smapRecordsCompared += h.getValue();
