@@ -9,6 +9,10 @@ import java.util.Iterator;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.cache.OBCacheByteArray;
+import org.ajmm.obsearch.cache.OBCacheLoaderByteArray;
+import org.ajmm.obsearch.cache.OBCacheLoaderLong;
+import org.ajmm.obsearch.cache.OBCacheLong;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -24,7 +28,9 @@ import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
+import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
+import org.ajmm.obsearch.storage.OBStoreLong;
 import org.ajmm.obsearch.storage.TupleBytes;
 import org.apache.log4j.Logger;
 
@@ -57,6 +63,16 @@ public final class DIndexShort < O extends OBShort >
             .getLogger(DIndexShort.class);
 
     /**
+     * Cache used to store recently accessed mbr :)
+     */
+    protected transient OBCacheByteArray < short[][] > mbrCache;
+
+    /**
+     * Storage used to hold MBRs :)
+     */
+    protected transient OBStore < TupleBytes > mbrs;
+
+    /**
      * Creates a new DIndex for shorts
      * @param fact
      *                Storage factory to use
@@ -83,6 +99,53 @@ public final class DIndexShort < O extends OBShort >
         super(fact, pivotCount, pivotSelector, type, nextLevelThreshold,
                 maxLevel);
         this.p = p;
+    }
+
+    protected void init() throws OBStorageException, OBException {
+        super.init();
+        if (this.mbrCache == null) {
+            mbrCache = new OBCacheByteArray < short[][] >(new MBRLoader());
+        }
+
+    }
+
+    protected void initStorageDevices() throws OBStorageException {
+        super.initStorageDevices();
+        // init mbr storage.
+        this.mbrs = fact.createOBStore("MBRs", false);
+    }
+
+    private class MBRLoader implements OBCacheLoaderByteArray < short[][] > {
+
+        public int getDBSize() throws OBStorageException {
+            return (int) mbrs.size();
+        }
+
+        public short[][] loadObject(byte[] id) throws DatabaseException,
+                OutOfRangeException, OBException, InstantiationException,
+                IllegalAccessException, IllegalIdException {
+            int level = (new TupleInput(id)).readInt();
+            if(level == -1){
+                level = pivots.size() - 1;
+            }
+            byte[] data = mbrs.getValue(id);
+            if (data != null) {
+                TupleInput in = new TupleInput(data);
+                short[][] res = new short[2][pivots.get(level).size()];
+                for (short[] m : res) {
+                    int i = 0;
+                    while (i < m.length) {
+                        m[i] = in.readShort();
+                        i++;
+                    }
+                }
+                return res;
+            } else {
+                return null;
+            }
+
+        }
+
     }
 
     @Override
@@ -284,34 +347,32 @@ public final class DIndexShort < O extends OBShort >
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-        
-        
+
         OBQueryShort < O > q = null;
         queryCount++;
         int i = 0;
         ObjectBucketShort b = null;
         while (i < pivots.size()) {// search through all the levels.
-            
-            if(q != null){
+
+            if (q != null) {
                 b = getBucket(object, i, (short) (p + q.getDistance()));
-                q = new OBQueryShort < O >(object, q.getDistance(),
-                    result, b.getSmapVector());
-            }else{
+                q = new OBQueryShort < O >(object, q.getDistance(), result, b
+                        .getSmapVector());
+            } else {
                 b = getBucket(object, i, (short) (p + r));
-                q = new OBQueryShort < O >(object, r,
-                        result, b.getSmapVector());
+                q = new OBQueryShort < O >(object, r, result, b.getSmapVector());
             }
             if (!b.isExclusionBucket()) {
-                
-                searchRange(b,q,i, b.getBucket());
+
+                searchRange(b, q, i, b.getBucket());
                 return;
             }
             if (q.getDistance() <= p) {
                 this.updateBucket(b, i, (short) (p - q.getDistance()));
 
                 if (!b.isExclusionBucket()) {
-                    
-                    searchRange(b,q,i, b.getBucket());
+
+                    searchRange(b, q, i, b.getBucket());
                 }
             } else {
                 // we have to do a depth search
@@ -334,30 +395,39 @@ public final class DIndexShort < O extends OBShort >
             }
             i++;
         } // finally, search the exclusion bucket :)
-      
-        searchRange(b,q,-1,-1);
+
+        searchRange(b, q, -1, -1);
     }
 
+    public void close() throws OBStorageException {
+        this.mbrs.close();
+        super.close();
+    }
+    
     /**
      * Search an elastic bucket.
      * @param b
      * @param q
      * @param level
      */
-    private void searchRange( ObjectBucketShort b, OBQueryShort < O > q,
-            int level, long bucket) throws OBStorageException, NotFrozenException,
-            DatabaseException, InstantiationException, IllegalIdException,
-            IllegalAccessException, OutOfRangeException, OBException {
-
-        BucketContainerShort<O> bc = this.bucketContainerCache.get(this.getBucketStorageIdAux(bucket, level));
-        IntegerHolder smapRecords = new IntegerHolder(0);       
-        
-        super.distanceComputations += bc.searchSorted(q, b, smapRecords);
-        smapRecordsCompared += smapRecords.getValue();
-        searchedBoxesTotal++;
-       
+    private void searchRange(ObjectBucketShort b, OBQueryShort < O > q,
+            int level, long bucket) throws OBStorageException,
+            NotFrozenException, DatabaseException, InstantiationException,
+            IllegalIdException, IllegalAccessException, OutOfRangeException,
+            OBException {
+        byte[] id = this.getBucketStorageIdAux(bucket, level);
+        short[][] rect = this.mbrCache.get(id);
+        if (rect != null && q.collides(rect)) {
+            
+            BucketContainerShort < O > bc = this.bucketContainerCache.get(id);
+            super.dataRead += bc.getBytes().length;
+            IntegerHolder smapRecords = new IntegerHolder(0);
+            super.distanceComputations += bc.searchSorted(q, b, smapRecords);
+            smapRecordsCompared += smapRecords.getValue();
+            searchedBoxesTotal++;
+            
+        }
     }
-    
 
     private void doIt2(ObjectBucketShort b, OBQueryShort < O > q, int level,
             int pivotIndex, long block) throws NotFrozenException,
@@ -410,7 +480,7 @@ public final class DIndexShort < O extends OBShort >
         } else {
             // search
             // we have finished
-            this.searchRange( b, q, level, block);
+            this.searchRange(b, q, level, block);
 
         }
     }
@@ -487,6 +557,30 @@ public final class DIndexShort < O extends OBShort >
         res.append(StatsUtil.mightyIOStats("Buckets", Buckets.getReadStats()));
         res.append("\n");
         return res.toString();
+    }
+
+    protected void putMBR(byte[] id, BucketContainerShort < O > bc)
+            throws OBStorageException, IllegalIdException,
+            IllegalAccessException, InstantiationException, DatabaseException,
+            OutOfRangeException, OBException {
+       /* if(bc.getLevel() == -1){
+            System.out.println("yay");
+        }*/
+        short[][] mbr = bc.getMBR();
+        if (mbr != null) {
+            TupleOutput out = new TupleOutput();
+            for (short[] m : mbr) {
+                for (short d : m) {
+                    out.writeShort(d);
+                }
+            }
+            
+            this.mbrs.put(id, out.getBufferBytes());
+            this.mbrCache.remove(id);
+
+        } else {
+            assert bc.size() == 0;
+        }
     }
 
     public void resetStats() {
