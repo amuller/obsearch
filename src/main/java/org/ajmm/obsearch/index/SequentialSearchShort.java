@@ -93,7 +93,7 @@ public class SequentialSearchShort<O extends OBShort>
             
         }
 
-            logger.debug("Completed ");
+            
 
     }
 
