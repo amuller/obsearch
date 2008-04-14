@@ -116,6 +116,7 @@
 
 <target name="bench" depends="maven">
 
+<!--<jvmarg value="-agentlib:hprof=cpu=samples"/>-->
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDPrimeTree"  failonerror="true">
 <jvmarg value="-server" />
@@ -124,7 +125,7 @@
 				<jvmarg value="-XX:+UseParallelGC"/>
 				<jvmarg value="-XX:+UseParallelOldGC"/>
         <jvmarg value="-XX:+UseMembar"/>
-<jvmarg value="-agentlib:hprof=cpu=samples"/>
+
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>

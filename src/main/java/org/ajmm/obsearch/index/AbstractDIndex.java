@@ -27,6 +27,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
@@ -374,15 +376,33 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
             // now we can insert the remaining objects.
             logger.debug("Inserting remaining objects");
             int i = 0;
+            List<B> bulk = new LinkedList<B>();
+            byte[] bucketId = null;
             while (i < elementsSource.size()) {
                 O o = getObjectFreeze(i, elementsSource);
                 B b = getBucket(o, level - 1);
+                if(bucketId == null){
+                    bucketId = this.getBucketStorageId(b);
+                }
                 b.setId(idMap(i, elementsSource));
                 assert (b.isExclusionBucket());
-                insertBucket(b, o);
+                bulk.add(b);
                 insertedObjects++;
                 i++;
             }
+            if(bucketId != null){
+                // get the exclusion bucket.
+                BC bc = this.bucketContainerCache.get(bucketId);
+                if (bc.getBytes() == null && bulk.size() > 0) { // it was just created for the first
+                    // time.
+                    bc.setPivots(pivots.get(bulk.get(0).getLevel()).size());
+                    bc.setLevel(bulk.get(0).getLevel());
+                }
+                bc.bulkInsert(bulk);
+                this.putBucket(bucketId, bc);
+            }
+            // insert the data into the bucket.
+            
             logger.debug("Bucket count: " + Buckets.size());
             assert A.size() == insertedObjects;
             // We have inserted all objects, we only have to store
@@ -474,6 +494,8 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
         }
         return res;
     }
+    
+    
     
     /**
      * @param bucket
