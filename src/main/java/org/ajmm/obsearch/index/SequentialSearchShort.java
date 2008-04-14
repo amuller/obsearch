@@ -11,6 +11,7 @@ import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.TupleInt;
+import org.apache.log4j.Logger;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -21,6 +22,11 @@ public class SequentialSearchShort<O extends OBShort>
     
     protected long[] distanceDistribution = new long[Short.MAX_VALUE + 1];
     
+    /**
+     * Logger.
+     */
+    private static final transient Logger logger = Logger
+            .getLogger(SequentialSearchShort.class);
     
     public SequentialSearchShort(OBStoreFactory fact, Class < O > type) throws OBStorageException, OBException {
        super(fact,type);
@@ -75,6 +81,9 @@ public class SequentialSearchShort<O extends OBShort>
         while(it.hasNext()){
             TupleInt t = it.next();
             int i = t.getKey();
+            if(i % 100 == 0){
+                logger.debug("Matched " + i);
+            }
             O other = super.aCache.get(i);
             super.distanceComputations++;
             short distance = other.distance(object);
