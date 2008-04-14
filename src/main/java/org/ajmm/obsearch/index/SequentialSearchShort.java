@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index;
 
+import java.util.Iterator;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -8,6 +10,7 @@ import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.storage.OBStoreFactory;
+import org.ajmm.obsearch.storage.TupleInt;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -66,9 +69,12 @@ public class SequentialSearchShort<O extends OBShort>
             throws NotFrozenException, DatabaseException,
             InstantiationException, IllegalIdException, IllegalAccessException,
             OutOfRangeException, OBException {
-        int i =0;
+
         long top = A.size();
-        while(i < top){
+        Iterator<TupleInt > it = A.processAll();
+        while(it.hasNext()){
+            TupleInt t = it.next();
+            int i = t.getKey();
             O other = super.aCache.get(i);
             super.distanceComputations++;
             short distance = other.distance(object);
@@ -77,7 +83,7 @@ public class SequentialSearchShort<O extends OBShort>
                 result.add(i, other, distance);
             }
             r = result.updateRange(r);
-            i++;
+            
         }
     }
 
