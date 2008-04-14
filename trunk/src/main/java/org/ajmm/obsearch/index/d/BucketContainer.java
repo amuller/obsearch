@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.index.d;
 
+import java.util.List;
+
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.IllegalIdException;
@@ -66,6 +68,18 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      */
     Result insert(B bucket) throws OBException, DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException;
+    
+    /**
+     * Inserts the given list of buckets into this bucket.
+     * @param bucket
+     * @throws OBException
+     * @throws DatabaseException
+     * @throws IllegalIdException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
+    void bulkInsert(List<B> bucket) throws OBException, DatabaseException,
+    IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
      * Returns true if the object and its bucket definition exist in this
