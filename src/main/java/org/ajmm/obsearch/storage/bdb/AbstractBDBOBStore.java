@@ -224,6 +224,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
                 } else {
                     retVal = cursor.getFirst(keyEntry, dataEntry, null);
                 }
+                
             } catch (DatabaseException e) {
                 throw new OBStorageException(e);
             }

@@ -29,7 +29,7 @@ public class BenchSequential {
             String query = args[1];
             String dbData = args[2];
             
-            BDBFactory fact = new BDBFactory(dbFolder);
+           
 
             String mode = args[3];
             logger.debug("Mode: " + mode);
@@ -37,6 +37,7 @@ public class BenchSequential {
             dbFolder = new File(dbFolder, mode);
             Directory.deleteDirectory(dbFolder);
             dbFolder.mkdirs();
+            BDBFactory fact = new BDBFactory(dbFolder);
             
             Benchmark.totalTimes = 1;
             if (mode.equals("ted")) {

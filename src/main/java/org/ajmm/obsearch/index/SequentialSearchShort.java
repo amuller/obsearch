@@ -81,9 +81,7 @@ public class SequentialSearchShort<O extends OBShort>
         while(it.hasNext()){
             TupleInt t = it.next();
             int i = t.getKey();
-            if(i % 100 == 0){
-                logger.debug("Matched " + i);
-            }
+          
             O other = super.aCache.get(i);
             super.distanceComputations++;
             short distance = other.distance(object);
@@ -94,6 +92,9 @@ public class SequentialSearchShort<O extends OBShort>
             r = result.updateRange(r);
             
         }
+
+            logger.debug("Completed ");
+
     }
 
     public String getStats(){
