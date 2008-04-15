@@ -51,6 +51,9 @@ public class ScalabilityBenchmark
         
         BDBFactory fact = new BDBFactory(dbFolder);
         IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+        //IncrementalBustosNavarroChavezShort<OBString> ps = new
+        //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
+         //        1000, 1000);
         DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                 fact, (byte)pivots, ps, OBString.class, (short) 3);
 

@@ -76,8 +76,10 @@
 
 	<!-- DB and QUERY datafiles -->
 
-		<property name="dbdata" value="${user.home}/temp/slices"/>
-	<property name="querydata" value="${user.home}/temp/slices-query"/>
+
+	<property name="dbdata" value="${user.home}/ALMACEN/strings/string_db"/>
+	<property name="querydata" value="${user.home}/ALMACEN/strings/string_query"/>
+
 </target>
 
  
