@@ -1,11 +1,15 @@
 package org.ajmm.obsearch.example;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 
+import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.cache.OBStringFactory;
 import org.ajmm.obsearch.index.DPrimeIndexShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
+import org.ajmm.obsearch.index.pivotselection.IncrementalFixedPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.storage.bdb.BDBFactory;
 import org.apache.log4j.Logger;
@@ -27,7 +31,7 @@ public class ScalabilityBenchmark
         this.db = db;
     }
     
-    public void doIt(byte pivots) throws Exception{
+    /*public void doIt(byte pivots) throws Exception{
         
         doIt(100000, pivots);
         doIt(200000, pivots);
@@ -39,25 +43,45 @@ public class ScalabilityBenchmark
         doIt(800000, pivots);
         doIt(900000, pivots);
         doIt(1000000, pivots);
-    }
+    }*/
     
-    private void doIt(int maxElements, byte pivots) throws Exception{
-        logger.info("Doing" + maxElements + " pivots: " + pivots);
+    private void doIt(byte pivots) throws Exception{
         Directory.deleteDirectory(dbFolder);
         dbFolder.mkdirs();
-        super.MAX_DATA = maxElements;
         
         BDBFactory fact = new BDBFactory(dbFolder);
-        IncrementalBustosNavarroChavezShort<OBString> ps = new
-        IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll<OBString>(),
-                 1000, 1000);
+        IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
         DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                 fact, (byte)pivots, ps, OBString.class, (short) 3);
+
+        BufferedReader r = new BufferedReader(new FileReader(db));
+        String re = r.readLine();
+        int realIndex = 0;
+        while (re != null) {
+            String line = re;
+            if (line != null) {
+                OBString s = factory.create(line);
+                if (factory.shouldProcess(s)) {
+                    Result res = index.insert(s);
+                    if (res.getStatus() != Result.Status.OK) {
+                        throw new Exception("Could not insert status: " + res.getStatus().toString()  + " line: <" + line + ">");
+                    }
+                    realIndex++;
+                    if(realIndex % 100000 == 0){
+                        if(realIndex == 100000){
+                            index.freeze();
+                        }
+                        logger.info("Doing exp with " + index.databaseSize() + " objects");
+                        search(index, query);                        
+                    }                    
+                }
+            }
+            re = r.readLine();
+            
+        }
+        r.close();
         
-        super.initIndex(index, query, db);
         
-        
-        search(index, query);
 
     }
     
