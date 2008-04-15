@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 public class Benchmark<O extends OBShort> {
     
-    private OBFactory<O> factory;
+    protected OBFactory<O> factory;
     
     protected int MAX_DATA = Integer.MAX_VALUE;
     
