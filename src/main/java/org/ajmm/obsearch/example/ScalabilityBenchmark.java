@@ -107,6 +107,7 @@ public class ScalabilityBenchmark
             ScalabilityBenchmark  s = new ScalabilityBenchmark(dbFolder, query, dbData);
             s.doIt(pivots);
         }catch(Exception e){
+            e.printStackTrace();
             logger.fatal(e);
         }
         
