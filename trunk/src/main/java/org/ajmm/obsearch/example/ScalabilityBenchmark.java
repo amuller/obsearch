@@ -75,6 +75,7 @@ public class ScalabilityBenchmark
                             index.freeze();
                         }
                         logger.info("Doing exp with " + index.databaseSize() + " objects");
+                        totalTimes = 3;
                         search(index, query);                        
                     }                    
                 }
