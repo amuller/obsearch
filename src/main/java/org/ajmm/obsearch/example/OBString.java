@@ -32,7 +32,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @author Arnoldo Jose Muller Molina
  */
 
-public final class OBString implements OBShort {
+public final class OBString extends OBEx implements OBShort {
 
     private String str;
     
@@ -57,6 +57,7 @@ public final class OBString implements OBShort {
     // Levenshtein distance implementation.
     @Override
     public short distance(OBShort object) throws OBException {
+        count++;
          return LD(str, ((OBString)object).str);
     }
     

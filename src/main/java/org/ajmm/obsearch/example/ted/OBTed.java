@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.example.OBEx;
 import org.ajmm.obsearch.example.SliceLexer;
 import org.ajmm.obsearch.example.SliceParseException;
 import org.ajmm.obsearch.example.SliceParser;
@@ -22,9 +23,8 @@ import com.sleepycat.bind.tuple.TupleOutput;
 
 
 
-public class OBTed implements OBShort {
+public class OBTed extends OBEx implements OBShort {
 
-    public static long count = 0;
 
     /**
      * The root node of the tree.
