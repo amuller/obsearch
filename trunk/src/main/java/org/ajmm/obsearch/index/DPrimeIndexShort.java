@@ -606,6 +606,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
             if (!ignoreSameBlocks || block != b.getBucket()) {
                 // we have finished
+              
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(block);
                 super.dataRead += bc.getBytes().length;
@@ -614,7 +615,8 @@ public final class DPrimeIndexShort < O extends OBShort >
                     smapRecordsCompared += h.getValue();
                 
                 searchedBoxesTotal++;
-            }
+                }
+         
         }
     }
 
