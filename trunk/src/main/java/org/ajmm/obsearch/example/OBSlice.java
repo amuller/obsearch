@@ -41,9 +41,9 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @since 0.7
  */
 
-public class OBSlice implements OBShort {
+public class OBSlice extends OBEx implements OBShort  {
 
-    public static long count = 0;
+    
 
     /**
      * The root node of the tree.

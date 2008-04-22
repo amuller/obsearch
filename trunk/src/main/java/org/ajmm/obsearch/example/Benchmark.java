@@ -158,8 +158,8 @@ public class Benchmark<O extends OBShort> {
     }
 
     public static void printDistanceCount() {
-        logger.debug("Real Distance count search: " + OBSlice.count);
-        OBSlice.count = 0;
+        logger.debug("Real Distance count search: " + OBEx.count);
+        OBEx.count = 0;
     }
 
     public static boolean shouldProcessSlice(OBSlice x) throws Exception {
