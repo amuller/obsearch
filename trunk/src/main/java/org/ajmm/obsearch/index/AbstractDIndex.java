@@ -365,7 +365,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                 logger.debug("Max bucket size: " + maxBucketSize
                         + "exclusion: " + elementsSource.size());
             } while (elementsSource.size() > maxBucketSize
-                  && level <= maxLevel   );
+                  && level < maxLevel   );
             logger.debug("Total pivots: " + totalPivots);
             logger.debug("Max Level: " + level);
             // we have to store the accumulated # of pivots per level (2 ^
