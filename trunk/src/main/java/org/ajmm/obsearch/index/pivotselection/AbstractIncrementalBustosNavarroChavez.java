@@ -123,16 +123,16 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             // we should reverse the result so that 
             // p1 has more pruning effect?
             
-            int[] reversedResult = new int[result.length];
+           /* int[] reversedResult = new int[result.length];
             i =0;
             int cx = result.length-1;
             while(i < result.length){
                 reversedResult[i] = result[cx];
                 cx--;
                 i++;
-            }
+            }*/
             
-            return reversedResult;
+            return result;
         } catch (DatabaseException d) {
             throw new OBStorageException(d);
         }
@@ -182,6 +182,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             }
         }
         // we have to calculate again the best pivot inside the cache.
+        logger.debug("PivotMedian: " + bestMedian + " (pivot: " + bestPivot + ")");
         pivots[pivots.length - 1] = bestPivot;
         calculateMedian(pivots, x, y, index);
         return bestPivot;

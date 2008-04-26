@@ -127,9 +127,21 @@ public final class OBString extends OBEx implements OBShort {
 
   
             
-    private int min(int a, int b, int c){
-        return Math.min(Math.min(a, b),c);
-    }
+    
+    
+    private int min (int a, int b, int c) {
+        int mi;
+
+          mi = a;
+          if (b < mi) {
+            mi = b;
+          }
+          if (c < mi) {
+            mi = c;
+          }
+          return mi;
+
+        }
 
     @Override
     public void load(TupleInput in) throws OBException {
