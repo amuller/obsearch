@@ -21,6 +21,7 @@ package org.ajmm.obsearch.index;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.awt.List;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
@@ -107,8 +109,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
     /**
      * Filter used to avoid unnecessary block accesses.
      */
-   // protected ArrayList< SimpleBloomFilter<Long>> filter;
-   protected ArrayList< HashSet<Long>> filter;
+    // protected ArrayList< SimpleBloomFilter<Long>> filter;
+    protected ArrayList < HashSet < Long >> filter;
 
     /**
      * We store here the pivots when we want to de-serialize/ serialize them.
@@ -154,8 +156,6 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
      */
     protected transient OBCacheLong < BC > bucketContainerCache;
 
-    
-
     /**
      * Masks used to speedup the generation of hash table codes.
      */
@@ -171,7 +171,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
      * quickly compute the correct storage device
      */
     private long[] accum;
-    
+
     /**
      * All the statistics values are kept here so that we will erase them at
      * some point in the future. This is ugly but it is the only way that we
@@ -180,17 +180,16 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
      */
     public long searchedBoxesTotal = 0;
 
-    public long queryCount = 0;    
+    public long queryCount = 0;
 
     public long smapRecordsCompared = 0;
 
     public long distanceComputations = 0;
-    
+
     public long dataRead = 0;
-    
+
     // boxes avoided by using the MBR optimization.
     public long avoidedBoxesWithMBR = 0;
-    
 
     /**
      * Initializes this abstract class.
@@ -237,11 +236,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             mask = mask << 1;
             i++;
         }
-   
-    }
-    
-   
 
+    }
 
     /**
      * Initializes storage devices required by this class.
@@ -267,7 +263,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             preFreeze.close();
         }
         fact.close();
-        
+
     }
 
     @Override
@@ -299,8 +295,8 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
     }
 
-    @Override
-    public void freeze() throws IOException, AlreadyFrozenException,
+    
+    public void freeze1() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             DatabaseException, OutOfRangeException, OBException {
         // get n pivots.
@@ -308,26 +304,26 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         // repeat iteratively with the objects that could not be inserted until
         // the remaining
         // objects are small enough.
-        
+
         try {
-            
+
             // initialize bloom filter
             int i = 0;
             // this.filter = new ArrayList<SimpleBloomFilter<Long>>();
-            this.filter = new ArrayList<HashSet<Long>>();
-            
-            while(i < pivotsCount){
+            this.filter = new ArrayList < HashSet < Long >>();
+
+            while (i < pivotsCount) {
                 // filter.add(new SimpleBloomFilter<Long>(i * 1000,
                 // (int)Math.pow(2, i)));
-                filter.add(new HashSet<Long>());
+                filter.add(new HashSet < Long >());
                 i++;
             }
-            
+
             // the initial list of object from which we will generate the pivots
             IntArrayList elementsSource = null;
             // After generating the pivots, we put here the objects that fell
             // into the exclusion bucket.
-            
+
             short pivotSize = this.pivotsCount;
             int maxBucketSize = 0;
             pivots = new ArrayList < O >();
@@ -357,9 +353,9 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 updateProbabilities(b);
                 b.setId(idMap(i, elementsSource));
                 insertBucket(b, o);
-                if(logger.isDebugEnabled() && (i % 10000 == 0)){
+                if (logger.isDebugEnabled() && (i % 10000 == 0)) {
                     logger.debug("Inserted: " + i);
-                    bucketStats();                   
+                    bucketStats();
                 }
                 insertedObjects++;
                 BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
@@ -382,9 +378,9 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 pivot.store(out);
                 pivotBytes.add(out.getBufferBytes());
             }
-            
+
             bucketStats();
-            
+
             frozen = true;
             // TODO: enable this and debug the deadlock issue.
             // this.preFreeze.deleteAll();
@@ -392,26 +388,139 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             throw new OBException(e);
         }
     }
-    
-    private void bucketStats() throws OBStorageException, DatabaseException,   IllegalIdException, IllegalAccessException, InstantiationException, OBException{
-        
-        Iterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE, Long.MAX_VALUE);
+
+    public void freeze() throws IOException, AlreadyFrozenException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            DatabaseException, OutOfRangeException, OBException {
+        // get n pivots.
+        // ask the bucket for each object and insert those who are not excluded.
+        // repeat iteratively with the objects that could not be inserted until
+        // the remaining
+        // objects are small enough.
+
+        try {
+
+            // initialize bloom filter
+            int i = 0;
+            // this.filter = new ArrayList<SimpleBloomFilter<Long>>();
+            this.filter = new ArrayList < HashSet < Long >>();
+
+            while (i < pivotsCount) {
+                // filter.add(new SimpleBloomFilter<Long>(i * 1000,
+                // (int)Math.pow(2, i)));
+                filter.add(new HashSet < Long >());
+                i++;
+            }
+
+            // the initial list of object from which we will generate the pivots
+            IntArrayList elementsSource = null;
+            // After generating the pivots, we put here the objects that fell
+            // into the exclusion bucket.
+
+            short pivotSize = this.pivotsCount;
+            int maxBucketSize = 0;
+            pivots = new ArrayList < O >();
+            int insertedObjects = 0;
+            boolean cont = true;
+
+            // generate pivots for the current souce elements.
+            // when elementsSource == null, all the elements in the DB are
+            // used.
+            int[] pivots = this.pivotSelector.generatePivots(pivotSize,
+                    elementsSource, this);
+            logger.debug("Pivots: " + Arrays.toString(pivots));
+            putPivots(pivots);
+            // calculate medians required to be able to use the bps
+            // function.
+            calculateMedians(elementsSource);
+            i = 0;
+            int max;
+            if (elementsSource == null) {
+                max = (int) A.size();
+            } else {
+                max = elementsSource.size();
+            }
+
+            HashMap < Long, java.util.List < B >> buckets = new HashMap < Long, java.util.List < B >>();
+
+            while (i < max) {
+                O o = getObjectFreeze(i, elementsSource);
+                B b = getBucket(o);
+                updateProbabilities(b);
+                b.setId(idMap(i, elementsSource));
+                // insertBucket(b, o);
+                java.util.List < B > l = buckets.get(b.getBucket());
+                if (l == null) {
+                    l = new LinkedList < B >();
+                    buckets.put(b.getBucket(), l);
+                }
+                l.add(b);
+                if (logger.isDebugEnabled() && (i % 10000 == 0)) {
+                    logger.debug("Inserted: " + i);
+                    bucketStats();
+                }
+                insertedObjects++;
+                //BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
+                //assert bc.exists(b, o).getStatus() == Result.Status.EXISTS;
+                if (maxBucketSize < l.size()) {
+                    maxBucketSize = l.size();
+                }
+
+                i++;
+            }
+
+            normalizeProbs();
+
+            // insert the buckets.
+            for(java.util.List < B > l : buckets.values()){
+                insertBuckets(l);
+            }
+            bucketStats();
+
+            logger.debug("Max bucket size: " + maxBucketSize);
+            logger.debug("Bucket count: " + A.size());
+            // We have inserted all objects, we only have to store
+            // the pivots into bytes.
+            pivotBytes = new ArrayList < byte[] >();
+            for (O pivot : this.pivots) {
+
+                TupleOutput out = new TupleOutput();
+                pivot.store(out);
+                pivotBytes.add(out.getBufferBytes());
+            }
+
+            bucketStats();
+
+            frozen = true;
+            // TODO: enable this and debug the deadlock issue.
+            // this.preFreeze.deleteAll();
+        } catch (PivotsUnavailableException e) {
+            throw new OBException(e);
+        }
+    }
+
+    private void bucketStats() throws OBStorageException, DatabaseException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBException {
+
+        Iterator < TupleLong > it = Buckets.processRange(Long.MIN_VALUE,
+                Long.MAX_VALUE);
         StaticBin1D s = new StaticBin1D();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             TupleLong t = it.next();
             BC bc = this.bucketContainerCache.get(t.getKey());
             s.add(bc.size());
         } // add exlucion
         logger.info(StatsUtil.mightyIOStats("Bucket distribution", s));
-        
+
     }
-    
+
     /**
      * Updates probability information.
      * @param b
      */
     protected abstract void updateProbabilities(B b);
-    
+
     protected abstract void normalizeProbs() throws OBStorageException;
 
     /**
@@ -426,10 +535,10 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
      * @throws OBStorageException
      *                 if something goes wrong with the storage device.
      */
-    protected abstract void calculateMedians(
-            IntArrayList elementsSource) throws OBStorageException,
-            IllegalIdException, IllegalAccessException, InstantiationException,
-            DatabaseException, OutOfRangeException, OBException;
+    protected abstract void calculateMedians(IntArrayList elementsSource)
+            throws OBStorageException, IllegalIdException,
+            IllegalAccessException, InstantiationException, DatabaseException,
+            OutOfRangeException, OBException;
 
     /**
      * Stores the given bucket b into the {@link #Buckets} storage device. The
@@ -468,51 +577,79 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 assert bc.getPivots() == b.getPivotSize() : "BC: "
                         + bc.getPivots() + " b: " + b.getPivotSize();
                 bc.insert(b);
-               putBucket(bucketId, bc);
+                putBucket(bucketId, bc);
                 res.setStatus(Result.Status.OK);
             }
         }
         return res;
     }
-    
+
+    private Result insertBuckets(java.util.List < B > b)
+            throws OBStorageException, IllegalIdException,
+            IllegalAccessException, InstantiationException, DatabaseException,
+            OutOfRangeException, OBException {
+
+        // get the bucket id.
+        long bucketId = getBucketStorageId(b.get(0));
+        // if the bucket is the exclusion bucket
+        // get the bucket container from the cache.
+        BC bc = this.bucketContainerCache.get(bucketId);
+        if (bc.getBytes() == null) { // it was just created for the first
+            // time.
+            bc.setPivots(pivots.size());
+            bc.setLevel(b.get(0).getLevel());
+            updateFilters(bucketId);
+        } else {
+            assert bc.getPivots() == b.get(0).getPivotSize() : " Pivot size: "
+                    + bc.getPivots() + " b pivot size: "
+                    + b.get(0).getPivotSize();
+            assert bc.getLevel() == b.get(0).getLevel();
+        }
+        Result res = new Result();
+
+        bc.bulkInsert(b);
+        putBucket(bucketId, bc);
+        res.setStatus(Result.Status.OK);
+
+        return res;
+    }
+
     /**
      * @param bucket
      */
     private void putBucket(long bucketId, BC bc) throws OBStorageException,
-    IllegalIdException, IllegalAccessException, InstantiationException,
-    DatabaseException, OutOfRangeException, OBException{
-        
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            DatabaseException, OutOfRangeException, OBException {
+
         Buckets.put(bucketId, bc.getBytes());
         // we have to update the MBRs
         putMBR(bucketId, bc);
     }
-    
+
     /**
      * Puts the MBR of the container in the DB.
      * @param bc
      */
     protected abstract void putMBR(long id, BC bc) throws OBStorageException,
-    IllegalIdException, IllegalAccessException, InstantiationException,
-    DatabaseException, OutOfRangeException, OBException;
-        
-    
-    
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            DatabaseException, OutOfRangeException, OBException;
+
     /** updates the filters! * */
-    private void updateFilters(long x){
+    private void updateFilters(long x) {
         String s = Long.toBinaryString(x);
         int max = s.length();
         int i = s.length() - 1;
         int cx = 0;
-        while(i >= 0){
-            long j  = Long.parseLong(s.substring(i , max), 2);
+        while (i >= 0) {
+            long j = Long.parseLong(s.substring(i, max), 2);
             // if(! filter.get(cx).contains(j)){
-                filter.get(cx).add(j);
+            filter.get(cx).add(j);
             // }
             i--;
             cx++;
         }
         // add the long to the rest of the layers.
-        while(max < pivotsCount){
+        while (max < pivotsCount) {
             filter.get(max).add(x);
             max++;
         }
@@ -555,8 +692,6 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         return getObject(idMap(id, elementSource));
 
     }
-
-   
 
     /**
      * Returns the bucket information for the given object.

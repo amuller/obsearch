@@ -69,7 +69,7 @@ public class Benchmark<O extends OBShort> {
     
     
 
-    public static int totalTimes = 10;
+    public static int totalTimes = 1;
 
     protected  void benchAux(IndexShort < O > index, String query,
             short range, byte k) throws Exception {
