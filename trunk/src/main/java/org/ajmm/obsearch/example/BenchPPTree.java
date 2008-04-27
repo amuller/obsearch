@@ -7,6 +7,7 @@ import org.ajmm.obsearch.example.ted.OBTed;
 import org.ajmm.obsearch.example.ted.OBTedFactory;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.PPTreeShort;
+import org.ajmm.obsearch.index.PivotSelector;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
@@ -53,6 +54,7 @@ public class BenchPPTree {
             if (mode.equals("ted")) {
                 Benchmark.totalTimes = 1;
                 OBTedFactory.maxSliceSize = 20;
+                
                 PPTreeShort < OBTed > index = new PPTreeShort < OBTed >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) (OBTedFactory.maxSliceSize * 2), ps, OBTed.class);
