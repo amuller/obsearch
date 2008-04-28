@@ -62,7 +62,7 @@ public class BenchDPrimeTree {
                          317, 317);
                 //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
-                        fact, pivots, ps, OBTed.class, (short) 3);
+                        fact, pivots, ps, OBTed.class);
                 index.hackOne = hackOne;
                 OBTedFactory.maxSliceSize = 20;
                 Benchmark.totalTimes = 1;
@@ -76,7 +76,7 @@ public class BenchDPrimeTree {
                          1000, 1000);
                 //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
-                        fact, pivots, ps, OBString.class, (short) 3);
+                        fact, pivots, ps, OBString.class);
                 index.hackOne = hackOne;                
                 Benchmark < OBString > b = new Benchmark < OBString >(
                         new OBStringFactory());
@@ -87,7 +87,7 @@ public class BenchDPrimeTree {
             else { // default mode OBSlice
                 IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
                 DPrimeIndexShort < OBSlice > index = new DPrimeIndexShort < OBSlice >(
-                        fact, pivots, ps, OBSlice.class, (short) 3);
+                        fact, pivots, ps, OBSlice.class);
                 index.hackOne = hackOne;
                 Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                         new OBSliceFactory());

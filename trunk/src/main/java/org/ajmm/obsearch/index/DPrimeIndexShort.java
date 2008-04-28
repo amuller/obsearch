@@ -47,10 +47,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
    
 
-    /**
-     * P parameter that indicates the maximum radius that we will accept.
-     */
-    private short p;
+    
 
     /**
      * Median data for each level and pivot.
@@ -107,10 +104,10 @@ public final class DPrimeIndexShort < O extends OBShort >
      *                 If some other exception occurs.
      */
     public DPrimeIndexShort(OBStoreFactory fact, byte pivotCount,
-            IncrementalPivotSelector < O > pivotSelector, Class < O > type,
-            short p) throws OBStorageException, OBException {
+            IncrementalPivotSelector < O > pivotSelector, Class < O > type
+            ) throws OBStorageException, OBException {
         super(fact, pivotCount, pivotSelector, type);
-        this.p = p;
+        
     }
 
     protected void init() throws OBStorageException, OBException {
