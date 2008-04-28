@@ -53,9 +53,9 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     private static final transient Logger logger = Logger
             .getLogger(AbstractIncrementalBustosNavarroChavez.class);
 
-    protected int l;
+    private int l;
 
-    protected int m;
+    private int m;
 
     /**
      * Receives the object that accepts pivots as possible candidates. Selects l
@@ -75,7 +75,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     /**
      * Resets the internal cache.
      */
-    protected abstract void resetCache();
+    protected abstract void resetCache(int l);
 
     @Override
     public int[] generatePivots(short pivotCount, IntArrayList elements,
@@ -83,7 +83,10 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
         try {
-            resetCache();
+            int lLocal = Math.min(l, index.databaseSize());
+            int mLocal = Math.min(m, index.databaseSize());
+            // do not process more than the amount of pivots in the DB.
+            resetCache(lLocal);
             int max;
             if (elements == null) {
                 max = index.databaseSize();
@@ -95,12 +98,12 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             // select m objects from which we will select pivots
             int i = 0;
             
-            int[] x = select(l, r, elements, index, null);
-            int[] y = select(l, r, elements, index, null);
+            int[] x = select(lLocal, r, elements, index, null);
+            int[] y = select(lLocal, r, elements, index, null);
             
             
             while (i < pivotCount) {
-                int[] possiblePivots = select(m, r, elements, index, pivotList);
+                int[] possiblePivots = select(mLocal, r, elements, index, pivotList);
                 // select l pairs of objects to validate the pivots.
               
                 // select the pivot in possiblePivots that maximizes the median

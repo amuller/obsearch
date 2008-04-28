@@ -156,10 +156,22 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.freehep</groupId>
+			<artifactId>freehep-argv</artifactId>
+			<version>2.0.1</version>
+			<scope>compile</scope>
+		</dependency>
 		
 
   </dependencies>
-   
+
+
+<!-- repositories -->
+
+ 
+
+
    <reporting>
     <plugins>
 
@@ -558,6 +570,15 @@ Would be cool to use this.
 			 <id>xstreamrep</id>
 			 <url>http://repository.codehaus.org/com/thoughtworks/</url>
 		 </repository>
+
+		
+		 	
+
+		<repository>
+    <id>freehep-maven</id>
+    <name>Maven FreeHEP</name>
+    <url>http://java.freehep.org/maven2</url>
+  </repository>
 
 		 
    </repositories>

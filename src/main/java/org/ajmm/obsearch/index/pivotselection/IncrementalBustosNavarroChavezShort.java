@@ -76,8 +76,8 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
         return data.mean();
     }
     
-    protected void resetCache(){
-        smapCache = new HashMap<Integer, short[]>(l);
+    protected void resetCache(int x){
+        smapCache = new HashMap<Integer, short[]>(x);
     }
     
     private short[] getTuple(int[] pivots, int id, Index<OBShort>index  )throws DatabaseException,

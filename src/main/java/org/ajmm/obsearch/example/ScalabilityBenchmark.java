@@ -55,7 +55,7 @@ public class ScalabilityBenchmark
         //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
          //        1000, 1000);
         DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
-                fact, (byte)pivots, ps, OBString.class, (short) 3);
+                fact, (byte)pivots, ps, OBString.class);
 
         BufferedReader r = new BufferedReader(new FileReader(db));
         String re = r.readLine();
