@@ -57,10 +57,10 @@ public class BenchDPrimeTree {
             //
             BDBFactory fact = new BDBFactory(dbFolder);
             if (mode.equals("ted")) {
-                IncrementalBustosNavarroChavezShort<OBTed> ps = new
-                IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
-                         317, 317);
-                //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+                //IncrementalBustosNavarroChavezShort<OBTed> ps = new
+                //IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+                 //        317, 317);
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.ted);
                 DPrimeIndexShort < OBTed > index = new DPrimeIndexShort < OBTed >(
                         fact, pivots, ps, OBTed.class);
                 index.hackOne = hackOne;
@@ -68,30 +68,30 @@ public class BenchDPrimeTree {
                 Benchmark.totalTimes = 1;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
-                b.bench(index, query, dbData);
+                b.benchTed(index, query, dbData);
 
             }else if (mode.equals("lev")) {
-                IncrementalBustosNavarroChavezShort<OBString> ps = new
-                IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
-                         1000, 1000);
-                //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
+               // IncrementalBustosNavarroChavezShort<OBString> ps = new
+                //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
+                 //        1000, 1000);
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.lev);               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                         fact, pivots, ps, OBString.class);
                 index.hackOne = hackOne;                
                 Benchmark < OBString > b = new Benchmark < OBString >(
                         new OBStringFactory());
-                b.bench(index, query, dbData);
+                b.benchLev(index, query, dbData);
 
             }
             
             else { // default mode OBSlice
-                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();               
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.mtd);               
                 DPrimeIndexShort < OBSlice > index = new DPrimeIndexShort < OBSlice >(
                         fact, pivots, ps, OBSlice.class);
                 index.hackOne = hackOne;
                 Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                         new OBSliceFactory());
-                b.bench(index, query, dbData);
+                b.benchMtd(index, query, dbData);
             }
 
         } catch (Exception e) {

@@ -128,7 +128,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
 				<arg value="5"/>
 				<arg value="ted"/>
 			</java>
@@ -145,10 +145,10 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
 				<arg value="5"/>
 				<arg value=".95"/>
-				<arg value="4"/>
+				<arg value="9"/>
 				<arg value="ted"/>
 			</java>
 
@@ -164,7 +164,7 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="16"/>
+				<arg value="30"/>
 				<arg value="ted"/>
 			</java>
 

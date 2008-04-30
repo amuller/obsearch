@@ -11,6 +11,7 @@ import org.ajmm.obsearch.index.PivotSelector;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.FixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
+import org.ajmm.obsearch.index.pivotselection.IncrementalFixedPivotSelector;
 import org.ajmm.obsearch.index.pivotselection.KMeansPPPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.apache.log4j.Logger;
@@ -42,7 +43,7 @@ public class BenchPPTree {
             byte pivots = Byte.parseByte(args[3]);
             logger.debug("Doing pivots: " + pivots);
 
-            FixedPivotSelector ps = new FixedPivotSelector();
+            
 
             String mode = args[4];
             logger.debug("Mode: " + mode);
@@ -54,35 +55,35 @@ public class BenchPPTree {
             if (mode.equals("ted")) {
                 Benchmark.totalTimes = 1;
                 OBTedFactory.maxSliceSize = 20;
-                
+                FixedPivotSelector ps = new FixedPivotSelector(IncrementalFixedPivotSelector.ted);
                 PPTreeShort < OBTed > index = new PPTreeShort < OBTed >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) (OBTedFactory.maxSliceSize * 2), ps, OBTed.class);
                
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
-                b.bench(index, query, dbData);
+                b.benchTed(index, query, dbData);
                 
                 
             } else if(mode.equals("lev")){
-                
+                FixedPivotSelector ps = new FixedPivotSelector(IncrementalFixedPivotSelector.lev);
                 PPTreeShort < OBString > index = new PPTreeShort < OBString >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) 10000, ps, OBString.class);
                
                 Benchmark < OBString > b = new Benchmark < OBString >(
                         new OBStringFactory());
-                b.bench(index, query, dbData);
+                b.benchLev(index, query, dbData);
                 
             }else {
-
+                FixedPivotSelector ps = new FixedPivotSelector(IncrementalFixedPivotSelector.mtd);
                 PPTreeShort < OBSlice > index = new PPTreeShort < OBSlice >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) (Benchmark.maxSliceSize * 2), ps, OBSlice.class);
 
                 Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                         new OBSliceFactory());
-                b.bench(index, query, dbData);
+                b.benchMtd(index, query, dbData);
             }
 
            

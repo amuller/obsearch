@@ -43,6 +43,14 @@ import com.sleepycat.je.DatabaseException;
  * 79382
  */
 public class FixedPivotSelector implements PivotSelector {
+    
+    public FixedPivotSelector(int [] data){
+        this.pivotArray = data;
+    }
+    
+    public FixedPivotSelector(){
+        
+    }
 
     /**
      * Internal db ids that will be extracted from the index.
