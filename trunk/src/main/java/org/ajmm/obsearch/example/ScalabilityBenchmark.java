@@ -50,7 +50,7 @@ public class ScalabilityBenchmark
         dbFolder.mkdirs();
         
         BDBFactory fact = new BDBFactory(dbFolder);
-        IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
+        IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.levScalab);
         //IncrementalBustosNavarroChavezShort<OBString> ps = new
         //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
          //        1000, 1000);
@@ -76,7 +76,7 @@ public class ScalabilityBenchmark
                         }
                         logger.info("Doing exp with " + index.databaseSize() + " objects");
                         totalTimes = 3;
-                        search(index, query);                        
+                        searchLev(index, query);                        
                     }                    
                 }
             }

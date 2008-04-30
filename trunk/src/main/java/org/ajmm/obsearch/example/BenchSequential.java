@@ -47,7 +47,7 @@ public class BenchSequential {
                 OBTedFactory.maxSliceSize = 20;
                 Benchmark < OBTed > b = new Benchmark < OBTed >(
                         new OBTedFactory());
-                b.bench(index, query, dbData);
+                b.benchTed(index, query, dbData);
                 logger.info(index.getStats());
                 
 
@@ -56,7 +56,7 @@ public class BenchSequential {
                         fact, OBString.class);
                 Benchmark < OBString> b = new Benchmark < OBString>(
                         new OBStringFactory());
-                b.bench(index, query, dbData);
+                b.benchLev(index, query, dbData);
                 logger.info(index.getStats());
             }
             else {
@@ -65,7 +65,7 @@ public class BenchSequential {
                
                 Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                         new OBSliceFactory());
-                b.bench(index, query, dbData);
+                b.benchMtd(index, query, dbData);
                 logger.info(index.getStats());
             }
 

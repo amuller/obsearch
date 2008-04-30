@@ -124,14 +124,48 @@ public class Benchmark<O extends OBShort> {
         }
     }
 
-    public  void bench(IndexShort < O > index, String query,
+    public  void benchMtd(IndexShort < O > index, String query,
             String db) throws Exception {
         initIndex(index, query, db);
         
-        search(index, query);
+        searchMtd(index, query);
     }
     
-    protected void search(IndexShort < O > index, String query) throws Exception{
+    protected void searchMtd(IndexShort < O > index, String query) throws Exception{
+        logger.info("Current stats: " + index.getStats());
+        index.resetStats();
+        logger.info("Real distance count after DB creation");
+        printDistanceCount();
+        logger.debug("Searching ");
+        
+        benchAux(index, query, (short) 0, (byte) 1);
+
+        benchAux(index, query, (short) 3, (byte) 1);
+
+        benchAux(index, query, (short) 3, (byte) 3);
+
+        benchAux(index, query, (short) 6, (byte) 1);
+
+        benchAux(index, query, (short) 6, (byte) 3);
+        
+        benchAux(index, query, (short) 9, (byte) 1);
+
+        benchAux(index, query, (short) 9, (byte) 3);
+
+        benchAux(index, query, (short) 12, (byte) 1);
+
+        benchAux(index, query, (short) 12, (byte) 3);
+        
+    }
+    
+    public  void benchTed(IndexShort < O > index, String query,
+            String db) throws Exception {
+        initIndex(index, query, db);
+        
+        searchMtd(index, query);
+    }
+    
+    protected void searchTed(IndexShort < O > index, String query) throws Exception{
         logger.info("Current stats: " + index.getStats());
         index.resetStats();
         logger.info("Real distance count after DB creation");
@@ -144,17 +178,52 @@ public class Benchmark<O extends OBShort> {
 
         benchAux(index, query, (short) 2, (byte) 3);
 
-        benchAux(index, query, (short) 3, (byte) 1);
+        benchAux(index, query, (short) 5, (byte) 1);
 
-        benchAux(index, query, (short) 3, (byte) 3);
-
+        benchAux(index, query, (short) 5, (byte) 3);
+        
         benchAux(index, query, (short) 7, (byte) 1);
 
         benchAux(index, query, (short) 7, (byte) 3);
+        
+    }
+    
+    public  void benchLev(IndexShort < O > index, String query,
+            String db) throws Exception {
+        initIndex(index, query, db);
+        
+        searchMtd(index, query);
+    }
+    
+    protected void searchLev(IndexShort < O > index, String query) throws Exception{
+        logger.info("Current stats: " + index.getStats());
+        index.resetStats();
+        logger.info("Real distance count after DB creation");
+        printDistanceCount();
+        logger.debug("Searching ");
+        
+        benchAux(index, query, (short) 0, (byte) 1);
 
         benchAux(index, query, (short) 10, (byte) 1);
 
         benchAux(index, query, (short) 10, (byte) 3);
+
+        benchAux(index, query, (short) 20, (byte) 1);
+
+        benchAux(index, query, (short) 20, (byte) 3);
+        
+        benchAux(index, query, (short) 30, (byte) 1);
+
+        benchAux(index, query, (short) 30, (byte) 3);
+        
+        benchAux(index, query, (short) 40, (byte) 1);
+
+        benchAux(index, query, (short) 40, (byte) 3);
+        
+        benchAux(index, query, (short) 48, (byte) 1);
+
+        benchAux(index, query, (short) 48, (byte) 3);
+        
     }
 
     public static void printDistanceCount() {

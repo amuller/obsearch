@@ -64,7 +64,7 @@ public class BenchDTree {
           
           IncrementalBustosNavarroChavezShort<OBTed> ps = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
                   317, 317);
-          
+          //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.tedLevel);
           DIndexShort<OBTed> index = new DIndexShort<OBTed>(fact, pivots,
                   ps, OBTed.class,
                   prob, p, maxLevel);
@@ -72,9 +72,10 @@ public class BenchDTree {
           Benchmark.totalTimes = 1;
               Benchmark < OBTed > b = new Benchmark < OBTed >(
                       new OBTedFactory());
-              b.bench(index, query, dbData);
+              b.benchTed(index, query, dbData);
           
       }else if(mode.equals("lev")){
+          //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.levLevel);
           IncrementalBustosNavarroChavezShort<OBString> ps = new IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
                   1000, 1000);
           
@@ -83,18 +84,18 @@ public class BenchDTree {
                   prob, p, maxLevel);
               Benchmark < OBString > b = new Benchmark < OBString >(
                       new OBStringFactory());
-              b.bench(index, query, dbData);
+              b.benchLev(index, query, dbData);
       }else{
           IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                   1000, 1000);
-        
+          //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.mtdLevel);
         DIndexShort<OBSlice> index = new DIndexShort<OBSlice>(fact, pivots,
             ps, OBSlice.class,
             prob, p, maxLevel);
 
         Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                 new OBSliceFactory());
-        b.bench(index, query, dbData);
+        b.benchMtd(index, query, dbData);
         
        
       }
