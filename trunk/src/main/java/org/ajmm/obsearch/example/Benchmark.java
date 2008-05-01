@@ -162,7 +162,7 @@ public class Benchmark<O extends OBShort> {
             String db) throws Exception {
         initIndex(index, query, db);
         
-        searchMtd(index, query);
+        searchTed(index, query);
     }
     
     protected void searchTed(IndexShort < O > index, String query) throws Exception{
@@ -192,7 +192,7 @@ public class Benchmark<O extends OBShort> {
             String db) throws Exception {
         initIndex(index, query, db);
         
-        searchMtd(index, query);
+        searchLev(index, query);
     }
     
     protected void searchLev(IndexShort < O > index, String query) throws Exception{
