@@ -65,8 +65,7 @@ public class TestDPrimeIndex
                 30, 30);
         BDBFactory fact = Utils.getFactory();
         DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(fact, (byte)14,
-            sel, OBSlice.class,
-             (short)11);
+            sel, OBSlice.class);
 
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);
