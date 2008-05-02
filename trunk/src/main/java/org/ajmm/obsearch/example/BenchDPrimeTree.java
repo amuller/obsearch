@@ -74,7 +74,10 @@ public class BenchDPrimeTree {
                // IncrementalBustosNavarroChavezShort<OBString> ps = new
                 //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
                  //        1000, 1000);
-                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.lev);               
+                
+                IncrementalKMeansPPPivotSelectorShort<OBString> ps = new
+                 IncrementalKMeansPPPivotSelectorShort<OBString>(new AcceptAll());
+                //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.lev);               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                         fact, pivots, ps, OBString.class);
                 index.hackOne = hackOne;                
