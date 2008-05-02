@@ -77,7 +77,7 @@ public class BenchDTree {
       }else if(mode.equals("lev")){
           //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.levLevel);
           IncrementalBustosNavarroChavezShort<OBString> ps = new IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
-                  1000, 1000);
+                  100, 100);
           
           DIndexShort<OBString> index = new DIndexShort<OBString>(fact, pivots,
                   ps, OBString.class,
