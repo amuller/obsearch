@@ -18,8 +18,8 @@ public class Benchmark<O extends OBShort> {
     
     protected int MAX_DATA = Integer.MAX_VALUE;
     
-    // only process 1000 randomly selected queries.
-    public int MAX_QUERIES = 1000;
+   
+    public int MAX_QUERIES = 400;
 
     /**
      * Logger.
