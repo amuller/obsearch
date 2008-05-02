@@ -66,7 +66,7 @@ public class BenchPPTree {
                 
                 
             } else if(mode.equals("lev")){
-                FixedPivotSelector ps = new FixedPivotSelector(IncrementalFixedPivotSelector.lev);
+                FixedPivotSelector ps = new FixedPivotSelector(IncrementalFixedPivotSelector.levScalab);
                 PPTreeShort < OBString > index = new PPTreeShort < OBString >(
                         dbFolder, pivots, (byte) 12, (short) 0,
                         (short) 10000, ps, OBString.class);
