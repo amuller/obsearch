@@ -80,9 +80,11 @@ public class BenchDPrimeTree {
                 //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.lev);               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                         fact, pivots, ps, OBString.class);
-                index.hackOne = hackOne;                
+                index.hackOne = hackOne;       
+                
                 Benchmark < OBString > b = new Benchmark < OBString >(
                         new OBStringFactory());
+                b.MAX_DATA = 300000;
                 b.benchLev(index, query, dbData);
 
             }

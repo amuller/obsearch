@@ -84,6 +84,7 @@ public class BenchDTree {
                   prob, p, maxLevel);
               Benchmark < OBString > b = new Benchmark < OBString >(
                       new OBStringFactory());
+              b.MAX_DATA = 300000;
               b.benchLev(index, query, dbData);
       }else{
           IncrementalBustosNavarroChavezShort<OBSlice> ps = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
@@ -95,6 +96,7 @@ public class BenchDTree {
 
         Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                 new OBSliceFactory());
+        
         b.benchMtd(index, query, dbData);
         
        
