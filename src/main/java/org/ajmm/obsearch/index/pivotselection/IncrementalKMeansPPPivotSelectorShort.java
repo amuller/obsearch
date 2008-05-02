@@ -48,7 +48,7 @@ import com.sleepycat.je.DatabaseException;
 public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends AbstractIncrementalPivotSelector<O>
          {
 
-    private int retries = 1;
+    private int retries = 3;
     /**
      * Logger.
      */
