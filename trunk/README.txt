@@ -235,6 +235,8 @@ any major thing that could affect eclipse:
 
 mvn eclipse:eclipse 
 
+You may have to add the variable M2_REPO to the Libraries tab (right click project/properties/java build path). This variable should point to Maven's repository: ~/.m2/repository/
+
  Testing:
  --------
 

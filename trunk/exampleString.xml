@@ -134,38 +134,6 @@
 				<arg value="lev"/>
 			</java>
 
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDPrimeTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="16"/>
-				<arg value="5"/>
-				<arg value="lev"/>
-			</java>
-
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDPrimeTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="14"/>
-				<arg value="5"/>
-				<arg value="lev"/>
-			</java>
-
 
 
 
@@ -181,106 +149,12 @@
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
 				<arg value="18"/>
-				<arg value="10"/>
+				<arg value="40"/>
 				<arg value=".95"/>
 				<arg value="9"/>
 				<arg value="lev"/>
 			</java>
 
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="16"/>
-				<arg value="10"/>
-				<arg value=".95"/>
-				<arg value="9"/>
-				<arg value="lev"/>
-			</java>
-
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="14"/>
-				<arg value="10"/>
-				<arg value=".95"/>
-				<arg value="9"/>
-				<arg value="lev"/>
-			</java>
-
-
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="18"/>
-				<arg value="5"/>
-				<arg value=".95"/>
-				<arg value="9"/>
-				<arg value="lev"/>
-			</java>
-
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="16"/>
-				<arg value="5"/>
-				<arg value=".95"/>
-				<arg value="9"/>
-				<arg value="lev"/>
-			</java>
-
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
-				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="14"/>
-				<arg value="5"/>
-				<arg value=".95"/>
-				<arg value="9"/>
-				<arg value="lev"/>
-			</java>
-
-
-
-<!--
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchPPTree"  failonerror="true">
 <jvmarg value="-server" />
@@ -293,9 +167,13 @@
 				<arg value="${dbfolder}"/>
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
-				<arg value="20"/>
+				<arg value="18"/>
 				<arg value="lev"/>
 			</java>
+
+
+
+<!--
 
 
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchSequential"  failonerror="true">
