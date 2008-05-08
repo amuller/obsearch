@@ -149,7 +149,7 @@
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
 				<arg value="18"/>
-				<arg value="40"/>
+				<arg value="20"/>
 				<arg value=".95"/>
 				<arg value="9"/>
 				<arg value="lev"/>
