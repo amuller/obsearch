@@ -73,7 +73,7 @@ public class BenchDPrimeTree {
             }else if (mode.equals("lev")) {
                 IncrementalBustosNavarroChavezShort<OBString> ps = new
                 IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
-                         1000, 1000);
+                         100, 100);
                 
                 //IncrementalKMeansPPPivotSelectorShort<OBString> ps = new
                  //IncrementalKMeansPPPivotSelectorShort<OBString>(new AcceptAll());
