@@ -62,9 +62,9 @@ public class BenchDTree {
      // IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector();
       if(mode.equals("ted")){
           
-          IncrementalBustosNavarroChavezShort<OBTed> ps = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
-                  317, 317);
-          //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.tedLevel);
+          //IncrementalBustosNavarroChavezShort<OBTed> ps = new IncrementalBustosNavarroChavezShort<OBTed>(new AcceptAll(),
+          //        317, 317);
+          IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.tedLevel);
           DIndexShort<OBTed> index = new DIndexShort<OBTed>(fact, pivots,
                   ps, OBTed.class,
                   prob, p, maxLevel);
