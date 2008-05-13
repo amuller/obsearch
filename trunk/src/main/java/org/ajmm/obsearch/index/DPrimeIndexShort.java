@@ -43,7 +43,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         AbstractDPrimeIndex < O, ObjectBucketShort, OBQueryShort < O >, BucketContainerShort < O > >
         implements IndexShort < O > {
 
-    public int hackOne = 2;
+    public int hackOne = 0;
 
    
 
@@ -752,15 +752,18 @@ public final class DPrimeIndexShort < O extends OBShort >
             DatabaseException, InstantiationException, IllegalIdException,
             IllegalAccessException, OutOfRangeException, OBException {
 
-        short[][] rect = this.mbrCache.get(block);
+        //short[][] rect = this.mbrCache.get(block);
 
-        if (rect != null && q.collides(rect)) {
+        //if (rect != null && q.collides(rect)) {
 
            // if (!ignoreSameBlocks || block != b.getBucket()) {
                 // we have finished
               
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(block);
+                if(bc.getBytes() == null){
+                    return;
+                }
                 super.dataRead += bc.getBytes().length;
                     IntegerHolder h = new IntegerHolder(0);
                     super.distanceComputations += bc.searchSorted(q, b, h);
@@ -769,7 +772,7 @@ public final class DPrimeIndexShort < O extends OBShort >
                 searchedBoxesTotal++;
            //     }
          
-        }
+       // }
     }
 
     @Override
