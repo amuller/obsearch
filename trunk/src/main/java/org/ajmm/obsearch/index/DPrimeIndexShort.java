@@ -429,7 +429,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         this.queryCount++;
 
-        this.s(b.getBucket(), b, q, false);
+        //this.s(b.getBucket(), b, q, false);
 
         if (hackOne == 5) {
             doIt1(b, q, 0, 0); // heu 1 + heu 2
@@ -545,7 +545,7 @@ public final class DPrimeIndexShort < O extends OBShort >
               
                     // 0 first
                     if (super.filter.get(pivotIndex).contains(block)) {
-                        doIt1(b, q, pivotIndex + 1, block);
+                        doItHeu2(b, q, pivotIndex + 1, block);
                     }
                     r = bpsRange(median[pivotIndex],
                             b.getSmapVector()[pivotIndex], q.getDistance());
@@ -553,17 +553,17 @@ public final class DPrimeIndexShort < O extends OBShort >
                     if ((r == 2 || r == 1)
                             && super.filter.get(pivotIndex).contains(newBlock)) {
 
-                        doIt1(b, q, pivotIndex + 1, newBlock);
+                        doItHeu2(b, q, pivotIndex + 1, newBlock);
                     }
                 
 
             } else { // only one of the sides is selected
                 if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
-                    doIt1(b, q, pivotIndex + 1, block);
+                    doItHeu2(b, q, pivotIndex + 1, block);
                 } else {
                     long newBlock = block | super.masks[pivotIndex];
                     if (super.filter.get(pivotIndex).contains(newBlock)) {
-                        doIt1(b, q, pivotIndex + 1, newBlock);
+                        doItHeu2(b, q, pivotIndex + 1, newBlock);
                     }
                 }
             }
@@ -585,23 +585,23 @@ public final class DPrimeIndexShort < O extends OBShort >
               
                     // 0 first
 
-                        doIt1(b, q, pivotIndex + 1, block);
+                        doItDefault(b, q, pivotIndex + 1, block);
                    
                     r = bpsRange(median[pivotIndex],
                             b.getSmapVector()[pivotIndex], q.getDistance());
                     long newBlock = block | super.masks[pivotIndex];
                     if ((r == 2 || r == 1)
                            ) {
-                        doIt1(b, q, pivotIndex + 1, newBlock);
+                        doItDefault(b, q, pivotIndex + 1, newBlock);
                     }
                 
 
             } else { // only one of the sides is selected
                 if (r == 0) {
-                    doIt1(b, q, pivotIndex + 1, block);
+                    doItDefault(b, q, pivotIndex + 1, block);
                 } else {
                     long newBlock = block | super.masks[pivotIndex];
-                        doIt1(b, q, pivotIndex + 1, newBlock);     
+                        doItDefault(b, q, pivotIndex + 1, newBlock);     
                 }
             }
 
@@ -638,35 +638,35 @@ public final class DPrimeIndexShort < O extends OBShort >
                     // do 1 first
                     long newBlock = block | super.masks[pivotIndex];
                    
-                        doIt1(b, q, pivotIndex + 1, newBlock);
+                        doItHeu1(b, q, pivotIndex + 1, newBlock);
                     
                     r = bpsRange(median[pivotIndex],
                             b.getSmapVector()[pivotIndex], q.getDistance());
                     if ((r == 2 || r == 0)
                            ) {
-                        doIt1(b, q, pivotIndex + 1, block);
+                        doItHeu1(b, q, pivotIndex + 1, block);
                     }
 
                 } else {
                     // 0 first
               
-                        doIt1(b, q, pivotIndex + 1, block);
+                        doItHeu1(b, q, pivotIndex + 1, block);
                     
                     r = bpsRange(median[pivotIndex],
                             b.getSmapVector()[pivotIndex], q.getDistance());
                     long newBlock = block | super.masks[pivotIndex];
                     if ((r == 2 || r == 1)
                            ) {
-                        doIt1(b, q, pivotIndex + 1, newBlock);
+                        doItHeu1(b, q, pivotIndex + 1, newBlock);
                     }
                 }
 
             } else { // only one of the sides is selected
                 if (r == 0) {
-                    doIt1(b, q, pivotIndex + 1, block);
+                    doItHeu1(b, q, pivotIndex + 1, block);
                 } else {
                     long newBlock = block | super.masks[pivotIndex];
-                        doIt1(b, q, pivotIndex + 1, newBlock);                    
+                        doItHeu1(b, q, pivotIndex + 1, newBlock);                    
                 }
             }
 
@@ -756,7 +756,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         if (rect != null && q.collides(rect)) {
 
-            if (!ignoreSameBlocks || block != b.getBucket()) {
+           // if (!ignoreSameBlocks || block != b.getBucket()) {
                 // we have finished
               
                 BucketContainerShort < O > bc = super.bucketContainerCache
@@ -767,7 +767,7 @@ public final class DPrimeIndexShort < O extends OBShort >
                     smapRecordsCompared += h.getValue();
                 
                 searchedBoxesTotal++;
-                }
+           //     }
          
         }
     }

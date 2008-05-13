@@ -90,8 +90,14 @@ public class BenchDPrimeTree {
             
             else { // default mode OBSlice
                 IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.mtd);               
+                
+               /* IncrementalBustosNavarroChavezShort<OBSlice> ps = new
+                IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                         1000, 1000);*/
+                
                 DPrimeIndexShort < OBSlice > index = new DPrimeIndexShort < OBSlice >(
                         fact, pivots, ps, OBSlice.class);
+                
                 index.hackOne = hackOne;
                 Benchmark < OBSlice > b = new Benchmark < OBSlice >(
                         new OBSliceFactory());
