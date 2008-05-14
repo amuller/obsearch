@@ -523,8 +523,9 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-
+            if(this.Buckets.getValue(block) != null){
             s(block, b, q, true);
+            }
         }
     }
     
@@ -606,8 +607,9 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-
-            s(block, b, q, true);
+            if(this.Buckets.getValue(block) != null){
+                s(block, b, q, true);
+            }
         }
     }
     
