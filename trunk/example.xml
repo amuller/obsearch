@@ -146,7 +146,7 @@
 				<arg value="${querydata}"/>
 				<arg value="${dbdata}"/>
 				<arg value="30"/>
-				<arg value="5"/>
+				<arg value="7"/>
 				<arg value=".95"/>
 				<arg value="1"/>
 				<arg value="ted"/>
