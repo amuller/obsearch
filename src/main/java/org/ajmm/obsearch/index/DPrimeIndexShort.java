@@ -609,6 +609,8 @@ public final class DPrimeIndexShort < O extends OBShort >
         } else {
             if(this.Buckets.getValue(block) != null){
                 s(block, b, q, true);
+            }else{
+                searchedBoxesTotal++;                
             }
         }
     }
@@ -763,6 +765,7 @@ public final class DPrimeIndexShort < O extends OBShort >
               
                 BucketContainerShort < O > bc = super.bucketContainerCache
                         .get(block);
+                searchedBoxesTotal++;
                 if(bc.getBytes() == null){
                     return;
                 }
@@ -771,7 +774,7 @@ public final class DPrimeIndexShort < O extends OBShort >
                     super.distanceComputations += bc.searchSorted(q, b, h);
                     smapRecordsCompared += h.getValue();
                 
-                searchedBoxesTotal++;
+                
            //     }
          
        // }
