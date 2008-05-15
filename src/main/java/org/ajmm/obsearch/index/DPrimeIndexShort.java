@@ -607,11 +607,11 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-            if(this.Buckets.getValue(block) != null){
+           // if(this.Buckets.getValue(block) != null){
                 s(block, b, q, true);
-            }else{
-                searchedBoxesTotal++;                
-            }
+          //  }else{
+            //    searchedBoxesTotal++;                
+          //  }
         }
     }
     
@@ -675,11 +675,11 @@ public final class DPrimeIndexShort < O extends OBShort >
             }
 
         } else {
-        	if(this.Buckets.getValue(block) != null){
+        //	if(this.Buckets.getValue(block) != null){
                 s(block, b, q, true);
-            }else{
-                searchedBoxesTotal++;                
-            }
+       //     }else{
+         //       searchedBoxesTotal++;                
+        //    }
         }
     }
 
