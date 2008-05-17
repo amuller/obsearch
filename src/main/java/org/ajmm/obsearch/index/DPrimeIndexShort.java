@@ -429,7 +429,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         this.queryCount++;
 
-        //this.s(b.getBucket(), b, q, false);
+        this.s(b.getBucket(), b, q, false);
 
         if (hackOne == 5) {
             doIt1(b, q, 0, 0); // heu 1 + heu 2
@@ -524,7 +524,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         } else {
             
-            s(block, b, q, true);
+            s(block, b, q, false);
             
         }
     }
