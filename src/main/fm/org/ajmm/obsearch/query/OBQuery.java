@@ -199,7 +199,12 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 				result.add(id,obj,distance);
 				${type} temp = result.updateRange(distance);
 				if(temp != distance){
-						distance = temp;
+            //TODO: this cannot be -1 for float or double values.
+            // TODO: this change introduced errors in D'
+						distance = (${type})(temp-(${type})1);
+            if(distance < 0){
+								distance = (${type})0;
+						}
 						updateRectangle();
         }
 		}
