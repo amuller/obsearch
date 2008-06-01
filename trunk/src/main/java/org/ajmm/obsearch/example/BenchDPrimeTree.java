@@ -71,13 +71,13 @@ public class BenchDPrimeTree {
                 b.benchTed(index, query, dbData);
 
             }else if (mode.equals("lev")) {
-                IncrementalBustosNavarroChavezShort<OBString> ps = new
-                IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
-                         100, 100);
+                //IncrementalBustosNavarroChavezShort<OBString> ps = new
+                //IncrementalBustosNavarroChavezShort<OBString>(new AcceptAll(),
+                //         100, 100);
                 
                 //IncrementalKMeansPPPivotSelectorShort<OBString> ps = new
                  //IncrementalKMeansPPPivotSelectorShort<OBString>(new AcceptAll());
-                //IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.levScalab);               
+                IncrementalFixedPivotSelector ps = new IncrementalFixedPivotSelector(IncrementalFixedPivotSelector.lev);               
                 DPrimeIndexShort < OBString > index = new DPrimeIndexShort < OBString >(
                         fact, pivots, ps, OBString.class);
                 index.hackOne = hackOne;       
