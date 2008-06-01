@@ -43,7 +43,7 @@ public final class DPrimeIndexShort < O extends OBShort >
         AbstractDPrimeIndex < O, ObjectBucketShort, OBQueryShort < O >, BucketContainerShort < O > >
         implements IndexShort < O > {
 
-    public int hackOne = 2;
+    public int hackOne = 5;
 
    
 
@@ -524,7 +524,7 @@ public final class DPrimeIndexShort < O extends OBShort >
 
         } else {
             
-            s(block, b, q, false);
+            s(block, b, q, true);
             
         }
     }
