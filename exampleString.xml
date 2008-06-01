@@ -116,8 +116,7 @@
 
 <target name="bench" depends="maven">
 
-<!--<jvmarg value="-agentlib:hprof=cpu=samples"/>-->
-<!--
+
 <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchDPrimeTree"  failonerror="true">
 <jvmarg value="-server" />
 <jvmarg value="-Xmx${memory}M" />
@@ -133,6 +132,10 @@
 				<arg value="5"/>
 				<arg value="lev"/>
 			</java>
+
+
+<!--<jvmarg value="-agentlib:hprof=cpu=samples"/>-->
+<!--
 
 
 
@@ -156,20 +159,20 @@
 			</java>
 
 -->
-<java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchPPTree"  failonerror="true">
-<jvmarg value="-server" />
-<jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xms${memory}M"/>
-				<jvmarg value="-XX:+UseParallelGC"/>
-				<jvmarg value="-XX:+UseParallelOldGC"/>
-        <jvmarg value="-XX:+UseMembar"/>
+<!-- <java dir="${project.build.outputDirectory}" fork="yes" classpath="${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="org.ajmm.obsearch.example.BenchPPTree"  failonerror="true"> -->
+<!-- <jvmarg value="-server" /> -->
+<!-- <jvmarg value="-Xmx${memory}M" /> -->
+<!-- <jvmarg value="-Xms${memory}M"/> -->
+<!-- 				<jvmarg value="-XX:+UseParallelGC"/> -->
+<!-- 				<jvmarg value="-XX:+UseParallelOldGC"/> -->
+<!--         <jvmarg value="-XX:+UseMembar"/> -->
 				
-				<arg value="${dbfolder}"/>
-				<arg value="${querydata}"/>
-				<arg value="${dbdata}"/>
-				<arg value="18"/>
-				<arg value="lev"/>
-			</java>
+<!-- 				<arg value="${dbfolder}"/> -->
+<!-- 				<arg value="${querydata}"/> -->
+<!-- 				<arg value="${dbdata}"/> -->
+<!-- 				<arg value="18"/> -->
+<!-- 				<arg value="lev"/> -->
+<!-- 			</java> -->
 
 
 
