@@ -201,8 +201,8 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 				if(temp != this.distance){
             //TODO: this cannot be -1 for float or double values.
             // TODO: this change introduced errors in D'
-						//distance = (${type})(temp-(${type})1);
-						this.distance = temp;
+						distance = (${type})(temp-(${type})1);
+						//this.distance = temp;
             if(d < 0){
 								this.distance = (${type})0;
 						}
