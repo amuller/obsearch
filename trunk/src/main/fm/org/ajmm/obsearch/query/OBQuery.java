@@ -195,15 +195,16 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * @throws InstantiationException
     *             If there is a problem when instantiating objects O
     */
-    public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
-				result.add(id,obj,distance);
-				${type} temp = result.updateRange(distance);
-				if(temp != distance){
+    public void add(int id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+				result.add(id,obj,d);
+				${type} temp = result.updateRange(this.distance);
+				if(temp != this.distance){
             //TODO: this cannot be -1 for float or double values.
             // TODO: this change introduced errors in D'
-						distance = (${type})(temp-(${type})1);
-            if(distance < 0){
-								distance = (${type})0;
+						//distance = (${type})(temp-(${type})1);
+						this.distance = temp;
+            if(d < 0){
+								this.distance = (${type})0;
 						}
 						updateRectangle();
         }
