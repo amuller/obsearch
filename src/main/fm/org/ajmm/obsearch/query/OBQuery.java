@@ -188,7 +188,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     *            The id of the object to be used
     * @param obj
     *            The object to be added
-    * @param distance
+    * @param d
     *            The distance to be added
     * @throws IllegalAccessException
     *             If there is a problem when instantiating objects O
@@ -201,9 +201,9 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 				if(temp != this.distance){
             //TODO: this cannot be -1 for float or double values.
             // TODO: this change introduced errors in D'
-						distance = (${type})(temp-(${type})1);
+						this.distance = (${type})(temp-(${type})1);
 						//this.distance = temp;
-            if(d < 0){
+            if(this.distance < 0){
 								this.distance = (${type})0;
 						}
 						updateRectangle();
