@@ -64,7 +64,7 @@ public class SliceFactory {
             throws RecognitionException, TokenStreamException {
         SliceLexer lexer = new SliceLexer(new StringReader(x));
         SliceParser parser = new SliceParser(lexer);
-        parser.setASTNodeClass("furia.slice.SliceAST");
+        parser.setASTNodeClass("org.ajmm.obsearch.example.ted.SliceAST");
         try {
             parser.slice();
         } catch (RecognitionException e) {
