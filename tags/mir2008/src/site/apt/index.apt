@@ -1,0 +1,26 @@
+ -----
+ OBSearch
+ -----
+ The OBSearch Team
+ -----
+
+Welcome!
+~~~~~~~~
+
+  OBSearch is a distributed similarity search index.  Examples of things you can do with OBSearch:
+
+
+  * Match programs and help to detect Open Source/Libre license violations.
+
+  * Find music that sounds like Sisters of Mercy.
+
+  * Match huge vectors of randomly generated integers just for fun.
+
+  []
+
+
+[perezosoUltimateRecortadoWeb.jpg]  
+
+
+ 
+ This project started as part of {{{http://code.google.com/soc/}Google Summer of Code 2007}}. The mentoring organization was Portland State University.
