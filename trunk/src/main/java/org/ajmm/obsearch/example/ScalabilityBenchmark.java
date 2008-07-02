@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBStringFactory;
 import org.ajmm.obsearch.index.DPrimeIndexShort;
 import org.ajmm.obsearch.index.pivotselection.AcceptAll;
@@ -66,7 +67,7 @@ public class ScalabilityBenchmark
                 OBString s = factory.create(line);
                 if (factory.shouldProcess(s)) {
                     Result res = index.insert(s);
-                    if (res.getStatus() != Result.Status.OK) {
+                    if (res.getStatus() != Status.OK) {
                         throw new Exception("Could not insert status: " + res.getStatus().toString()  + " line: <" + line + ">");
                     }
                     realIndex++;

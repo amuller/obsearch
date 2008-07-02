@@ -36,6 +36,7 @@ import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
@@ -282,7 +283,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             long bucketId = getBucketStorageId(b);
             BC bc = this.bucketContainerCache.get(bucketId);
             Result res = bc.delete(b, object);
-            if (res.getStatus() == Result.Status.OK) {
+            if (res.getStatus() == Status.OK) {
                 // update the bucket
                 // container.
                 putBucket(bucketId, bc);
@@ -359,7 +360,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 }
                 insertedObjects++;
                 BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
-                assert bc.exists(b, o).getStatus() == Result.Status.EXISTS;
+                assert bc.exists(b, o).getStatus() == Status.EXISTS;
                 if (maxBucketSize < bc.size()) {
                     maxBucketSize = bc.size();
                 }
@@ -572,13 +573,13 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
         Result res = new Result();
         synchronized (bc) {
             res = bc.exists(b, object);
-            if (res.getStatus() != Result.Status.EXISTS) {
+            if (res.getStatus() != Status.EXISTS) {
 
                 assert bc.getPivots() == b.getPivotSize() : "BC: "
                         + bc.getPivots() + " b: " + b.getPivotSize();
                 bc.insert(b);
                 putBucket(bucketId, bc);
-                res.setStatus(Result.Status.OK);
+                res.setStatus(Status.OK);
             }
         }
         return res;
@@ -609,7 +610,7 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
 
         bc.bulkInsert(b);
         putBucket(bucketId, bc);
-        res.setStatus(Result.Status.OK);
+        res.setStatus(Status.OK);
 
         return res;
     }
@@ -719,10 +720,10 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
             IllegalAccessException, InstantiationException {
 
         Result res = new Result();
-        res.setStatus(Result.Status.OK);
+        res.setStatus(Status.OK);
         if (this.isFrozen()) {
             res = exists(object);
-            if (res.getStatus() == Result.Status.NOT_EXISTS) {
+            if (res.getStatus() == Status.NOT_EXISTS) {
                 TupleOutput out = new TupleOutput();
                 object.store(out);
                 int id = (int) A.nextId();
@@ -744,11 +745,11 @@ public abstract class AbstractDPrimeIndex < O extends OB, B extends ObjectBucket
                 outId.writeInt(id);
                 preFreeze.put(key, outId.getBufferBytes());
             } else {
-                res.setStatus(Result.Status.EXISTS);
+                res.setStatus(Status.EXISTS);
                 TupleInput in = new TupleInput(value);
                 res.setId(in.readInt());
             }
-            if (res.getStatus() == Result.Status.OK) {
+            if (res.getStatus() == Status.OK) {
                 out = new TupleOutput();
                 object.store(out);
                 this.A.put(res.getId(), out.getBufferBytes());

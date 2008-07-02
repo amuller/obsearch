@@ -29,10 +29,6 @@ package org.ajmm.obsearch;
 
 public class Result {
 
-    public enum Status {
-        OK, EXISTS, NOT_EXISTS, ERROR;
-    }
-
     /**
      * Status of the Operation
      */
@@ -41,7 +37,7 @@ public class Result {
     /**
      * Object id for relevant
      */
-    private int id;
+    private long id;
 
     /**
      * Creates a default status with status Status.Error
@@ -82,7 +78,7 @@ public class Result {
      * @param id
      *                The new id.
      */
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -91,7 +87,7 @@ public class Result {
      * not apply.
      * @return The id.
      */
-    public int getId() {
+    public long getId() {
         return id;
     }
 }

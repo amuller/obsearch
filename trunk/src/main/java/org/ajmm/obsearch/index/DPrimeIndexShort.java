@@ -9,6 +9,7 @@ import java.util.Iterator;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBCacheLoaderLong;
 import org.ajmm.obsearch.cache.OBCacheLong;
 import org.ajmm.obsearch.exception.IllegalIdException;
@@ -790,13 +791,13 @@ public final class DPrimeIndexShort < O extends OBShort >
                 (byte) 1);
         searchOB(object, (short) 0, result);
         Result res = new Result();
-        res.setStatus(Result.Status.NOT_EXISTS);
+        res.setStatus(Status.NOT_EXISTS);
         if (result.getSize() == 1) {
             Iterator < OBResultShort < O >> it = result.iterator();
             OBResultShort < O > r = it.next();
             if (r.getObject().equals(object)) {
                 res.setId(r.getId());
-                res.setStatus(Result.Status.EXISTS);
+                res.setStatus(Status.EXISTS);
             }
         }
         return res;

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
@@ -478,12 +479,12 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         Result res;
         if (isFrozen()) {
             Result r = exists(object);
-            if (r.getStatus() == Result.Status.NOT_EXISTS) {
+            if (r.getStatus() == Status.NOT_EXISTS) {
                 // if the object is not in the database, we can insert it
                 resId = id.getAndIncrement();
                 insertA(object, resId);
                 insertFrozen(object, resId);
-                res = new Result(Result.Status.OK);
+                res = new Result(Status.OK);
                 res.setId(resId);
             } else {
                 res = r;
@@ -493,12 +494,12 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             if (r == -1) {
                 resId = id.getAndIncrement();
                 insertUnFrozen(object, resId);
-                res = new Result(Result.Status.OK);
+                res = new Result(Status.OK);
                 res.setId(resId);
                 // put the object in k
                 storeObjectInK(object, resId);
             } else {
-                res = new Result(Result.Status.EXISTS);
+                res = new Result(Status.EXISTS);
                 res.setId(r);
             }
         }
@@ -772,7 +773,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     protected void writeSporeFile() throws IOException {
         String xml = toXML();
         FileWriter fout = new FileWriter(this.dbDir.getPath() + File.separator
-                + SPORE_FILENAME);
+                + METADATA_FILENAME);
         fout.write(xml);
         fout.close();
     }
@@ -827,7 +828,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         assertFrozen();
         Result res = deleteAux(object);
         // delete the data from database A
-        if (res.getStatus() == Result.Status.OK) {
+        if (res.getStatus() == Status.OK) {
             DatabaseEntry keyEntry = new DatabaseEntry();
             IntegerBinding.intToEntry(res.getId(), keyEntry);
             OperationStatus ret = aDB.delete(null, keyEntry);

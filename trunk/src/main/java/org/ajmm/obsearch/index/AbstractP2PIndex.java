@@ -52,6 +52,7 @@ import org.ajmm.obsearch.AsynchronousIndex;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -1941,13 +1942,13 @@ public abstract class AbstractP2PIndex < O extends OB > implements Index < O >,
                         boolean insert = in.readBoolean();
                         O o = readObject(in);
                         // logger.info("Inserting object");
-                        Result res = new Result(Result.Status.NOT_EXISTS);
+                        Result res = new Result(Status.NOT_EXISTS);
                         if (insert) {
                             res = getIndex().insert(o, time);
                         } else {
                             getIndex().delete(o, time);
                         }
-                        if (res.getStatus() != Result.Status.OK) {
+                        if (res.getStatus() != Status.OK) {
                             repeatedItems++;
                         }
                         // update the sync info so that timeouts won't occurr

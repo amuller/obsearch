@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.index.utils.ByteArrayComparator;
 import org.ajmm.obsearch.storage.OBStore;
@@ -114,9 +115,9 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         try {
             OperationStatus res = db.delete(null, new DatabaseEntry(key));
             if (res.NOTFOUND == res) {
-                r.setStatus(Result.Status.NOT_EXISTS);
+                r.setStatus(Status.NOT_EXISTS);
             } else if (res.SUCCESS == res) {
-                r.setStatus(Result.Status.OK);
+                r.setStatus(Status.OK);
             } else {
                 assert false;
             }
@@ -168,7 +169,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         try {
             OperationStatus r = db.put(null, k, v);
             if (r == OperationStatus.SUCCESS) {
-                res.setStatus(Result.Status.OK);
+                res.setStatus(Status.OK);
             } // Result() is always initialized with error.
         } catch (DatabaseException e) {
             throw new OBStorageException(e);

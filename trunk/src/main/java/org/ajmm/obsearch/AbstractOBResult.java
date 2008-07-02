@@ -28,7 +28,7 @@ package org.ajmm.obsearch;
  * @since 0.7
  */
 
-public abstract class AbstractOBResult < O extends OB > implements Comparable {
+public abstract class AbstractOBResult < O extends OB > implements Comparable<O> {
 
     /**
      * The object to be stored.

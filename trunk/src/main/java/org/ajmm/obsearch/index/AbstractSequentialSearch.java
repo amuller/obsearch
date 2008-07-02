@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -125,7 +126,7 @@ public class AbstractSequentialSearch<O extends OB> implements Index<O> {
         this.dataSize.add(data.length);
         this.A.put(id, data);
         Result res = new Result();
-        res.setStatus(Result.Status.OK);
+        res.setStatus(Status.OK);
         return res;
     }
 

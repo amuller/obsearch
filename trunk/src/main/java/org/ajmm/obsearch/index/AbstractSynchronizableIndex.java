@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -238,7 +239,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         Result r = getIndex().insert(object);
-        if (r.getStatus() == Result.Status.OK) { // if we could insert the object
+        if (r.getStatus() == Status.OK) { // if we could insert the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
                 insertInsertEntry(box, time, r.getId());
@@ -252,7 +253,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         Result r = getIndex().delete(object);
-        if (r.getStatus() == Result.Status.OK) { // if we could delete the object
+        if (r.getStatus() == Status.OK) { // if we could delete the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
                 insertDeleteEntry(box, time, object);

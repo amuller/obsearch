@@ -3,10 +3,11 @@
  */
 package org.ajmm.obsearch;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 import org.ajmm.obsearch.exception.OBException;
 
-import com.sleepycat.bind.tuple.TupleInput;
-import com.sleepycat.bind.tuple.TupleOutput;
 
 /*
  * OBSearch: a distributed similarity search engine This project is to
@@ -32,18 +33,18 @@ public interface Storable {
     /**
      * Stores this object in a byte array.
      * @param out
-     *            A TupleOutput where values can be stored
+     *            A DataOutputStream where values can be stored
      * @since 0.0
      */
-    void store(TupleOutput out);
+    void store(DataOutputStream out);
 
     /**
      * Populates the object's internal properties from the given byte stream.
      * @param in
-     *            A TupleInput object from where primitive types can be loaded.
+     *            A DataInputStream object from where primitive types can be loaded.
      * @throws OBException
      *             if the data cannot be loaded.
      * @since 0.0
      */
-    void load(TupleInput in) throws OBException;
+    void load(DataInputStream in) throws OBException;
 }
