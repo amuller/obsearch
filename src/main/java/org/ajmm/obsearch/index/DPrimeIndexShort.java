@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBCacheLoaderLong;
 import org.ajmm.obsearch.cache.OBCacheLong;
@@ -785,12 +785,12 @@ public final class DPrimeIndexShort < O extends OBShort >
     }
 
     @Override
-    public Result exists(O object) throws DatabaseException, OBException,
+    public OperationStatus exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
         searchOB(object, (short) 0, result);
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
         if (result.getSize() == 1) {
             Iterator < OBResultShort < O >> it = result.iterator();

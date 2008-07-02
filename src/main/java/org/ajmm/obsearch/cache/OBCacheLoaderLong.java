@@ -30,13 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 public interface OBCacheLoaderLong< O > {
     
-    O loadObject(long i) throws DatabaseException, 
+    O loadObject(long i) throws  
     OutOfRangeException, OBException, InstantiationException , 
     IllegalAccessException, OBStorageException;
     /**
      * Returns the size of the DB
      * @return the size of the DB.
      */
-    int getDBSize() throws DatabaseException, OBStorageException;
+    long getDBSize() throws  OBStorageException;
 
 }

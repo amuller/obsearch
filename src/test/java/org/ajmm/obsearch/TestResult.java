@@ -13,9 +13,9 @@ public class TestResult {
 
     @Test
     public void testSetId() {
-        Result a = new Result(Status.OK);
+        OperationStatus a = new OperationStatus(Status.OK);
         a.setId(3);
-        Result b = new Result(Status.OK);
+        OperationStatus b = new OperationStatus(Status.OK);
         b.setId(4);
         assertEquals(a.getId(),3);
         assertEquals(b.getId(),4);

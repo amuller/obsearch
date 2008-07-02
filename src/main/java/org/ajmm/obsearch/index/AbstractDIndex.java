@@ -33,7 +33,7 @@ import java.util.List;
 import org.ajmm.obsearch.AbstractOBPriorityQueue;
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
@@ -264,14 +264,14 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     }
 
     @Override
-    public Result delete(O object) throws DatabaseException, OBException,
+    public OperationStatus delete(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException, NotFrozenException {
 
         if (this.isFrozen()) {
             B b = getBucket(object);
             byte[] bucketId = getBucketStorageId(b);
             BC bc = this.bucketContainerCache.get(bucketId);
-            Result res = bc.delete(b, object);
+            OperationStatus res = bc.delete(b, object);
             if (res.getStatus() == Status.OK) {
                 // update the bucket
                 // container.
@@ -464,7 +464,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
      *         inserted successfully.
      * @throws OBStorageException
      */
-    private Result insertBucket(B b, O object) throws OBStorageException,
+    private OperationStatus insertBucket(B b, O object) throws OBStorageException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             DatabaseException, OutOfRangeException, OBException {
         // get the bucket id.
@@ -481,7 +481,7 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
                     + bc.getPivots() + " b pivot size: " + b.getPivotSize();
             assert bc.getLevel() == b.getLevel();
         }
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         synchronized (bc) {
             res = bc.exists(b, object);
             if (res.getStatus() != Status.EXISTS) {
@@ -589,10 +589,10 @@ public abstract class AbstractDIndex < O extends OB, B extends ObjectBucket, Q, 
     }
 
     @Override
-    public Result insert(O object) throws DatabaseException, OBException,
+    public OperationStatus insert(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
 
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         res.setStatus(Status.OK);
         if (this.isFrozen()) {
             res = exists(object);

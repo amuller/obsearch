@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
@@ -47,7 +47,7 @@ public class Benchmark<O extends OBShort> {
             if (line != null) {
                 O s = factory.create(line);
                 if (factory.shouldProcess(s)) {
-                    Result res = index.insert(s);
+                    OperationStatus res = index.insert(s);
                     if (res.getStatus() != Status.OK) {
                         throw new Exception("Could not insert status: " + res.getStatus().toString()  + " line: <" + line + ">");
                     }

@@ -67,7 +67,7 @@ public final class OBCacheLong < O > {
     public OBCacheLong(OBCacheLoaderLong < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
-        map = new OpenLongObjectHashMap(2 * loader.getDBSize(), 0, 0.5);
+        map = new OpenLongObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);
         }catch(Exception e){
             throw new OBException(e);
         }
@@ -91,7 +91,7 @@ public final class OBCacheLong < O > {
      *                internal id.
      * @return null if no object is found
      */
-    public O get(final long id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+    public O get(final long id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
         // return map.get(id);
         // SoftReference<O>
         SoftReference < O > ref = (SoftReference < O >) map.get(id);

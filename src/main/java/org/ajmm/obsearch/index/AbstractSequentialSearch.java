@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
@@ -73,14 +73,14 @@ public class AbstractSequentialSearch<O extends OB> implements Index<O> {
     }
 
     @Override
-    public Result delete(OB object) throws DatabaseException, OBException,
+    public OperationStatus delete(OB object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException, NotFrozenException {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Result exists(OB object) throws DatabaseException, OBException,
+    public OperationStatus exists(OB object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         // TODO Auto-generated method stub
         return null;
@@ -116,7 +116,7 @@ public class AbstractSequentialSearch<O extends OB> implements Index<O> {
     }
 
     @Override
-    public Result insert(OB object) throws DatabaseException, OBException,
+    public OperationStatus insert(OB object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         // TODO Auto-generated method stub
         TupleOutput out = new TupleOutput();
@@ -125,7 +125,7 @@ public class AbstractSequentialSearch<O extends OB> implements Index<O> {
         byte [] data = out.getBufferBytes();
         this.dataSize.add(data.length);
         this.A.put(id, data);
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         res.setStatus(Status.OK);
         return res;
     }

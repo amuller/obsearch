@@ -38,7 +38,9 @@ public abstract class AbstractOBResult < O extends OB > implements Comparable<O>
     /**
      * Its internal id.
      */
-    protected int id;
+    protected long id;
+    
+   
 
     /**
      * Default constructor.
@@ -79,15 +81,17 @@ public abstract class AbstractOBResult < O extends OB > implements Comparable<O>
     /**
      * @return The internal id of the result. (Not useful in P2P mode)
      */
-    public final int getId() {
+    public final long getId() {
         return this.id;
     }
 
     /**
      * Sets the internal id of the result.
-     * @param identification The identification number of this result's object.
+     * @param id The identification number of this result's object.
      */
-    public final void setId(final int identification) {
-        this.id = identification;
+    public final void setId(final long id) {
+        this.id = id;
     }
+
+    
 }

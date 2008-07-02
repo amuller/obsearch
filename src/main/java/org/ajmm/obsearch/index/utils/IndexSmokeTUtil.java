@@ -14,7 +14,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
@@ -102,7 +102,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
             if (line != null) {
                 O s = factory.create(line);
                 if (factory.shouldProcess(s)) {
-                    Result res = index.insert(s);
+                    OperationStatus res = index.insert(s);
                     assertTrue(
                             "Returned status: " + res.getStatus().toString(),
                             res.getStatus() == Status.OK);
@@ -138,7 +138,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
                 O s = factory.create(line);
              
                 if (factory.shouldProcess(s)) {
-                    Result res = index.exists(s);
+                    OperationStatus res = index.exists(s);
                     assertTrue("Str: " + line + " line: " + i, res.getStatus() == Status.EXISTS);
                     assertEquals(i, res.getId());
                     // attempt to insert the object again, and get
@@ -230,7 +230,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         int max = index.databaseSize();
         while (i < max) {
             O x = index.getObject(i);
-            Result ex = index.exists(x);
+            OperationStatus ex = index.exists(x);
             assertTrue(ex.getStatus() == Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);

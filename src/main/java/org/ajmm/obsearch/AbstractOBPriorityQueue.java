@@ -95,26 +95,24 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      */
     @Override
     public final boolean equals(final Object obj) {
-        synchronized (queue) {
 
-            if (obj == null) {
-                return false;
-            }
-            if (!(obj instanceof AbstractOBPriorityQueue)) {
-                return false;
-            }
-            final AbstractOBPriorityQueue < O > o = (AbstractOBPriorityQueue < O >) obj;
-            synchronized (o.queue) {
-                if (this.getSize() != o.getSize()) {
-                    return false;
-                }
-                final Object[] a = queue.toArray();
-                final Object[] b = o.queue.toArray();
-                Arrays.sort(a);
-                Arrays.sort(b);
-                return Arrays.equals(a, b);
-            }
+        if (obj == null) {
+            return false;
         }
+        if (!(obj instanceof AbstractOBPriorityQueue)) {
+            return false;
+        }
+        final AbstractOBPriorityQueue < O > o = (AbstractOBPriorityQueue < O >) obj;
+
+        if (this.getSize() != o.getSize()) {
+            return false;
+        }
+        final Object[] a = queue.toArray();
+        final Object[] b = o.queue.toArray();
+        Arrays.sort(a);
+        Arrays.sort(b);
+        return Arrays.equals(a, b);
+
     }
 
     /**
