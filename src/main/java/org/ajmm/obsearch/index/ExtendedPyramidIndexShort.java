@@ -7,6 +7,7 @@ import java.util.Iterator;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -492,7 +493,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        Result res = new Result(Result.Status.NOT_EXISTS);
+        Result res = new Result(Status.NOT_EXISTS);
 
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
@@ -549,7 +550,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         int id = in.readInt();
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
-                            res = new Result(Result.Status.EXISTS);
+                            res = new Result(Status.EXISTS);
                             res.setId(id);
                             break;
                         }
@@ -665,7 +666,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     protected Result deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
-        Result res = new Result(Result.Status.NOT_EXISTS);
+        Result res = new Result(Status.NOT_EXISTS);
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -720,7 +721,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
-                            res = new Result(Result.Status.OK);
+                            res = new Result(Status.OK);
                             res.setId(resId);
                             retVal = cursor.delete();
                             // txn.commit();

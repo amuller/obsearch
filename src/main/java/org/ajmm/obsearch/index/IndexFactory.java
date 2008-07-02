@@ -51,7 +51,7 @@ public final class IndexFactory < O extends OB > {
      */
     public boolean isFrozen(final File OBFolder){
         return new File(OBFolder,
-                Index.SPORE_FILENAME).exists();
+                Index.METADATA_FILENAME).exists();
     }
 
     /**
@@ -81,7 +81,7 @@ public final class IndexFactory < O extends OB > {
             throws FileNotFoundException {
         XStream xstream = new XStream();
         FileInputStream fs = new FileInputStream(new File(OBFolder,
-                Index.SPORE_FILENAME));
+                Index.METADATA_FILENAME));
         BufferedInputStream bf = new BufferedInputStream(fs);
         return (Index<O>) xstream.fromXML(bf);
     }

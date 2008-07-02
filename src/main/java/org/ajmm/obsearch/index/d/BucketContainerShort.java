@@ -10,6 +10,7 @@ import java.util.ListIterator;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.utils.IntegerHolder;
@@ -107,14 +108,14 @@ public final class BucketContainerShort < O extends OBShort > implements
         List < ObjectBucketShort > v = getVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
         Result res = new Result();
-        res.setStatus(Result.Status.NOT_EXISTS);
+        res.setStatus(Status.NOT_EXISTS);
         while (it.hasNext()) {
             ObjectBucketShort j = it.next();
             if (j.smapEqual(bucket)
                     && index.getObject(j.getId()).distance(object) == 0) {
                 it.remove();
                 size--;
-                res.setStatus(Result.Status.OK);
+                res.setStatus(Status.OK);
                 res.setId(j.getId());
             }
         }
@@ -230,7 +231,7 @@ public final class BucketContainerShort < O extends OBShort > implements
             IllegalAccessException, InstantiationException {
 
         Result res = new Result();
-        res.setStatus(Result.Status.NOT_EXISTS);
+        res.setStatus(Status.NOT_EXISTS);
         if (data != null) {
             MyTupleInput in = new MyTupleInput(data);
             int low = binSearch(bucket.getSmapVector()[0], in);
@@ -247,7 +248,7 @@ public final class BucketContainerShort < O extends OBShort > implements
                             .getSmapVector())) {
                         O o2 = index.getObject(tuple.getId());
                         if (o2.distance(object) == 0) {
-                            res.setStatus(Result.Status.EXISTS);
+                            res.setStatus(Status.EXISTS);
                             res.setId(tuple.getId());
                             break;
                         }
@@ -268,7 +269,7 @@ public final class BucketContainerShort < O extends OBShort > implements
         // bucket.isExclusionBucket();
         assert pivots == bucket.getSmapVector().length : " pivots: " + pivots
                 + " obj " + bucket.getSmapVector().length;
-        res.setStatus(Result.Status.OK);
+        res.setStatus(Status.OK);
 
         if (data == null) {
             size = 0;

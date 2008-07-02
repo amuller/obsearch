@@ -153,7 +153,7 @@ public class LevShellDB {
                 
                 index.freeze();
                 index.close();
-                FileWriter out = new FileWriter( new File(databaseFolder.getValue(), Index.SPORE_FILENAME));
+                FileWriter out = new FileWriter( new File(databaseFolder.getValue(), Index.METADATA_FILENAME));
                 out.write(index.toXML());
                 
             }else if(standby.getValue()){

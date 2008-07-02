@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.ajmm.obsearch.ParallelIndex;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
 import org.ajmm.obsearch.example.OBSlice;
@@ -104,14 +105,14 @@ public class IndexSmokeTUtil<O extends OBShort> {
                     Result res = index.insert(s);
                     assertTrue(
                             "Returned status: " + res.getStatus().toString(),
-                            res.getStatus() == Result.Status.OK);
+                            res.getStatus() == Status.OK);
                     assertEquals(realIndex, res.getId());
                     // If we insert before freezing, we should
                     // be getting a Result.EXISTS if we try to insert
                     // again!
                     assertTrue(!index.isFrozen());
                     res = index.insert(s);
-                    assertTrue(res.getStatus() == Result.Status.EXISTS);
+                    assertTrue(res.getStatus() == Status.EXISTS);
                     assertEquals(res.getId(), realIndex);
                     realIndex++;
                 }
@@ -138,13 +139,13 @@ public class IndexSmokeTUtil<O extends OBShort> {
              
                 if (factory.shouldProcess(s)) {
                     Result res = index.exists(s);
-                    assertTrue("Str: " + line + " line: " + i, res.getStatus() == Result.Status.EXISTS);
+                    assertTrue("Str: " + line + " line: " + i, res.getStatus() == Status.EXISTS);
                     assertEquals(i, res.getId());
                     // attempt to insert the object again, and get
                     // the -1
                     res = index.insert(s);
                     assertEquals(res.getId(), i);
-                    assertTrue(res.getStatus() == Result.Status.EXISTS);
+                    assertTrue(res.getStatus() == Status.EXISTS);
                     i++;
                 }
                 if (i % 10000 == 0) {
@@ -230,13 +231,13 @@ public class IndexSmokeTUtil<O extends OBShort> {
         while (i < max) {
             O x = index.getObject(i);
             Result ex = index.exists(x);
-            assertTrue(ex.getStatus() == Result.Status.EXISTS);
+            assertTrue(ex.getStatus() == Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);
-            assertTrue(ex.getStatus() == Result.Status.OK);
+            assertTrue(ex.getStatus() == Status.OK);
             assertEquals(i, ex.getId());
             ex = index.exists(x);
-            assertTrue(ex.getStatus() == Result.Status.NOT_EXISTS);
+            assertTrue(ex.getStatus() == Status.NOT_EXISTS);
             i++;
         }
         index.close();

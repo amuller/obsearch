@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
@@ -828,7 +829,7 @@ public class PPTreeShort < O extends OBShort >
 
     public Result exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        Result res = new Result(Result.Status.NOT_EXISTS);
+        Result res = new Result(Status.NOT_EXISTS);
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -864,7 +865,7 @@ public class PPTreeShort < O extends OBShort >
                         // there is a chance it is a possible match
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
-                            res = new Result(Result.Status.EXISTS);
+                            res = new Result(Status.EXISTS);
                             res.setId(id);
                             break;
                         }
@@ -980,11 +981,11 @@ public class PPTreeShort < O extends OBShort >
         }
         Result res;
         if (exists) {
-            res = new Result(Result.Status.EXISTS);
+            res = new Result(Status.EXISTS);
 
         } else {
             // we have to insert the record.
-            res = new Result(Result.Status.OK);
+            res = new Result(Status.OK);
             resId = id.getAndIncrement();
             insertA(object, resId);
             insertFrozenAuxAux(ppTreeValue, tuple, resId);
@@ -1012,7 +1013,7 @@ public class PPTreeShort < O extends OBShort >
     protected final Result deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
-        Result res = new Result(Result.Status.NOT_EXISTS);
+        Result res = new Result(Status.NOT_EXISTS);
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -1049,7 +1050,7 @@ public class PPTreeShort < O extends OBShort >
                             resId = id;
                             exists = true;
                             retVal = cursor.delete();
-                            res = new Result(Result.Status.OK);
+                            res = new Result(Status.OK);
                             res.setId(resId);
                             if (retVal != OperationStatus.SUCCESS) {
                                 throw new DatabaseException();
