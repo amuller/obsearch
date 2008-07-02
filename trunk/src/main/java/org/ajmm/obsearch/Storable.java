@@ -5,6 +5,7 @@ package org.ajmm.obsearch;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import org.ajmm.obsearch.exception.OBException;
 
@@ -36,7 +37,7 @@ public interface Storable {
      *            A DataOutputStream where values can be stored
      * @since 0.0
      */
-    void store(DataOutputStream out);
+    void store(DataOutputStream out) throws IOException;
 
     /**
      * Populates the object's internal properties from the given byte stream.
@@ -46,5 +47,5 @@ public interface Storable {
      *             if the data cannot be loaded.
      * @since 0.0
      */
-    void load(DataInputStream in) throws OBException;
+    void load(DataInputStream in) throws OBException, IOException;
 }

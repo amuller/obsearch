@@ -27,7 +27,7 @@ package org.ajmm.obsearch;
  * @since 0
  */
 
-public class Result {
+public class OperationStatus {
 
     /**
      * Status of the Operation
@@ -38,12 +38,17 @@ public class Result {
      * Object id for relevant
      */
     private long id;
+    
+    /**
+     * Number of times this 
+     */
+    private long frequency;
 
     /**
      * Creates a default status with status Status.Error
      * and an id of -1.
      */
-    public Result() {
+    public OperationStatus() {
         this(Status.ERROR, -1);
     }
 
@@ -52,7 +57,7 @@ public class Result {
      * status and an id of -1
      * @param status The status that will be used.
      */
-    public Result(Status status){
+    public OperationStatus(Status status){
         this(status, -1);
     }
     /**
@@ -60,7 +65,7 @@ public class Result {
      * @param status The status the object will hold
      * @param id The id of the affected object.
      */
-    public Result(Status status, int id) {
+    public OperationStatus(Status status, int id) {
         this.status = status;
         this.id = id;
     }

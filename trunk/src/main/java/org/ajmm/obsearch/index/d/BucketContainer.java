@@ -3,7 +3,7 @@ package org.ajmm.obsearch.index.d;
 import java.util.List;
 
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
@@ -52,7 +52,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} if the object
      *         is not in the database.
      */
-    Result delete(B bucket, O object) throws OBException, DatabaseException,
+    OperationStatus delete(B bucket, O object) throws OBException, DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
@@ -67,7 +67,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         will hold the id of the inserted object and the operation is
      *         successful.
      */
-    Result insert(B bucket) throws OBException, DatabaseException,
+    OperationStatus insert(B bucket) throws OBException, DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException;
     
     /**
@@ -99,7 +99,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         id if the object exists in the database, otherwise
      *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} is returned.
      */
-    Result exists(B bucket, O object) throws OBException, DatabaseException,
+    OperationStatus exists(B bucket, O object) throws OBException, DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**

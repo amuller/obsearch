@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
@@ -102,12 +102,12 @@ public final class BucketContainerShort < O extends OBShort > implements
 
     // need to update this thing.
     @Override
-    public Result delete(ObjectBucketShort bucket, O object)
+    public OperationStatus delete(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
         List < ObjectBucketShort > v = getVectors();
         Iterator < ObjectBucketShort > it = v.iterator();
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
         while (it.hasNext()) {
             ObjectBucketShort j = it.next();
@@ -226,11 +226,11 @@ public final class BucketContainerShort < O extends OBShort > implements
     }
 
     @Override
-    public Result exists(ObjectBucketShort bucket, O object)
+    public OperationStatus exists(ObjectBucketShort bucket, O object)
             throws OBException, DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException {
 
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
         if (data != null) {
             MyTupleInput in = new MyTupleInput(data);
@@ -260,10 +260,10 @@ public final class BucketContainerShort < O extends OBShort > implements
         return res;
     }
 
-    public Result insert(ObjectBucketShort bucket) throws OBException,
+    public OperationStatus insert(ObjectBucketShort bucket) throws OBException,
             DatabaseException, IllegalIdException, IllegalAccessException,
             InstantiationException {
-        Result res = new Result();
+        OperationStatus res = new OperationStatus();
         // assert this.exclusionBucket == bucket.isExclusionBucket():
         // "Container: " + this.exclusionBucket + " bucket: " +
         // bucket.isExclusionBucket();

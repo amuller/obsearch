@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.SynchronizableIndex;
 import org.ajmm.obsearch.TimeStampResult;
@@ -184,7 +184,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         getIndex().close();
     }
 
-    public Result delete(final O object) throws IllegalIdException,
+    public OperationStatus delete(final O object) throws IllegalIdException,
             DatabaseException, OBException, IllegalAccessException,
             InstantiationException {
         return delete(object, System.currentTimeMillis());
@@ -228,17 +228,17 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return getIndex().getObject(i);
     }
 
-    public Result insert(final O object) throws IllegalIdException,
+    public OperationStatus insert(final O object) throws IllegalIdException,
             DatabaseException, OBException, IllegalAccessException,
             InstantiationException {
         return insert(object, System.currentTimeMillis());
     }
 
    
-    public Result insert(final O object, final long time)
+    public OperationStatus insert(final O object, final long time)
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        Result r = getIndex().insert(object);
+        OperationStatus r = getIndex().insert(object);
         if (r.getStatus() == Status.OK) { // if we could insert the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
@@ -249,10 +249,10 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return r;
     }
 
-    public Result delete(final O object, final long time)
+    public OperationStatus delete(final O object, final long time)
             throws IllegalIdException, DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        Result r = getIndex().delete(object);
+        OperationStatus r = getIndex().delete(object);
         if (r.getStatus() == Status.OK) { // if we could delete the object
             if (isFrozen()) {
                 int box = getIndex().getBox(object);
@@ -782,7 +782,7 @@ public abstract class AbstractSynchronizableIndex < O extends OB > implements
         return getIndex().readObject(in);
     }
 
-    public Result exists(final O object) throws DatabaseException,
+    public OperationStatus exists(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         return getIndex().exists(object);
     }

@@ -6,7 +6,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
@@ -491,9 +491,9 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         return super.pyramidOfPoint(et);
     }
 
-    public Result exists(O object) throws DatabaseException, OBException,
+    public OperationStatus exists(O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
-        Result res = new Result(Status.NOT_EXISTS);
+        OperationStatus res = new OperationStatus(Status.NOT_EXISTS);
 
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
@@ -550,7 +550,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         int id = in.readInt();
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
-                            res = new Result(Status.EXISTS);
+                            res = new OperationStatus(Status.EXISTS);
                             res.setId(id);
                             break;
                         }
@@ -663,10 +663,10 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      */
 
     @Override
-    protected Result deleteAux(final O object) throws DatabaseException,
+    protected OperationStatus deleteAux(final O object) throws DatabaseException,
             OBException, IllegalAccessException, InstantiationException {
         int resId = -1;
-        Result res = new Result(Status.NOT_EXISTS);
+        OperationStatus res = new OperationStatus(Status.NOT_EXISTS);
         short[] tuple = new short[pivotsCount];
         // calculate the pivot for the given object
         calculatePivotTuple(object, tuple);
@@ -721,7 +721,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                         O toCompare = super.getObject(id);
                         if (object.equals(toCompare)) {
                             resId = id;
-                            res = new Result(Status.OK);
+                            res = new OperationStatus(Status.OK);
                             res.setId(resId);
                             retVal = cursor.delete();
                             // txn.commit();

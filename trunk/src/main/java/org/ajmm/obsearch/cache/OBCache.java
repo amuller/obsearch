@@ -66,7 +66,7 @@ public final class OBCache < O > {
     public OBCache(OBCacheLoader < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
-        map = new OpenIntObjectHashMap(2 * loader.getDBSize(), 0, 0.5);
+        map = new OpenIntObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);
         }catch(Exception e){
             throw new OBException(e);
         }

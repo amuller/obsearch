@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.Result;
+import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
@@ -473,18 +473,18 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return 1;
     }
 
-    public Result insert(final O object) throws DatabaseException, OBException,
+    public OperationStatus insert(final O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException {
         int resId = -1;
-        Result res;
+        OperationStatus res;
         if (isFrozen()) {
-            Result r = exists(object);
+            OperationStatus r = exists(object);
             if (r.getStatus() == Status.NOT_EXISTS) {
                 // if the object is not in the database, we can insert it
                 resId = id.getAndIncrement();
                 insertA(object, resId);
                 insertFrozen(object, resId);
-                res = new Result(Status.OK);
+                res = new OperationStatus(Status.OK);
                 res.setId(resId);
             } else {
                 res = r;
@@ -494,12 +494,12 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
             if (r == -1) {
                 resId = id.getAndIncrement();
                 insertUnFrozen(object, resId);
-                res = new Result(Status.OK);
+                res = new OperationStatus(Status.OK);
                 res.setId(resId);
                 // put the object in k
                 storeObjectInK(object, resId);
             } else {
-                res = new Result(Status.EXISTS);
+                res = new OperationStatus(Status.EXISTS);
                 res.setId(r);
             }
         }
@@ -823,10 +823,10 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
         return xml;
     }
 
-    public Result delete(final O object) throws DatabaseException, OBException,
+    public OperationStatus delete(final O object) throws DatabaseException, OBException,
             IllegalAccessException, InstantiationException, NotFrozenException {
         assertFrozen();
-        Result res = deleteAux(object);
+        OperationStatus res = deleteAux(object);
         // delete the data from database A
         if (res.getStatus() == Status.OK) {
             DatabaseEntry keyEntry = new DatabaseEntry();
@@ -842,9 +842,9 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
     /**
      * Deletes the given object from database C
      * @param object
-     * @return {@link org.ajmm.obsearch.Result#OK} and the deleted object's id
+     * @return {@link org.ajmm.obsearch.OperationStatus#OK} and the deleted object's id
      *         if the object was found and sucesfully deleted.
-     *         {@link org.ajmm.obsearch.Result#NOT_EXISTS} if the object is not
+     *         {@link org.ajmm.obsearch.OperationStatus#NOT_EXISTS} if the object is not
      *         in the database.
      * @throws DatabaseException
      *                 If something goes wrong with the DB
@@ -855,7 +855,7 @@ public abstract class AbstractPivotIndex < O extends OB > implements Index < O >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    protected abstract Result deleteAux(final O object)
+    protected abstract OperationStatus deleteAux(final O object)
             throws DatabaseException, OBException, IllegalAccessException,
             InstantiationException;
 

@@ -5,7 +5,7 @@ import hep.aida.bin.StaticBin1D;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.ajmm.obsearch.Result;
+
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.index.utils.ByteArrayComparator;
@@ -110,8 +110,8 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         }
     }
 
-    public Result delete(byte[] key) throws OBStorageException {
-        Result r = new Result();
+    public org.ajmm.obsearch.OperationStatus delete(byte[] key) throws OBStorageException {
+        org.ajmm.obsearch.OperationStatus r = new org.ajmm.obsearch.OperationStatus();
         try {
             OperationStatus res = db.delete(null, new DatabaseEntry(key));
             if (res.NOTFOUND == res) {
@@ -161,11 +161,11 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         }
     }
 
-    public Result put(byte[] key, byte[] value) throws OBStorageException {
+    public org.ajmm.obsearch.OperationStatus put(byte[] key, byte[] value) throws OBStorageException {
 
         DatabaseEntry k = new DatabaseEntry(key);
         DatabaseEntry v = new DatabaseEntry(value);
-        Result res = new Result();
+        org.ajmm.obsearch.OperationStatus res = new org.ajmm.obsearch.OperationStatus();
         try {
             OperationStatus r = db.put(null, k, v);
             if (r == OperationStatus.SUCCESS) {
