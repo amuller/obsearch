@@ -1,5 +1,7 @@
 package org.ajmm.obsearch.storage;
 
+import java.nio.ByteBuffer;
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -20,30 +22,25 @@ package org.ajmm.obsearch.storage;
  */
 
 /**
- * A tuple returned by a range operation of an OBStore implementation. This object holds the key and
- * the value of objects found within a range search.
+ * A tuple returned by a range operation of an OBStore implementation. This
+ * object holds the key and the value of objects found within a range search.
  * @author Arnoldo Jose Muller Molina
  */
 
-public  class Tuple {
+public class Tuple {
 
-   
-    
-    private byte[] value;
+    private ByteBuffer value;
 
-    public Tuple(byte[] value) {
-     
+    public Tuple(ByteBuffer value) {
+
         this.value = value;
     }
 
-    
-
     /**
-     * 
      * @return The value.
      */
-    public byte[] getValue() {
+    public ByteBuffer getValue() {
         return value;
     }
-    
+
 }

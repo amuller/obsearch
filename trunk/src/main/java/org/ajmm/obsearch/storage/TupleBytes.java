@@ -1,5 +1,6 @@
 package org.ajmm.obsearch.storage;
 
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -19,6 +20,8 @@ package org.ajmm.obsearch.storage;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import java.nio.ByteBuffer;
+
 /**
  * TupleBytes holds a key in bytes and a value in bytes.
  * @author Arnoldo Jose Muller Molina
@@ -28,7 +31,7 @@ public class TupleBytes
         extends Tuple {
     private byte[] key;
 
-    public TupleBytes(byte[] key, byte[] value) {
+    public TupleBytes(byte[] key, ByteBuffer value) {
         super(value);
         this.key = key;
     }

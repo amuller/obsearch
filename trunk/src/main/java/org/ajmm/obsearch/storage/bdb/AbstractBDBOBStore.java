@@ -2,9 +2,12 @@ package org.ajmm.obsearch.storage.bdb;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+
+import net.obsearch.utils.bytes.ByteConversion;
 
 import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.OBStorageException;
@@ -139,7 +142,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         return this.name;
     }
 
-    public byte[] getValue(byte[] key) throws IllegalArgumentException,
+    public ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
             OBStorageException {
         if (duplicates) {
             throw new IllegalArgumentException();
@@ -152,7 +155,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
                 if (this.stats != null) {
                     stats.add(value.getData().length);
                 }
-                return value.getData();
+                return ByteConversion.createByteBuffer( value.getData());
             } else {
                 return null;
             }
@@ -161,10 +164,10 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         }
     }
 
-    public org.ajmm.obsearch.OperationStatus put(byte[] key, byte[] value) throws OBStorageException {
+    public org.ajmm.obsearch.OperationStatus put(byte[] key, ByteBuffer value) throws OBStorageException {
 
         DatabaseEntry k = new DatabaseEntry(key);
-        DatabaseEntry v = new DatabaseEntry(value);
+        DatabaseEntry v = new DatabaseEntry(value.array());
         org.ajmm.obsearch.OperationStatus res = new org.ajmm.obsearch.OperationStatus();
         try {
             OperationStatus r = db.put(null, k, v);
@@ -250,7 +253,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
                     c = comp.compare(current, max);
                 }
                 if (c <= 0) {
-                    next = createTuple(current, dataEntry.getData());
+                    next = createTuple(current, ByteConversion.createByteBuffer(dataEntry.getData()));
                     stats.add(dataEntry.getData().length);
                 } else { // end of the loop
                     next = null;
@@ -273,7 +276,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
          * @return A new tuple of type T created from the raw data key and
          *         value.
          */
-        protected abstract T createTuple(byte[] key, byte[] value);
+        protected abstract T createTuple(byte[] key, ByteBuffer value);
 
         public T next() {
             synchronized (keyEntry) {
@@ -396,7 +399,7 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements OBStore 
         }
 
         @Override
-        protected TupleBytes createTuple(byte[] key, byte[] value) {
+        protected TupleBytes createTuple(byte[] key,  ByteBuffer value) {
             return new TupleBytes(key, value);
         }
     }

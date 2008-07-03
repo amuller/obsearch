@@ -12,6 +12,7 @@ import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.UndefinedPivotsException;
 import org.ajmm.obsearch.stats.Statistics;
+import org.ajmm.obsearch.storage.OBStoreFactory;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -209,20 +210,22 @@ public interface Index < O extends OB > {
     void close() throws OBException;
 
     /**
-     * Returns the total number of boxes this index can hold.
+     * Returns the total number of boxes this index can hold. This is an
+     * optional operation, not all indexes need to support this.
      * @return The total number of boxes the index can eventually support.
      */
-    int totalBoxes();
+    long totalBoxes();
 
     /**
-     * Returns the box where the given object is stored.
+     * Returns the box where the given object is stored. This is an optional
+     * operation, not all indexes need to support this.
      * @param object
      *                The object to be analyzed
      * @return The box that corresponds to object
      * @throws OBException
      *                 User generated exception
      */
-    int getBox(O object) throws OBException;
+    long getBox(O object) throws OBException;
 
     /**
      * Returns the database size.
@@ -245,12 +248,12 @@ public interface Index < O extends OB > {
     long databaseSizeMSet() throws OBStorageException;
 
     /**
-     * This method *must* be called after de-serializing the database object.
-     * Index implementations should store internally the location of the
-     * database, but this method allows you to override this. If the given value
-     * is null, the internally stored path will be used.
-     * @param dbPath
-     *                New database path, or null if the default is to be used
+     * This method *must* be called after de-serializing the database object and after
+     * instantiating the index.
+     * This method is called by the {@link #org.obsearch.ambient.Ambient}, users
+     * do not need to worry about this method.
+     * @param fact
+     *                The storage factory that will be used to store the data.
      * @throws OBStorageException
      *                 If something goes wrong with the DB
      * @throws OBException
@@ -266,39 +269,9 @@ public interface Index < O extends OB > {
      * @throws IOException
      *                 if the index serialization process fails
      */
-    void relocateInitialize(File dbPath) throws OBStorageException,
+    void init(OBStoreFactory fact) throws OBStorageException,
             NotFrozenException, IllegalAccessException, InstantiationException,
-            OBException, IOException;
-
-    /**
-     * Generates an XML representation of this index suitable for serialization.
-     * The data itself is not serialized, only the metadata necessary to allow
-     * this index to be frozen.
-     * @return An String containing an XML file that represents the serializable
-     *         fields of this object.
-     */
-    String toXML();
-
-    /**
-     * The name of the file in which the meta-data is stored.
-     */
-    String METADATA_FILENAME = "ob.xml";
-
-    /**
-     * Instantiates an object from a byte stream. This method should only be
-     * used by OBSearch. You normally should not use this method.
-     * @param in
-     *                Byte Stream from which the object will be loaded
-     * @return An object created from the given stream
-     * @throws IllegalAccessException
-     *                 If there is a problem when instantiating objects O
-     * @throws InstantiationException
-     *                 If there is a problem when instantiating objects O
-     * @throws OBException
-     *                 User generated exception
-     */
-    O readObject(DataInputStream in) throws InstantiationException,
-            IllegalAccessException, OBException;
+            OBException, IOException;    
 
     /**
      * Resets all the stats counters.
@@ -311,7 +284,7 @@ public interface Index < O extends OB > {
     Statistics getStats();
 
     /**
-     * Size in bytes of the IDs used in OBSearch.
+     * Size in bytes of the object IDs used in OBSearch.
      */
     int ID_SIZE = Long.SIZE / 8;
 }

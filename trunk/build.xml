@@ -36,7 +36,8 @@
 			<fmpp
               sourceRoot="${in}" outputRoot="${out}"
               data="types: csv(${defs}/Types.csv)"
-				      excludes="Types.csv">
+				      excludes="Types.csv"				
+              freemarkerlinks="inc: ${defs}/include/"> <!-- Add the library includes -->
      </fmpp>
 	</target>
 

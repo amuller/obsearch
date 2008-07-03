@@ -5,6 +5,7 @@
 <@pp.changeOutputFile name="Tuple"+Type+".java" />
 package org.ajmm.obsearch.storage;
 import org.ajmm.obsearch.storage.Tuple;
+import java.nio.ByteBuffer;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -38,7 +39,7 @@ public final class Tuple${Type} extends Tuple{
     
     
 
-    public Tuple${Type}(${type} key, byte[] value) {
+    public Tuple${Type}(${type} key, ByteBuffer value) {
 				super(value);
         this.key = key;
     }

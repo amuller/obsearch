@@ -13,6 +13,7 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import com.sleepycat.je.DatabaseException;
+import java.util.Iterator;
 
 
 /*
@@ -113,8 +114,9 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          * For an object, it returns the boxes that have to be searched based on
          * a certain range. Some index implementations will return the boxes in
          * a special order to optimize matching performance. Do not change the
-         * order of the returned boxes. <b>You should normally use this method.
-         * This is intended to be used by OBSearch indexes</b>
+         * order of the returned boxes. <b>You should normally not use this method.
+         * This is intended to be used by OBSearch indexes</b> This is an optional 
+         * operation, not all indexes need to support this.
          * @param object
          *            The object that will be analyzed
          * @param r
@@ -139,7 +141,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          *             If the distance of any object to any other object exceeds
          *             the range defined by the user.
          */
-		int[] intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+		Iterator<Long> intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException ;
 
 

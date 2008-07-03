@@ -7,8 +7,8 @@ package org.ajmm.obsearch.storage;
 
 import java.util.Iterator;
 import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.Result;
-
+import org.ajmm.obsearch.OperationStatus;
+import java.nio.ByteBuffer;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -51,7 +51,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    byte[] getValue(${type}  key) throws IllegalArgumentException, OBStorageException;
+    ByteBuffer getValue(${type}  key) throws IllegalArgumentException, OBStorageException;
     
     /**
      * Process the given range of items (from low to high), including low and high. The TupleProcessor's process
@@ -77,12 +77,12 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.Result.Status#OK} the record
+     * @return {@link org.ajmm.obsearch.OperationStatus.Status#OK} the record
      * was inserted/updated successfully.
-     *               {@link org.ajmm.obsearch.Result.Status#ERROR} if
+     *               {@link org.ajmm.obsearch.OperationStatus.Status#ERROR} if
      * the record could not be updated.
      */
-    Result put(${type} key, byte[] value) throws OBStorageException;
+    OperationStatus put(${type} key, ByteBuffer value) throws OBStorageException;
 
 		/**
      * Deletes the given key and its corresponding value from the database.
@@ -92,10 +92,10 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.Result.Status#OK} if the key was found,
-     *         otherwise, {@link org.ajmm.obsearch.Result.Status#NOT_EXISTS}.
+     * @return {@link org.ajmm.obsearch.OperationStatus.Status#OK} if the key was found,
+     *         otherwise, {@link org.ajmm.obsearch.OperationStatus.Status#NOT_EXISTS}.
      */
-    Result delete(${type} key)throws OBStorageException;
+    OperationStatus delete(${type} key)throws OBStorageException;
     
 }
 

@@ -42,7 +42,6 @@ package org.ajmm.obsearch.storage.bdb;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.ajmm.obsearch.Result;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.storage.OBStore${Type};
 import org.ajmm.obsearch.storage.Tuple${Type};
@@ -55,6 +54,7 @@ import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.OperationStatus;
+import java.nio.ByteBuffer;
 
 /** 
 	*  BDBOBStore${Type} is a wrapper for Berkeley indexes that assumes
@@ -81,7 +81,7 @@ public final class BDBOBStore${Type}
         super(name, db, seq);
     }
 
-    public Result delete(${type} key) throws OBStorageException {
+    public org.ajmm.obsearch.OperationStatus delete(${type} key) throws OBStorageException {
         return super.delete(getBytes(key));
     }
 
@@ -108,12 +108,12 @@ public final class BDBOBStore${Type}
         return in.read${binding2}();
     }
 
-    public byte[] getValue(${type} key) throws IllegalArgumentException,
+    public ByteBuffer getValue(${type} key) throws IllegalArgumentException,
             OBStorageException {
         return super.getValue(getBytes(key));
     }
 
-    public Result put(${type} key, byte[] value) throws IllegalArgumentException,
+    public org.ajmm.obsearch.OperationStatus put(${type} key, ByteBuffer value) throws IllegalArgumentException,
             OBStorageException {
         return super.put(getBytes(key), value);
     }
@@ -148,7 +148,7 @@ public final class BDBOBStore${Type}
 						super(null, null,true);
         }
 
-				protected Tuple${Type} createTuple(byte[] key, byte[] value) {
+				protected Tuple${Type} createTuple(byte[] key, ByteBuffer value) {
             return new Tuple${Type}(bytesToValue(key),value);
         }
     }

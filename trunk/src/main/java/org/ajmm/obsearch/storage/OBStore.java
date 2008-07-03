@@ -2,6 +2,7 @@ package org.ajmm.obsearch.storage;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.ajmm.obsearch.OperationStatus;
@@ -61,7 +62,7 @@ public interface OBStore<T extends Tuple> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    byte[] getValue(byte[] key) throws IllegalArgumentException,
+    ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
             OBStorageException;
 
     /**
@@ -78,7 +79,7 @@ public interface OBStore<T extends Tuple> {
      * @return {@link org.ajmm.obsearch.Status#OK} the record was inserted/updated successfully.
      *               {@link org.ajmm.obsearch.Status#ERROR} if the record could not be updated.
      */
-    OperationStatus put(byte[] key, byte[] value) throws OBStorageException;
+    OperationStatus put(byte[] key, ByteBuffer value) throws OBStorageException;
 
    
 
@@ -158,4 +159,8 @@ public interface OBStore<T extends Tuple> {
      * @throws OBStorageException
      */
     Iterator<T> processAll()throws OBStorageException;
+    
+    // TODO: For File mappings we might need to create a function that allows
+    //            the user to expand the size of the buffer by some %. 
+    //            We don't need this right now but the current architecture will support this.
 }
