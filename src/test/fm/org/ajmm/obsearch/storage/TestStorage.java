@@ -13,6 +13,7 @@
 <@pp.changeOutputFile name="StorageValidation"+Type+".java" />
 package org.ajmm.obsearch.storage;
 
+import net.obsearch.constants.bytes.ByteConversion;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -79,11 +80,11 @@ public class StorageValidation${Type} extends TestCase {
         }
 
         for(${type} j : testData.keySet()){
-            storage.put(j, testData.get(j));
+            storage.put(j, ByteConversion.createByteBuffer(testData.get(j)));
         }               
         // test that all the data is there:
         for(${type} j : testData.keySet()){               
-             assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
+						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
         }         
         
         // do a range search       
@@ -93,7 +94,7 @@ public class StorageValidation${Type} extends TestCase {
         ${type} prev = ${Type2}.MIN_VALUE;
         while(it.hasNext()){
             Tuple${Type} t = it.next();
-            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue()));
+            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
             if(first){
                 prev = t.getKey();
                 first = false;
@@ -111,11 +112,11 @@ public class StorageValidation${Type} extends TestCase {
         for(${type} j : testData.keySet()){
             String d = x.nextDouble() + "";
             testData.put(j,d.getBytes());
-            storage.put(j, d.getBytes());
+            storage.put(j, ByteConversion.createByteBuffer(d.getBytes()));
         }          
         // test that all the new  data is there:
         for(${type} j : testData.keySet()){               
-             assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
+						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
         }    
         
         // Test deletes:

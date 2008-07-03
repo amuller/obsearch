@@ -1,4 +1,4 @@
-package net.obsearch;
+package net.obsearch.index;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -24,9 +24,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import net.obsearch.ob.MultiplicityAware;
+import net.obsearch.utils.bytes.ByteConversion;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
@@ -47,12 +50,21 @@ import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreLong;
 
+import com.thoughtworks.xstream.XStream;
+
 /**
- * AbstractOBIndex contains functionality regarding object storage. The search
- * index should be implemented deeper in the hierarchy.
+ * AbstractOBIndex contains functionality regarding object storage. Children of
+ * this class should define a way of searching those objects. This class
+ * provides default implementations of methods that are considered optional in
+ * the Index interface.
  * @author Arnoldo Jose Muller Molina
  */
 public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
+
+    /**
+     * Statistics related to this index.
+     */
+    protected transient Statistics stats;
 
     /**
      * Objects are stored by their id's here.
@@ -78,15 +90,34 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     private transient OBCacheLong < O > aCache;
 
     /**
+     * True if this index is frozen.
+     */
+    private boolean isFrozen;
+
+    /**
      * The type used to instantiate objects of type O.
      */
     private Class < O > type;
 
-    protected AbstractOBIndex(OBStoreFactory fact, Class < O > type)
-            throws OBStorageException, OBException {
-        this.fact = fact;
+    /**
+     * Constructors of an AbstractOBIndex should receive only parameters related
+     * to the operation of the index. The factory and the initialization will be
+     * executed by {@link #init(OBStoreFactory)}
+     * @param type
+     * @throws OBStorageException
+     * @throws OBException
+     */
+    protected AbstractOBIndex(Class < O > type) throws OBStorageException,
+            OBException {
         this.type = type;
-        init();
+    }
+    
+    /**
+     * Returns the type of the object to be stored.
+     * @return {@link #type}
+     */
+    protected final Class < O > getType(){
+        return type;
     }
 
     /**
@@ -94,7 +125,10 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * @throws OBStorageException
      * @throws OBException
      */
-    protected void init() throws OBStorageException, OBException {
+    public void init(OBStoreFactory fact) throws OBStorageException,
+    OBException, NotFrozenException, 
+    IllegalAccessException, InstantiationException, OBException {
+        this.fact = fact;
         initStorageDevices();
         initCache();
     }
@@ -133,12 +167,12 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
         public O loadObject(long i) throws OBException, InstantiationException,
                 IllegalAccessException, IllegalIdException {
 
-            byte[] data = A.getValue(i);
+            ByteBuffer data = A.getValue(i);
             if (data == null) {
                 throw new IllegalIdException(i);
             }
 
-            return instantiateObject(data);
+            return bytesToObject(data.array());
         }
 
     }
@@ -146,7 +180,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     /**
      * Instantiates an object O from the given data array.
      */
-    protected O instantiateObject(byte[] data) throws OBException,
+    protected O bytesToObject(byte[] data) throws OBException,
             InstantiationException, IllegalAccessException, IllegalIdException {
         O res = type.newInstance();
         ByteArrayInputStream in = new ByteArrayInputStream(data);
@@ -196,7 +230,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
             IllegalAccessException, InstantiationException, NotFrozenException {
         if (this.isFrozen()) {
             OperationStatus res = deleteAux(object);
-            if (res.getStatus() == Status.OK) {                
+            if (res.getStatus() == Status.OK) {
                 this.A.delete(res.getId());
             }
             return res;
@@ -207,7 +241,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /**
      * Deletes the entry of this object in the index. The current class will
-     * remove the object from A if the result status is {@link org.ajmm.obsearch.Status#OK}.
+     * remove the object from A if the result status is
+     * {@link org.ajmm.obsearch.Status#OK}.
      * @param object
      *                object to be deleted.
      * @return {@link org.ajmm.obsearch.Status#OK} if the object was deleted.
@@ -223,110 +258,94 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     public OperationStatus deleteSingle(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException,
             NotFrozenException {
-        if(object instanceof MultiplicityAware){
+        if (object instanceof MultiplicityAware) {
             // find the id of the object.
-            OperationStatus res  = findAux(object);
-            if(res.getStatus() == Status.OK){
-                O  obj = getObject(res.getId());
+            OperationStatus res = findAux(object);
+            if (res.getStatus() == Status.OK) {
+                O obj = getObject(res.getId());
                 MultiplicityAware m = (MultiplicityAware) obj;
-                if(m.getMultiplicity() == 1){
-                    // delete the object if multiplicity becomes 0 after this delete.
+                if (m.getMultiplicity() == 1) {
+                    // delete the object if multiplicity becomes 0 after this
+                    // delete.
                     return delete(object);
-                }else{
+                } else {
                     // reduce the multiplicity
                     m.decrementMultiplicity();
                     // update the object in the DB.
-                    A.put(res.getId(), objectToBytes(obj));
+                    A.put(res.getId(), ByteConversion
+                            .createByteBuffer(objectToBytes(obj)));
                     return res;
                 }
             }
             return res;
-            
-        }else{
+
+        } else {
             return delete(object);
         }
     }
-    
+
     /**
      * Converts an object into an array of bytes.
-     * @param object Object to convert.
+     * @param object
+     *                Object to convert.
      * @return The bytes array representation of the object.
      */
-    protected byte[] objectToBytes(O object) throws OBException{
+    protected byte[] objectToBytes(O object) throws OBException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataOutputStream outD = new DataOutputStream(out);
-        try{
+        try {
             object.store(outD);
             outD.close();
-        }catch(IOException e){
+        } catch (IOException e) {
             throw new OBException(e);
         }
-        
+
         return out.toByteArray();
     }
-    
+
+    protected ByteBuffer objectToByteBuffer(O object) throws OBException {
+        return ByteConversion.createByteBuffer(objectToBytes(object));
+    }
+
     /*
      * (non-Javadoc)
      * @see org.ajmm.obsearch.Index#getObject(long)
-     */    
+     */
     @Override
-    public O getObject(long id) throws  IllegalIdException,
+    public O getObject(long id) throws IllegalIdException,
             IllegalAccessException, InstantiationException, OBException {
         // get the object from A, this is easy.
         return aCache.get(id);
-    }    
-    
-    
+    }
+
     /**
      * Find the Id of the given object. (the distance 0 is considered as equal)
-     * @param object The object to search
-     * @return {@link #org.ajmm.obsearch.Status.OK} if the object is found (with the id)
-     *                otherwise, {@link org.ajmm.obsearch.Status.NOT_EXISTS}
+     * @param object
+     *                The object to search
+     * @return {@link org.ajmm.obsearch.Status#OK} if the object is found (with
+     *         the id) otherwise, {@link org.ajmm.obsearch.Status#NOT_EXISTS}
      * @throws IllegalIdException
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws OBException
      */
-    protected abstract OperationStatus  findAux(O object) throws  IllegalIdException,
-            IllegalAccessException, InstantiationException, OBException ;
-    
-        
-    
+    protected abstract OperationStatus findAux(O object)
+            throws IllegalIdException, IllegalAccessException,
+            InstantiationException, OBException;
 
     /*
      * (non-Javadoc)
      * @see org.ajmm.obsearch.Index#exists(org.ajmm.obsearch.OB)
      */
     @Override
-    public OperationStatus exists(OB object) throws OBStorageException,
+    public OperationStatus exists(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException {
-        // TODO Auto-generated method stub
-        return null;
+        OperationStatus t = findAux(object);
+        if (t.getStatus() == Status.OK) {
+            t.setStatus(Status.EXISTS);
+        }
+        return t;
     }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#freeze()
-     */
-    @Override
-    public void freeze() throws IOException, AlreadyFrozenException,
-            IllegalIdException, IllegalAccessException, InstantiationException,
-            OBStorageException, OutOfRangeException, OBException {
-        // TODO Auto-generated method stub
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#getBox(org.ajmm.obsearch.OB)
-     */
-    @Override
-    public int getBox(OB object) throws OBException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    
 
     /*
      * (non-Javadoc)
@@ -334,8 +353,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      */
     @Override
     public Statistics getStats() {
-        // TODO Auto-generated method stub
-        return null;
+        return stats;
     }
 
     /*
@@ -343,10 +361,100 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * @see org.ajmm.obsearch.Index#insert(org.ajmm.obsearch.OB)
      */
     @Override
-    public OperationStatus insert(OB object) throws OBStorageException,
+    public OperationStatus insert(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException {
-        // TODO Auto-generated method stub
-        return null;
+        OperationStatus res = new OperationStatus();
+        res.setStatus(Status.OK);
+        if (this.isFrozen()) {
+            res = exists(object);
+            if (res.getStatus() == Status.NOT_EXISTS) {
+                // must insert object into A before the index is updated
+                long id = A.nextId();
+                this.A.put(id, objectToByteBuffer(object));
+                // update the index:
+                res = insertAux(id, object);
+                res.setId(id);
+            }
+            // check again if the Status is Exists (there might have been an
+            // insertion)
+            if (res.getStatus() == Status.EXISTS) {
+                if (object instanceof MultiplicityAware) {
+                    O obj = getObject(res.getId());
+                    MultiplicityAware m = (MultiplicityAware) obj;
+                    m.incrementMultiplicity();
+                    A.put(res.getId(), ByteConversion
+                            .createByteBuffer(objectToBytes(obj)));
+
+                }
+                // no multiplicity, simply ignore the situation.
+            }
+        } else { // before freeze
+            // we keep track of objects that have been inserted
+            // based on their binary signature.
+            // TODO: maybe change this to a hash to avoid the problem
+            // with objects that have multiplicity.
+            byte[] key = objectToBytes(object);
+            ByteBuffer value = this.preFreeze.getValue(key);
+            if (value == null) {
+                long id = A.nextId();
+                res.setId(id);
+                preFreeze.put(key, ByteConversion.longToByteBuffer(id));
+            } else {
+                res.setStatus(Status.EXISTS);
+                res.setId(ByteConversion.byteBufferToLong(value));
+            }
+
+            // insert the object in A if everything is OK.
+            if (res.getStatus() == Status.OK) {
+                this.A.put(res.getId(), objectToByteBuffer(object));
+            }
+
+        }
+        return res;
+    }
+
+    /**
+     * Inserts the given object into the particular index. The caller inserts
+     * the actual object so the implementing class only has to worry about
+     * adding the id in the appropiate place inside the index.
+     * @param id
+     *                The id that will be used to insert the object.
+     * @param object
+     *                The object that will be inserted.
+     * @return If {@link org.ajmm.obsearch.Status#OK} or
+     *         {@link org.ajmm.obsearch.Status#EXISTS} then the result will hold
+     *         the id of the inserted object and the operation is successful.
+     *         Otherwise an exception will be thrown.
+     * @throws OBStorageException
+     * @throws OBException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
+    protected abstract OperationStatus insertAux(long id, O object)
+            throws OBStorageException, OBException, IllegalAccessException,
+            InstantiationException;
+
+    /**
+     * @see org.ajmm.obsearch.Index#freeze()
+     */
+    @Override
+    public void freeze() throws IOException, AlreadyFrozenException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBStorageException, OutOfRangeException, OBException {
+        if(isFrozen()){
+            // TODO: allow indexes to freeze multiple times.
+            throw new AlreadyFrozenException();
+        }
+        this.isFrozen = true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ajmm.obsearch.Index#getBox(org.ajmm.obsearch.OB)
+     */
+    @Override
+    public long getBox(O object) throws OBException {
+        throw new UnsupportedOperationException();
     }
 
     /*
@@ -355,31 +463,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      */
     @Override
     public boolean isFrozen() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#readObject(java.io.DataInputStream)
-     */
-    @Override
-    public O readObject(DataInputStream in) throws InstantiationException,
-            IllegalAccessException, OBException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#relocateInitialize(java.io.File)
-     */
-    @Override
-    public void relocateInitialize(File dbPath) throws OBStorageException,
-            NotFrozenException, IllegalAccessException, InstantiationException,
-            OBException, IOException {
-        // TODO Auto-generated method stub
-
+        return this.isFrozen;
     }
 
     /*
@@ -388,18 +472,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      */
     @Override
     public void resetStats() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#toXML()
-     */
-    @Override
-    public String toXML() {
-        // TODO Auto-generated method stub
-        return null;
+        stats.resetStats();
     }
 
     /*
@@ -407,9 +480,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * @see org.ajmm.obsearch.Index#totalBoxes()
      */
     @Override
-    public int totalBoxes() {
-        // TODO Auto-generated method stub
-        return 0;
+    public long totalBoxes() {
+        throw new UnsupportedOperationException();
     }
 
 }

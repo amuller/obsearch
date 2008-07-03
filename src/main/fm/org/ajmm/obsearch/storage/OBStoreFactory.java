@@ -1,3 +1,4 @@
+<#include "/@inc/ob.ftl">
 package org.ajmm.obsearch.storage;
 import org.ajmm.obsearch.exception.OBStorageException;
 /*
@@ -45,8 +46,7 @@ public interface OBStoreFactory {
     
     
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
+<@type_info t=t/>
     /**
      * Creates an OBStore${Type} whose key is based on ${type}s.
      * @param name The name of the database.

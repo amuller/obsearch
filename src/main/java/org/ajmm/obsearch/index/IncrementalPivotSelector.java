@@ -55,7 +55,7 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @throws PivotsUnavailableException
      *             If not all the pivots requested were found.
      */
-    int[] generatePivots(short pivotCount, Index<O> index) throws OBException,
+    int [] generatePivots(int pivotCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException;
 
@@ -66,7 +66,7 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @param elements
      * @return A list of the ids of the pivots.
      */
-    int[] generatePivots(short pivotCount, IntArrayList elements,  Index<O> index) throws OBException,
+    int[] generatePivots(int pivotCount, IntArrayList elements,  Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException; 
 }

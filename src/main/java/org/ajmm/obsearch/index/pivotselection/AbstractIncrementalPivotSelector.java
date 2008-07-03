@@ -105,7 +105,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
     protected int max(IntArrayList source, Index < O > index)throws OBStorageException, DatabaseException{
         int max;
         if (source == null) {
-            max = index.databaseSize();
+            max = (int)Math.min(index.databaseSize(), Integer.MAX_VALUE);
         } else {
             max = source.size();            
         }

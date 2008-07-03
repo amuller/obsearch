@@ -78,18 +78,18 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     protected abstract void resetCache(int l);
 
     @Override
-    public int[] generatePivots(short pivotCount, IntArrayList elements,
+    public int[] generatePivots(int pivotCount, IntArrayList elements,
             Index < O > index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
         try {
-            int lLocal = Math.min(l, index.databaseSize());
-            int mLocal = Math.min(m, index.databaseSize());
+            int lLocal = (int)Math.min(l, index.databaseSize());
+            int mLocal = (int)Math.min(m, index.databaseSize());
             // do not process more than the amount of pivots in the DB.
             resetCache(lLocal);
             int max;
             if (elements == null) {
-                max = index.databaseSize();
+                max = (int)Math.min(index.databaseSize(), Integer.MAX_VALUE);
             } else {
                 max = elements.size();
             }
