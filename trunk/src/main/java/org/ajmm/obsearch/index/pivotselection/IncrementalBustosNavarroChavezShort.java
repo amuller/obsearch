@@ -44,7 +44,7 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     /**
      * Keeps track of the SMAP values of objects.
      */
-    private HashMap<Integer, short[]> smapCache;
+    private HashMap<Long, short[]> smapCache;
     
     /**
      * Receives the object that accepts pivots as possible candidates. Selects l
@@ -57,11 +57,11 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     public IncrementalBustosNavarroChavezShort(Pivotable < O > pivotable,
             int l, int m) {
         super(pivotable, l , m);
-        smapCache = new HashMap<Integer, short[]>(l);
+        smapCache = new HashMap<Long, short[]>(l);
     }
 
     @Override
-    protected double calculateMedian(int[] pivots, int[] x, int[] y, Index<O> index) throws DatabaseException,
+    protected double calculateMedian(long[] pivots, long[] x, long[] y, Index<O> index) throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException{
         StaticBin1D data = new StaticBin1D();  
@@ -77,10 +77,10 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     }
     
     protected void resetCache(int x){
-        smapCache = new HashMap<Integer, short[]>(x);
+        smapCache = new HashMap<Long, short[]>(x);
     }
     
-    private short[] getTuple(int[] pivots, int id, Index<OBShort>index  )throws DatabaseException,
+    private short[] getTuple(long[] pivots, long id, Index<OBShort>index  )throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException{
         short[] t = smapCache.get(id);
@@ -103,7 +103,7 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
      * @see org.ajmm.obsearch.index.pivotselection.AbstractIncrementalBustosNavarroChavez#validatePivots(int[], int)
      */
     @Override
-    protected boolean validatePivots(int[] pivots, int id, Index<O> index) throws DatabaseException,
+    protected boolean validatePivots(long[] pivots, long id, Index<O> index) throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException {
         short[] real = ShortUtils.getTuple(pivots, id, index);

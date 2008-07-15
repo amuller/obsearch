@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import com.sleepycat.je.DatabaseException;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -78,7 +79,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     protected abstract void resetCache(int l);
 
     @Override
-    public int[] generatePivots(int pivotCount, IntArrayList elements,
+    public long[] generatePivots(int pivotCount, LongArrayList elements,
             Index < O > index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
@@ -93,23 +94,23 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             } else {
                 max = elements.size();
             }
-            IntArrayList pivotList = new IntArrayList(pivotCount);
+            LongArrayList pivotList = new LongArrayList(pivotCount);
             Random r = new Random();
             // select m objects from which we will select pivots
             int i = 0;
             
-            int[] x = select(lLocal, r, elements, index, null);
-            int[] y = select(lLocal, r, elements, index, null);
+            long[] x = select(lLocal, r, elements, index, null);
+            long[] y = select(lLocal, r, elements, index, null);
             
             
             while (i < pivotCount) {
-                int[] possiblePivots = select(mLocal, r, elements, index, pivotList);
+                long[] possiblePivots = select(mLocal, r, elements, index, pivotList);
                 // select l pairs of objects to validate the pivots.
               
                 // select the pivot in possiblePivots that maximizes the median
                 // projected distances.
                 logger.debug("Selecting pivot: " + i);
-                int selectedPivot = selectPivot(pivotList, possiblePivots, x,
+                long selectedPivot = selectPivot(pivotList, possiblePivots, x,
                         y, index);
                 pivotList.add(selectedPivot);
                 i++;
@@ -119,7 +120,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
 
             // return the pivots.
             pivotList.trimToSize();
-            int[] result = pivotList.elements();
+            long[] result = pivotList.elements();
             // validate selected pivots.
             assert validatePivots(result, x[0], index);
             
@@ -148,7 +149,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      * @param id Id of the object 
      * @param index Index from which we will load objects.
      */
-    protected abstract boolean validatePivots(int[] pivots, int id, Index<O> index)throws DatabaseException,
+    protected abstract boolean validatePivots(long[] pivots, long id, Index<O> index)throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException ;
 
@@ -165,18 +166,18 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      *                (right item of the pair)
      * @return The best element in possiblePivots
      */
-    private int selectPivot(IntArrayList previousPivots, int[] possiblePivots,
-            int[] x, int[] y, Index < O > index) throws DatabaseException,
+    private long selectPivot(LongArrayList previousPivots, long[] possiblePivots,
+            long[] x, long[] y, Index < O > index) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException {
         double bestMedian = Double.MIN_VALUE;
-        int bestPivot = -1;
+        long bestPivot = -1;
         previousPivots.trimToSize();
-        int[] pivots = Arrays.copyOf(previousPivots.elements(), previousPivots
+        long[] pivots = Arrays.copyOf(previousPivots.elements(), previousPivots
                 .size() + 1);
         // initialize pivots.
 
-        for (int pivotId : possiblePivots) {
+        for (long pivotId : possiblePivots) {
             pivots[pivots.length - 1] = pivotId;
             double median = calculateMedian(pivots, x, y, index);
             if (median > bestMedian) {
@@ -203,7 +204,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      *                The underlying index (used to extract the objects and
      *                calculate the distances)
      */
-    protected abstract double calculateMedian(int[] pivots, int[] x, int[] y,
+    protected abstract double calculateMedian(long[] pivots, long[] x, long[] y,
             Index < O > index) throws DatabaseException, IllegalIdException,
             IllegalAccessException, InstantiationException, OBException;
 
@@ -220,13 +221,13 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      * @param will not add pivots included in excludes.
      * @return The ids of selected objects.
      */
-    private int[] select(int k, Random r, IntArrayList source, Index < O > index, IntArrayList excludes)
+    private long[] select(int k, Random r, LongArrayList source, Index < O > index, LongArrayList excludes)
             throws OBStorageException, DatabaseException {
         int max = max(source, index);
-        int[] res = new int[k];
+        long[] res = new long[k];
         int i = 0;
         while (i < res.length) {
-            int id = mapId(r.nextInt(max), source);
+            long id = mapId(r.nextInt(max), source);
             if(excludes == null || ! excludes.contains(id)){
                 res[i] = id;
             }else{

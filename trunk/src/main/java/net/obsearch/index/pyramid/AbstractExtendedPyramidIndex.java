@@ -1,16 +1,38 @@
-package org.ajmm.obsearch.index;
+package net.obsearch.index.pyramid;
 
 import hep.aida.bin.QuantileBin1D;
+import hep.aida.bin.StaticBin1D;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Iterator;
+
+import net.obsearch.index.pivot.AbstractPivotOBIndex;
 
 import org.ajmm.obsearch.OB;
+import org.ajmm.obsearch.exception.AlreadyFrozenException;
+import org.ajmm.obsearch.exception.IllegalIdException;
+import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
+import org.ajmm.obsearch.index.AbstractPivotIndex;
+import org.ajmm.obsearch.index.IncrementalPivotSelector;
+import org.ajmm.obsearch.index.PivotSelector;
+import org.ajmm.obsearch.storage.CloseIterator;
+import org.ajmm.obsearch.storage.OBStore;
+import org.ajmm.obsearch.storage.OBStoreDouble;
+import org.ajmm.obsearch.storage.OBStoreFactory;
+import org.ajmm.obsearch.storage.OBStoreLong;
+import org.ajmm.obsearch.storage.TupleBytes;
+import org.ajmm.obsearch.storage.TupleDouble;
+import org.ajmm.obsearch.storage.TupleLong;
 import org.apache.log4j.Logger;
 
-import cern.colt.list.FloatArrayList;
+import cern.colt.list.DoubleArrayList;
+import cern.colt.list.DoubleArrayList;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.TupleInput;
@@ -47,13 +69,13 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * This Index uses the extended pyramid technique and SMAP to store arbitrary
  * objects.
  * @param <O>
- *            The type of object to be stored in the Index.
+ *                The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
 @XStreamAlias("ExtendedPyramidIndex")
 public abstract class AbstractExtendedPyramidIndex < O extends OB >
-        extends AbstractPivotIndex < O > {
+        extends AbstractPivotOBIndex < O > {
 
     /**
      * Used to access the first item of a two item array.
@@ -78,59 +100,53 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Logger.
      */
-    private static final transient Logger logger = Logger
-            .getLogger(AbstractExtendedPyramidIndex.class);
+    // private static final transient Logger logger = Logger
+    // .getLogger(AbstractExtendedPyramidIndex.class);
+    private static Logger logger = Logger
+            .getLogger(AbstractExtendedPyramidIndex.class.getSimpleName());
 
     /**
      * Median points of the extended pyramid technique.
      */
-    protected float[] mp;
+    private double[] mp;
 
     /**
-     * The database where the pyramid values are stored.
+     * Pyramid values
      */
-    protected transient Database cDB;
+    protected OBStoreDouble C;
+
+    /**
+     * Pyramid values
+     */
+    protected OBStoreLong B;
 
     /**
      * Constructs an extended pyramid index.
-     * @param databaseDirectory
-     *            the database directory
-     * @param pivots
-     *            how many pivots will be used
-     * @param pivotSelector
-     *                The pivot selector that will be used by this index.
-     * @param type The class of the object O that will be used.                 
-     * @throws DatabaseException
-     *             If a database error occurs.
-     * @throws IOException
-     *             If a serialization issue occurs.
      */
-    public AbstractExtendedPyramidIndex(final File databaseDirectory,
-            final short pivots, PivotSelector < O > pivotSelector, Class<O> type) throws DatabaseException, IOException {
-        super(databaseDirectory, pivots, pivotSelector,type); // initializes the databases
-        mp = new float[super.pivotsCount];
+    public AbstractExtendedPyramidIndex(Class < O > type,
+            IncrementalPivotSelector < O > pivotSelector, int pivotCount)
+            throws OBStorageException, OBException {
+        super(type, pivotSelector, pivotCount); // initializes the databases
+        mp = new double[super.getPivotCount()];
     }
 
-    /**
-     * This method will be called by the super class. Initializes the C
-     * database(s).
-     * @throws DatabaseException
-     *             If a database error occurs.
-     */
-    //TODO: insert the keys in C in order to increase performance.
-    //           I read somewhere that Berkeley DB works better if you do so.
+    public void init(OBStoreFactory fact) throws OBStorageException,
+            OBException, NotFrozenException, IllegalAccessException,
+            InstantiationException, OBException {
+        super.init(fact);
+        this.C = fact.createOBStoreDouble("C", false, true);
+        if (!this.isFrozen()) {
+            this.B = fact.createOBStoreLong("B", true, false);
+        }
+
+    }
+
     @Override
-    protected final void initC() throws DatabaseException {
-        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
+    public void close() throws OBException {
+        C.close();
+        B.close();
+        super.close();
         
-        dbConfig.setSortedDuplicates(true);
-        dbConfig.setTransactional(false);
-        cDB = databaseEnvironment.openDatabase(null, "C", dbConfig);
-                
-        //PreloadConfig pc = new PreloadConfig();
-        //pc.setLoadLNs(true);
-        // TODO: remove this comment?
-       //cDB.preload(pc);
     }
 
     /**
@@ -139,93 +155,133 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * of the data Using Colt's QuantileBin1D to extract the median. It allows
      * an approximate but memory friendly processing! :)
      * @throws DatabaseException
-     *             If a database error occurs.
+     *                 If a database error occurs.
      * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
+     *                 If there is a problem when instantiating objects O
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
      * @throws OBException
-     *             User generated exception
+     *                 User generated exception
      */
-    @Override
-    protected void calculateIndexParameters() throws DatabaseException,
-            IllegalAccessException, InstantiationException,
-            OutOfRangeException, OBException {
-        long count = super.bDB.count();
+    protected void calculateIndexParameters() throws IllegalAccessException,
+            InstantiationException, OutOfRangeException, OBException {
+
         // each median for each dimension will be stored in this array
-        QuantileBin1D[] medianHolder = createMedianHolders(count);
-        Cursor cursor = null;
-        DatabaseEntry foundKey = new DatabaseEntry();
-        DatabaseEntry foundData = new DatabaseEntry();
+        QuantileBin1D[] medianHolder = createMedianHolders(B.size());
+        
+        StaticBin1D qt = new StaticBin1D();
 
+
+        CloseIterator < TupleLong > it = this.B.processAll();
         try {
-            int i = 0;
-            cursor = bDB.openCursor(null, null);
-            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                assert i == IntegerBinding.entryToInt(foundKey);
-
-                TupleInput in = new TupleInput(foundData.getData());
-                updateMedianHolder(extractTuple(in), medianHolder);
-                i++;
+            while (it.hasNext()) {
+                TupleLong t = it.next();
+                double [] vect = extractTuple(t.getValue());
+                updateMedianHolder(vect, medianHolder);
+                calculateDistances(vect, qt);
             }
-            assert i == count; // pivot count and read # of pivots
-            // should be the same
         } finally {
-            cursor.close();
+            it.closeCursor();
         }
-
+        logger.info("Separation: " + qt.mean() + "std:" + qt.standardDeviation() + " min " + qt.min());
         int i = 0;
         while (i < mp.length) {
             double median = medianHolder[i].median();
             assert median >= 0 && median <= 1;
-            mp[i] = (float) median;
+            mp[i] = median;
             i++;
         }
         logger.debug("Median calculation finished");
     }
+    
+    private void calculateDistances(double[] vector, StaticBin1D medianHolder){
+        Arrays.sort(vector);
+        
+        int i = 0;
+        while(i < vector.length-1){
+            medianHolder.add(Math.abs(vector[i] - vector[i+1]));
+            i++;
+        }
+    }
 
     /**
-     * Extracts the tuple values from in and returns a normalized vector with
-     * values ranging from 1 to 0. Note that this is first level normalization.
-     * The extended pyramid technique algorithm performs another normalization
-     * on top of this one.
+     * Extracts the tuple values from in and leaves the values as doubles. The
+     * resulting values must be normalized.
      * @param in
-     *            Extracts a tuple from the given byte stream.
+     *                Extracts a tuple from the given byte stream.
      * @throws OutOfRangeException
-     *             If the distance of any object to any other object exceeds the
-     *             range defined by the user.
-     * @return A float tuple (the input of the pyramid technique)
+     *                 If the distance of any object to any other object exceeds
+     *                 the range defined by the user.
+     * @return A double tuple (the input of the pyramid technique)
      */
-    protected abstract float[] extractTuple(TupleInput in)
+    protected abstract double[] extractTuple(ByteBuffer in)
             throws OutOfRangeException;
 
+    @Override
+    public void freeze() throws IOException, AlreadyFrozenException,
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBStorageException, OutOfRangeException, OBException {
+        super.freeze();
+        selectPivots();
+        // now process each object and put it in B.
+        CloseIterator < TupleLong > it = A.processAll();
+        try {
+            while (it.hasNext()) {
+                TupleLong tup = it.next();
+                O obj = bytesToObject(tup.getValue());
+                ByteBuffer pivots = objectToProjectionBytes(obj);
+                B.put(tup.getKey(), pivots);
+            }
+        } finally {
+            it.closeCursor();
+        }
+
+        calculateIndexParameters();
+
+        //B.deleteAll();
+
+        it = A.processAll();
+
+        // now we have to insert all the data again.
+        try {
+            while (it.hasNext()) {
+                TupleLong tup = it.next();
+                O obj = bytesToObject(tup.getValue());
+                insertAux(tup.getKey(), obj);
+            }
+        } finally {
+            it.closeCursor();
+        }
+        // done.
+    }
+
     /**
-     * Updates each median holder with the given float tuple.
+     * Updates each median holder with the given double tuple.
      * @param tuple
-     *            TupleInput of floats
+     *                TupleInput of doubles
      * @param medianHolder
-     *            an array of QuantileBin1D objects used to find an approximate
-     *            median.
+     *                an array of QuantileBin1D objects used to find an
+     *                approximate median.
      */
-    protected final void updateMedianHolder(final float[] tuple,
+    protected final void updateMedianHolder(final double[] tuple,
             QuantileBin1D[] medianHolder) {
         int i = 0;
         assert tuple.length == medianHolder.length;
-        assert medianHolder.length == pivotsCount;
+        assert medianHolder.length == super.getPivotCount();
         while (i < medianHolder.length) {
             medianHolder[i].add(tuple[i]);
             i++;
         }
     }
-    
-    protected final void updateFloatHolder(final float[] tuple,
-            FloatArrayList[] medianHolder) {
+
+    protected final void updateDoubleHolder(final double[] tuple,
+            DoubleArrayList[] medianHolder) {
         int i = 0;
         assert tuple.length == medianHolder.length;
-        assert medianHolder.length == pivotsCount;
+        assert medianHolder.length == getPivotCount();
         while (i < medianHolder.length) {
             medianHolder[i].add(tuple[i]);
             i++;
@@ -236,11 +292,11 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * Creates pivotsCount QuantileBin1D objects that will be used to calculate
      * the medians of the data.
      * @param size
-     *            the size of the data to be processed
+     *                the size of the data to be processed
      * @return an array of QuantileBin1D objects
      */
     protected final QuantileBin1D[] createMedianHolders(final long size) {
-        QuantileBin1D[] res = new QuantileBin1D[pivotsCount];
+        QuantileBin1D[] res = new QuantileBin1D[getPivotCount()];
         int i = 0;
         while (i < res.length) {
             // TODO: move these parameters to a centralized
@@ -252,14 +308,14 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         }
         return res;
     }
-    
-    protected final FloatArrayList[] createFloatHolders(int size) {
-        FloatArrayList[] res = new FloatArrayList[pivotsCount];
+
+    protected final DoubleArrayList[] createDoubleHolders(int size) {
+        DoubleArrayList[] res = new DoubleArrayList[getPivotCount()];
         int i = 0;
         while (i < res.length) {
             // TODO: move these parameters to a centralized
             // configuration file.
-            res[i] = new FloatArrayList(size);
+            res[i] = new DoubleArrayList(size);
             i++;
         }
         return res;
@@ -267,30 +323,30 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
 
     /**
      * Normalizes a value in the given dimension. The value must have been
-     * converted into a float [0,1] before using this method
+     * converted into a double [0,1] before using this method
      * @param norm
-     *            Normalizes the value in the given dimension
+     *                Normalizes the value in the given dimension
      * @param i
-     *            Dimension to use.
+     *                Dimension to use.
      * @return Normalized version of the value.
      */
-    protected final float extendedPyramidNormalization(final float norm,
+    protected final double extendedPyramidNormalization(final double norm,
             final int i) {
-        return (float) Math.pow(norm, -1.d / (Math.log(mp[i]) / Math.log(2)));
+        return (double) Math.pow(norm, -1.d / (Math.log(mp[i]) / Math.log(2)));
     }
 
     /**
      * For the given point and the pyramid number we return the height of that
      * point.
      * @param tuple
-     *            tuple to be processed
+     *                tuple to be processed
      * @param pyramidNumber
-     *            which pyramid number will be processed.
+     *                which pyramid number will be processed.
      * @return height of the point
      */
-    protected final float heightOfPoint(final float[] tuple,
+    protected final double heightOfPoint(final double[] tuple,
             final int pyramidNumber) {
-        float res = (float) Math.abs(0.5 - tuple[pyramidNumber % pivotsCount]);
+        double res = Math.abs(0.5 - tuple[pyramidNumber % getPivotCount()]);
         assert res >= 0 && res <= 0.5;
         return res;
     }
@@ -298,12 +354,12 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Returns the pyramid value for the given tuple.
      * @param Normalized
-     *            tuple (first pass)
+     *                tuple (first pass)
      * @return The pyramid value for the given tuple.
      */
-    public final float pyramidValue(final float[] tuple) {
+    public final double pyramidValue(final double[] tuple) {
         int pyramid = pyramidOfPoint(tuple);
-        assert pyramid >= 0 && pyramid < pivotsCount * 2 : " Pyramid value:"
+        assert pyramid >= 0 && pyramid < getPivotCount() * 2 : " Pyramid value:"
                 + pyramid;
         return pyramid + heightOfPoint(tuple, pyramid);
     }
@@ -311,31 +367,31 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Calculates the pyramid # for the given point.
      * @param tuple
-     *            Normalized tuple (first pass)
+     *                Normalized tuple (first pass)
      * @return The pyramid # for the given tuple
      */
-    public final int pyramidOfPoint(final float[] tuple) {
+    public final int pyramidOfPoint(final double[] tuple) {
         int jmax = pyramidOfPointAux(tuple);
         if (tuple[jmax] < 0.5) {
             return jmax;
         } else {
-            return jmax + pivotsCount;
+            return jmax + getPivotCount();
         }
     }
 
     /**
      * For the given tuple, returns the pyramid # for the tuple.
      * @param tuple
-     *            Normalized tuple (first pass)
+     *                Normalized tuple (first pass)
      * @return pyramid # for the given tuple
      */
-    protected final int pyramidOfPointAux(final float[] tuple) {
+    protected final int pyramidOfPointAux(final double[] tuple) {
         int j = 0;
-        assert pivotsCount == tuple.length;
-        while (j < pivotsCount) {
+        assert getPivotCount() == tuple.length;
+        while (j < getPivotCount()) {
             int k = 0;
             boolean failed = false;
-            while (k < pivotsCount && !failed) {
+            while (k < getPivotCount() && !failed) {
                 if (k == j) { // can't process k == j
                     k++;
                     continue;
@@ -364,46 +420,46 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * It also modifies lowHighResult so that we can perform the range
      * accordingly.
      * @param q
-     *            A query rectangle.
+     *                A query rectangle.
      * @param p
-     *            The pyramid number
+     *                The pyramid number
      * @param lowHighResult
-     *            Where the lowHighResult will be stored.
+     *                Where the lowHighResult will be stored.
      * @return True if rectangle q intersects pyramid p
      */
-    protected final boolean intersect(final float[][] q, final int p,
-            float[] minArray, float[] lowHighResult) {
+    protected final boolean intersect(final double[][] q, final int p,
+            double[] minArray, double[] lowHighResult) {
         // strategy: as soon as we find something is false, we stop processing
         // otherwise we return true! :)
         int i = p;
-        assert i < this.pivotsCount * 2;
+        assert i < this.getPivotCount() * 2;
         int j = 0;
-        if (i < this.pivotsCount) { // the case where i < d
-            float minimum = q[i][MIN];
+        if (i < this.getPivotCount()) { // the case where i < d
+            double minimum = q[i][MIN];
             while (j < q.length) {
                 if (j != i) {
-                    if (!(minimum <= - minArray[j])) {
+                    if (!(minimum <= -minArray[j])) {
                         return false;
                     }
                 }
                 j++;
             }
-            assert j == pivotsCount;
+            assert j == getPivotCount();
             if (q[i][MAX] > 0) {
                 q[i][MAX] = 0;
             }
         } else { // i >= d
-            i = i - this.pivotsCount;
-            float maximum = q[i][MAX] ;
-            while (j < q.length) { // this is the first definition!!!                
+            i = i - this.getPivotCount();
+            double maximum = q[i][MAX];
+            while (j < q.length) { // this is the first definition!!!
                 if (j != i) {
-                    if (! (maximum >= minArray[j])) {
+                    if (!(maximum >= minArray[j])) {
                         return false;
                     }
                 }
                 j++;
             }
-            assert j == pivotsCount;
+            assert j == getPivotCount();
             if (q[i][MIN] < 0) {
                 q[i][MIN] = 0;
             }
@@ -413,17 +469,17 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         determineRanges(i, q, lowHighResult);
         return true;
     }
-    
+
     /**
-     * Receives a query and returns a new array generated of calculating min() to 
-     * each of the elements
+     * Receives a query and returns a new array generated of calculating min()
+     * to each of the elements
      * @param query
      * @return The array of the min(qj) for each element of the query
      */
-    protected final float[] generateMinArray(float[][] query){
-        int i  = 0;
-        float [] res = new float[query.length];
-        while(i < query.length){
+    protected final double[] generateMinArray(double[][] query) {
+        int i = 0;
+        double[] res = new double[query.length];
+        while (i < query.length) {
             res[i] = min(query[i]);
             i++;
         }
@@ -433,32 +489,33 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * @return The total number of boxes served by this index.
      */
-    public int totalBoxes() {
-        return pivotsCount * 2;
+    public long totalBoxes() {
+        return getPivotCount() * 2;
     }
 
     /**
      * Determines the ranges that have to be searched in the b-tree.
      * @param p
-     *            Pyramid #
+     *                Pyramid #
      * @param q
-     *            the query
+     *                the query
      * @param lowHighResult
-     *            where the high a low will be stored (a two element array)
+     *                where the high a low will be stored (a two element array)
      */
-    private final void determineRanges(int p, float[][] q, float[] lowHighResult) {
+    private final void determineRanges(int p, double[][] q,
+            double[] lowHighResult) {
 
         int i = p;
-        assert i < pivotsCount;
-        lowHighResult[HHIGH] = max(q[i]);         
+        assert i < getPivotCount();
+        lowHighResult[HHIGH] = max(q[i]);
         if (isEasyCase(q)) { // do not use max2 here
             lowHighResult[HLOW] = 0;
-        } else {   
+        } else {
             int j = 0;
-            float max = 0;
-            while (j < pivotsCount) {
+            double max = 0;
+            while (j < getPivotCount()) {
                 if (i != j) {
-                    float t = qjmin(q, j, i);
+                    double t = qjmin(q, j, i);
                     if (t > max) {
                         max = t;
                     }
@@ -468,45 +525,19 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             lowHighResult[HLOW] = max;
         }
     }
-    
 
-    /*
-    private final void determineRanges2 (int p, float[][] q, float[] lowHighResult){
-        int j = 0;
-        int i = p;
-        float min = Float.MAX_VALUE;
-        while (j < pivotsCount) {
-            if (i != j) {
-                float t = qbarjmin(q, j, i);
-                if (t < min) {
-                    min = t;
-                }
-            }
-            j++;
-        }
-        lowHighResult[HLOW] = min;
-    }
-        
-    private final float qbarjmin(float[][] q, int j, int i){
-        if(max(q[j]) >= min(q[i])){
-            return Math.max(max(q[i]), min(q[j]));
-        }else{
-            return min(q[i]);
-        }
-    }
-*/
     /**
      * Finds qjmin for the given j, and the given i pyramid and the ranges of
      * the query max and min. Please see the paper on the pyramid technique.
      * @param q
-     *            Query rectangle
+     *                Query rectangle
      * @param j
-     *            j parameter
+     *                j parameter
      * @param i
-     *            i parameter
+     *                i parameter
      * @return qjmin for the given q,j,i.
      */
-    private final float qjmin(final float[][] q, final int j, final int i) {
+    private final double qjmin(final double[][] q, final int j, final int i) {
         if (min(q[j]) > min(q[i])) {
             return min(q[j]);
         } else {
@@ -518,10 +549,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * Returns true if the query is an easy case. Please see the paper on the
      * pyramid technique.
      * @param q
-     *            A query rectangle
+     *                A query rectangle
      * @return True if this query is an "easy case" query.
      */
-    private final boolean isEasyCase(final float[][] q) {
+    private final boolean isEasyCase(final double[][] q) {
         int i = 0;
         while (i < q.length) {
             if (!((q[i][MIN] <= 0) && (0 <= q[i][MAX]))) {
@@ -535,10 +566,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Calculates min for the given 2 element array.
      * @param minMax
-     *            2 element array.
+     *                2 element array.
      * @return min
      */
-    private final float min(final float[] minMax) {
+    private final double min(final double[] minMax) {
         if (minMax[MIN] <= 0 && 0 <= minMax[MAX]) {
             return 0;
         } else {
@@ -549,10 +580,10 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     /**
      * Calculates max for the given 2 element array.
      * @param minMax
-     *            2 element array.
+     *                2 element array.
      * @return max
      */
-    private final float max(final float[] minMax) {
+    private final double max(final double[] minMax) {
         return Math.max(Math.abs(minMax[MAX]), Math.abs(minMax[MIN]));
     }
 
@@ -560,9 +591,9 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      * Queries are aligned to the center of the space. Aligns the given query to
      * the center of the space.
      * @param q
-     *            query.
+     *                query.
      */
-    protected final void centerQuery(final float[][] q) {
+    protected final void centerQuery(final double[][] q) {
         int i = 0;
         while (i < q.length) {
             q[i][MIN] = q[i][MIN] - 0.5f;
@@ -572,23 +603,13 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * Closes database C.
-     * @throws DatabaseException
-     *             If something goes wrong with the DB
-     */
-    @Override
-    protected final void closeC() throws DatabaseException {
-        this.cDB.close();
-    }
-
-    /**
      * Copies the contents of query src into dest.
      * @param src
-     *            source
+     *                source
      * @param dest
-     *            destination
+     *                destination
      */
-    protected final void copyQuery(final float[][] src, float[][] dest) {
+    protected final void copyQuery(final double[][] src, double[][] dest) {
         int i = 0;
         while (i < src.length) {
             dest[i][MIN] = src[i][MIN];

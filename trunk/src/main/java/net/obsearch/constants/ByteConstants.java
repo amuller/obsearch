@@ -1,4 +1,4 @@
-package net.obsearch.utils.bytes;
+package net.obsearch.constants;
 
 /*
  OBSearch: a distributed similarity search engine This project is to

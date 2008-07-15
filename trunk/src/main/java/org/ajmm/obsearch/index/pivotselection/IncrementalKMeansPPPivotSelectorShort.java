@@ -16,6 +16,7 @@ import org.ajmm.obsearch.ob.OBShort;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -67,17 +68,17 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
     
     
     
-    public int[] generatePivots(short pivotsCount, IntArrayList elements, Index<O> index) throws OBException,
+    public long[] generatePivots(int pivotsCount, LongArrayList elements, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
-        int centroidIds[] = null;
+        long centroidIds[] = null;
         try{
         // we need to prepare the index for freezing!
-        short k = pivotsCount;
+        int k = pivotsCount;
         float potential = 0;
         int databaseSize = max(elements,index);
-        centroidIds = new int[k]; // keep track of the selected centroids
+        centroidIds = new long[k]; // keep track of the selected centroids
         short[] closestDistances = new short[databaseSize];
         OBRandom r = new OBRandom();
        
@@ -184,7 +185,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
      *            the maximum point that we will process
      * @return true if id is in the array ids
      */
-    private boolean contains(final int id, final int[] ids, final int max) {
+    private boolean contains(final long id, final long[] ids, final int max) {
         int i = 0;
         if (max == 0) {
             return false;

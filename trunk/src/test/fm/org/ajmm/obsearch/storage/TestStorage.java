@@ -13,7 +13,7 @@
 <@pp.changeOutputFile name="StorageValidation"+Type+".java" />
 package org.ajmm.obsearch.storage;
 
-import net.obsearch.constants.bytes.ByteConversion;
+import net.obsearch.utils.bytes.ByteConversion;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;

@@ -23,6 +23,7 @@ package net.obsearch.index.pivot;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.ajmm.obsearch.OB;
@@ -42,6 +43,7 @@ import org.apache.log4j.Logger;
 import com.sleepycat.je.DatabaseException;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 import net.obsearch.index.AbstractOBIndex;
 
@@ -92,8 +94,8 @@ public abstract class AbstractPivotOBIndex < O extends OB >
             OBException {
         super(type);
         OBAsserts.chkAssert(pivotCount > 0, "Pivot count must be > 0");
-        this.pivotSelector = pivotSelector;
-        this.pivotCount = pivotCount;        
+        this.pivotCount = pivotCount;
+        this.pivotSelector = pivotSelector;       
     }
 
     @Override
@@ -102,7 +104,15 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
        selectPivots();
+       
     }
+    
+    /**
+     * Converts an object into its projection.
+     * @param object projection of the vector.
+     * @return A projection of object.
+     */
+    protected abstract ByteBuffer objectToProjectionBytes(O object) throws OBException;
     
     /**
      * Override this method if selection must be changed
@@ -111,10 +121,10 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
-        IntArrayList elementsSource = null;
+        LongArrayList elementsSource = null;
         try{
-        int[] pivots = this.pivotSelector.generatePivots(getPivotCount(),
-                elementsSource, this);
+        long[] pivots = this.pivotSelector.generatePivots(getPivotCount(),
+                elementsSource, this);       
         // store the pivots selected for serialization.
         this.storePivots(pivots);
         }catch(PivotsUnavailableException e){
@@ -167,7 +177,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    protected void storePivots(final int[] ids) throws IllegalIdException,
+    protected void storePivots(final long[] ids) throws IllegalIdException,
             IllegalAccessException, InstantiationException,
             OBException {
         if (logger.isDebugEnabled()) {
@@ -196,6 +206,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      */
     protected void createPivotsArray() {
         this.pivots = emptyPivotsArray(this.getPivotCount());
+        this.pivotsBytes = new byte[this.getPivotCount()][];
     }
 
     /**
@@ -206,6 +217,9 @@ public abstract class AbstractPivotOBIndex < O extends OB >
         return (O[]) Array.newInstance(this.getType(), size);
     }
     
+    /**
+     * @return The number of pivots used in this index.
+     */
     protected final int getPivotCount(){
         return pivotCount;
     }

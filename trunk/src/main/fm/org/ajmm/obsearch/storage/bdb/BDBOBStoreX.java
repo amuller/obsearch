@@ -41,7 +41,7 @@ package org.ajmm.obsearch.storage.bdb;
 */
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
+import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.storage.OBStore${Type};
 import org.ajmm.obsearch.storage.Tuple${Type};
@@ -118,12 +118,12 @@ public final class BDBOBStore${Type}
         return super.put(getBytes(key), value);
     }
 
-    public Iterator < Tuple${Type} > processRange(${type} low, ${type} high)
+    public CloseIterator < Tuple${Type} > processRange(${type} low, ${type} high)
             throws OBStorageException {
         return new ${Type}Iterator(low, high);
     }
 
-		public Iterator < Tuple${Type} > processAll()
+		public CloseIterator < Tuple${Type} > processAll()
             throws OBStorageException {
         return new ${Type}Iterator();
     }

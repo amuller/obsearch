@@ -69,7 +69,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     /**
      * Objects are stored by their id's here.
      */
-    private transient OBStoreLong A;
+    protected transient OBStoreLong A;
 
     /**
      * Factory used by this class and by subclasses to create appropiate storage
@@ -119,6 +119,18 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     protected final Class < O > getType(){
         return type;
     }
+    
+    /**
+     * If the database is frozen returns silently if it is not throws
+     * NotFrozenException.
+     * @throws NotFrozenException
+     *                 if the index has not been frozen.
+     */
+    protected void assertFrozen() throws NotFrozenException {
+        if (!isFrozen()) {
+            throw new NotFrozenException();
+        }
+    }
 
     /**
      * Initialize the index.
@@ -139,9 +151,9 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      *                 If the storage device could not be created.
      */
     protected void initStorageDevices() throws OBStorageException {
-        this.A = fact.createOBStoreLong("A", false);
+        this.A = fact.createOBStoreLong("A", false,false);
         if (!this.isFrozen()) {
-            this.preFreeze = fact.createOBStore("pre", true);
+            this.preFreeze = fact.createOBStore("pre", true,false);
         }
     }
 
@@ -175,6 +187,14 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
             return bytesToObject(data.array());
         }
 
+    }
+    
+    /**
+     * Instantiates an object O from the given data array.
+     */
+    protected O bytesToObject(ByteBuffer data) throws OBException,
+    InstantiationException, IllegalAccessException, IllegalIdException {
+        return bytesToObject(data.array());
     }
 
     /**
@@ -248,7 +268,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * @return {@link org.ajmm.obsearch.Status#OK} if the object was deleted.
      *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} no object matched.
      */
-    protected abstract OperationStatus deleteAux(O object);
+    protected abstract OperationStatus deleteAux(O object) throws OBException, IllegalAccessException,
+    InstantiationException ;
 
     /*
      * (non-Javadoc)
@@ -283,6 +304,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
             return delete(object);
         }
     }
+    
+    
 
     /**
      * Converts an object into an array of bytes.
@@ -416,7 +439,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     /**
      * Inserts the given object into the particular index. The caller inserts
      * the actual object so the implementing class only has to worry about
-     * adding the id in the appropiate place inside the index.
+     * adding the id in the aproppiate place inside the index.
      * @param id
      *                The id that will be used to insert the object.
      * @param object

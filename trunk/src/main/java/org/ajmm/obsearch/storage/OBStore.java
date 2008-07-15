@@ -151,14 +151,15 @@ public interface OBStore<T extends Tuple> {
      * @return An iterator used to traverse the DB.
      * @throws OBStorageException
      */
-    Iterator<TupleBytes> processRangeRaw(byte[] low, byte[] high)throws OBStorageException;
+    CloseIterator<TupleBytes> processRangeRaw(byte[] low, byte[] high)throws OBStorageException;
     
+
     /**
      * Process all the elements in the DB. Useful for debugging.
      * @return An iterator that goes through all the data in the DB.
      * @throws OBStorageException
      */
-    Iterator<T> processAll()throws OBStorageException;
+    CloseIterator<T> processAll()throws OBStorageException;
     
     // TODO: For File mappings we might need to create a function that allows
     //            the user to expand the size of the buffer by some %. 

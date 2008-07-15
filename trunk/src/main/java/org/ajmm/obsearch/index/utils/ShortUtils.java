@@ -39,7 +39,7 @@ public class ShortUtils {
      * @param objectId
      * @return
      */
-    public static short[] getTuple(int[] pivots, int objectId,
+    public static short[] getTuple(long[] pivots, long objectId,
             Index<? extends OBShort>  index) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException
@@ -48,7 +48,7 @@ public class ShortUtils {
         short[] res = new short[pivots.length];
         int i = 0;
         OBShort o = index.getObject(objectId);
-        for (int pivotId : pivots) {
+        for (long pivotId : pivots) {
             res[i] = index.getObject(pivotId).distance(o);
             i++;
         }

@@ -6,6 +6,7 @@
 package org.ajmm.obsearch.storage;
 
 import java.util.Iterator;
+import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.OperationStatus;
 import java.nio.ByteBuffer;
@@ -63,7 +64,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    Iterator<Tuple${Type}> processRange(${type} low, ${type} high)throws OBStorageException;
+    CloseIterator<Tuple${Type}> processRange(${type} low, ${type} high)throws OBStorageException;
     
 		
 		/**
