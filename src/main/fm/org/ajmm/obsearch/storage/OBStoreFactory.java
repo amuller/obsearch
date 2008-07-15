@@ -39,10 +39,11 @@ public interface OBStoreFactory {
      *                If true, the database will be configured to be a temporal
      *                database.
      * @param name The name of the database.
+		 * @param duplicates If duplicates are to be allowed.
      * @return An OBStore ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore<TupleBytes> createOBStore(String name, boolean temp) throws OBStorageException;
+    OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException;
     
     
 <#list types as t>
@@ -53,10 +54,11 @@ public interface OBStoreFactory {
      * @param temp
      *                If true, the database will be configured to be a temporal
      *                database.
+     * @param duplicates If duplicates are to be allowed.
      * @return An OBStore${Type} ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore${Type} createOBStore${Type}(String name, boolean temp) throws OBStorageException;	
+    OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException;	
 
 </#list>
     

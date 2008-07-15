@@ -2,6 +2,9 @@ package org.ajmm.obsearch.example.ted;
 
 
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
@@ -133,9 +136,9 @@ public class OBTed extends OBEx implements OBShort {
      *                A byte stream with the data that must be loaded.
      * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
-    public final void load(TupleInput in) throws OBException {
-        short size = in.readShort();
-        updateTree(in.readBytes(size));
+    public final void load(DataInputStream in) throws OBException, IOException {
+        
+        updateTree(in.readUTF());
     }
 
     /**
@@ -144,10 +147,9 @@ public class OBTed extends OBEx implements OBShort {
      *                The byte stream to be used
      * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
-    public final void store(TupleOutput out) {
+    public final void store(DataOutputStream out) throws IOException{
         String str = tree.toFuriaChanTree();
-        out.writeShort(str.length());
-        out.writeBytes(str);
+       out.writeUTF(str);
     }
 
     /**

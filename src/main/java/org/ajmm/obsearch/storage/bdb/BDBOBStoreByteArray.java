@@ -3,6 +3,7 @@ package org.ajmm.obsearch.storage.bdb;
 import java.util.Iterator;
 
 import org.ajmm.obsearch.exception.OBStorageException;
+import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.storage.TupleBytes;
 import org.ajmm.obsearch.storage.bdb.AbstractBDBOBStore.ByteArrayIterator;
 import org.ajmm.obsearch.storage.bdb.AbstractBDBOBStore.CursorIterator;
@@ -54,8 +55,10 @@ public class BDBOBStoreByteArray
     }
 
     @Override
-    public Iterator < TupleBytes > processAll() throws OBStorageException {
-        return new ByteArrayIterator(null, null, true);
+    public CloseIterator < TupleBytes > processAll() throws OBStorageException {
+        return new ByteArrayIterator();
     }
+    
+    
 
 }

@@ -6,10 +6,15 @@ package org.ajmm.obsearch.index;
 import java.io.File;
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.example.OBSliceFactory;
+import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
+import org.ajmm.obsearch.index.pyramid.impl.ExtendedPyramidIndexShort;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
 import org.ajmm.obsearch.index.utils.TUtils;
+import org.ajmm.obsearch.storage.bdb.BDBFactory;
+import org.ajmm.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
 import junit.framework.TestCase;
 
@@ -51,16 +56,16 @@ public class TestExtentedPyramidIndex
      * @throws Exception If something goes really bad.
      */
     public void testPyramid() throws Exception {
-        File dbFolder = new File(TUtils.getTestProperties().getProperty(
-                "test.db.path"));
-        Directory.deleteDirectory(dbFolder);
-        assertTrue(!dbFolder.exists());
-        assertTrue(dbFolder.mkdirs());
-        DummyPivotSelector ps = new DummyPivotSelector();
-        IndexShort < OBSlice > index = new ExtendedPyramidIndexShort < OBSlice >(
-                dbFolder, (byte) 15, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2), ps, OBSlice.class);
+
+        
+        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                30, 30);
+        BDBFactory fact = Utils.getFactory();
+        
+        ExtendedPyramidIndexShort<OBSlice> d = new ExtendedPyramidIndexShort<OBSlice>(OBSlice.class, sel, 20, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2) );
+        d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
-        t.tIndex(index);
+        t.tIndex(d);
     }
 
 }

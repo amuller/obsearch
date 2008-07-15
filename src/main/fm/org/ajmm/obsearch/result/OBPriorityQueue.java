@@ -56,7 +56,7 @@ import org.ajmm.obsearch.ob.OB${Type};
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
      */
-    public void add(int id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
+    public void add(long id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
             // recycle objects.
             if (queue.peek().getDistance() >= distance) {// biggest object in

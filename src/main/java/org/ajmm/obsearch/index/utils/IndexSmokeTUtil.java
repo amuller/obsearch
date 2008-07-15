@@ -13,14 +13,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.ajmm.obsearch.ParallelIndex;
+
 import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.Status;
-import org.ajmm.obsearch.SynchronizableIndex;
-import org.ajmm.obsearch.TimeStampResult;
+
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.index.SynchronizableIndexShort;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
@@ -96,7 +94,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         logger.info("Adding data");
         BufferedReader r = new BufferedReader(new FileReader(db));
         String re = r.readLine();
-        int realIndex = 0;
+        long realIndex = 0;
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
@@ -131,7 +129,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         re = r.readLine();
 
         logger.info("Checking exists and insert");
-        int i = 0;
+        long i = 0;
         while (re != null) {
             String line = parseLine(re);
             if (line != null) {
@@ -179,55 +177,16 @@ public class IndexSmokeTUtil<O extends OBShort> {
         initIndex(index);
         search(index, (short) 3, (byte) 3);
         search(index, (short) 10, (byte) 3);
-        int i = 0;
+        long i = 0;
         // int realIndex = 0;
         // test special methods that only apply to
         // SynchronizableIndex
-        if (index instanceof SynchronizableIndex) {
-            logger.info("Testing timestamp index");
-            SynchronizableIndexShort < OBSlice > index2 = (SynchronizableIndexShort < OBSlice >) index;
-            i = 0;
-            int totalCx = 0;
-            logger.info("Total Boxes: " + index2.totalBoxes());
-            while (i < index2.totalBoxes()) {
-                Iterator < TimeStampResult < OBSlice >> it2 = index2
-                        .elementsNewerThan(i, 0);
-                int cx2 = 0;
-                while (it2.hasNext()) {
-                    TimeStampResult < OBSlice > t = it2.next();
-                    OBSlice o = t.getObject();
-                    assert o != null;
-                    // extract the object returned by the timestamp
-                    // iterator and confirm that it is in the database.
-                    OBPriorityQueueShort < OBSlice > x = new OBPriorityQueueShort < OBSlice >(
-                            (byte) 1);
-                    // it should be set to 0, but it won't work with 0.
-                    index2.searchOB(o, (short) 5, x);
-                    Iterator < OBResultShort < OBSlice >> it3 = x.iterator();
-                    assertTrue(" Size found:" + x.getSize() + " item # " + cx
-                            + " : " + o + " db size: " + index.databaseSize(),
-                            x.getSize() == 1);
-                    while (it3.hasNext()) {
-                        OBResultShort < OBSlice > j = it3.next();
-                        assertTrue(j.getObject().equals(o));
-                        assertTrue(j.getObject().distance(o) == 0);
-                    }
-                    cx2++;
-
-                }
-                assertEquals(cx2, index2.elementsPerBox(i));
-                logger.info("Result: box: " + i + " Cx" + cx2);
-                totalCx += cx2;
-                i++;
-            }
-            assertEquals(index.databaseSize(), totalCx);
-            logger.info("CX: " + totalCx);
-        }
+       
 
         // now we delete elements from the DB
         logger.info("Testing deletes");
         i = 0;
-        int max = index.databaseSize();
+        long max = index.databaseSize();
         while (i < max) {
             O x = index.getObject(i);
             OperationStatus ex = index.exists(x);
@@ -236,8 +195,8 @@ public class IndexSmokeTUtil<O extends OBShort> {
             ex = index.delete(x);
             assertTrue(ex.getStatus() == Status.OK);
             assertEquals(i, ex.getId());
-            ex = index.exists(x);
-            assertTrue(ex.getStatus() == Status.NOT_EXISTS);
+            ex = index.exists(x);            
+            assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);
             i++;
         }
         index.close();
@@ -266,7 +225,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         List < OBPriorityQueueShort < O >> result = new LinkedList < OBPriorityQueueShort < O >>();
         re = r.readLine();
         int i = 0;
-        int realIndex = index.databaseSize();
+        long realIndex = index.databaseSize();
 
         while (re != null) {
             String line = parseLine(re);
@@ -290,10 +249,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
             }
             re = r.readLine();
         }
-        if (index instanceof ParallelIndex) {
-            logger.info("Waiting for Queries");
-            ((ParallelIndex) index).waitQueries();
-        }
+       
         int maxQuery = i;
         // logger.info("Matching ends... Stats follow:");
         // index.stats();
@@ -317,29 +273,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
                     searchSequential(realIndex, s, x2, index, range);
                     OBPriorityQueueShort < O > x1 = it.next();
                     assertEquals("Error in query line: " + i + " slice: "
-                            + line, x2, x1);
-                    try{
-                    // test the other search method
-                    OBPriorityQueueShort < O > x3 = new OBPriorityQueueShort < O >(
-                            k);
-                    int[] inter = index.intersectingBoxes(s, range);
-                    index.searchOB(s, range, x3, inter);
-
-                    assertEquals("Error in intersectingBoxes: " + i
-                            + " slice: " + line, x2, x3);
-                    int box = 0; // this is just an index :)
-                    while (box < index.totalBoxes()) {
-                        if (isIn(box, inter)) {
-                            assertTrue(index.intersects(s, range, box));
-                        } else {
-                            assertFalse(index.intersects(s, range, box));
-                        }
-                        box++;
-                    }
-                    
-                    }catch(UnsupportedOperationException e){ 
-                        // some indexes do not support boxes
-                    }
+                            + line, x2, x1);                   
 
                     i++;
                 }
@@ -426,7 +360,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
      * @throws Exception
      *                 If something goes really bad.
      */
-    public  void searchSequential(int max, O o,
+    public  void searchSequential(long max, O o,
             OBPriorityQueueShort < O > result,
             IndexShort < O > index, short range) throws Exception {
         int i = 0;

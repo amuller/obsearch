@@ -11,6 +11,7 @@ import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -73,22 +74,22 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
      * @throws IllegalIdException
      * @throws OBException
      */
-    protected final O getObject(int i, IntArrayList elements, Index<O> index)
+    protected final O getObject(long i, LongArrayList elements, Index<O> index)
             throws IllegalAccessException, InstantiationException,
             DatabaseException, IllegalIdException, OBException {
 
         return index.getObject(mapId(i, elements));
     }
     
-    protected int mapId(int i, IntArrayList elements) {
+    protected long mapId(long i, LongArrayList elements) {
         if (elements != null) {
-            return elements.get(i);
+            return elements.get((int)i);
         }else{
             return i;
         }
     }
     
-    public int[] generatePivots(short pivotsCount, Index<O> index) throws OBException,
+    public long[] generatePivots(int pivotsCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
@@ -102,7 +103,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
      * @param index The underlying index.
      * @return The max # of elements of source if source != null or of index if source == null.
      */
-    protected int max(IntArrayList source, Index < O > index)throws OBStorageException, DatabaseException{
+    protected int max(LongArrayList source, Index < O > index)throws OBStorageException, DatabaseException{
         int max;
         if (source == null) {
             max = (int)Math.min(index.databaseSize(), Integer.MAX_VALUE);

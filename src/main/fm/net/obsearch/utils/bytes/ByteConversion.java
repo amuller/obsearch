@@ -2,7 +2,7 @@
 package net.obsearch.utils.bytes;
 
 import java.nio.ByteBuffer;
-
+import net.obsearch.constants.ByteConstants;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 

@@ -7,6 +7,7 @@ import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
 
@@ -14,19 +15,19 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
      * Pre-computed pivot definitions
      */
 
-    public static int[] levScalab = { 94323, 63655, 37558, 34472, 54433, 88958,
+    public static long[] levScalab = { 94323, 63655, 37558, 34472, 54433, 88958,
             97696, 88615, 93960, 93739, 97697, 20414, 34162, 21023, 66357,
             65775, 74077, 74498, 69404, 75965, 31607, 55316, 91240, 326, 10456,
             41388, 64728, 39269, 63582, 54810 };
 
     // 30 pivots for ted
-    public static int[] ted = { 57300, 196436, 10653, 136029, 203654, 189753,
+    public static long[] ted = { 57300, 196436, 10653, 136029, 203654, 189753,
             152060, 133273, 236109, 144716, 30129, 192050, 14036, 28810,
             202543, 59154, 123211, 203986, 5279, 118146, 75130, 135862, 200942,
             92282, 77436, 110657, 116055, 37261, 94338, 235642 };
 
     // 30 pivots + .95 (10 levels, only 9 used).
-    public static int[][] tedLevel = {
+    public static long[][] tedLevel = {
 
             { 15934, 107349, 18536, 159414, 187321, 80913, 109586, 55891, 9032,
                     157372, 63619, 4363, 43993, 244702, 189550, 166295, 128207,
@@ -67,11 +68,11 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
     // public static int [] lev = { 992515, 828447, 708572, 879139, 679767,
     // 356148, 23230, 263566, 744140, 507502, 855677, 749056, 908433, 864534,
     // 754452, 301782, 552141, 103224};
-    public static int[] lev = { 28968, 628464, 433184, 921379, 656225, 681704,
+    public static long[] lev = { 28968, 628464, 433184, 921379, 656225, 681704,
             209306, 319394, 472165, 891033, 277620, 38427, 496272, 509825,
             925880, 935531, 927760, 245884 };
 
-    public static int[][] levLevel = {
+    public static long[][] levLevel = {
             { 992316, 405315, 721966, 850092, 163932, 47113, 624547, 625026,
                     857504, 473406, 785269, 858005, 55829, 363803, 591228,
                     814583, 299929, 683399 },
@@ -95,7 +96,7 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
                     584374, 228068 } };
 
     // 16 pivots for mtd
-     public static int [] mtd = {173221, 81425, 258192, 229333, 256964,
+     public static long [] mtd = {173221, 81425, 258192, 229333, 256964,
      187123, 211523, 143917, 28954, 262061, 86748, 218554, 113214, 260088,
      337932, 11769};
     
@@ -104,7 +105,7 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
             133379, 55931, 290771, 306695, 19787, 317705, 269611, 241363,
             235312, 49570, 147869, 347944, 80416, 88808, 305347, 292672, 32854 };
 		*/
-    public static int[][] mtdLevel = {
+    public static long[][] mtdLevel = {
             { 275060, 130016, 199779, 346945, 99362, 225116, 257606, 346212,
                     174634, 47137, 51535, 98775, 133386, 325413, 282666, 24063 },
             { 98714, 305085, 188131, 348248, 171624, 120761, 215617, 322408,
@@ -137,18 +138,18 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
     }
 
     @Override
-    public int[] generatePivots(short pivotCount, Index index)
+    public long[] generatePivots(int pivotCount, Index index)
             throws OBException, IllegalAccessException, InstantiationException,
             OBStorageException, PivotsUnavailableException {
         return generatePivots(pivotCount, null, null);
     }
 
     @Override
-    public int[] generatePivots(short pivotCount, IntArrayList elements,
+    public long[] generatePivots(int pivotCount, LongArrayList elements,
             Index index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
-        int[] res = new int[pivotCount];
+        long[] res = new long[pivotCount];
         int i = 0;
         while (i < res.length) {
             res[i] = data[ind][i];

@@ -7,6 +7,7 @@ import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 
 
@@ -55,7 +56,7 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @throws PivotsUnavailableException
      *             If not all the pivots requested were found.
      */
-    int [] generatePivots(int pivotCount, Index<O> index) throws OBException,
+    long [] generatePivots(int pivotCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException;
 
@@ -66,7 +67,7 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @param elements
      * @return A list of the ids of the pivots.
      */
-    int[] generatePivots(int pivotCount, IntArrayList elements,  Index<O> index) throws OBException,
+    long[] generatePivots(int pivotCount, LongArrayList elements,  Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException; 
 }

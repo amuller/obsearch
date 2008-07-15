@@ -9,6 +9,8 @@ import java.util.Random;
 import gnu.trove.TIntHashSet;
 import hep.aida.bin.QuantileBin1D;
 
+import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
+
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.KMeansException;
 import org.ajmm.obsearch.exception.KMeansHungUpException;

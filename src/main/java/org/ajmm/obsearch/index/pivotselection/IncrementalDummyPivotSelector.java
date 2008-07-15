@@ -7,6 +7,7 @@ import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -40,7 +41,7 @@ public class IncrementalDummyPivotSelector < O extends OB >
     }
 
     @Override
-    public int[] generatePivots(short pivotCount, Index<O> index)
+    public long[] generatePivots(int pivotCount, Index<O> index)
             throws OBException, IllegalAccessException, InstantiationException,
             OBStorageException, PivotsUnavailableException {
         // TODO Auto-generated method stub
@@ -48,12 +49,12 @@ public class IncrementalDummyPivotSelector < O extends OB >
     }
 
     @Override
-    public int[] generatePivots(short pivotCount, IntArrayList elements,
+    public long[] generatePivots(int pivotCount, LongArrayList elements,
             Index<O> index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
         int i = 0;
-        int[] res = new int[pivotCount];
+        long[] res = new long[pivotCount];
         while (i < pivotCount) {
             res[i] = super.mapId(i, elements);
             i++;

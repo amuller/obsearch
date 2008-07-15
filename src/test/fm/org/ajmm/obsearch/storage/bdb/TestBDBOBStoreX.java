@@ -48,7 +48,7 @@ public class TestBDBOBStore${Type} extends TestCase{
     public void testAll() throws Exception{
         
         BDBFactory fact = Utils.getFactory();
-        StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}", false));
+        StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}", false,false));
     }
 
 }

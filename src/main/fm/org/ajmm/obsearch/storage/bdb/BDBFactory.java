@@ -93,9 +93,13 @@ public class BDBFactory implements OBStoreFactory {
         }
     }
 
-    public OBStore<TupleBytes> createOBStore(String name, boolean temp) throws OBStorageException{       
+    public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException{       
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
+					if(duplicates){
+								dbConfig.setSortedDuplicates(true);
+								
+						}
         try{
             res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
@@ -122,11 +126,14 @@ public class BDBFactory implements OBStoreFactory {
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
-public OBStore${Type} createOBStore${Type}(String name, boolean temp) throws OBStorageException{
+				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException{
         
         OBStore${Type} res = null;
         try{
             DatabaseConfig dbConfig = createDefaultDatabaseConfig();
+						if(duplicates){
+								dbConfig.setSortedDuplicates(true);
+						}
             res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
