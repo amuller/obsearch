@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index.pyramid.impl;
+package net.obsearch.index.pyramid.imp;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +25,7 @@ import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
 import org.ajmm.obsearch.storage.CloseIterator;
+import org.ajmm.obsearch.storage.OBStoreDouble;
 import org.ajmm.obsearch.storage.TupleBytes;
 import org.ajmm.obsearch.storage.TupleDouble;
 import org.ajmm.obsearch.storage.TupleLong;
@@ -244,7 +245,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
             throws IllegalAccessException, InstantiationException,
             IllegalIdException, OBException {
 
-        CloseIterator < TupleDouble > it = super.C.processRange(hlow, hhigh);
+        CloseIterator < TupleDouble > it = C.processRange(hlow, hhigh);
         try{
         short max = Short.MIN_VALUE;
         short realDistance = Short.MIN_VALUE;
@@ -270,7 +271,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
             if (max <= r && result.isCandidate(max)) {
                 // there is a chance it is a possible match
                 long id = in.getLong();
-                O toCompare = super.getObject(id);
+                O toCompare = getObject(id);
                 realDistance = object.distance(toCompare);
                 if (realDistance <= r) {
                     result.add(id, toCompare, realDistance);
@@ -352,17 +353,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         return ((double) (x - minInput)) / ((double) (maxInput - minInput));
     }
 
-    /*
-     * (non-Javadoc)
-     * @see net.obsearch.index.AbstractOBIndex#findAux(org.ajmm.obsearch.OB)
-     */
-    @Override
-    protected org.ajmm.obsearch.OperationStatus findAux(O object)
-            throws IllegalIdException, IllegalAccessException,
-            InstantiationException, OBException {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    
 
     /*
      * (non-Javadoc)

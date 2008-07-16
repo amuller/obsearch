@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index.pptree;
+package net.obsearch.index.pptree;
 
 import java.util.List;
 /*
@@ -35,11 +35,11 @@ public abstract class AbstractSpaceTreeNode implements SpaceTree {
     //TODO: remove this to save some memory
     //private float [] center;
     
-    AbstractSpaceTreeNode(float [] center){
+    AbstractSpaceTreeNode(double [] center){
        // this.center = center;
     }
 
-    public final float [] getCenter(){
+    public final double [] getCenter(){
         //return center;
         return null;
     }

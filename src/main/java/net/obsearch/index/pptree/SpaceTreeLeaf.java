@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index.pptree;
+package net.obsearch.index.pptree;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +59,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * Initializes the leaf with the given cluster center.
      * @param center The center of this space.
      */
-    public SpaceTreeLeaf(float[] center){
+    public SpaceTreeLeaf(double[] center){
         super(center);
     }
     
@@ -75,12 +75,12 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * Used to confirm a query belongs to this hyperrectangle. As queries might
      * get smaller during the course of a match, this functionality is necessary
      */
-    private float[][] minMax;
+    private double[][] minMax;
 
     /**
      * @return the min max values of this hyper rectangle.
      */
-    public final float[][] getMinMax() {
+    public final double[][] getMinMax() {
         return minMax;
     }
 
@@ -89,7 +89,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @param minMax
      *            new min max values of this hyper rectangle.
      */
-    public final void setMinMax(float[][] minMax) {
+    public final void setMinMax(double[][] minMax) {
         this.minMax = minMax;
     }
 
@@ -174,7 +174,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      *            Point to search
      * @return this if the given value is inside this space
      */
-    public final SpaceTreeLeaf search(final float[] value) {
+    public final SpaceTreeLeaf search(final double[] value) {
         assert pointInside(value);
         // we are in the leaf, we are done
         return this;
@@ -187,7 +187,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @param result
      *            (the resulting tuple)
      */
-    public final void normalize(final float[] value, final float[] result) {
+    public final void normalize(final double[] value, final double[] result) {
         assert pointInside(value);
         int i = 0;
         while (i < value.length) {
@@ -206,10 +206,10 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      *            Dimension
      * @return Normalized version of the value in dimension i.
      */
-    public final float normalizeAux(float value, int i) {
+    public final double normalizeAux(double value, int i) {
         // TODO: this thing sometimes generates 1.00001 or stuff like that.
         // shall we just force it to be 1?
-        float res = (float) Math.pow((value - min[i]) * width[i], exp[i]);
+        double res = (double) Math.pow((value - min[i]) * width[i], exp[i]);
         if(res > 1){
         	res = 1;
         }
@@ -227,8 +227,8 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @param result
      *            will hold all the spaces that intersect with the query
      */
-    public final void searchRange(final float[][] query,
-            float[] center, List < SpaceTreeLeaf > result) {
+    public final void searchRange(final double[][] query,
+            double[] center, List < SpaceTreeLeaf > result) {
         assert intersects(query); // this has to be true
         // if (intersects(query)) {
         result.add(this);
@@ -240,7 +240,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @param query
      * @return true if the given query intersects with this hyperrectangle
      */
-    public final boolean intersects(float[][] query) {
+    public final boolean intersects(double[][] query) {
         boolean res = true;
         assert query.length == minMax.length;
         int i = 0;
@@ -252,7 +252,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
     }
 
     /**
-     * Function used by {@link #intersects(float[][])} to find if any two
+     * Function used by {@link #intersects(double[][])} to find if any two
      * dimension ranges are overlapping or not.
      * @param space
      *            the dimension range of the space
@@ -260,7 +260,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      *            the dimension range of the query
      * @return true if space and query intersect
      */
-    private boolean intersectsAux(float[] space, float[] query) {
+    private boolean intersectsAux(double[] space, double[] query) {
         assert space.length == 2;
         assert query.length == 2;
         // calculate the only cases where no intersection is found
@@ -273,7 +273,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      *            point to be tested
      * @return true if the given point is inside
      */
-    public final boolean pointInside(final float[] point) {
+    public final boolean pointInside(final double[] point) {
         int i = 0;
         assert point.length == minMax.length;
         boolean res = true;
@@ -291,7 +291,7 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      *            point to be tested
      * @return " if all the points are inside, or a string indicating the violating coordinate
      */
-    public final String verifyPointInside(final float[] point) {
+    public final String verifyPointInside(final double[] point) {
         int i = 0;
         assert point.length == minMax.length;
         String msg = "";
@@ -315,18 +315,18 @@ public class SpaceTreeLeaf extends AbstractSpaceTreeNode implements SpaceTree {
      * @param result
      *            The resulting normalized query for this space.
      */
-    public final void generateRectangle(final float[][] firstPassQuery,
-            float[][] result) {
+    public final void generateRectangle(final double[][] firstPassQuery,
+            double[][] result) {
         int i = 0;
         while (i < firstPassQuery.length) {
 
-            float min = firstPassQuery[i][MIN];
+            double min = firstPassQuery[i][MIN];
             if (min < minMax[i][MIN]) {
                 min = minMax[i][MIN];
             }
             result[i][MIN] = normalizeAux(min, i);
 
-            float max = firstPassQuery[i][MAX];
+            double max = firstPassQuery[i][MAX];
             if (max > minMax[i][MAX]) {
                 max = minMax[i][MAX];
             }

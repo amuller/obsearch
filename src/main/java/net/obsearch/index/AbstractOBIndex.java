@@ -143,6 +143,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
         this.fact = fact;
         initStorageDevices();
         initCache();
+        stats = new Statistics();
     }
 
     /**
@@ -275,7 +276,6 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * (non-Javadoc)
      * @see org.ajmm.obsearch.Index#deleteSingle(org.ajmm.obsearch.OB)
      */
-    @Override
     public OperationStatus deleteSingle(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException,
             NotFrozenException {
@@ -352,23 +352,25 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * @throws InstantiationException
      * @throws OBException
      */
-    protected abstract OperationStatus findAux(O object)
+    protected  OperationStatus findAux(O object)
             throws IllegalIdException, IllegalAccessException,
-            InstantiationException, OBException;
+            InstantiationException, OBException{
+        throw new UnsupportedOperationException();
+    }
 
     /*
      * (non-Javadoc)
      * @see org.ajmm.obsearch.Index#exists(org.ajmm.obsearch.OB)
      */
-    @Override
-    public OperationStatus exists(O object) throws OBStorageException,
+    
+   /* public OperationStatus exists(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException {
         OperationStatus t = findAux(object);
         if (t.getStatus() == Status.OK) {
             t.setStatus(Status.EXISTS);
         }
         return t;
-    }
+    }*/
 
     /*
      * (non-Javadoc)
