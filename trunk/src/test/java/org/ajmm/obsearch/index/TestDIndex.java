@@ -4,13 +4,14 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
+import net.obsearch.pivots.AcceptAll;
+import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.dummy.IncrementalDummyPivotSelector;
+import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
+
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.example.OBSliceFactory;
-import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
-import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
-import org.ajmm.obsearch.index.pivotselection.IncrementalDummyPivotSelector;
-import org.ajmm.obsearch.index.pivotselection.IncrementalKMeansPPPivotSelectorShort;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
 import org.ajmm.obsearch.index.utils.TUtils;

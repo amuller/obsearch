@@ -1,15 +1,25 @@
-package org.ajmm.obsearch.index.pivotselection;
+package net.obsearch.pivots.kmeans.impl;
 
 import java.util.Arrays;
 import java.util.Random;
 
+import net.obsearch.pivots.AbstractIncrementalPivotSelector;
+import net.obsearch.pivots.Pivotable;
+
+import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.OBException;
+import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.index.AbstractPivotIndex;
+import org.ajmm.obsearch.index.IncrementalPivotSelector;
 import org.ajmm.obsearch.index.PivotSelector;
 import org.ajmm.obsearch.index.utils.OBRandom;
+import org.ajmm.obsearch.ob.OBShort;
 import org.apache.log4j.Logger;
+
+import cern.colt.list.IntArrayList;
+import cern.colt.list.LongArrayList;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -39,69 +49,56 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  * @since 0.8
  */
-public class KMeansPPPivotSelector < O extends OB > implements
-        PivotSelector < O > {
+public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends AbstractIncrementalPivotSelector<O>
+         {
 
-    private int retries = 1;
+    private int retries = 3;
     /**
      * Logger.
      */
     private static final transient Logger logger = Logger
-            .getLogger(KMeansPPPivotSelector.class);
-
-    private Pivotable<O> pivotable;
+            .getLogger(IncrementalKMeansPPPivotSelectorShort.class);
 
     /**
-     * Constructor of the pivot selection algorithm.
-     * @param p
-     *            A pivotable object that will tell us if we should use an
-     *            object for pivot or not.
+     * Creates a new IncrementalKMeansPPPivotSelectorShort that will accept pivots
+     * accepted by pivotable and will use index as the source of data.
+     * @param index Index used to load and search objects
+     * @param pivotable Object used to determine which objects are suitable for being pivots.
      */
-    public KMeansPPPivotSelector(Pivotable<O> p) {
-        pivotable = p;
+    public IncrementalKMeansPPPivotSelectorShort(Pivotable<O> pivotable){
+        super(pivotable);
     }
-
-    /**
-     * Generates n (n = pivots) from the database The method will modify the
-     * pivot index and update the information of the selected new pivots
-     * @param x
-     *            Generate pivots from this index
-     * @throws DatabaseException
-     *             If something goes wrong with the DB
-     * @throws OBException
-     *             User generated exception
-     * @throws IllegalAccessException
-     *             If there is a problem when instantiating objects O
-     * @throws InstantiationException
-     *             If there is a problem when instantiating objects O
-     * @throws PivotsUnavailableException
-     *             If the pivots could not be found
-     */
-    public void generatePivots(final AbstractPivotIndex < O > x)
-            throws OBException, IllegalAccessException, InstantiationException,
-            DatabaseException, PivotsUnavailableException {
+    
+    
+    
+    public long[] generatePivots(int pivotsCount, LongArrayList elements, Index<O> index) throws OBException,
+    IllegalAccessException, InstantiationException, OBStorageException,
+    PivotsUnavailableException
+    {
+        long centroidIds[] = null;
+        try{
         // we need to prepare the index for freezing!
-        short k = x.getPivotsCount();
+        int k = pivotsCount;
         float potential = 0;
-        int databaseSize = x.databaseSize();
-        int centroidIds[] = new int[k]; // keep track of the selected centroids
-        float[] closestDistances = new float[databaseSize];
+        int databaseSize = max(elements,index);
+        centroidIds = new long[k]; // keep track of the selected centroids
+        short[] closestDistances = new short[databaseSize];
         OBRandom r = new OBRandom();
        
         // Randomly select one center
-        int index;
+        int ind;
         int currentCenter = 0;
         O currentObject;
         do{
-            index = r.nextInt(databaseSize);
-            centroidIds[currentCenter] = index;
-            currentObject = x.getObject(centroidIds[currentCenter]);
+            ind = r.nextInt(databaseSize);
+            centroidIds[currentCenter] = ind;
+            currentObject = getObject(centroidIds[currentCenter], elements, index);
         }while(! pivotable.canBeUsedAsPivot(currentObject));
         
         int i = 0;
         while (i < databaseSize) {
-            O toCompare = x.getObject(i);
-            closestDistances[i] = x.distance(currentObject, toCompare);
+            O toCompare = getObject(i, elements, index);
+            closestDistances[i] = currentObject.distance( toCompare);
             potential += closestDistances[i];
             i++;
         }
@@ -119,36 +116,40 @@ public class KMeansPPPivotSelector < O extends OB > implements
                 // choose the new center
                 float probability = r.nextFloat() * potential;
                 O tempB = null; 
-                for (index = 0; index < databaseSize ; index++) {
-                    if (contains(index, centroidIds, centerCount)) {
+                for (ind = 0; ind < databaseSize ; ind++) {
+                    if (contains(ind, centroidIds, centerCount)) {
                         continue;
                     }
-                    if (probability <= closestDistances[index]){
-                        tempB = x.getObject(index);
+                    if (probability <= closestDistances[ind]){
+                        tempB = getObject(ind, elements, index);
                         if(pivotable.canBeUsedAsPivot(tempB)){
                             break;
                         }
                     }
                     
-                    probability -= closestDistances[index];
+                    probability -= closestDistances[ind];
                 }
-
+                if(tempB == null){
+                    throw new PivotsUnavailableException();
+                }
                 // Compute the new potential
-                float newPotential = 0;
+                short newPotential = 0;
                 
                 for (i = 0; i < databaseSize ; i++) {
-                    if (contains(index, centroidIds, centerCount)) {
+                    if (contains(ind, centroidIds, centerCount)) {
                         continue;
                     }
-                    O tempA = x.getObject(i);
-                    newPotential += Math.min(x.distance(tempA, tempB),
+                    O tempA = getObject(i, elements, index);
+                    assert tempA != null;
+                    assert tempB != null;
+                    newPotential += Math.min(tempA.distance( tempB),
                             closestDistances[i]);
                 }
 
                 // Store the best result
                 if (bestPotential < 0 || newPotential < bestPotential) {
                     bestPotential = newPotential;
-                    bestIndex = index;
+                    bestIndex = ind;
                 }
             }
             // make sure that the same center is not found
@@ -158,24 +159,24 @@ public class KMeansPPPivotSelector < O extends OB > implements
             centroidIds[centerCount] = bestIndex;
             
             potential = bestPotential;
-            O tempB = x.getObject(bestIndex);
+            O tempB = getObject(bestIndex,elements, index);
             for (i = 0; i < databaseSize; i++) {
-                if (contains(index, centroidIds, centerCount)) {
+                if (contains(ind, centroidIds, centerCount)) {
                     continue;
                 }
-                O tempA = x.getObject(i);
-                closestDistances[i] = Math.min(x.distance(tempA, tempB),
+                O tempA = getObject(i, elements, index);
+                closestDistances[i] = (short)Math.min(tempA.distance( tempB),
                         closestDistances[i]);
-            }
-            
-            
+            }                        
             centerCount++;
+        }        
+        }catch(DatabaseException e){
+            throw new OBStorageException(e);
         }
-        
         // store the pivots
-        x.storePivots(centroidIds);
+        return centroidIds;
     }
-
+    
     /**
      * Returns true if id is in the array ids performs the operation up to max
      * (inclusive) if max is 0 this function always returns false.
@@ -187,7 +188,7 @@ public class KMeansPPPivotSelector < O extends OB > implements
      *            the maximum point that we will process
      * @return true if id is in the array ids
      */
-    private boolean contains(final int id, final int[] ids, final int max) {
+    private boolean contains(final long id, final long[] ids, final int max) {
         int i = 0;
         if (max == 0) {
             return false;

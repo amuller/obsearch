@@ -1,8 +1,7 @@
-package org.ajmm.obsearch.index.pivotselection;
+package net.obsearch.pivots;
 
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.OBException;
-
 /*
 OBSearch: a distributed similarity search engine
 This project is to similarity search what 'bit-torrent' is to downloads.
@@ -23,24 +22,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
 */
 /**
-* This interface is used by some pivot selectors to determine if
-* a given object can be used as a pivot. There can be distance functions
-* for which some objects are more expensive to compute than others.
-* For example, trees. The bigger the tree is, the more expensive
-* it is to compute its distance. 
-* @param <O>
-*            Type of object of the index to be analyzed.
+* A class that accepts any object as pivot.
 * @author Arnoldo Jose Muller Molina
 * @since 0.8
 */
-public interface Pivotable <O extends OB> {
+public class AcceptAll<O extends OB> implements Pivotable<O> {
 
-    /**
-     * Returns true if the given object can be used as a pivot.
-     * @param object 
-     * @return true if the object should be used as a pivot
-     * @throws OBException If something goes wrong
-     */
-    boolean canBeUsedAsPivot(O object) throws OBException;
-    
+    public boolean canBeUsedAsPivot(O object) throws OBException {
+        return true;
+    }
+
 }

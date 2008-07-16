@@ -50,7 +50,11 @@ import net.obsearch.index.AbstractOBIndex;
 /** 
  *  AbstractPivotOBIndex defines abstract functionality for an index that
  *  uses n pivots to partition the data into more tractable subsets.
- *  In particular, this class will select a set of pivots after its 
+ *  To create a new index, do the following:
+ *  1) Implement objectToProjectionBytes(O object) (smap an object and codify it)
+ *  2) Implement deleteAux
+ *  3) Implement insertAux
+ *  4) Implement searchOB. That's all!
  *  @author  Arnoldo Jose Muller Molina    
  */
 public abstract class AbstractPivotOBIndex < O extends OB >

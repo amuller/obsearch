@@ -1,9 +1,12 @@
-package org.ajmm.obsearch.index.pivotselection;
+package net.obsearch.pivots.bustos.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
 
 import hep.aida.bin.StaticBin1D;
+
+import net.obsearch.pivots.Pivotable;
+import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.IllegalIdException;
