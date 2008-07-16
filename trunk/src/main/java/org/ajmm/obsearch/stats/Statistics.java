@@ -50,6 +50,25 @@ public class Statistics {
      */
     private long dataRead = 0;
     
+    /**
+     * # of buckets read
+     */
+    private long bucketsRead = 0;
+    
+    /**
+     * Adds x to the current value of {@link #bucketsRead}.
+     * @param x
+     */
+    public void incBucketsRead(long x){
+        bucketsRead += x;
+    }
+    
+    /**
+     * Increment the # of buckets read.
+     */
+    public void incBucketsRead(){
+        bucketsRead++;
+    }
     
     /**
      * Increment distance count.
@@ -167,6 +186,7 @@ public class Statistics {
         diskAccessCount = 0;        
         queryCount = 0;         
         dataRead = 0;
+        this.bucketsRead = 0;
     }
     
     

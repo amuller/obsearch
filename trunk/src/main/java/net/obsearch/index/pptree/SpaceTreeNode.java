@@ -1,9 +1,8 @@
-package org.ajmm.obsearch.index.pptree;
+package net.obsearch.index.pptree;
 
 import java.util.List;
 import java.util.Random;
 
-import org.ajmm.obsearch.index.AbstractPPTree;
 
 /*
  OBSearch: a distributed similarity search engine
@@ -41,7 +40,7 @@ public class SpaceTreeNode
     /**
      * Division value.
      */
-    private float DV;
+    private double DV;
 
     /**
      * Left node.
@@ -58,7 +57,7 @@ public class SpaceTreeNode
      * @param center
      *                Center of this subspace.
      */
-    public SpaceTreeNode(float[] center) {
+    public SpaceTreeNode(double[] center) {
         super(center);
     }
 
@@ -97,7 +96,7 @@ public class SpaceTreeNode
      * Gets the DV of the node.
      * @return DV of the node.
      */
-    public final float getDV() {
+    public final double getDV() {
         return DV;
     }
 
@@ -106,7 +105,7 @@ public class SpaceTreeNode
      * @param dv
      *                new dv
      */
-    public final void setDV(float dv) {
+    public final void setDV(double dv) {
         DV = dv;
     }
 
@@ -142,7 +141,7 @@ public class SpaceTreeNode
         this.right = right;
     }
 
-    public final SpaceTreeLeaf search(float[] value) {
+    public final SpaceTreeLeaf search(double[] value) {
         if (value[DD] < DV) {
             return left.search(value);
         }
@@ -161,7 +160,7 @@ public class SpaceTreeNode
      * @param result
      *                will hold all the spaces that intersect with the query
      */
-    public final void searchRange(float[][] query, float[] object,List < SpaceTreeLeaf > result) {
+    public final void searchRange(double[][] query, double[] object,List < SpaceTreeLeaf > result) {
 
         // if the maximum value of the query in the given dimension is lower
         // than the split value, then we can safely ignore the other branches
@@ -170,8 +169,8 @@ public class SpaceTreeNode
 
         /*if (conditionA && conditionB) {
             // we select first the node whose center is the closest.
-            float distanceL = AbstractPPTree.squareDistance(object, left.getCenter());
-            float distanceR = AbstractPPTree.squareDistance(object, right.getCenter());
+            double distanceL = AbstractPPTree.squareDistance(object, left.getCenter());
+            double distanceR = AbstractPPTree.squareDistance(object, right.getCenter());
             
             if(distanceL < distanceR){
                 // inverted seems to be better! :)

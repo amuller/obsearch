@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index.pptree;
+package net.obsearch.index.pptree;
 
 import java.util.List;
 
@@ -53,13 +53,13 @@ public interface SpaceTree {
      *                The tuple that will be searched
      * @return The leaf where this tuple is stored.
      */
-    SpaceTreeLeaf search(float[] tuple);
+    SpaceTreeLeaf search(double[] tuple);
 
     /**
      * Returns the center of the underlying space.
      * @return The center of the space.
      */
-    float[] getCenter();
+    double[] getCenter();
 
     /**
      * Takes a query rectangle and returns all the spaces that intersect with
@@ -72,7 +72,7 @@ public interface SpaceTree {
      * @param result
      *                will hold all the spaces that intersect with the query
      */
-    void searchRange(float[][] query, float[] center,
+    void searchRange(double[][] query, double[] center,
             List < SpaceTreeLeaf > result);
 
     /**

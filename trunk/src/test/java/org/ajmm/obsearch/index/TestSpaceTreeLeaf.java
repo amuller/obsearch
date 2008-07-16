@@ -2,7 +2,8 @@ package org.ajmm.obsearch.index;
 
 import static org.junit.Assert.*;
 
-import org.ajmm.obsearch.index.pptree.SpaceTreeLeaf;
+import net.obsearch.index.pptree.SpaceTreeLeaf;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,9 +44,9 @@ public class TestSpaceTreeLeaf {
      */
     @Before
     public void setUp() throws Exception {
-        float [] center = {.75f,.75f};
+        double [] center = {.75f,.75f};
         leaf = new SpaceTreeLeaf(center);
-        float[][] space = { { 0.5f, 1 }, { 0.5f, 1 } };
+        double[][] space = { { 0.5f, 1 }, { 0.5f, 1 } };
         leaf.setMinMax(space);
     }
 
@@ -54,7 +55,7 @@ public class TestSpaceTreeLeaf {
      */
     @Test
     public void testIntersects() {
-        float[][] test = { { -1, 0.6f }, { -1, 0.7f } };
+        double[][] test = { { -1, 0.6f }, { -1, 0.7f } };
         assertTrue(leaf.intersects(test));
     }
     /**
@@ -62,7 +63,7 @@ public class TestSpaceTreeLeaf {
      */
     @Test
     public void testNotIntersects() {
-        float[][] test = { { -1, 0.4f }, { -1, 0.3f } };
+        double[][] test = { { -1, 0.4f }, { -1, 0.3f } };
         assertFalse(leaf.intersects(test));
     }
 

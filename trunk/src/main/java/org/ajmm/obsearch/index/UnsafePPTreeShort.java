@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.obsearch.index.pptree.impl.PPTreeShort;
+
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.exception.IllegalIdException;

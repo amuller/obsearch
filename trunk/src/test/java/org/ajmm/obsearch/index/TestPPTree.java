@@ -4,12 +4,18 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
+import net.obsearch.index.pptree.impl.PPTreeShort;
+
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.example.OBSliceFactory;
+import org.ajmm.obsearch.index.pivotselection.AcceptAll;
 import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
+import org.ajmm.obsearch.index.pivotselection.IncrementalBustosNavarroChavezShort;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
 import org.ajmm.obsearch.index.utils.TUtils;
+import org.ajmm.obsearch.storage.bdb.BDBFactory;
+import org.ajmm.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
 
 /*
@@ -50,17 +56,17 @@ public class TestPPTree
      * @throws Exception If something goes really bad.
      */
     public void testPPTree() throws Exception {
-        File dbFolder = new File(TUtils.getTestProperties().getProperty(
-                "test.db.path"));
-        Directory.deleteDirectory(dbFolder);
-        assertTrue(!dbFolder.exists());
-        assertTrue(dbFolder.mkdirs());
-        DummyPivotSelector ps = new DummyPivotSelector();
-        IndexShort < OBSlice > index = new PPTreeShort < OBSlice >(dbFolder,
-                (byte) 30, (byte) 8, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2), ps, OBSlice.class);
-
+       
+        
+        
+        IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                30, 30);
+        BDBFactory fact = Utils.getFactory();
+        
+        PPTreeShort<OBSlice> d = new PPTreeShort<OBSlice>(OBSlice.class, sel, 20, 6, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2));
+        d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
-        t.tIndex(index);
+        t.tIndex(d);
     }
 
 }

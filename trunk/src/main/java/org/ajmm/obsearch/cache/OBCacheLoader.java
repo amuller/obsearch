@@ -38,6 +38,6 @@ public interface OBCacheLoader< O > {
      * Returns the size of the DB
      * @return the size of the DB.
      */
-    int getDBSize() throws DatabaseException, OBStorageException;
+    long getDBSize() throws DatabaseException, OBStorageException;
 
 }
