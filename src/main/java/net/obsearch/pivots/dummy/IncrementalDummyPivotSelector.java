@@ -1,4 +1,6 @@
-package org.ajmm.obsearch.index.pivotselection;
+package net.obsearch.pivots.dummy;
+
+import net.obsearch.pivots.AbstractIncrementalPivotSelector;
 
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.OB;

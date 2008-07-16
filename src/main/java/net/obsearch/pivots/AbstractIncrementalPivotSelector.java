@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.index.pivotselection;
+package net.obsearch.pivots;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
