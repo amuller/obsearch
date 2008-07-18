@@ -1,10 +1,11 @@
 package net.obsearch.pivots.dummy;
 
+import net.obsearch.pivots.IncrementalPivotSelector;
+
 import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;

@@ -419,14 +419,6 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements
         this.stats = stats;
     }
 
-    /**
-     * @see org.ajmm.obsearch.storage.OBStore#processRangeRaw(byte[], byte[])
-     */
-    @Override
-    public CloseIterator < TupleBytes > processRangeRaw(byte[] low, byte[] high)
-            throws OBStorageException {
-        return new ByteArrayIterator(low, high);
-    }
 
     /**
      * Iterator used to process range results.

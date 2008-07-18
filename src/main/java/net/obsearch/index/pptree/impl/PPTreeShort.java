@@ -10,6 +10,7 @@ import java.util.List;
 
 import net.obsearch.index.pptree.AbstractPPTree;
 import net.obsearch.index.pptree.SpaceTreeLeaf;
+import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
 import org.ajmm.obsearch.Index;
@@ -25,9 +26,9 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
+
 import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.index.PivotSelector;
+
 import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.query.OBQueryShort;

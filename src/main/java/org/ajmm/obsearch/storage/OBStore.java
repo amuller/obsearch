@@ -144,14 +144,7 @@ public interface OBStore<T extends Tuple> {
      */
     void setReadStats(StaticBin1D stats);
     
-    /**
-     * Iterates through the database by using the given low and high keys.
-     * @param low Lowest value to get.
-     * @param high Highest value to get.
-     * @return An iterator used to traverse the DB.
-     * @throws OBStorageException
-     */
-    CloseIterator<TupleBytes> processRangeRaw(byte[] low, byte[] high)throws OBStorageException;
+    
     
 
     /**

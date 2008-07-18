@@ -36,7 +36,6 @@ import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
 
@@ -46,6 +45,7 @@ import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
 
 import net.obsearch.index.AbstractOBIndex;
+import net.obsearch.pivots.IncrementalPivotSelector;
 
 /** 
  *  AbstractPivotOBIndex defines abstract functionality for an index that
