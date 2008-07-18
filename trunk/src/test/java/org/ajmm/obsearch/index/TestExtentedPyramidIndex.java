@@ -11,7 +11,6 @@ import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.example.OBSliceFactory;
-import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.index.utils.Directory;
 import org.ajmm.obsearch.index.utils.IndexSmokeTUtil;
 import org.ajmm.obsearch.index.utils.TUtils;

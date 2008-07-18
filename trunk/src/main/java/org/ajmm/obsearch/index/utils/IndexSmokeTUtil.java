@@ -19,7 +19,6 @@ import org.ajmm.obsearch.Status;
 
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.index.pivotselection.DummyPivotSelector;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;

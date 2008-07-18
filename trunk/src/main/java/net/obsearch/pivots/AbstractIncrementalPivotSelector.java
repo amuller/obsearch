@@ -8,7 +8,6 @@ import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
@@ -89,6 +88,9 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
         }
     }
     
+    /* (non-Javadoc)
+	 * @see net.obsearch.pivots.IncrementalPivotSelector#generatePivots(int, org.ajmm.obsearch.Index)
+	 */
     public long[] generatePivots(int pivotsCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import net.obsearch.index.pivot.AbstractPivotOBIndex;
+import net.obsearch.pivots.IncrementalPivotSelector;
 
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
@@ -18,9 +19,7 @@ import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.AbstractPivotIndex;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
-import org.ajmm.obsearch.index.PivotSelector;
+
 import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreDouble;

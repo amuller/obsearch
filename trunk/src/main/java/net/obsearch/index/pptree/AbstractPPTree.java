@@ -11,6 +11,7 @@ import gnu.trove.TLongHashSet;
 import hep.aida.bin.QuantileBin1D;
 
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
+import net.obsearch.pivots.IncrementalPivotSelector;
 
 import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.asserts.OBAsserts;
@@ -19,8 +20,7 @@ import org.ajmm.obsearch.exception.KMeansHungUpException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.index.IncrementalPivotSelector;
-import org.ajmm.obsearch.index.PivotSelector;
+
 import org.ajmm.obsearch.index.utils.OBRandom;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
