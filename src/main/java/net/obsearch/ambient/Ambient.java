@@ -44,6 +44,7 @@ public interface Ambient < O extends OB, I extends Index < O >> {
      * The name of the file in which the meta-data is stored.
      */
     String METADATA_FILENAME = "ob.xml";
+    
 
     /**
      * Returns the index.
