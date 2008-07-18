@@ -8,7 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.ajmm.obsearch.OB;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.ob.OBShort;
 
@@ -77,7 +78,7 @@ public class OBSlice extends OBEx implements OBShort  {
      * tree.
      * @param object
      *                The other object to compare
-     * @see org.ajmm.obsearch.OB#distance(org.ajmm.obsearch.OB,
+     * @see net.obsearch.OB#distance(net.obsearch.OB,
      *      org.ajmm.obsearch.Dim)
      * @throws OBException
      *                 if something wrong happens.
@@ -195,7 +196,7 @@ public class OBSlice extends OBEx implements OBShort  {
      * Re-creates this object from the given byte stream
      * @param in
      *                A byte stream with the data that must be loaded.
-     * @see org.ajmm.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
+     * @see net.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
     public final void load(DataInputStream in) throws IOException, OBException {
             updateTree( in.readUTF());
@@ -205,7 +206,7 @@ public class OBSlice extends OBEx implements OBShort  {
      * Stores this object into the given byte stream.
      * @param out
      *                The byte stream to be used
-     * @see org.ajmm.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
+     * @see net.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
     public final void store(DataOutputStream out) throws IOException{
         String str = tree.toFuriaChanTree();

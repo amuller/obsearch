@@ -2,6 +2,9 @@ package org.ajmm.obsearch;
 
 import static org.junit.Assert.*;
 
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,8 +20,8 @@ public class TestResult {
         a.setId(3);
         OperationStatus b = new OperationStatus(Status.OK);
         b.setId(4);
-        assertEquals(a.getId(),3);
-        assertEquals(b.getId(),4);
+        assertEquals(a.getId(),3L);
+        assertEquals(b.getId(),4L);
     }
 
 

@@ -2,9 +2,10 @@ package org.ajmm.obsearch.index.d;
 
 import java.util.List;
 
-import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
+import net.obsearch.OB;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 
@@ -47,9 +48,9 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *                additional information such as the SMAP vector
      * @param object
      *                The object that will be deleted.
-     * @return {@link org.ajmm.obsearch.Status#OK} and the deleted
+     * @return {@link net.obsearch.Status#OK} and the deleted
      *         object's id if the object was found and successfully deleted.
-     *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} if the object
+     *         {@link net.obsearch.Status#NOT_EXISTS} if the object
      *         is not in the database.
      */
     OperationStatus delete(B bucket, O object) throws OBException, DatabaseException,
@@ -62,8 +63,8 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      * @param bucket
      *                This will should match this bucket's id. Used to pass
      *                additional information such as the SMAP vector.
-     * @return If {@link org.ajmm.obsearch.Status#OK} or
-     *         {@link org.ajmm.obsearch.Status#EXISTS} then the result
+     * @return If {@link net.obsearch.Status#OK} or
+     *         {@link net.obsearch.Status#EXISTS} then the result
      *         will hold the id of the inserted object and the operation is
      *         successful.
      */
@@ -95,9 +96,9 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      * @throws IllegalIdException
      * @throws IllegalAccessException
      * @throws InstantiationException
-     * @return {@link org.ajmm.obsearch.Status#EXISTS} and the object's
+     * @return {@link net.obsearch.Status#EXISTS} and the object's
      *         id if the object exists in the database, otherwise
-     *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} is returned.
+     *         {@link net.obsearch.Status#NOT_EXISTS} is returned.
      */
     OperationStatus exists(B bucket, O object) throws OBException, DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException;

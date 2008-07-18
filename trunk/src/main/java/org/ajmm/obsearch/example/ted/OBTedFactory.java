@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.example.ted;
 
-import org.ajmm.obsearch.OB;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.utils.OBFactory;
 

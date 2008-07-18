@@ -5,8 +5,9 @@ import hep.aida.bin.StaticBin1D;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
+
 import org.ajmm.obsearch.exception.OBStorageException;
 
 /*
@@ -76,8 +77,8 @@ public interface OBStore<T extends Tuple> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.Status#OK} the record was inserted/updated successfully.
-     *               {@link org.ajmm.obsearch.Status#ERROR} if the record could not be updated.
+     * @return {@link net.obsearch.Status#OK} the record was inserted/updated successfully.
+     *               {@link net.obsearch.Status#ERROR} if the record could not be updated.
      */
     OperationStatus put(byte[] key, ByteBuffer value) throws OBStorageException;
 
@@ -91,8 +92,8 @@ public interface OBStore<T extends Tuple> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.Status#OK} if the key was found,
-     *         otherwise, {@link org.ajmm.obsearch.Status#NOT_EXISTS}.
+     * @return {@link net.obsearch.Status#OK} if the key was found,
+     *         otherwise, {@link net.obsearch.Status#NOT_EXISTS}.
      */
     OperationStatus delete(byte[] key) throws OBStorageException;
 

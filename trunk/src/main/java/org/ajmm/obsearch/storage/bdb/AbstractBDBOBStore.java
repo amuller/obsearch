@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import net.obsearch.Status;
 import net.obsearch.utils.bytes.ByteConversion;
 
-import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.index.utils.ByteArrayComparator;
@@ -119,9 +119,9 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements
         }
     }
 
-    public org.ajmm.obsearch.OperationStatus delete(byte[] key)
+    public net.obsearch.OperationStatus delete(byte[] key)
             throws OBStorageException {
-        org.ajmm.obsearch.OperationStatus r = new org.ajmm.obsearch.OperationStatus();
+        net.obsearch.OperationStatus r = new net.obsearch.OperationStatus();
         try {
             OperationStatus res = db.delete(null, new DatabaseEntry(key));
             if (res.NOTFOUND == res) {
@@ -172,12 +172,12 @@ public abstract class AbstractBDBOBStore < T extends Tuple > implements
         }
     }
 
-    public org.ajmm.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
+    public net.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
             throws OBStorageException {
 
         DatabaseEntry k = new DatabaseEntry(key);
         DatabaseEntry v = new DatabaseEntry(value.array());
-        org.ajmm.obsearch.OperationStatus res = new org.ajmm.obsearch.OperationStatus();
+        net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
         try {
             OperationStatus r = db.put(null, k, v);
             if (r == OperationStatus.SUCCESS) {
