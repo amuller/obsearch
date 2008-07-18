@@ -1,8 +1,8 @@
 package net.obsearch.pivots.dummy;
 
+import net.obsearch.Index;
 import net.obsearch.pivots.IncrementalPivotSelector;
 
-import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.exception.PivotsUnavailableException;

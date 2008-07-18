@@ -2,8 +2,9 @@ package net.obsearch.pivots;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
+import net.obsearch.Index;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;

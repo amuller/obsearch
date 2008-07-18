@@ -28,13 +28,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import net.obsearch.Index;
+import net.obsearch.OB;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
 import net.obsearch.ob.MultiplicityAware;
 import net.obsearch.utils.bytes.ByteConversion;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
 import org.ajmm.obsearch.cache.OBCacheLoaderLong;
@@ -263,11 +263,11 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     /**
      * Deletes the entry of this object in the index. The current class will
      * remove the object from A if the result status is
-     * {@link org.ajmm.obsearch.Status#OK}.
+     * {@link net.obsearch.Status#OK}.
      * @param object
      *                object to be deleted.
-     * @return {@link org.ajmm.obsearch.Status#OK} if the object was deleted.
-     *         {@link org.ajmm.obsearch.Status#NOT_EXISTS} no object matched.
+     * @return {@link net.obsearch.Status#OK} if the object was deleted.
+     *         {@link net.obsearch.Status#NOT_EXISTS} no object matched.
      */
     protected abstract OperationStatus deleteAux(O object) throws OBException, IllegalAccessException,
     InstantiationException ;
@@ -345,8 +345,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      * Find the Id of the given object. (the distance 0 is considered as equal)
      * @param object
      *                The object to search
-     * @return {@link org.ajmm.obsearch.Status#OK} if the object is found (with
-     *         the id) otherwise, {@link org.ajmm.obsearch.Status#NOT_EXISTS}
+     * @return {@link net.obsearch.Status#OK} if the object is found (with
+     *         the id) otherwise, {@link net.obsearch.Status#NOT_EXISTS}
      * @throws IllegalIdException
      * @throws IllegalAccessException
      * @throws InstantiationException
@@ -446,8 +446,8 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
      *                The id that will be used to insert the object.
      * @param object
      *                The object that will be inserted.
-     * @return If {@link org.ajmm.obsearch.Status#OK} or
-     *         {@link org.ajmm.obsearch.Status#EXISTS} then the result will hold
+     * @return If {@link net.obsearch.Status#OK} or
+     *         {@link net.obsearch.Status#EXISTS} then the result will hold
      *         the id of the inserted object and the operation is successful.
      *         Otherwise an exception will be thrown.
      * @throws OBStorageException
@@ -460,7 +460,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
             InstantiationException;
 
     /**
-     * @see org.ajmm.obsearch.Index#freeze()
+     * @see net.obsearch.Index#freeze()
      */
     @Override
     public void freeze() throws IOException, AlreadyFrozenException,

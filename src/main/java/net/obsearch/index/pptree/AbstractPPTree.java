@@ -10,10 +10,10 @@ import gnu.trove.TIntHashSet;
 import gnu.trove.TLongHashSet;
 import hep.aida.bin.QuantileBin1D;
 
+import net.obsearch.OB;
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.KMeansException;
 import org.ajmm.obsearch.exception.KMeansHungUpException;
@@ -266,9 +266,9 @@ public abstract class AbstractPPTree < O extends OB >
         int i = 0;
         boolean res = true;
         while (i < center.length && res) {
-            assert Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000002 : " c[i]: " + center[i]
-                    + " i " + i + " T(c[i] " + x.normalizeAux(center[i], i);
-            res = Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000002;
+            assert Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000003 : " c[i]: " + center[i]
+                    + " i " + i + " T(c[i]) " + x.normalizeAux(center[i], i);
+            res = Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000003;
             i++;
         }
         return res;

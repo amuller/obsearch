@@ -5,10 +5,10 @@ import java.util.HashMap;
 
 import hep.aida.bin.StaticBin1D;
 
+import net.obsearch.Index;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
-import org.ajmm.obsearch.Index;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.utils.ShortUtils;

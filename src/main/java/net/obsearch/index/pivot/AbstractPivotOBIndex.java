@@ -26,8 +26,6 @@ import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.ajmm.obsearch.OB;
-import org.ajmm.obsearch.OperationStatus;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
@@ -44,6 +42,8 @@ import com.sleepycat.je.DatabaseException;
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
 
+import net.obsearch.OB;
+import net.obsearch.OperationStatus;
 import net.obsearch.index.AbstractOBIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 

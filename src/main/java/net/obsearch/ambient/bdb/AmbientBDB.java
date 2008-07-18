@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -13,6 +11,8 @@ import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.bdb.BDBFactory;
 
+import net.obsearch.Index;
+import net.obsearch.OB;
 import net.obsearch.ambient.AbstractAmbient;
 
 /*
