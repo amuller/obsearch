@@ -32,12 +32,12 @@ import java.io.IOException;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.exception.AlreadyFrozenException;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
 
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
 
 public interface Ambient < O extends OB, I extends Index < O >> {
     

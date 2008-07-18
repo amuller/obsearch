@@ -5,13 +5,13 @@ import java.util.Random;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.utils.OBRandom;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
 import net.obsearch.pivots.Pivotable;
 
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.PivotsUnavailableException;
-import org.ajmm.obsearch.index.utils.OBRandom;
 import org.ajmm.obsearch.ob.OBShort;
 import org.apache.log4j.Logger;
 

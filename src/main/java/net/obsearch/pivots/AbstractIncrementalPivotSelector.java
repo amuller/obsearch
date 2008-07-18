@@ -4,11 +4,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
 
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.PivotsUnavailableException;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
@@ -90,7 +90,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
     }
     
     /* (non-Javadoc)
-	 * @see net.obsearch.pivots.IncrementalPivotSelector#generatePivots(int, org.ajmm.obsearch.Index)
+	 * @see net.obsearch.pivots.IncrementalPivotSelector#generatePivots(int, net.obsearch.result.Index)
 	 */
     public long[] generatePivots(int pivotsCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,

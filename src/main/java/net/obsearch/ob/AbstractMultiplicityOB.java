@@ -5,8 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import net.obsearch.OB;
+import net.obsearch.exception.OBException;
 
-import org.ajmm.obsearch.exception.OBException;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -55,7 +55,7 @@ public abstract class AbstractMultiplicityOB implements OB, MultiplicityAware {
     }
 
     /* (non-Javadoc)
-     * @see org.ajmm.obsearch.Storable#load(java.io.DataInputStream)
+     * @see net.obsearch.result.Storable#load(java.io.DataInputStream)
      */
     @Override
     public void load(DataInputStream in) throws IOException, OBException {
@@ -64,7 +64,7 @@ public abstract class AbstractMultiplicityOB implements OB, MultiplicityAware {
     }
 
     /* (non-Javadoc)
-     * @see org.ajmm.obsearch.Storable#store(java.io.DataOutputStream)
+     * @see net.obsearch.result.Storable#store(java.io.DataOutputStream)
      */
     @Override
     public void store(DataOutputStream out) throws IOException{

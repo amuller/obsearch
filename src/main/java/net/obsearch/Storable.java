@@ -7,7 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.ajmm.obsearch.exception.OBException;
+import net.obsearch.exception.OBException;
 
 
 /*

@@ -4,16 +4,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.bdb.BDBFactory;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.ambient.AbstractAmbient;
+import net.obsearch.exception.AlreadyFrozenException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -42,7 +42,7 @@ import net.obsearch.ambient.AbstractAmbient;
 public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbient<O, I>{
 
     /**
-     * @see org.ajmm.obsearch.ambient.AbstractAmbient#AbstractAmbient(I index, File directory)
+     * @see net.obsearch.result.ambient.AbstractAmbient#AbstractAmbient(I index, File directory)
      */
     public AmbientBDB(I index, File directory) throws FileNotFoundException, OBStorageException,
     NotFrozenException, IllegalAccessException, InstantiationException,
@@ -51,7 +51,7 @@ public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbie
     }
     
     /**
-     * @see org.ajmm.obsearch.ambient.AbstractAmbient#AbstractAmbient(File directory)
+     * @see net.obsearch.result.ambient.AbstractAmbient#AbstractAmbient(File directory)
      */
     public AmbientBDB(File directory) throws FileNotFoundException, OBStorageException,
     NotFrozenException, IllegalAccessException, InstantiationException,

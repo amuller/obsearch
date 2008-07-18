@@ -26,14 +26,6 @@ import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.ajmm.obsearch.asserts.OBAsserts;
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.exception.PivotsUnavailableException;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
 
@@ -44,6 +36,14 @@ import cern.colt.list.LongArrayList;
 
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
+import net.obsearch.asserts.OBAsserts;
+import net.obsearch.exception.AlreadyFrozenException;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.AbstractOBIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 

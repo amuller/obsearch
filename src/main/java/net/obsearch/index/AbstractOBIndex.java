@@ -32,21 +32,21 @@ import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
+import net.obsearch.cache.OBCache;
+import net.obsearch.cache.OBCacheLoader;
+import net.obsearch.cache.OBCacheLoaderLong;
+import net.obsearch.cache.OBCacheLong;
+import net.obsearch.exception.AlreadyFrozenException;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.ob.MultiplicityAware;
+import net.obsearch.stats.Statistics;
+import net.obsearch.storage.OBStore;
 import net.obsearch.utils.bytes.ByteConversion;
 
-import org.ajmm.obsearch.cache.OBCache;
-import org.ajmm.obsearch.cache.OBCacheLoader;
-import org.ajmm.obsearch.cache.OBCacheLoaderLong;
-import org.ajmm.obsearch.cache.OBCacheLong;
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.stats.Statistics;
-import org.ajmm.obsearch.storage.OBStore;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.ajmm.obsearch.storage.OBStoreLong;
 
@@ -216,7 +216,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#close()
+     * @see net.obsearch.result.Index#close()
      */
     @Override
     public void close() throws OBException {
@@ -229,7 +229,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#databaseSize()
+     * @see net.obsearch.result.Index#databaseSize()
      */
     @Override
     public long databaseSize() throws OBStorageException {
@@ -238,7 +238,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#databaseSizeMSet()
+     * @see net.obsearch.result.Index#databaseSizeMSet()
      */
     @Override
     public long databaseSizeMSet() throws OBStorageException {
@@ -274,7 +274,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#deleteSingle(org.ajmm.obsearch.OB)
+     * @see net.obsearch.result.Index#deleteSingle(net.obsearch.result.OB)
      */
     public OperationStatus deleteSingle(O object) throws OBStorageException,
             OBException, IllegalAccessException, InstantiationException,
@@ -332,7 +332,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#getObject(long)
+     * @see net.obsearch.result.Index#getObject(long)
      */
     @Override
     public O getObject(long id) throws IllegalIdException,
@@ -360,7 +360,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#exists(org.ajmm.obsearch.OB)
+     * @see net.obsearch.result.Index#exists(net.obsearch.result.OB)
      */
     
    /* public OperationStatus exists(O object) throws OBStorageException,
@@ -374,7 +374,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#getStats()
+     * @see net.obsearch.result.Index#getStats()
      */
     @Override
     public Statistics getStats() {
@@ -383,7 +383,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#insert(org.ajmm.obsearch.OB)
+     * @see net.obsearch.result.Index#insert(net.obsearch.result.OB)
      */
     @Override
     public OperationStatus insert(O object) throws OBStorageException,
@@ -475,7 +475,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#getBox(org.ajmm.obsearch.OB)
+     * @see net.obsearch.result.Index#getBox(net.obsearch.result.OB)
      */
     @Override
     public long getBox(O object) throws OBException {
@@ -484,7 +484,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#isFrozen()
+     * @see net.obsearch.result.Index#isFrozen()
      */
     @Override
     public boolean isFrozen() {
@@ -493,7 +493,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#resetStats()
+     * @see net.obsearch.result.Index#resetStats()
      */
     @Override
     public void resetStats() {
@@ -502,7 +502,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.Index#totalBoxes()
+     * @see net.obsearch.result.Index#totalBoxes()
      */
     @Override
     public long totalBoxes() {
