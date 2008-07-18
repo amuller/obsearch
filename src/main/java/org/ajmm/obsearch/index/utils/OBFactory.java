@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index.utils;
 
-import org.ajmm.obsearch.OB;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.OBException;
 
 /**

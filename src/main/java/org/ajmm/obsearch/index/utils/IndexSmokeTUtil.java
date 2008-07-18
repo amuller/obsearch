@@ -14,8 +14,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
 
 import org.ajmm.obsearch.example.OBSlice;
 import org.ajmm.obsearch.index.IndexShort;

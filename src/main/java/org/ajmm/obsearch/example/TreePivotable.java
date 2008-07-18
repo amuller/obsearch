@@ -1,8 +1,8 @@
 package org.ajmm.obsearch.example;
 
+import net.obsearch.OB;
 import net.obsearch.pivots.Pivotable;
 
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.OBException;
 /*
 OBSearch: a distributed similarity search engine

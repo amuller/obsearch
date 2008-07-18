@@ -8,9 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
+import net.obsearch.Index;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.utils.IntegerHolder;

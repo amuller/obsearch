@@ -1,6 +1,7 @@
 package org.ajmm.obsearch.index.utils;
 
-import org.ajmm.obsearch.Index;
+import net.obsearch.Index;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.ob.OBShort;
