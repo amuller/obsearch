@@ -2,7 +2,8 @@ package net.obsearch.index.pyramid.imp;
 
 import java.nio.ByteBuffer;
 
-import org.ajmm.obsearch.OB;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexShort;

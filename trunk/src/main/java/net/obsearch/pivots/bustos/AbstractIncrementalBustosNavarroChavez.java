@@ -6,11 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import net.obsearch.Index;
+import net.obsearch.OB;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
 import net.obsearch.pivots.Pivotable;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.exception.OBStorageException;
@@ -176,8 +176,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
         double bestMedian = Double.MIN_VALUE;
         long bestPivot = -1;
         previousPivots.trimToSize();
-        long[] pivots = Arrays.copyOf(previousPivots.elements(), previousPivots
-                .size() + 1);
+        long[] pivots = Arrays.copyOf(previousPivots.elements(), previousPivots.size() + 1);
         // initialize pivots.
 
         for (long pivotId : possiblePivots) {

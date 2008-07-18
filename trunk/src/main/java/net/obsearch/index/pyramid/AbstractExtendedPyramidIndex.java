@@ -9,10 +9,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import net.obsearch.OB;
 import net.obsearch.index.pivot.AbstractPivotOBIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 
-import org.ajmm.obsearch.OB;
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;

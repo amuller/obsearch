@@ -8,8 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
+import net.obsearch.Index;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;

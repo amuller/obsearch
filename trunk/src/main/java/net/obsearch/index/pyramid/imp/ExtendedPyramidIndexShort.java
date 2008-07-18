@@ -6,13 +6,13 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Iterator;
 
+import net.obsearch.Index;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.NotFrozenException;
 import org.ajmm.obsearch.exception.OBException;
@@ -360,7 +360,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
      *      org.ajmm.obsearch.OB)
      */
     @Override
-    protected org.ajmm.obsearch.OperationStatus insertAux(long id, O object)
+    protected net.obsearch.OperationStatus insertAux(long id, O object)
             throws OBStorageException, OBException, IllegalAccessException,
             InstantiationException {
         short[] t = new short[getPivotCount()];

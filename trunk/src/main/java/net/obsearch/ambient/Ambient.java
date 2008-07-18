@@ -30,8 +30,9 @@ package net.obsearch.ambient;
 
 import java.io.IOException;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OB;
+import net.obsearch.Index;
+import net.obsearch.OB;
+
 import org.ajmm.obsearch.exception.AlreadyFrozenException;
 import org.ajmm.obsearch.exception.IllegalIdException;
 import org.ajmm.obsearch.exception.OBException;
@@ -55,7 +56,7 @@ public interface Ambient < O extends OB, I extends Index < O >> {
     /**
      * Freezes the index and stores the metadata of the index (the index itself)
      * in the DB.
-     * @see org.ajmm.obsearch.Index#freeze()
+     * @see net.obsearch.Index#freeze()
      */
     public abstract void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,

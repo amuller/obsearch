@@ -8,14 +8,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.obsearch.Index;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
 import net.obsearch.index.pptree.AbstractPPTree;
 import net.obsearch.index.pptree.SpaceTreeLeaf;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.OperationStatus;
-import org.ajmm.obsearch.Status;
 import org.ajmm.obsearch.asserts.OBAsserts;
 import org.ajmm.obsearch.cache.OBCache;
 import org.ajmm.obsearch.cache.OBCacheLoader;
@@ -460,7 +460,7 @@ public class PPTreeShort < O extends OBShort >
 
     }
 
-    protected org.ajmm.obsearch.OperationStatus insertAux(long id, O object)
+    protected net.obsearch.OperationStatus insertAux(long id, O object)
             throws OBStorageException, OBException, IllegalAccessException,
             InstantiationException {
         short[] t = new short[getPivotCount()];
