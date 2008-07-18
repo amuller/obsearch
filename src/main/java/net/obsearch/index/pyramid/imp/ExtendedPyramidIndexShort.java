@@ -395,7 +395,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         OperationStatus res = new OperationStatus(Status.NOT_EXISTS);
         OBPriorityQueueShort < O > result = new OBPriorityQueueShort < O >(
                 (byte) 1);
-        searchOB(object, (short) 0, result);
+        searchOB(object, (short) 1, result);
         
         if (result.getSize() == 1 ){
             OBResultShort < O > r = result.iterator().next();
