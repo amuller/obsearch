@@ -6,12 +6,12 @@ import java.util.HashMap;
 import hep.aida.bin.StaticBin1D;
 
 import net.obsearch.Index;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.OBException;
+import net.obsearch.index.utils.ShortUtils;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.index.utils.ShortUtils;
 import org.ajmm.obsearch.ob.OBShort;
 
 import com.sleepycat.je.DatabaseException;
@@ -103,7 +103,7 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     }
 
     /* (non-Javadoc)
-     * @see org.ajmm.obsearch.index.pivotselection.AbstractIncrementalBustosNavarroChavez#validatePivots(int[], int)
+     * @see net.obsearch.result.index.pivotselection.AbstractIncrementalBustosNavarroChavez#validatePivots(int[], int)
      */
     @Override
     protected boolean validatePivots(long[] pivots, long id, Index<O> index) throws DatabaseException,

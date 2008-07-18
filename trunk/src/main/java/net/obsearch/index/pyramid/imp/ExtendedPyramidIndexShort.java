@@ -9,26 +9,26 @@ import java.util.Iterator;
 import net.obsearch.Index;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
+import net.obsearch.index.utils.MyTupleInput;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.bdb.AbstractBDBOBStore;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
 import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.index.utils.MyTupleInput;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
 import org.ajmm.obsearch.result.OBResultShort;
-import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.storage.OBStoreDouble;
-import org.ajmm.obsearch.storage.TupleBytes;
 import org.ajmm.obsearch.storage.TupleDouble;
 import org.ajmm.obsearch.storage.TupleLong;
-import org.ajmm.obsearch.storage.bdb.AbstractBDBOBStore;
 
 
 /*
@@ -357,7 +357,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
     /*
      * (non-Javadoc)
      * @see net.obsearch.index.AbstractOBIndex#insertAux(long,
-     *      org.ajmm.obsearch.OB)
+     *      net.obsearch.result.OB)
      */
     @Override
     protected net.obsearch.OperationStatus insertAux(long id, O object)
@@ -488,7 +488,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     /*
      * (non-Javadoc)
-     * @see net.obsearch.index.pivot.AbstractPivotOBIndex#objectToProjectionBytes(org.ajmm.obsearch.OB)
+     * @see net.obsearch.index.pivot.AbstractPivotOBIndex#objectToProjectionBytes(net.obsearch.result.OB)
      */
     @Override
     protected ByteBuffer objectToProjectionBytes(O object) throws OBException {
@@ -504,8 +504,8 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
 
     /*
      * (non-Javadoc)
-     * @see org.ajmm.obsearch.index.IndexShort#searchOB(org.ajmm.obsearch.ob.OBShort,
-     *      short, org.ajmm.obsearch.result.OBPriorityQueueShort, int[])
+     * @see net.obsearch.result.index.IndexShort#searchOB(net.obsearch.result.ob.OBShort,
+     *      short, net.obsearch.result.result.OBPriorityQueueShort, int[])
      */
     @Override
     public void searchOB(O object, short r, OBPriorityQueueShort < O > result,

@@ -1,8 +1,8 @@
 package net.obsearch.pivots;
 
 import net.obsearch.OB;
+import net.obsearch.exception.OBException;
 
-import org.ajmm.obsearch.exception.OBException;
 /*
 OBSearch: a distributed similarity search engine
 This project is to similarity search what 'bit-torrent' is to downloads.

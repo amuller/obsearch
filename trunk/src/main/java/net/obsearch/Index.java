@@ -4,14 +4,15 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 
-import org.ajmm.obsearch.exception.AlreadyFrozenException;
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
-import org.ajmm.obsearch.exception.UndefinedPivotsException;
-import org.ajmm.obsearch.stats.Statistics;
+import net.obsearch.exception.AlreadyFrozenException;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.UndefinedPivotsException;
+import net.obsearch.stats.Statistics;
+
 import org.ajmm.obsearch.storage.OBStoreFactory;
 
 /*

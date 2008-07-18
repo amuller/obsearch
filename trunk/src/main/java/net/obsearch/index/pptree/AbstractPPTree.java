@@ -11,17 +11,17 @@ import gnu.trove.TLongHashSet;
 import hep.aida.bin.QuantileBin1D;
 
 import net.obsearch.OB;
+import net.obsearch.asserts.OBAsserts;
+import net.obsearch.exception.KMeansException;
+import net.obsearch.exception.KMeansHungUpException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
+import net.obsearch.index.utils.OBRandom;
 import net.obsearch.pivots.IncrementalPivotSelector;
 
-import org.ajmm.obsearch.asserts.OBAsserts;
-import org.ajmm.obsearch.exception.KMeansException;
-import org.ajmm.obsearch.exception.KMeansHungUpException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
 
-import org.ajmm.obsearch.index.utils.OBRandom;
 import org.ajmm.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
 

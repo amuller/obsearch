@@ -3,13 +3,13 @@ package net.obsearch.index.pyramid.imp;
 import java.nio.ByteBuffer;
 
 import net.obsearch.OB;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.OBException;
+import net.obsearch.storage.CloseIterator;
 
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.OBException;
 import org.ajmm.obsearch.index.IndexShort;
 import org.ajmm.obsearch.ob.OBShort;
 import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.storage.CloseIterator;
 import org.ajmm.obsearch.storage.OBStoreDouble;
 import org.ajmm.obsearch.storage.TupleDouble;
 
