@@ -58,7 +58,7 @@ public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
      * @param distance
      *            Distance of the result and the original query.
      */
-    public OBResult${Type}(O object, int id, ${type} distance){
+    public OBResult${Type}(O object, long id, ${type} distance){
 
         super(object,id);
         this.distance = distance;

@@ -1,4 +1,4 @@
-package net.obsearch.index.d;
+package net.obsearch.index.bucket;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -20,12 +20,12 @@ package net.obsearch.index.d;
  */
 
 /**
- * ObjectBucket holds a bucket number for an object. Subclasses hold also the SMAP
+ * ObjectInBucket holds a bucket number for an object. Subclasses hold also the SMAP
  * vector with the distances of the object to the pivots of a certain level.
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class ObjectBucket {
+public abstract class ObjectInBucket {
     
     /**
      * The bucket number of the object.
@@ -37,15 +37,12 @@ public abstract class ObjectBucket {
      */
     private boolean exclusionBucket;
     
-    /**
-     * Level within the hash table; Level is a number > 0 .
-     */
-    private int level;
+    
     
     /**
      * Id of the object.
      */
-    private int id;
+    private long id;
 
     /**
      * @return the bucket
@@ -61,19 +58,7 @@ public abstract class ObjectBucket {
         this.bucket = bucket;
     }
 
-    /**
-     * @return the level
-     */
-    public int getLevel() {
-        return level;
-    }
-
-    /**
-     * @param level the level to set
-     */
-    public void setLevel(int level) {
-        this.level = level;
-    }
+   
 
     /**
      * Creates a new bucket with the given bucket number and
@@ -82,43 +67,29 @@ public abstract class ObjectBucket {
      * @param exclusionBucket If true, the corresponding object is in the exclusion zone.
      * @param optional id of the object.
      */
-    public ObjectBucket(long bucket, int level, boolean exclusionBucket, int id) {
+    public ObjectInBucket(long bucket, long id) {
         super();
         this.bucket = bucket;
-        this.level = level;
-        this.exclusionBucket = exclusionBucket;
         this.id = id;
     }
     
     /**
      * @return the id
      */
-    public int getId() {
+    public long getId() {
         return id;
     }
 
     /**
      * @param id the id to set
      */
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
    
 
-    /**
-     * @return the exclusionBucket
-     */
-    public boolean isExclusionBucket() {
-        return exclusionBucket;
-    }
-
-    /**
-     * @param exclusionBucket the exclusionBucket to set
-     */
-    public void setExclusionBucket(boolean exclusionBucket) {
-        this.exclusionBucket = exclusionBucket;
-    }
+   
     
     /**
      * Returns the # of pivots.

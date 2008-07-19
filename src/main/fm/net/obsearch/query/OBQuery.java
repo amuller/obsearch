@@ -195,7 +195,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * @throws InstantiationException
     *             If there is a problem when instantiating objects O
     */
-    public void add(int id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+    public void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
 				result.add(id,obj,d);
 				${type} temp = result.updateRange(this.distance);
 				if(temp != this.distance){

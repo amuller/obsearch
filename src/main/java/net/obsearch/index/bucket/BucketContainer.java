@@ -1,5 +1,6 @@
-package net.obsearch.index.d;
+package net.obsearch.index.bucket;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import net.obsearch.OB;
@@ -39,7 +40,7 @@ import com.sleepycat.je.DatabaseException;
  *                The bucket that will be employed.
  * @author Arnoldo Jose Muller Molina
  */
-public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
+public interface BucketContainer < O extends OB, B extends ObjectInBucket, Q > {
 
     /**
      * Deletes the given object from this {@link BucketContainer}.
@@ -53,7 +54,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         {@link net.obsearch.Status#NOT_EXISTS} if the object
      *         is not in the database.
      */
-    OperationStatus delete(B bucket, O object) throws OBException, DatabaseException,
+    OperationStatus delete(B bucket, O object) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
@@ -68,7 +69,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         will hold the id of the inserted object and the operation is
      *         successful.
      */
-    OperationStatus insert(B bucket) throws OBException, DatabaseException,
+    OperationStatus insert(B bucket) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException;
     
     /**
@@ -80,7 +81,7 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    void bulkInsert(List<B> bucket) throws OBException, DatabaseException,
+    void bulkInsert(List<B> bucket) throws OBException,
     IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
@@ -100,14 +101,14 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      *         id if the object exists in the database, otherwise
      *         {@link net.obsearch.Status#NOT_EXISTS} is returned.
      */
-    OperationStatus exists(B bucket, O object) throws OBException, DatabaseException,
+    OperationStatus exists(B bucket, O object) throws OBException, 
             IllegalIdException, IllegalAccessException, InstantiationException;
 
     /**
      * Get the byte representation of this bucket.
      * @return
      */
-    byte[] getBytes();
+    ByteBuffer getBytes();
 
     /**
      * Searches the given object with the given searchContainer parameters. The
@@ -142,7 +143,4 @@ public interface BucketContainer < O extends OB, B extends ObjectBucket, Q > {
      */
     void setPivots(int pivots);
 
-    
-    int  getLevel();
-    void setLevel(int level);
 }

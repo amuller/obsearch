@@ -1,4 +1,4 @@
-package net.obsearch.index.d;
+package net.obsearch.index.bucket;
 
 import java.util.Arrays;
 
@@ -22,13 +22,13 @@ import java.util.Arrays;
  */
 
 /**
- * ObjectBucketShort extends {@link ObjectBucket} by adding an SMAP vector used to minimize
+ * ObjectInBucketShort extends {@link ObjectInBucket} by adding an SMAP vector used to minimize
  * the number of distance computations required per object.
  * @author Arnoldo Jose Muller Molina
  */
 
-public class ObjectBucketShort
-        extends ObjectBucket implements Comparable<ObjectBucketShort>{
+public class ObjectInBucketShort
+        extends ObjectInBucket implements Comparable<ObjectInBucketShort>{
 
     /**
      * SMAP vector of the object.
@@ -49,9 +49,9 @@ public class ObjectBucketShort
      *                zone.
      * @param id Optional id of the given object. Not always used.
      */
-    public ObjectBucketShort(long bucket, int level, short[] smapVector,
-            boolean exclusionBucket, int id) {
-        super(bucket, level, exclusionBucket,id);
+    public ObjectInBucketShort(long bucket, short[] smapVector,
+             long id) {
+        super(bucket,id);
         this.smapVector = smapVector;
     }
     
@@ -61,9 +61,9 @@ public class ObjectBucketShort
      * @param smapVector
      * @param id
      */
-    public ObjectBucketShort(short[] smapVector,
-            int id) {
-        this(-1L,-1,smapVector, false, id);
+    public ObjectInBucketShort(short[] smapVector,
+            long id) {
+        this(-1L,smapVector, id);
     }
 
     /**
@@ -74,11 +74,11 @@ public class ObjectBucketShort
     }
     
     /**
-     * Returns true if the given smap vector ( {@link ObjectBucketShort}) is
+     * Returns true if the given smap vector ( {@link ObjectInBucketShort}) is
      * equal to this.
      * @return true if both vectors are equal.
      */
-    public boolean smapEqual(ObjectBucketShort other){
+    public boolean smapEqual(ObjectInBucketShort other){
         /*assert this.getBucket() == other.getBucket();
         assert this.getStorageBucket() == other.getStorageBucket();
         assert this.isExclusionBucket() == other.isExclusionBucket();*/
@@ -101,7 +101,7 @@ public class ObjectBucketShort
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
-    public int compareTo(ObjectBucketShort o) {
+    public int compareTo(ObjectInBucketShort o) {
         if(smapVector[0] < o.smapVector[0]){
             return -1;
         }else if (smapVector[0] > o.smapVector[0]){
