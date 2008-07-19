@@ -8,10 +8,10 @@
 <#assign Type2 = Type>
 </#if>
 <@pp.changeOutputFile name="OBQuery"+Type+".java" />
-package org.ajmm.obsearch.query;
-import org.ajmm.obsearch.ob.OB${Type};
-import org.ajmm.obsearch.result.OBResult${Type};
-import org.ajmm.obsearch.result.OBPriorityQueue${Type};
+package net.obsearch.query;
+import net.obsearch.ob.OB${Type};
+import net.obsearch.result.OBResult${Type};
+import net.obsearch.result.OBPriorityQueue${Type};
 
 /*
     OBSearch: a distributed similarity search engine

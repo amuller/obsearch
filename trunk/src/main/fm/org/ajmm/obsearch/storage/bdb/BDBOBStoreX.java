@@ -19,7 +19,7 @@
 
 
 <@pp.changeOutputFile name="BDBOBStore"+Type+".java" />
-package org.ajmm.obsearch.storage.bdb;
+package net.obsearch.storage.bdb;
 
 /*
 		OBSearch: a distributed similarity search engine This project is to
@@ -41,10 +41,10 @@ package org.ajmm.obsearch.storage.bdb;
 */
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import org.ajmm.obsearch.storage.CloseIterator;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.storage.OBStore${Type};
-import org.ajmm.obsearch.storage.Tuple${Type};
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.OBStore${Type};
+import net.obsearch.storage.Tuple${Type};
 
 import com.sleepycat.bind.tuple.${binding}Binding;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -81,7 +81,7 @@ public final class BDBOBStore${Type}
         super(name, db, seq);
     }
 
-    public org.ajmm.obsearch.OperationStatus delete(${type} key) throws OBStorageException {
+    public net.obsearch.OperationStatus delete(${type} key) throws OBStorageException {
         return super.delete(getBytes(key));
     }
 
@@ -113,7 +113,7 @@ public final class BDBOBStore${Type}
         return super.getValue(getBytes(key));
     }
 
-    public org.ajmm.obsearch.OperationStatus put(${type} key, ByteBuffer value) throws IllegalArgumentException,
+    public net.obsearch.OperationStatus put(${type} key, ByteBuffer value) throws IllegalArgumentException,
             OBStorageException {
         return super.put(getBytes(key), value);
     }

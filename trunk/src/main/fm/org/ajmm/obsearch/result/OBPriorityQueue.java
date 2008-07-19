@@ -3,10 +3,10 @@
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="OBPriorityQueue"+Type+".java" />
-package org.ajmm.obsearch.result;
+package net.obsearch.result;
 
-import org.ajmm.obsearch.AbstractOBPriorityQueue;
-import org.ajmm.obsearch.ob.OB${Type};
+import net.obsearch.AbstractOBPriorityQueue;
+import net.obsearch.ob.OB${Type};
 
 /*
     OBSearch: a distributed similarity search engine
