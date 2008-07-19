@@ -4,9 +4,9 @@
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="OB"+Type+".java" />
 
-package org.ajmm.obsearch.ob;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.OB;
+package net.obsearch.ob;
+import net.obsearch.exception.OBException;
+import net.obsearch.OB;
 
 /*
     OBSearch: a distributed similarity search engine

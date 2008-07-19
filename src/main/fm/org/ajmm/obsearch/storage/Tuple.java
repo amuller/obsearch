@@ -3,8 +3,8 @@
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="Tuple"+Type+".java" />
-package org.ajmm.obsearch.storage;
-import org.ajmm.obsearch.storage.Tuple;
+package net.obsearch.storage;
+import net.obsearch.storage.Tuple;
 import java.nio.ByteBuffer;
 /*
  OBSearch: a distributed similarity search engine This project is to

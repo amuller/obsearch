@@ -1,6 +1,6 @@
 <#include "/@inc/ob.ftl">
-package org.ajmm.obsearch.storage;
-import org.ajmm.obsearch.exception.OBStorageException;
+package net.obsearch.storage;
+import net.obsearch.exception.OBStorageException;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -27,7 +27,7 @@ import org.ajmm.obsearch.exception.OBStorageException;
  * the factory as needed. Constructors for each factory are expected to define
  * how and where the data will be accessed. If the factory cannot provide some
  * of the requested indexes, an
- * {@link #org.ajmm.obsearch.exception.UnsupportedStorageException} is thrown.
+ * {@link #net.obsearch.exception.UnsupportedStorageException} is thrown.
  * @author Arnoldo Jose Muller Molina
  */
 

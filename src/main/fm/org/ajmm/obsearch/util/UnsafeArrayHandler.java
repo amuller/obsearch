@@ -4,9 +4,9 @@
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="UnsafeArrayHandler"+Type+".java" />
 
-package org.ajmm.obsearch.util;
+package net.obsearch.util;
 
-import org.ajmm.obsearch.index.utils.AbstractUnsafeArrayHandler;
+import net.obsearch.index.utils.AbstractUnsafeArrayHandler;
 
 
 /*

@@ -4,14 +4,14 @@
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="Index"+Type+".java" />
 
-package org.ajmm.obsearch.index;
-import org.ajmm.obsearch.Index;
-import org.ajmm.obsearch.ob.OB${Type};
-import org.ajmm.obsearch.result.OBPriorityQueue${Type};
-import org.ajmm.obsearch.exception.IllegalIdException;
-import org.ajmm.obsearch.exception.NotFrozenException;
-import org.ajmm.obsearch.exception.OBException;
-import org.ajmm.obsearch.exception.OutOfRangeException;
+package net.obsearch.index;
+import net.obsearch.Index;
+import net.obsearch.ob.OB${Type};
+import net.obsearch.result.OBPriorityQueue${Type};
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OutOfRangeException;
 import com.sleepycat.je.DatabaseException;
 import java.util.Iterator;
 

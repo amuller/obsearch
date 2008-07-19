@@ -3,12 +3,12 @@
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="OBStore"+Type+".java" />
-package org.ajmm.obsearch.storage;
+package net.obsearch.storage;
 
 import java.util.Iterator;
-import org.ajmm.obsearch.storage.CloseIterator;
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.OperationStatus;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.OperationStatus;
 import java.nio.ByteBuffer;
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -78,9 +78,9 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.OperationStatus.Status#OK} the record
+     * @return {@link net.obsearch.OperationStatus.Status#OK} the record
      * was inserted/updated successfully.
-     *               {@link org.ajmm.obsearch.OperationStatus.Status#ERROR} if
+     *               {@link net.obsearch.OperationStatus.Status#ERROR} if
      * the record could not be updated.
      */
     OperationStatus put(${type} key, ByteBuffer value) throws OBStorageException;
@@ -93,8 +93,8 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 If an exception occurs at the underlying storage system.
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
-     * @return {@link org.ajmm.obsearch.OperationStatus.Status#OK} if the key was found,
-     *         otherwise, {@link org.ajmm.obsearch.OperationStatus.Status#NOT_EXISTS}.
+     * @return {@link net.obsearch.OperationStatus.Status#OK} if the key was found,
+     *         otherwise, {@link net.obsearch.OperationStatus.Status#NOT_EXISTS}.
      */
     OperationStatus delete(${type} key)throws OBStorageException;
     

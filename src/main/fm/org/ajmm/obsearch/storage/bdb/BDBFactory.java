@@ -1,4 +1,4 @@
-package org.ajmm.obsearch.storage.bdb;
+package net.obsearch.storage.bdb;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -20,20 +20,20 @@ package org.ajmm.obsearch.storage.bdb;
 import java.io.File;
 import java.io.IOException;
 
-import org.ajmm.obsearch.asserts.OBAsserts;
-import org.ajmm.obsearch.exception.OBStorageException;
+import net.obsearch.asserts.OBAsserts;
+import net.obsearch.exception.OBStorageException;
 
-import org.ajmm.obsearch.storage.OBStore;
+import net.obsearch.storage.OBStore;
 
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
-import org.ajmm.obsearch.storage.OBStore${Type};
+import net.obsearch.storage.OBStore${Type};
 </#list>
 
-import org.ajmm.obsearch.storage.TupleBytes;
+import net.obsearch.storage.TupleBytes;
 
-import org.ajmm.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.OBStoreFactory;
 
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseException;
