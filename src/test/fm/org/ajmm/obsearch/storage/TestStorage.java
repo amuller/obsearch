@@ -11,7 +11,7 @@
 <#assign Type = t.name?cap_first>
 
 <@pp.changeOutputFile name="StorageValidation"+Type+".java" />
-package org.ajmm.obsearch.storage;
+package net.obsearch.storage;
 
 import net.obsearch.utils.bytes.ByteConversion;
 import java.util.Arrays;
@@ -21,8 +21,8 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
-import org.ajmm.obsearch.exception.OBStorageException;
-import org.ajmm.obsearch.storage.Tuple${Type};
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.Tuple${Type};
 /*
 OBSearch: a distributed similarity search engine
 This project is to similarity search what 'bit-torrent' is to downloads.

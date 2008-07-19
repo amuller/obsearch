@@ -3,15 +3,15 @@
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="TestBDBOBStore"+Type+".java" />
-package org.ajmm.obsearch.storage.bdb;
+package net.obsearch.storage.bdb;
 
 import java.io.File;
 
 import junit.framework.TestCase;
 
 
-import org.ajmm.obsearch.index.utils.Directory;
-import org.ajmm.obsearch.storage.StorageValidation${Type};
+import net.obsearch.index.utils.Directory;
+import net.obsearch.storage.StorageValidation${Type};
 import org.junit.Before;
 import org.junit.Test;
 /*
