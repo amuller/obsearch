@@ -1,4 +1,4 @@
-package net.obsearch.index.d;
+package net.obsearch.index.bucket;
 
 import java.io.Serializable;
 import java.util.BitSet;

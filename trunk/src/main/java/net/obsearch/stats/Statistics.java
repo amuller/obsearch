@@ -71,6 +71,13 @@ public class Statistics {
     }
     
     /**
+     * Increment distance count by distance.
+     */
+    public void incDistanceCount(long distance) {
+        distanceCount+= distance;
+    }
+    
+    /**
      * Increment distance count.
      */
     public void incDistanceCount() {
@@ -82,6 +89,14 @@ public class Statistics {
      */
     public void incSmapCount() {
         smapCount++;
+    }
+    
+    /**
+     * Increment smap count by count.
+     * @param count the amount that will be increased
+     */
+    public void incSmapCount(long count) {
+        smapCount += count;
     }
     
     /**

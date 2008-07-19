@@ -56,7 +56,7 @@ public abstract class AbstractOBResult < O extends OB > implements Comparable {
      * @param id
      *            The internal id of the object.
      */
-    public AbstractOBResult(final O object, final int id) {
+    public AbstractOBResult(final O object, final long id) {
         super();
         this.object = object;
         this.id = id;

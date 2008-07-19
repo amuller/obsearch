@@ -23,7 +23,6 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.pptree.AbstractPPTree;
 import net.obsearch.index.pptree.SpaceTreeLeaf;
-import net.obsearch.index.utils.MyTupleInput;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;

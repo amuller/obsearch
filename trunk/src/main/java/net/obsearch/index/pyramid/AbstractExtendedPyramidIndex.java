@@ -224,7 +224,6 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBStorageException, OutOfRangeException, OBException {
         super.freeze();
-        selectPivots();
         // now process each object and put it in B.
         CloseIterator < TupleLong > it = A.processAll();
         try {
