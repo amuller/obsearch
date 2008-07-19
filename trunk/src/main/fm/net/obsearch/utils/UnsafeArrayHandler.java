@@ -4,7 +4,7 @@
 <#assign Type = t.name?cap_first>
 <@pp.changeOutputFile name="UnsafeArrayHandler"+Type+".java" />
 
-package net.obsearch.util;
+package net.obsearch.utils;
 
 import net.obsearch.index.utils.AbstractUnsafeArrayHandler;
 
