@@ -22,13 +22,13 @@ import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.bdb.AbstractBDBOBStore;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
-import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.result.OBResultShort;
-import org.ajmm.obsearch.storage.OBStoreDouble;
-import org.ajmm.obsearch.storage.TupleDouble;
-import org.ajmm.obsearch.storage.TupleLong;
+import net.obsearch.index.IndexShort;
+import net.obsearch.ob.OBShort;
+import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultShort;
+import net.obsearch.storage.OBStoreDouble;
+import net.obsearch.storage.TupleDouble;
+import net.obsearch.storage.TupleLong;
 
 
 /*

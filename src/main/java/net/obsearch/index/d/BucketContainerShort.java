@@ -16,8 +16,8 @@ import net.obsearch.exception.OBException;
 import net.obsearch.index.utils.IntegerHolder;
 import net.obsearch.index.utils.MyTupleInput;
 
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.query.OBQueryShort;
+import net.obsearch.ob.OBShort;
+import net.obsearch.query.OBQueryShort;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;

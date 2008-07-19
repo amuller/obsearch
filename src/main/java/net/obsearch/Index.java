@@ -12,8 +12,8 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.UndefinedPivotsException;
 import net.obsearch.stats.Statistics;
+import net.obsearch.storage.OBStoreFactory;
 
-import org.ajmm.obsearch.storage.OBStoreFactory;
 
 /*
  OBSearch: a distributed similarity search engine

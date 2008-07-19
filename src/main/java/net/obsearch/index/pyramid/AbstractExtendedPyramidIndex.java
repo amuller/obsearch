@@ -23,11 +23,11 @@ import net.obsearch.storage.OBStore;
 import net.obsearch.storage.TupleBytes;
 
 
-import org.ajmm.obsearch.storage.OBStoreDouble;
-import org.ajmm.obsearch.storage.OBStoreFactory;
-import org.ajmm.obsearch.storage.OBStoreLong;
-import org.ajmm.obsearch.storage.TupleDouble;
-import org.ajmm.obsearch.storage.TupleLong;
+import net.obsearch.storage.OBStoreDouble;
+import net.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.OBStoreLong;
+import net.obsearch.storage.TupleDouble;
+import net.obsearch.storage.TupleLong;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.DoubleArrayList;

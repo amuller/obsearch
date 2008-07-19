@@ -29,14 +29,14 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
 
-import org.ajmm.obsearch.index.IndexShort;
+import net.obsearch.index.IndexShort;
 
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.query.OBQueryShort;
-import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.result.OBResultShort;
-import org.ajmm.obsearch.storage.OBStoreFactory;
-import org.ajmm.obsearch.storage.TupleDouble;
+import net.obsearch.ob.OBShort;
+import net.obsearch.query.OBQueryShort;
+import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultShort;
+import net.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.TupleDouble;
 import org.apache.log4j.Logger;
 
 /*

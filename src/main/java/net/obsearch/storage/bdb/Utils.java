@@ -2,7 +2,7 @@ package net.obsearch.storage.bdb;
 
 import java.io.File;
 
-import org.ajmm.obsearch.storage.bdb.BDBFactory;
+import net.obsearch.storage.bdb.BDBFactory;
 
 import junit.framework.TestCase;
 
