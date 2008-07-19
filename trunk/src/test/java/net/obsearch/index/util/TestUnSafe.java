@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 
-import org.ajmm.obsearch.util.UnsafeArrayHandlerShort;
+import net.obsearch.utils.UnsafeArrayHandlerShort;
 import org.junit.Before;
 import org.junit.Test;
 

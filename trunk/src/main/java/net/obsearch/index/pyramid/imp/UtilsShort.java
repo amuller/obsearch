@@ -7,11 +7,11 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.storage.CloseIterator;
 
-import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.storage.OBStoreDouble;
-import org.ajmm.obsearch.storage.TupleDouble;
+import net.obsearch.index.IndexShort;
+import net.obsearch.ob.OBShort;
+import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.storage.OBStoreDouble;
+import net.obsearch.storage.TupleDouble;
 
 /**
  * Utilities for short indexes.

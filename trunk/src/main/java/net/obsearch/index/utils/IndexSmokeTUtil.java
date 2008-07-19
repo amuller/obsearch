@@ -18,10 +18,10 @@ import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.example.OBSlice;
 
-import org.ajmm.obsearch.index.IndexShort;
-import org.ajmm.obsearch.ob.OBShort;
-import org.ajmm.obsearch.result.OBPriorityQueueShort;
-import org.ajmm.obsearch.result.OBResultShort;
+import net.obsearch.index.IndexShort;
+import net.obsearch.ob.OBShort;
+import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultShort;
 import org.apache.log4j.Logger;
 
 /*
@@ -192,7 +192,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
             assertTrue(ex.getStatus() == Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);
-            assertTrue(ex.getStatus() == Status.OK);
+            assertTrue("Status is: " + ex.getStatus() , ex.getStatus() == Status.OK);
             assertEquals(i, ex.getId());
             ex = index.exists(x);            
             assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);

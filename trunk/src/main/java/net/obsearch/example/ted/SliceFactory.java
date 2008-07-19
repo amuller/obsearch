@@ -2,8 +2,8 @@ package net.obsearch.example.ted;
 
 import java.io.StringReader;
 
-import org.ajmm.obsearch.example.SliceLexer;
-import org.ajmm.obsearch.example.SliceParser;
+import net.obsearch.example.SliceLexer;
+import net.obsearch.example.SliceParser;
 
 import antlr.RecognitionException;
 import antlr.TokenStreamException;

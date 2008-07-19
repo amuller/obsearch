@@ -12,7 +12,7 @@ import net.obsearch.index.utils.OBRandom;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
 import net.obsearch.pivots.Pivotable;
 
-import org.ajmm.obsearch.ob.OBShort;
+import net.obsearch.ob.OBShort;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;

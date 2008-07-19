@@ -15,9 +15,9 @@ import net.obsearch.example.OBEx;
 import net.obsearch.example.SliceParseException;
 import net.obsearch.exception.OBException;
 
-import org.ajmm.obsearch.example.SliceLexer;
-import org.ajmm.obsearch.example.SliceParser;
-import org.ajmm.obsearch.ob.OBShort;
+import net.obsearch.example.SliceLexer;
+import net.obsearch.example.SliceParser;
+import net.obsearch.ob.OBShort;
 
 import antlr.RecognitionException;
 

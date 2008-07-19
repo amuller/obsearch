@@ -16,8 +16,8 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.storage.OBStoreFactory;
 
-import org.ajmm.obsearch.storage.OBStoreFactory;
 
 import com.thoughtworks.xstream.XStream;
 

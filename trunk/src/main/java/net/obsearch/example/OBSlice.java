@@ -10,10 +10,9 @@ import java.util.ListIterator;
 
 import net.obsearch.OB;
 import net.obsearch.exception.OBException;
+import net.obsearch.ob.OBShort;
 
-import org.ajmm.obsearch.example.SliceLexer;
-import org.ajmm.obsearch.example.SliceParser;
-import org.ajmm.obsearch.ob.OBShort;
+
 
 import antlr.RecognitionException;
 

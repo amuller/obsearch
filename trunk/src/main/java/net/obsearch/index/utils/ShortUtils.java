@@ -4,7 +4,7 @@ import net.obsearch.Index;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 
-import org.ajmm.obsearch.ob.OBShort;
+import net.obsearch.ob.OBShort;
 
 import com.sleepycat.je.DatabaseException;
 

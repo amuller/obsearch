@@ -12,7 +12,7 @@ import net.obsearch.index.utils.ShortUtils;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
-import org.ajmm.obsearch.ob.OBShort;
+import net.obsearch.ob.OBShort;
 
 import com.sleepycat.je.DatabaseException;
 

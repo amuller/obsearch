@@ -15,7 +15,7 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.storage.bdb.Utils;
 
-import org.ajmm.obsearch.storage.bdb.BDBFactory;
+import net.obsearch.storage.bdb.BDBFactory;
 import org.apache.log4j.Logger;
 import junit.framework.TestCase;
 

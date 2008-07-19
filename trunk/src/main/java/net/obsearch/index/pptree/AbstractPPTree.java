@@ -22,7 +22,7 @@ import net.obsearch.index.utils.OBRandom;
 import net.obsearch.pivots.IncrementalPivotSelector;
 
 
-import org.ajmm.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.OBStoreFactory;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;

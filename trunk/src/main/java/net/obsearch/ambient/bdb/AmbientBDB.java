@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.ajmm.obsearch.storage.OBStoreFactory;
-import org.ajmm.obsearch.storage.bdb.BDBFactory;
+
 
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -14,6 +13,8 @@ import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.bdb.BDBFactory;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
