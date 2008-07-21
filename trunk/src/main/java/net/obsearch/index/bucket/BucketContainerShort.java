@@ -49,17 +49,28 @@ public final class BucketContainerShort < O extends OBShort > implements
 
     private int TUPLE_SIZE;
 
+    /**
+     * Cache used to avoid byte readings.
+     */
+    private BucketObjectShort[] cache;
+
     public BucketContainerShort(Index < O > index, ByteBuffer data, int pivots) {
         assert index != null;
         this.index = index;
         this.data = data;
         this.pivots = pivots;
         updateTupleSize(pivots);
-        if(data != null){
+        if (data != null) {
             int pivotsX = data.getInt();
             assert pivots == pivotsX;
             size = data.getInt();
+        }else{
+            size = 0;
         }
+    }
+
+    private void cleanCache() {
+        cache = null;
     }
 
     private void updateTupleSize(int pivots) {
@@ -77,14 +88,11 @@ public final class BucketContainerShort < O extends OBShort > implements
         Collections.sort(data);
         updateData(data);
     }
-    
-    
 
-    
     @Override
     public void setPivots(int pivots) {
-       this.pivots = pivots;
-        
+        this.pivots = pivots;
+
     }
 
     // need to update this thing.
@@ -118,11 +126,13 @@ public final class BucketContainerShort < O extends OBShort > implements
             data = newByteBuffer;
         }
         size--;
+        cleanCache();
         return res;
     }
 
     /**
-     * Insert the given bucket into the container. We assume the bucket to be inserted does not exist.
+     * Insert the given bucket into the container. We assume the bucket to be
+     * inserted does not exist.
      */
     public OperationStatus insert(BucketObjectShort bucket) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException {
@@ -145,17 +155,18 @@ public final class BucketContainerShort < O extends OBShort > implements
                 bucket.write(newByteBuffer);
                 found = true;
                 written++;
-            } 
-            // write the current object.    
+            }
+            // write the current object.
             j.write(newByteBuffer);
             written++;
-            
+
             i++;
             assert j.getId() != bucket.getId();
         }
         assert written == size + 1;
         data = newByteBuffer;
         size++;
+        cleanCache();
         return res;
     }
 
@@ -273,7 +284,6 @@ public final class BucketContainerShort < O extends OBShort > implements
             BucketObjectShort other = this.getIthSMAP(i, data);
             short max = b.lInf(other);
 
-          
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 long id = other.getId();
                 O toCompare = index.getObject(id);
@@ -288,8 +298,6 @@ public final class BucketContainerShort < O extends OBShort > implements
         // assert in.available() == 0 : "Avail: " + in.available();
         return res;
     }
-
-   
 
     private void setIth(int i, ByteBuffer in) {
         in.position(getByteArrayIndex(i));
@@ -314,15 +322,24 @@ public final class BucketContainerShort < O extends OBShort > implements
      * @return
      */
     private BucketObjectShort getIthSMAP(int i, ByteBuffer in) {
-        setIth(i, in);
-        int cx = 0;
-        short[] res = new short[pivots];
-        while (cx < this.pivots) {
-            res[cx] = in.getShort();
-            cx++;
+        if (cache == null) {
+            cache = new BucketObjectShort[size];
         }
-        long id = in.getLong();
-        return new BucketObjectShort(res, id);
+        if (cache[i] != null ) {
+            return cache[i];
+        } else {
+            setIth(i, in);
+            int cx = 0;
+            short[] res = new short[pivots];
+            while (cx < this.pivots) {
+                res[cx] = in.getShort();
+                cx++;
+            }
+            long id = in.getLong();
+            BucketObjectShort result = new BucketObjectShort(res, id);
+            cache[i] = result;
+            return result;
+        }
     }
 
     private int binSearch(BucketObjectShort b, ByteBuffer in) {
@@ -366,8 +383,8 @@ public final class BucketContainerShort < O extends OBShort > implements
 
         // now we can start binary searching the bytes.
 
-        int low = binSearch(new BucketObjectShort(query.getLow(),-1), in);
-     
+        int low = binSearch(new BucketObjectShort(query.getLow(), -1), in);
+
         int i = low;
 
         short range = query.getDistance();
@@ -376,9 +393,9 @@ public final class BucketContainerShort < O extends OBShort > implements
         long res = 0;
         while (i < size) {
             BucketObjectShort current = getIthSMAP(i, in);
-            if(! (current.compareTo(top) <= 0)){
+            if (!(current.compareTo(top) <= 0)) {
                 break;
-            }    
+            }
             short max = current.lInf(b);
 
             if (max <= query.getDistance() && query.isCandidate(max)) {
@@ -389,8 +406,8 @@ public final class BucketContainerShort < O extends OBShort > implements
                 if (realDistance <= range) {
                     query.add(id, toCompare, realDistance);
                 }
-            }     
-            i++;                                       
+            }
+            i++;
         }
         return res;
     }

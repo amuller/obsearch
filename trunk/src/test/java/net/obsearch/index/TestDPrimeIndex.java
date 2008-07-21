@@ -65,10 +65,11 @@ public class TestDPrimeIndex
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 30, 30);
         BDBFactory fact = Utils.getFactory();
-        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 12);
+        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 14);
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);
+        logger.info(d.stats.toString());
         //logger.info("Boxes per search: " + d.totalBoxAccess/ d.queryCount);
         //logger.info("Query count: " + d.queryCount);
         //logger.info("Total boxes: " +d.searchedBoxesTotal);        

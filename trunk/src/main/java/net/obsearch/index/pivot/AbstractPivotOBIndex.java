@@ -111,12 +111,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
        
     }
     
-    /**
-     * Converts an object into its projection.
-     * @param object projection of the vector.
-     * @return A projection of object.
-     */
-    protected abstract ByteBuffer objectToProjectionBytes(O object) throws OBException;
+   
     
     /**
      * Override this method if selection must be changed
