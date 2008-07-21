@@ -237,6 +237,9 @@ public class IndexSmokeTUtil<O extends OBShort> {
 
                 O s = factory.create(line);
                 if (factory.shouldProcess(s)) {
+                    if(i == 470){
+                        System.out.println("hey");
+                    }
                     index.searchOB(s, range, x);
                     result.add(x);
                     i++;

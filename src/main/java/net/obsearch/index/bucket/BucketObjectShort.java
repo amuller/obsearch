@@ -1,5 +1,6 @@
 package net.obsearch.index.bucket;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /*
@@ -22,13 +23,13 @@ import java.util.Arrays;
  */
 
 /**
- * ObjectInBucketShort extends {@link ObjectInBucket} by adding an SMAP vector used to minimize
+ * BucketObjectShort extends {@link BucketObject} by adding an SMAP vector used to minimize
  * the number of distance computations required per object.
  * @author Arnoldo Jose Muller Molina
  */
 
-public class ObjectInBucketShort
-        extends ObjectInBucket implements Comparable<ObjectInBucketShort>{
+public class BucketObjectShort
+        extends BucketObject implements Comparable<BucketObjectShort>{
 
     /**
      * SMAP vector of the object.
@@ -49,22 +50,34 @@ public class ObjectInBucketShort
      *                zone.
      * @param id Optional id of the given object. Not always used.
      */
-    public ObjectInBucketShort(long bucket, short[] smapVector,
+    public BucketObjectShort(short[] smapVector,
              long id) {
-        super(bucket,id);
+        super(id);
         this.smapVector = smapVector;
     }
     
     /**
-     * Constructor used when you only want to return the smap and the id 
-     * of an object (for searching purposes), use with care!
-     * @param smapVector
-     * @param id
+     * Execute l-inf between this object and b.
+     * @param b
+     * @return l-inf
      */
-    public ObjectInBucketShort(short[] smapVector,
-            long id) {
-        this(-1L,smapVector, id);
+    public short lInf(BucketObjectShort b){
+        int cx = 0;
+        short max = Short.MIN_VALUE;
+        short t;
+        short[] other = b.getSmapVector();
+        assert smapVector.length == other.length;
+        while (cx < smapVector.length) {
+            t = (short) Math.abs(smapVector[cx] - other[cx]);
+            if (t > max) {
+                max = t;               
+            }
+            cx++;
+        }
+        return max;
     }
+    
+   
 
     /**
      * @return the smapVector
@@ -74,17 +87,17 @@ public class ObjectInBucketShort
     }
     
     /**
-     * Returns true if the given smap vector ( {@link ObjectInBucketShort}) is
-     * equal to this.
-     * @return true if both vectors are equal.
+     * Writes itself into the given data buffer.
+     * @param data The ByteBuffer that will be modified.
      */
-    public boolean smapEqual(ObjectInBucketShort other){
-        /*assert this.getBucket() == other.getBucket();
-        assert this.getStorageBucket() == other.getStorageBucket();
-        assert this.isExclusionBucket() == other.isExclusionBucket();*/
-        return Arrays.equals(this.smapVector, other.smapVector);
+    public void write(ByteBuffer out){
+        for (short j : getSmapVector()) {
+            out.putShort(j);
+        }
+        out.putLong(getId());
     }
-
+    
+    
     /**
      * @param smapVector
      *                the smapVector to set
@@ -101,10 +114,40 @@ public class ObjectInBucketShort
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
-    public int compareTo(ObjectInBucketShort o) {
+    public int compareTo(BucketObjectShort o) {
+        int i = 0;
+        assert smapVector.length == o.smapVector.length;
+        while(i < smapVector.length){
+            int res = compareDim(smapVector[i], o.smapVector[i]);
+            if(res != 0){
+                return res;
+            }
+            i++;
+        }
+        // if we finish the loop both objects are equal.
+        return 0;
+    }
+    
+    /*public int compareTo(BucketObjectShort o) {
         if(smapVector[0] < o.smapVector[0]){
             return -1;
         }else if (smapVector[0] > o.smapVector[0]){
+            return 1;
+        }else{
+            return 0;
+        }
+    }*/
+    
+    /**
+     * Compare one dimension.
+     * @param a one vector value.
+     * @param b another vector value.
+     * @return -1 if a < b, 0 if a == b otherwise 1.
+     */
+    private final int compareDim(short a, short b){
+        if( a < b){
+            return -1;
+        }else if( a > b){
             return 1;
         }else{
             return 0;

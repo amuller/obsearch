@@ -20,43 +20,19 @@ package net.obsearch.index.bucket;
  */
 
 /**
- * ObjectInBucket holds a bucket number for an object. Subclasses hold also the SMAP
+ * BucketObject holds a bucket number for an object. Subclasses hold also the SMAP
  * vector with the distances of the object to the pivots of a certain level.
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class ObjectInBucket {
+public abstract class BucketObject {
     
-    /**
-     * The bucket number of the object.
-     */
-    private long bucket;
-    
-    /**
-     * If true, this means that we are at the exclusion bucket.
-     */
-    private boolean exclusionBucket;
-    
-    
-    
+
+        
     /**
      * Id of the object.
      */
     private long id;
-
-    /**
-     * @return the bucket
-     */
-    public long getBucket() {
-        return bucket;
-    }
-
-    /**
-     * @param bucket the bucket to set
-     */
-    public void setBucket(long bucket) {
-        this.bucket = bucket;
-    }
 
    
 
@@ -67,9 +43,8 @@ public abstract class ObjectInBucket {
      * @param exclusionBucket If true, the corresponding object is in the exclusion zone.
      * @param optional id of the object.
      */
-    public ObjectInBucket(long bucket, long id) {
+    public BucketObject(long id) {
         super();
-        this.bucket = bucket;
         this.id = id;
     }
     

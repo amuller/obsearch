@@ -46,7 +46,7 @@ import com.sleepycat.bind.tuple.TupleOutput;
  * @since 0.7
  */
 
-public class OBSlice extends OBEx implements OBShort  {
+public class OBSlice implements OBShort  {
 
     
 
@@ -87,7 +87,6 @@ public class OBSlice extends OBEx implements OBShort  {
      */
     public final short distance(final OBShort object) throws OBException {
         OBSlice b = (OBSlice) object;
-        count++;
         assert this.tree != null;
         assert b.tree != null;
         if (this.tree.getSize() < b.tree.getSize()) {

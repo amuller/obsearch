@@ -42,7 +42,6 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
-import net.obsearch.ob.MultiplicityAware;
 import net.obsearch.stats.Statistics;
 import net.obsearch.storage.OBStore;
 import net.obsearch.utils.bytes.ByteConversion;
@@ -272,38 +271,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     protected abstract OperationStatus deleteAux(O object) throws OBException, IllegalAccessException,
     InstantiationException ;
 
-    /*
-     * (non-Javadoc)
-     * @see net.obsearch.result.Index#deleteSingle(net.obsearch.result.OB)
-     */
-    public OperationStatus deleteSingle(O object) throws OBStorageException,
-            OBException, IllegalAccessException, InstantiationException,
-            NotFrozenException {
-        if (object instanceof MultiplicityAware) {
-            // find the id of the object.
-            OperationStatus res = findAux(object);
-            if (res.getStatus() == Status.OK) {
-                O obj = getObject(res.getId());
-                MultiplicityAware m = (MultiplicityAware) obj;
-                if (m.getMultiplicity() == 1) {
-                    // delete the object if multiplicity becomes 0 after this
-                    // delete.
-                    return delete(object);
-                } else {
-                    // reduce the multiplicity
-                    m.decrementMultiplicity();
-                    // update the object in the DB.
-                    A.put(res.getId(), ByteConversion
-                            .createByteBuffer(objectToBytes(obj)));
-                    return res;
-                }
-            }
-            return res;
-
-        } else {
-            return delete(object);
-        }
-    }
+    
     
     
 
@@ -400,19 +368,7 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
                 res = insertAux(id, object);
                 res.setId(id);
             }
-            // check again if the Status is Exists (there might have been an
-            // insertion)
-            if (res.getStatus() == Status.EXISTS) {
-                if (object instanceof MultiplicityAware) {
-                    O obj = getObject(res.getId());
-                    MultiplicityAware m = (MultiplicityAware) obj;
-                    m.incrementMultiplicity();
-                    A.put(res.getId(), ByteConversion
-                            .createByteBuffer(objectToBytes(obj)));
-
-                }
-                // no multiplicity, simply ignore the situation.
-            }
+            
         } else { // before freeze
             // we keep track of objects that have been inserted
             // based on their binary signature.

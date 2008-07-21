@@ -40,7 +40,7 @@ import com.sleepycat.je.DatabaseException;
  *                The bucket that will be employed.
  * @author Arnoldo Jose Muller Molina
  */
-public interface BucketContainer < O extends OB, B extends ObjectInBucket, Q > {
+public interface BucketContainer < O extends OB, B extends BucketObject, Q > {
 
     /**
      * Deletes the given object from this {@link BucketContainer}.

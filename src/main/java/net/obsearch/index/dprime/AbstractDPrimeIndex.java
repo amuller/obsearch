@@ -50,7 +50,7 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.bucket.BucketContainer;
-import net.obsearch.index.bucket.ObjectInBucket;
+import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.index.bucket.SimpleBloomFilter;
 import net.obsearch.index.pivot.AbstractPivotOBIndex;
 import net.obsearch.index.utils.OBFactory;
@@ -85,7 +85,7 @@ import com.sleepycat.je.DatabaseException;
  *            The Bucket container.
  * @author Arnoldo Jose Muller Molina
  */
-public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket, Q, BC extends BucketContainer<O, B, Q>>
+public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
 		extends AbstractPivotOBIndex<O> {
 	/**
 	 * Logger.
@@ -228,10 +228,11 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 			updateProbabilities(b);
 			b.setId(idMap(i, elementsSource));
 			// insertBucket(b, o);
-			java.util.List<B> l = buckets.get(b.getBucket());
+			long bucketId = getBucketId(b);
+			java.util.List<B> l = buckets.get(bucketId);
 			if (l == null) {
 				l = new LinkedList<B>();
-				buckets.put(b.getBucket(), l);
+				buckets.put(bucketId, l);
 			}
 			l.add(b);
 			if (logger.isDebugEnabled() && (i % 10000 == 0)) {
@@ -264,6 +265,14 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 
 	}
 
+	
+	/**
+	 * Return the bucket id of the given bucket
+	 * @param b The bucket that will be processed.
+	 * @return The bucket id of b.
+	 */
+	protected abstract long getBucketId(B b);
+	
 	private void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {
 
@@ -323,7 +332,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		// get the bucket id.
-		long bucketId = getBucketStorageId(b);
+		long bucketId = getBucketId(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = this.bucketContainerCache.get(bucketId);
@@ -357,7 +366,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 			OutOfRangeException, OBException {
 
 		// get the bucket id.
-		long bucketId = getBucketStorageId(b.get(0));
+		long bucketId = getBucketId(b.get(0));
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = this.bucketContainerCache.get(bucketId);
@@ -469,7 +478,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 		OperationStatus res = new OperationStatus();
 		res.setStatus(Status.OK);
 		B b = getBucket(object);
-		long bucketId = getBucketStorageId(b);
+		long bucketId = getBucketId(b);
 		BC bc = this.bucketContainerCache.get(bucketId);
 		if (bc == null) { 
 			res.setStatus(Status.NOT_EXISTS);
@@ -479,16 +488,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends ObjectInBucket
 		return res;
 	}
 
-	/**
-	 * Returns the bucket's storage id code
-	 * 
-	 * @param bucket
-	 *            The bucket that will be processed.
-	 * @return The exact location in the storage system for the given bucket.
-	 */
-	protected long getBucketStorageId(B bucket) {
-		return bucket.getBucket();
-	}
+	
 
 
 
