@@ -11,6 +11,7 @@ import net.obsearch.example.OBSlice;
 import net.obsearch.example.OBSliceFactory;
 import net.obsearch.example.ted.OBTed;
 import net.obsearch.example.ted.OBTedFactory;
+import net.obsearch.index.dprime.impl.DPrimeIndexShort;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
 import net.obsearch.index.utils.TUtils;
@@ -64,7 +65,7 @@ public class TestDPrimeIndex
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 30, 30);
         BDBFactory fact = Utils.getFactory();
-        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 20);
+        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 12);
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);

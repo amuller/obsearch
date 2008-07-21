@@ -5,29 +5,15 @@ package net.obsearch.example.ted;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
 
-import net.obsearch.OB;
-import net.obsearch.example.OBEx;
 import net.obsearch.example.SliceParseException;
 import net.obsearch.exception.OBException;
-
-import net.obsearch.example.SliceLexer;
-import net.obsearch.example.SliceParser;
 import net.obsearch.ob.OBShort;
 
-import antlr.RecognitionException;
-
-import com.sleepycat.bind.tuple.TupleInput;
-import com.sleepycat.bind.tuple.TupleOutput;
 
 
 
-
-public class OBTed extends OBEx implements OBShort {
+public class OBTed  implements OBShort {
 
 
     /**
@@ -67,10 +53,7 @@ public class OBTed extends OBEx implements OBShort {
      */
     public final short distance(final OBShort object) throws OBException {
         OBTed b = (OBTed) object;
-        count++;
-        
-        return distance(b.tree, this.tree);
-        
+        return distance(b.tree, this.tree);        
     }
 
     /**

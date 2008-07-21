@@ -133,31 +133,7 @@ public interface Index < O extends OB > {
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBStorageException, OutOfRangeException, OBException;
 
-    /**
-     * Deletes the given object from the database. Reduces by one the
-     * multiplicity of the object in the OBSearch multi-set. If you want to
-     * completely remove the object please use {@link #deleteSingle(OB)}.
-     * @param object
-     *                The object to be deleted
-     * @return {@link net.obsearch.Status#OK} and the deleted object's id
-     *         if the object was found and successfully deleted.
-     *         {@link net.obsearch.Status#NOT_EXISTS} if the object is not
-     *         in the database.
-     * @throws NotFrozenException
-     *                 if the index has not been frozen.
-     * @throws OBStorageException
-     *                 If something goes wrong with the DB
-     * @throws OBException
-     *                 User generated exception
-     * @throws IllegalAccessException
-     *                 If there is a problem when instantiating objects O
-     * @throws InstantiationException
-     *                 If there is a problem when instantiating objects O
-     * @since 0.0
-     */
-    OperationStatus deleteSingle(O object) throws OBStorageException,
-            OBException, IllegalAccessException, InstantiationException,
-            NotFrozenException;
+    
 
     /**
      * Deletes the given object from the database.

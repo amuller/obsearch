@@ -1,4 +1,4 @@
-package net.obsearch.index;
+package net.obsearch.index.dprime.impl;
 
 import hep.aida.bin.StaticBin1D;
 
@@ -18,10 +18,11 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.index.IndexShort;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketContainerShort;
-import net.obsearch.index.bucket.ObjectInBucket;
-import net.obsearch.index.bucket.ObjectInBucketShort;
+import net.obsearch.index.bucket.BucketObject;
+import net.obsearch.index.bucket.BucketObjectShort;
 import net.obsearch.index.dprime.AbstractDPrimeIndex;
 import net.obsearch.index.utils.IntegerHolder;
 import net.obsearch.index.utils.ShortUtils;
@@ -45,7 +46,7 @@ import com.sleepycat.je.DatabaseException;
 
 public final class DPrimeIndexShort<O extends OBShort>
 		extends
-		AbstractDPrimeIndex<O, ObjectInBucketShort, OBQueryShort<O>, BucketContainerShort<O>>
+		AbstractDPrimeIndex<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
 		implements IndexShort<O> {
 
 	public int hackOne = 5;
@@ -68,10 +69,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	protected float[][] normalizedProbs;
 
-	/**
-	 * Cache used to store recently accessed mbr :)
-	 */
-	protected transient OBCacheLong<short[][]> mbrCache;
+	
 
 	/**
 	 * Storage used to hold MBRs :)
@@ -111,12 +109,11 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	}
 
-	protected ObjectInBucketShort getBucket(O object, short p)
+	protected BucketObjectShort getBucket(O object, short p)
 			throws OBException {
 
-		ObjectInBucketShort res = new ObjectInBucketShort(convertTuple(object),
-				-1L);
-		updateBucket(res);
+		BucketObjectShort res = new BucketObjectShort(convertTuple(object),
+				-1L);		
 		return res;
 	}
 
@@ -132,41 +129,33 @@ public final class DPrimeIndexShort<O extends OBShort>
 		return smapVector;
 	}
 
+	
 	/**
-	 * Calculate a new bucket based on the smap vector of the given b Warning,
-	 * this method destroys the previously available info in the given bucket b.
-	 * It keeps the smap vector intact.
-	 * 
-	 * @param b
-	 *            We will take the smap vector from here.
-	 * @param level
-	 *            Level of the hash table
-	 * @param p
-	 *            P value to use
-	 * @throws OBException
+	 * Calculate the bucket id of the given bucket.
+	 * @param b The bucket we will process.
+	 * @return the bucket id of b.
 	 */
-	protected void updateBucket(ObjectInBucketShort b) throws OBException {
-		int i = 0;
-		O[] piv = super.pivots;
-		short[] medians = median;
-		short[] smapVector = b.getSmapVector();
-		long bucketId = 0;
-		while (i < piv.length) {
-			short distance = smapVector[i];
-			int r = bps(medians[i], distance);
-			if (r == 1) {
-				bucketId = bucketId | super.masks[i];
-			}
-			i++;
-		}
-		b.setBucket(bucketId);
-
+	protected long getBucketId(BucketObjectShort b){
+	    int i = 0;
+            O[] piv = super.pivots;
+            short[] medians = median;
+            short[] smapVector = b.getSmapVector();
+            long bucketId = 0;
+            while (i < piv.length) {
+                    short distance = smapVector[i];
+                    int r = bps(medians[i], distance);
+                    if (r == 1) {
+                            bucketId = bucketId | super.masks[i];
+                    }
+                    i++;
+            }
+            return bucketId;
 	}
 
 	@Override
-	protected ObjectInBucketShort getBucket(O object) throws OBException {
+	protected BucketObjectShort getBucket(O object) throws OBException {
 		int level = 0;
-		ObjectInBucketShort res = null;
+		BucketObjectShort res = null;
 		while (level < getPivotCount()) {
 			res = getBucket(object, (short) 0);
 		
@@ -275,7 +264,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 * 
 	 * @param b
 	 */
-	protected void updateProbabilities(ObjectInBucketShort b) {
+	protected void updateProbabilities(BucketObjectShort b) {
 		int i = 0;
 		while (i < getPivotCount()) {
 
@@ -326,7 +315,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	protected BucketContainerShort<O> instantiateBucketContainer(ByteBuffer data) {
 		if (data != null) {
-			return new BucketContainerShort<O>(this, data.array(), getPivotCount());
+			return new BucketContainerShort<O>(this, data, getPivotCount());
 		} else {
 			return new BucketContainerShort<O>(this, null, getPivotCount());
 		}
@@ -346,15 +335,15 @@ public final class DPrimeIndexShort<O extends OBShort>
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
 
-		ObjectInBucketShort b = getBucket(object);
+		BucketObjectShort b = getBucket(object);
 		OBQueryShort<O> q = new OBQueryShort<O>(object, r, result, b
 				.getSmapVector());
 
 		stats.incQueryCount();
+		long originalBucketId = this.getBucketId(b);
+		this.s(originalBucketId, b, q, false, originalBucketId);
 
-		this.s(b.getBucket(), b, q, false);
-
-		doIt1(b, q, 0, 0); // heu 1 + heu 2
+		doIt1(b, q, 0, 0, originalBucketId); // heu 1 + heu 2
 
 		/*
 		 * while (i < pivots.size()) {// search through all the levels. b =
@@ -368,14 +357,14 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 
 	// assuming that this query goes beyond the median.
-	private float calculateZero(ObjectInBucketShort b, OBQueryShort<O> q,
+	private float calculateZero(BucketObjectShort b, OBQueryShort<O> q,
 			int pivotIndex) {
 		short base = (short) Math.max(q.getLow()[pivotIndex], 0);
 		return this.normalizedProbs[pivotIndex][base];
 	}
 
 	// assuming that this query goes beyond the median.
-	private float calculateOne(ObjectInBucketShort b, OBQueryShort<O> q,
+	private float calculateOne(BucketObjectShort b, OBQueryShort<O> q,
 			int pivotIndex) {
 		short top = (short) Math.min(q.getHigh()[pivotIndex], maxDistance);
 		return this.normalizedProbs[pivotIndex][top];
@@ -388,8 +377,8 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 * @param q
 	 * @param pivotIndex
 	 */
-	private void doIt1(ObjectInBucketShort b, OBQueryShort<O> q,
-			int pivotIndex, long block) throws NotFrozenException,
+	private void doIt1(BucketObjectShort b, OBQueryShort<O> q,
+			int pivotIndex, long block, long originalBucketId) throws NotFrozenException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
 		if (pivotIndex < getPivotCount()) {
@@ -401,19 +390,19 @@ public final class DPrimeIndexShort<O extends OBShort>
 					// do 1 first
 					long newBlock = block | super.masks[pivotIndex];
 					if (super.filter.get(pivotIndex).contains(newBlock)) {
-						doIt1(b, q, pivotIndex + 1, newBlock);
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
 					}
 					r = bpsRange(median[pivotIndex],
 							b.getSmapVector()[pivotIndex], q.getDistance());
 					if ((r == 2 || r == 0)
 							&& super.filter.get(pivotIndex).contains(block)) {
-						doIt1(b, q, pivotIndex + 1, block);
+						doIt1(b, q, pivotIndex + 1, block, originalBucketId);
 					}
 
 				} else {
 					// 0 first
 					if (super.filter.get(pivotIndex).contains(block)) {
-						doIt1(b, q, pivotIndex + 1, block);
+						doIt1(b, q, pivotIndex + 1, block,originalBucketId);
 					}
 					r = bpsRange(median[pivotIndex],
 							b.getSmapVector()[pivotIndex], q.getDistance());
@@ -421,24 +410,24 @@ public final class DPrimeIndexShort<O extends OBShort>
 					if ((r == 2 || r == 1)
 							&& super.filter.get(pivotIndex).contains(newBlock)) {
 
-						doIt1(b, q, pivotIndex + 1, newBlock);
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
 					}
 				}
 
 			} else { // only one of the sides is selected
 				if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
-					doIt1(b, q, pivotIndex + 1, block);
+					doIt1(b, q, pivotIndex + 1, block, originalBucketId);
 				} else {
 					long newBlock = block | super.masks[pivotIndex];
 					if (super.filter.get(pivotIndex).contains(newBlock)) {
-						doIt1(b, q, pivotIndex + 1, newBlock);
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
 					}
 				}
 			}
 
 		} else {
 
-			s(block, b, q, true);
+			s(block, b, q, true, originalBucketId);
 
 		}
 	}
@@ -460,13 +449,13 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 * @throws OutOfRangeException
 	 * @throws OBException
 	 */
-	private void s(long block, ObjectInBucketShort b, OBQueryShort<O> q,
-			boolean ignoreSameBlocks) throws NotFrozenException,
+	private void s(long block, BucketObjectShort b, OBQueryShort<O> q,
+			boolean ignoreSameBlocks, long originalBucketId) throws NotFrozenException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
 
 
-			if (!ignoreSameBlocks || block != b.getBucket()) {
+			if (!ignoreSameBlocks || block != originalBucketId) {
 				// we have finished
 
 				BucketContainerShort<O> bc = super.bucketContainerCache
@@ -478,6 +467,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 				stats.incDataRead(bc.getBytes().array().length);
 				IntegerHolder h = new IntegerHolder(0);
 				stats.incDistanceCount(bc.searchSorted(q, b, h));
+				//stats.incDistanceCount(bc.search(q, b));
 				stats.incSmapCount(h.getValue());
 			}
 
