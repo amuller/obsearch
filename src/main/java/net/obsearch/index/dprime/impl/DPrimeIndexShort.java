@@ -71,10 +71,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	
 
-	/**
-	 * Storage used to hold MBRs :)
-	 */
-	protected transient OBStoreLong mbrs;
+	
 
 	/**
 	 * Logger.
@@ -153,16 +150,8 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 
 	@Override
-	protected BucketObjectShort getBucket(O object) throws OBException {
-		int level = 0;
-		BucketObjectShort res = null;
-		while (level < getPivotCount()) {
-			res = getBucket(object, (short) 0);
-		
-			level++;
-		}
-		assert res != null;
-		return res;
+	protected BucketObjectShort getBucket(O object) throws OBException {		
+		return getBucket(object, (short) 0);
 	}
 
 	public boolean intersects(O object, short r, int box)
@@ -441,7 +430,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 *            The query
 	 * @param ignoreSameBlocks
 	 *            if true, if block == b.getBucket() nothing happens.
-	 * @throws NotFrozenException
+	 * @throws NotFrozenEx`ception
 	 * @throws DatabaseException
 	 * @throws InstantiationException
 	 * @throws IllegalIdException
@@ -461,7 +450,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 				BucketContainerShort<O> bc = super.bucketContainerCache
 						.get(block);
 				stats.incBucketsRead();
-				if (bc == null) {
+				if (bc == null ||  bc.size() == 0) {
 					return;
 				}
 				stats.incDataRead(bc.getBytes().array().length);
@@ -492,10 +481,6 @@ public final class DPrimeIndexShort<O extends OBShort>
 		return res;
 	}
 
-	@Override
-	protected ByteBuffer objectToProjectionBytes(O object) throws OBException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 }

@@ -218,6 +218,13 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
      */
     protected abstract double[] extractTuple(ByteBuffer in)
             throws OutOfRangeException;
+    
+    /**
+     * Converts an object into its projection.
+     * @param object projection of the vector.
+     * @return A projection of object.
+     */
+    protected abstract ByteBuffer objectToProjectionBytes(O object) throws OBException;
 
     @Override
     public void freeze() throws IOException, AlreadyFrozenException,
@@ -231,6 +238,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
                 TupleLong tup = it.next();
                 O obj = bytesToObject(tup.getValue());
                 ByteBuffer pivots = objectToProjectionBytes(obj);
+                assert pivots != null : "Implement projection serialization";
                 B.put(tup.getKey(), pivots);
             }
         } finally {

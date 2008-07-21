@@ -3,6 +3,7 @@ package net.obsearch.utils.bytes;
 
 import java.nio.ByteBuffer;
 import net.obsearch.constants.ByteConstants;
+import java.nio.ByteOrder;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -28,16 +29,16 @@ import net.obsearch.constants.ByteConstants;
  */
 
 public class ByteConversion {
-
+		
+		public static final ByteOrder ORDERING = ByteOrder.nativeOrder();
     /**
      * Create a ByteBuffer of size n.
      * @param n size of the new buffer. 
      * @return The buffer.
      */
     public static ByteBuffer createByteBuffer(int n){
-        byte [] r = new byte[n];
-        ByteBuffer res = ByteBuffer.wrap(r);
-        return res;
+        byte [] r = new byte[n];        
+        return createByteBuffer(r);
     }
     
     /**
@@ -47,6 +48,7 @@ public class ByteConversion {
      */
     public static ByteBuffer createByteBuffer(byte[] data){        
         ByteBuffer res = ByteBuffer.wrap(data);
+				res.order(ORDERING);
         return res;
     }
 		
@@ -102,7 +104,7 @@ public class ByteConversion {
      * @return The byte array that represents the value.
      */
   	public static ByteBuffer ${type}ToByteBuffer(${type} i){
-        ByteBuffer res = ByteBuffer.allocate(ByteConstants.${Type}.getSize());
+        ByteBuffer res = createByteBuffer(ByteConstants.${Type}.getSize());
 				<#if type == "byte">
 				res.put(i);
         <#else>

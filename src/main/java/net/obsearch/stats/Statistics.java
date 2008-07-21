@@ -204,5 +204,14 @@ public class Statistics {
         this.bucketsRead = 0;
     }
     
+    public String toString(){
+        return "Distances: " + distanceCount +
+               " Smap count: " + smapCount +        
+            " Disk access count: " + diskAccessCount +        
+        " Query count: " + queryCount +         
+        " Data read: " + dataRead +
+        " Buckets Read: " + this.bucketsRead ;
+    }
+    
     
 }

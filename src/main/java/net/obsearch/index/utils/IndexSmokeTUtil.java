@@ -214,6 +214,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         // assertEquals(index.aDB.count(), index.bDB.count());
         // assertEquals(index.aDB.count(), index.bDB.count());
         // index.stats();
+        index.resetStats();
         // it is time to Search
         int querySize = 1642; // amount of elements to read from the query
         String re = null;
@@ -251,6 +252,8 @@ public class IndexSmokeTUtil<O extends OBShort> {
             }
             re = r.readLine();
         }
+        
+        logger.info(index.getStats().toString());
        
         int maxQuery = i;
         // logger.info("Matching ends... Stats follow:");

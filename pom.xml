@@ -342,12 +342,12 @@ Would be cool to use this.
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"></target>
 									<property name="in" value="${project.build.sourceDirectory}/../fm/"></property>
-									<property name="out" value="${project.build.directory}/generated-sources/main/java/"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/main/fm/"></property>
 									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>
 								</ant>
 
               </tasks>
-							<sourceRoot>${project.build.directory}/generated-sources/main/java/</sourceRoot>
+							<sourceRoot>${project.build.directory}/generated-sources/main/fm/</sourceRoot>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -363,12 +363,12 @@ Would be cool to use this.
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"></target>
 									<property name="in" value="${project.build.testSourceDirectory}/../fm/"></property>
-									<property name="out" value="${project.build.directory}/generated-sources/test/java"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/test/fm"></property>
 									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>
 								</ant>
 
               </tasks>
-							<testSourceRoot>${project.build.directory}/generated-sources/test/java</testSourceRoot>
+							<testSourceRoot>${project.build.directory}/generated-sources/test/fm</testSourceRoot>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -467,6 +467,10 @@ Would be cool to use this.
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
           <argLine>-Xmx1200M</argLine>
+					<argLine>-server</argLine>
+<!--					<argLine>-Xshare:off</argLine>-->
+
+					<argLine>-agentlib:hprof=cpu=samples,interval=20,depth=5</argLine>
 					<childDelegation>true</childDelegation>
         </configuration>
       </plugin>
