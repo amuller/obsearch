@@ -26,6 +26,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 
 import net.obsearch.Index;
@@ -464,5 +465,47 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
     public long totalBoxes() {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Finds the given objects in A and serializes them.
+     * @param ids Objects that will be loaded
+     * @return Serialization of the objects.
+     * @throws OBException 
+     * @throws InstantiationException 
+     * @throws IllegalAccessException 
+     * @throws IllegalIdException 
+     */
+    protected byte[][] serializePivots(final long[] ids) throws IllegalIdException,
+            IllegalAccessException, InstantiationException, OBException {
+                byte[][] result = new byte[ids.length][];
+                int i = 0;
+                while (i < ids.length) {
+                    O obj = getObject(ids[i]);            
+                    result[i] = this.objectToBytes(obj);
+                    
+                    i++;
+                }
+                return result;
+            }
+
+    /**
+     * Create an empty pivots array.
+     * @return an empty pivots array of size {@link #pivotsCount}.
+     */
+    public O[] emptyPivotsArray(int size) {
+        return (O[]) Array.newInstance(this.getType(), size);
+    }
+
+    protected O[] loadPivots(byte[][] serializedPivots) throws IllegalIdException,
+            OBException, InstantiationException, IllegalAccessException {
+                O[] result = emptyPivotsArray(serializedPivots.length);
+                int i = 0;
+                while (i < serializedPivots.length) {
+                    result[i] = bytesToObject(serializedPivots[i]);
+                    i++;
+                }
+                assert i == serializedPivots.length; // pivot count and read # of pivots
+                return result;
+            }
 
 }
