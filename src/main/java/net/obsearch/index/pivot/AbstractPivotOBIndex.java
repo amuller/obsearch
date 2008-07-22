@@ -22,7 +22,6 @@ package net.obsearch.index.pivot;
 
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -145,19 +144,11 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      */
     protected void loadPivots() throws NotFrozenException,
             IllegalAccessException, InstantiationException, OBException {
-
-        createPivotsArray();
         
         if (!isFrozen()) {
             throw new NotFrozenException();
-        }
-        int i = 0;
-        while (i < this.getPivotCount()) {
-            pivots[i] = bytesToObject(this.pivotsBytes[i]);
-            i++;
-        }
-        assert i == getPivotCount(); // pivot count and read # of pivots
-       
+        }       
+       this.pivots = loadPivots(this.pivotsBytes);
     }
     
     /**
@@ -185,17 +176,18 @@ public abstract class AbstractPivotOBIndex < O extends OB >
         }
         createPivotsArray();
         assert ids.length == pivots.length && pivots.length == this.getPivotCount();
+        this.pivotsBytes = serializePivots(ids);
         int i = 0;
-        while (i < ids.length) {
-            O obj = getObject(ids[i]);            
-            this.pivotsBytes[i] = super.objectToBytes(obj);
-            pivots[i] = obj;
+        for(long id : ids){
+            O obj = getObject(id);
+            this.pivots[i] = obj;
             i++;
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Detail: " + Arrays.toString(pivots));
         }
     }
+    
     
     /**
      * Creates an array with the pivots. It has to be created like this because
@@ -205,17 +197,8 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      */
     protected void createPivotsArray() {
         this.pivots = emptyPivotsArray(this.getPivotCount());
-        this.pivotsBytes = new byte[this.getPivotCount()][];
     }
 
-    /**
-     * Create an empty pivots array.
-     * @return an empty pivots array of size {@link #pivotsCount}.
-     */
-    public O[] emptyPivotsArray(int size) {
-        return (O[]) Array.newInstance(this.getType(), size);
-    }
-    
     /**
      * @return The number of pivots used in this index.
      */
