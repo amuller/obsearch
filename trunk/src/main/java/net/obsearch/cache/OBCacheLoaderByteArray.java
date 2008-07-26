@@ -31,13 +31,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 public interface OBCacheLoaderByteArray< O > {
     
-    O loadObject(byte[] i) throws DatabaseException, 
+    O loadObject(byte[] i) throws  
     OutOfRangeException, OBException, InstantiationException , 
     IllegalAccessException, OBStorageException, IllegalIdException;
     /**
      * Returns the size of the DB
      * @return the size of the DB.
      */
-    int getDBSize() throws DatabaseException, OBStorageException;
+    long getDBSize() throws DatabaseException, OBStorageException;
 
 }

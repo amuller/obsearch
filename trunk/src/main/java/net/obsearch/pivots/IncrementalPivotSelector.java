@@ -6,12 +6,8 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 
-
-
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
-
-
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -33,17 +29,17 @@ import cern.colt.list.LongArrayList;
  */
 
 /**
- * Objects that implement the IncrementalPivotSelector interface are
- * expected to take objects from a) all the database, b) a subset of the database.
- * The pivot selector should return a list with all the objects that will be
- * pivots. 
+ * Objects that implement the IncrementalPivotSelector interface are expected to
+ * take objects from a) all the database, b) a subset of the database. The pivot
+ * selector should return a list with all the objects that will be pivots.
+ * 
  * @author Arnoldo Jose Muller Molina
  */
 // TODO unify IncrementalPivotSelector and PivotSelector, find common
 // functionality and create a better interface.
-public interface IncrementalPivotSelector<O extends OB> {
-    
-    /**
+public interface IncrementalPivotSelector<O extends OB>  {
+	
+	/**
      * Generates pivots from all the elements found in the DB.
      * @param pivotCount The # of pivots that will be generated.
      * @return A list of the  ids of the pivots.
@@ -58,7 +54,7 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @throws PivotsUnavailableException
      *             If not all the pivots requested were found.
      */
-    long[] generatePivots(int pivotCount, Index<O> index) throws OBException,
+    PivotResult generatePivots(int pivotCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException;
 
@@ -69,7 +65,9 @@ public interface IncrementalPivotSelector<O extends OB> {
      * @param elements
      * @return A list of the ids of the pivots.
      */
-    long[] generatePivots(int pivotCount, LongArrayList elements,  Index<O> index) throws OBException,
+    PivotResult generatePivots(int pivotCount, LongArrayList elements,  Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException; 
+	
+
 }

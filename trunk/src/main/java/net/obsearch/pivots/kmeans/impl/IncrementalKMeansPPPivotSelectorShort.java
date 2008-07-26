@@ -10,6 +10,7 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.utils.OBRandom;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 import net.obsearch.pivots.Pivotable;
 
 import net.obsearch.ob.OBShort;
@@ -68,7 +69,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
     
     
     
-    public long[] generatePivots(int pivotsCount, LongArrayList elements, Index<O> index) throws OBException,
+    public PivotResult generatePivots(int pivotsCount, LongArrayList elements, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
@@ -171,7 +172,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
             throw new OBStorageException(e);
         }
         // store the pivots
-        return centroidIds;
+        return new PivotResult(centroidIds);
     }
     
     /**

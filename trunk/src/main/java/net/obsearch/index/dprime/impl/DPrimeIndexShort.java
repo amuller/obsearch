@@ -20,6 +20,7 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.IndexShort;
 import net.obsearch.index.bucket.BucketContainer;
+import net.obsearch.index.bucket.AbstractBucketContainerShort;
 import net.obsearch.index.bucket.BucketContainerShort;
 import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.index.bucket.BucketObjectShort;

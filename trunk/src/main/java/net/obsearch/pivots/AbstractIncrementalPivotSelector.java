@@ -1,5 +1,6 @@
 package net.obsearch.pivots;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.obsearch.Index;
@@ -92,7 +93,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
     /* (non-Javadoc)
 	 * @see net.obsearch.pivots.IncrementalPivotSelector#generatePivots(int, net.obsearch.result.Index)
 	 */
-    public long[] generatePivots(int pivotsCount, Index<O> index) throws OBException,
+    public PivotResult generatePivots(int pivotsCount, Index<O> index) throws OBException,
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
@@ -106,7 +107,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
      * @param index The underlying index.
      * @return The max # of elements of source if source != null or of index if source == null.
      */
-    protected int max(LongArrayList source, Index < O > index)throws OBStorageException, DatabaseException{
+    protected int max(LongArrayList source, Index < O > index)throws OBStorageException{
         int max;
         if (source == null) {
             max = (int)Math.min(index.databaseSize(), Integer.MAX_VALUE);
@@ -115,5 +116,36 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
         }
         return max;
     }
+
+	/**
+	 * Selects k random elements from the given source.
+	 * @param k
+	 *                number of elements to select
+	 * @param r
+	 *                Random object used to randomly select objects.
+	 * @param source
+	 *                The source of item ids.
+	 * @param index
+	 *                underlying index.
+	 * @param will not add pivots included in excludes.
+	 * @return The ids of selected objects.
+	 */
+	protected long[] select(int k, Random r, LongArrayList source,
+			Index < O > index, LongArrayList excludes) throws OBStorageException
+			 {
+			    int max = max(source, index);
+			    long[] res = new long[k];
+			    int i = 0;
+			    while (i < res.length) {
+			        long id = mapId(r.nextInt(max), source);
+			        if(excludes == null || ! excludes.contains(id)){
+			            res[i] = id;
+			        }else{
+			            continue; // repeat step.
+			        }
+			        i++;
+			    }
+			    return res;
+			}
 
 }

@@ -12,7 +12,6 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OutOfRangeException;
-import com.sleepycat.je.DatabaseException;
 import java.util.Iterator;
 
 
@@ -75,7 +74,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          */
     
     void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result)
-            throws NotFrozenException, DatabaseException,
+            throws NotFrozenException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 
 	/**
@@ -91,8 +90,6 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          * @return True if the object intersects the given box
          * @throws NotFrozenException
          *             if the index has not been frozen.
-         * @throws DatabaseException
-         *             If something goes wrong with the DB
          * @throws OBException
          *             User generated exception
          * @throws IllegalAccessException
@@ -107,7 +104,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          *             If the distance of any object to any other object exceeds
          *             the range defined by the user.
          */
-		boolean intersects(O object, ${type} r, int box)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+		boolean intersects(O object, ${type} r, int box)throws NotFrozenException, InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException ;
 
 	/**
@@ -125,8 +122,6 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          *         for the given object and range
          * @throws NotFrozenException
          *             if the index has not been frozen.
-         * @throws DatabaseException
-         *             If something goes wrong with the DB
          * @throws OBException
          *             User generated exception
          * @throws IllegalAccessException
@@ -141,7 +136,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          *             If the distance of any object to any other object exceeds
          *             the range defined by the user.
          */
-		Iterator<Long> intersectingBoxes(O object, ${type} r)throws NotFrozenException, DatabaseException, InstantiationException, IllegalIdException, IllegalAccessException,
+		Iterator<Long> intersectingBoxes(O object, ${type} r)throws NotFrozenException, InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException ;
 
 
@@ -167,8 +162,6 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
              *            be searched
              * @throws NotFrozenException
              *             if the index has not been frozen.
-             * @throws DatabaseException
-             *             If something goes wrong with the DB
              * @throws OBException
              *             User generated exception
              * @throws IllegalAccessException
@@ -185,7 +178,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
              * @since 0.0
              */    
     void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result, int[] boxes)
-            throws NotFrozenException, DatabaseException,
+            throws NotFrozenException
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 		
 }

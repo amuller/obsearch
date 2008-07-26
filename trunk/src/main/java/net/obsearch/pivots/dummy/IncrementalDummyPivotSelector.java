@@ -6,6 +6,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 
 
 import cern.colt.list.IntArrayList;
@@ -43,7 +44,7 @@ public class IncrementalDummyPivotSelector < O extends OB >
     }
 
     @Override
-    public long[] generatePivots(int pivotCount, Index<O> index)
+    public PivotResult generatePivots(int pivotCount, Index<O> index)
             throws OBException, IllegalAccessException, InstantiationException,
             OBStorageException, PivotsUnavailableException {
         // TODO Auto-generated method stub
@@ -51,7 +52,7 @@ public class IncrementalDummyPivotSelector < O extends OB >
     }
 
     @Override
-    public long[] generatePivots(int pivotCount, LongArrayList elements,
+    public PivotResult generatePivots(int pivotCount, LongArrayList elements,
             Index<O> index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
@@ -61,7 +62,7 @@ public class IncrementalDummyPivotSelector < O extends OB >
             res[i] = super.mapId(i, elements);
             i++;
         }
-        return res;
+        return new PivotResult(res);
     }
 
 }

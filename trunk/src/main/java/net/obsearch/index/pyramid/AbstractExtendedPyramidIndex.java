@@ -197,7 +197,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
     
     private void calculateDistances(double[] vector, StaticBin1D medianHolder){
-        Arrays.sort(vector);
+        //Arrays.sort(vector);
         
         int i = 0;
         while(i < vector.length-1){
