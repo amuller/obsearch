@@ -146,9 +146,11 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
         this.updateHeader(size + 1, pivots, newByteBuffer);
         int i = 0;
         int written = 0;
-        while (i < size+1) {
+        // search the position for the given bucket.
+        int low = binSearch(bucket, data);
+        while (i < size) {
             BucketObjectShort j = getIthSMAP(i, this.data);
-            if (!found && bucket.compareTo(j) > 0) {
+            if (i == low) {
                 // insert my object.
                 res.setStatus(Status.OK);
                 res.setId(bucket.getId());
@@ -162,6 +164,13 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
 
             i++;
             assert j.getId() != bucket.getId();
+        }
+        if(size == 0 || low == size){
+        	res.setStatus(Status.OK);
+            res.setId(bucket.getId());
+            bucket.write(newByteBuffer);
+            found = true;
+            written++;
         }
         assert written == size + 1;
         data = newByteBuffer;
@@ -351,6 +360,15 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
     	return res;
     }
 
+    /**
+     * Search the bucket set and leave the low in the
+     * first entry greater or equal than b. This means that
+     * if you want to insert b in this Bucket Container, 
+     * you have to usert it in the position returned by this function.
+     * @param b
+     * @param in
+     * @return the position in which b should be inserted.
+     */
     private int binSearch(BucketObjectShort b, ByteBuffer in) {
         int low = 0;
         int high = size();
