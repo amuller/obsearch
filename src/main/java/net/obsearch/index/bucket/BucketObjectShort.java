@@ -35,6 +35,11 @@ public class BucketObjectShort
      * SMAP vector of the object.
      */
     private short[] smapVector;
+    
+    public BucketObjectShort(){
+    	super(-1);
+    	smapVector = null;
+    }
 
     /**
      * Creates a new bucket short with
@@ -95,6 +100,21 @@ public class BucketObjectShort
             out.putShort(j);
         }
         out.putLong(getId());
+    }
+    
+    /**
+     * Reads the given # of pivots from the given bytebuffer.
+     * @param out
+     * @param pivots
+     */
+    public void read(ByteBuffer in, int pivots){
+    	this.smapVector = new short[pivots];
+    	int i = 0;
+    	while(i < pivots){
+    		smapVector[i] = in.getShort();
+    		i++;
+    	}        
+        super.setId(in.getLong());
     }
     
     

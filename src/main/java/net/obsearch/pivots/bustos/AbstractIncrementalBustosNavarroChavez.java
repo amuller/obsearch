@@ -13,6 +13,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 import net.obsearch.pivots.Pivotable;
 
 import org.apache.log4j.Logger;
@@ -82,7 +83,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
     protected abstract void resetCache(int l);
 
     @Override
-    public long[] generatePivots(int pivotCount, LongArrayList elements,
+    public PivotResult generatePivots(int pivotCount, LongArrayList elements,
             Index < O > index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
@@ -139,7 +140,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
                 i++;
             }*/
             
-            return result;
+            return new PivotResult(result);
         } catch (DatabaseException d) {
             throw new OBStorageException(d);
         }
@@ -208,36 +209,6 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
      */
     protected abstract double calculateMedian(long[] pivots, long[] x, long[] y,
             Index < O > index) throws DatabaseException, IllegalIdException,
-            IllegalAccessException, InstantiationException, OBException;
-
-    /**
-     * Selects k random elements from the given source.
-     * @param k
-     *                number of elements to select
-     * @param r
-     *                Random object used to randomly select objects.
-     * @param source
-     *                The source of item ids.
-     * @param index
-     *                underlying index.
-     * @param will not add pivots included in excludes.
-     * @return The ids of selected objects.
-     */
-    private long[] select(int k, Random r, LongArrayList source, Index < O > index, LongArrayList excludes)
-            throws OBStorageException, DatabaseException {
-        int max = max(source, index);
-        long[] res = new long[k];
-        int i = 0;
-        while (i < res.length) {
-            long id = mapId(r.nextInt(max), source);
-            if(excludes == null || ! excludes.contains(id)){
-                res[i] = id;
-            }else{
-                continue; // repeat step.
-            }
-            i++;
-        }
-        return res;
-    }   
+            IllegalAccessException, InstantiationException, OBException;   
 
 }

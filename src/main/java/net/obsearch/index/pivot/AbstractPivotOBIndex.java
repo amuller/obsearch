@@ -45,6 +45,7 @@ import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.AbstractOBIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 
 /** 
  *  AbstractPivotOBIndex defines abstract functionality for an index that
@@ -106,7 +107,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
-       selectPivots();
+        selectPivots(getPivotCount());
        
     }
     
@@ -115,19 +116,21 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     /**
      * Override this method if selection must be changed
      */
-    protected void selectPivots() throws IOException, AlreadyFrozenException,
+    protected PivotResult  selectPivots(int pivotCount) throws IOException, AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
         LongArrayList elementsSource = null;
         try{
-        long[] pivots = this.pivotSelector.generatePivots(getPivotCount(),
+        PivotResult pivots = this.pivotSelector.generatePivots(pivotCount,
                 elementsSource, this);       
         // store the pivots selected for serialization.
-        this.storePivots(pivots);
+        this.storePivots(pivots.getPivotIds());
+        return pivots;
         }catch(PivotsUnavailableException e){
             throw new OBException(e);
         }
+        
     }
     
     /**
@@ -174,7 +177,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
             logger.debug("Pivots selected " + Arrays.toString(ids));
 
         }
-        createPivotsArray();
+        createPivotsArray(ids.length);
         assert ids.length == pivots.length && pivots.length == this.getPivotCount();
         this.pivotsBytes = serializePivots(ids);
         int i = 0;
@@ -195,16 +198,18 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * sets of pivots are to be used. We can override this later to have
      * a multiple set of pivots for indexes like D... 
      */
-    protected void createPivotsArray() {
-        this.pivots = emptyPivotsArray(this.getPivotCount());
+    protected void createPivotsArray(int size) {
+        this.pivots = emptyPivotsArray(size);
     }
 
     /**
      * @return The number of pivots used in this index.
      */
-    protected final int getPivotCount(){
+    protected int getPivotCount(){
         return pivotCount;
     }
+    
+    
     
 
     public void init(OBStoreFactory fact) throws OBStorageException,

@@ -37,7 +37,6 @@ import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
-import net.obsearch.asserts.OBAsserts;
 import net.obsearch.cache.OBCache;
 import net.obsearch.cache.OBCacheLoader;
 import net.obsearch.cache.OBCacheLoaderLong;
@@ -52,7 +51,6 @@ import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.index.bucket.SimpleBloomFilter;
-import net.obsearch.index.pivot.AbstractPivotOBIndex;
 import net.obsearch.index.utils.OBFactory;
 import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.pivots.IncrementalPivotSelector;
@@ -86,7 +84,7 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  */
 public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
-		extends AbstractPivotOBIndex<O> {
+		extends AbstractBucketIndex<O, B, Q, BC> {
 	/**
 	 * Logger.
 	 */
@@ -421,43 +419,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 	}
 
-	/**
-	 * If elementSource == null returns id, otherwise it returns
-	 * elementSource[id]
-	 * 
-	 * @return
-	 */
-	private long idMap(long id, LongArrayList elementSource) throws OBException {
-		OBAsserts.chkAssert(id <= Integer.MAX_VALUE,
-				"id for this stage must be smaller than 2^32");
-		if (elementSource == null) {
-			return id;
-		} else {
-			return elementSource.get((int) id);
-		}
-	}
-
-	/**
-	 * Auxiliary function used in freeze to get objects directly from the DB, or
-	 * by using an array of object ids.
-	 */
-	protected O getObjectFreeze(long id, LongArrayList elementSource)
-			throws IllegalIdException, IllegalAccessException,
-			InstantiationException, OutOfRangeException, OBException {
-
-		return getObject(idMap(id, elementSource));
-
-	}
-
-	/**
-	 * Returns the bucket information for the given object.
-	 * 
-	 * @param object
-	 *            The object that will be calculated
-	 * @return The bucket information for the given object.
-	 */
-	protected abstract B getBucket(O object) throws OBException;
-
 	@Override
 	public OperationStatus insertAux(long id, O object) throws OBException,
 			IllegalAccessException, InstantiationException {
@@ -484,6 +445,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			res.setStatus(Status.NOT_EXISTS);
 		}else{
 			res = bc.delete(b, object);
+			putBucket(bucketId, bc);
 		}
 		return res;
 	}

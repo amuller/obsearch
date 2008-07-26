@@ -68,7 +68,7 @@ public final class OBCacheByteArray < O > {
     public OBCacheByteArray(OBCacheLoaderByteArray < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
-            map = new HashMap<ByteArrayKey,  SoftReference<O>>(2 * loader.getDBSize());
+            map = new HashMap<ByteArrayKey,  SoftReference<O>>((int)Math.min(Integer.MAX_VALUE,(2 * loader.getDBSize())));
         }catch(Exception e){
             throw new OBException(e);
         }
@@ -92,7 +92,7 @@ public final class OBCacheByteArray < O > {
      *                internal id.
      * @return null if no object is found
      */
-    public O get(byte[] id) throws DatabaseException, OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+    public O get(byte[] id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
         // return map.get(id);
         // SoftReference<O>
         ByteArrayKey k = new ByteArrayKey(id);

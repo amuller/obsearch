@@ -5,6 +5,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 
 
 import cern.colt.list.IntArrayList;
@@ -139,14 +140,14 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
     }
 
     @Override
-    public long[] generatePivots(int pivotCount, Index index)
+    public PivotResult generatePivots(int pivotCount, Index index)
             throws OBException, IllegalAccessException, InstantiationException,
             OBStorageException, PivotsUnavailableException {
         return generatePivots(pivotCount, null, null);
     }
 
     @Override
-    public long[] generatePivots(int pivotCount, LongArrayList elements,
+    public PivotResult generatePivots(int pivotCount, LongArrayList elements,
             Index index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,
             PivotsUnavailableException {
@@ -157,7 +158,7 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
             i++;
         }
         ind++;
-        return res;
+        return new PivotResult(res);
     }
 
 }

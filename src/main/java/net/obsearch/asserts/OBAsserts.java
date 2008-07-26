@@ -127,6 +127,17 @@ public final class OBAsserts {
             throw new IllegalArgumentException( x + " is not greater or equal than 0");
         }
     }
+    
+    /**
+     * Make sure x is even.
+     * @param x number to verify
+     * @return true if x is even
+     */
+    public static void chkEven(long x){
+    	if((x % 2) !=0){
+    		throw new IllegalArgumentException(x + " is not even and it should be even");
+    	}
+    }
 
     /**
      * Checks that the given value "toCheck" is within range [min, max]. If not,
