@@ -209,6 +209,14 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 						updateRectangle();
         }
 		}
+
+		/**
+		 * Returns true if the originalRange has been modified.
+		 * @return true If the current range (getDistance()) is different than originalRange.
+		 */
+		public boolean updatedRange(${type} originalRange){
+				return getDistance() != originalRange;
+		}
 }
 
 </#list>

@@ -123,6 +123,11 @@ public final class BDBOBStore${Type}
         return new ${Type}Iterator(low, high);
     }
 
+		public CloseIterator < Tuple${Type} > processRangeReverse(${type} low, ${type} high)
+            throws OBStorageException {
+        return new ${Type}Iterator(low, high,true);
+    }
+
 		public CloseIterator < Tuple${Type} > processAll()
             throws OBStorageException {
         return new ${Type}Iterator();
@@ -144,8 +149,16 @@ public final class BDBOBStore${Type}
 						super(getBytes(min), getBytes(max));
         }
 
+				/**
+				 * Creates a new ${Type}Iterator given a min range, max range and
+				 * a flag saying if this iterator will go "forward" or "backwards"
+				 */
+				private ${Type}Iterator(${type} min, ${type} max, boolean reverseMode) throws OBStorageException {
+						super(getBytes(min), getBytes(max), false, reverseMode);
+        }
+
 				private ${Type}Iterator() throws OBStorageException {
-						super(null, null,true);
+						super(null, null,true, false);
         }
 
 				protected Tuple${Type} createTuple(byte[] key, ByteBuffer value) {

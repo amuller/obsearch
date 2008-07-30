@@ -16,7 +16,6 @@ import net.obsearch.storage.Tuple;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteConversion;
 
-
 import com.sleepycat.bind.tuple.SortedDoubleBinding;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -49,407 +48,465 @@ import com.sleepycat.je.SequenceConfig;
 /**
  * BDBOBStore is a storage abstraction for Berkeley DB. It is designed to work
  * on byte array keys storing byte array values.
+ * 
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class AbstractBDBOBStore < T extends Tuple > implements
-        OBStore < T > {
+public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> {
 
-    private static ByteArrayComparator comp = new ByteArrayComparator();
+	private static ByteArrayComparator comp = new ByteArrayComparator();
 
-    protected StaticBin1D stats = new StaticBin1D();
+	protected StaticBin1D stats = new StaticBin1D();
 
-    /**
-     * Berkeley DB database.
-     */
-    protected Database db;
+	/**
+	 * Berkeley DB database.
+	 */
+	protected Database db;
 
-    /**
-     * Database for sequences.
-     */
-    protected Database sequence;
+	/**
+	 * Database for sequences.
+	 */
+	protected Database sequence;
 
-    /**
-     * Sequence counter
-     */
-    protected Sequence counter;
+	/**
+	 * Sequence counter
+	 */
+	protected Sequence counter;
 
-    /**
-     * Name of the database.
-     */
-    private String name;
+	/**
+	 * Name of the database.
+	 */
+	private String name;
 
-    /**
-     * If this storage system accepts duplicates or not.
-     */
-    private boolean duplicates;
+	/**
+	 * If this storage system accepts duplicates or not.
+	 */
+	private boolean duplicates;
 
-    /**
-     * Builds a new Storage system by receiving a Berkeley DB database.
-     * @param db
-     *                The database to be stored.
-     * @param name
-     *                Name of the database.
-     * @param sequences
-     *                Database used to store sequences.
-     * @throws DatabaseException
-     *                 if something goes wrong with the database.
-     */
-    public AbstractBDBOBStore(String name, Database db, Database sequences)
-            throws DatabaseException {
-        this.db = db;
-        this.name = name;
-        this.duplicates = db.getConfig().getSortedDuplicates();
-        this.sequence = sequences;
-        // initialize sequences
-        SequenceConfig config = new SequenceConfig();
-        config.setAllowCreate(true);
-        DatabaseEntry key = new DatabaseEntry((name + "_seq").getBytes());
-        if (!duplicates) {
-            this.counter = sequence.openSequence(null, key, config);
-        }
+	/**
+	 * Builds a new Storage system by receiving a Berkeley DB database.
+	 * 
+	 * @param db
+	 *            The database to be stored.
+	 * @param name
+	 *            Name of the database.
+	 * @param sequences
+	 *            Database used to store sequences.
+	 * @throws DatabaseException
+	 *             if something goes wrong with the database.
+	 */
+	public AbstractBDBOBStore(String name, Database db, Database sequences)
+			throws DatabaseException {
+		this.db = db;
+		this.name = name;
+		this.duplicates = db.getConfig().getSortedDuplicates();
+		this.sequence = sequences;
+		// initialize sequences
+		SequenceConfig config = new SequenceConfig();
+		config.setAllowCreate(true);
+		DatabaseEntry key = new DatabaseEntry((name + "_seq").getBytes());
+		if (!duplicates) {
+			this.counter = sequence.openSequence(null, key, config);
+		}
+	}
+
+	public void close() throws OBStorageException {
+		try {
+			db.close();
+			sequence.close();
+		} catch (DatabaseException d) {
+			throw new OBStorageException(d);
+		}
+	}
+
+	public net.obsearch.OperationStatus delete(byte[] key)
+			throws OBStorageException {
+		net.obsearch.OperationStatus r = new net.obsearch.OperationStatus();
+		try {
+			OperationStatus res = db.delete(null, new DatabaseEntry(key));
+			if (res.NOTFOUND == res) {
+				r.setStatus(Status.NOT_EXISTS);
+			} else if (res.SUCCESS == res) {
+				r.setStatus(Status.OK);
+			} else {
+				assert false;
+			}
+		} catch (Exception e) {
+			throw new OBStorageException(e);
+		}
+		return r;
+	}
+
+	public void deleteAll() throws OBStorageException {
+		try {
+			db.getEnvironment().truncateDatabase(null, db.getDatabaseName(),
+					false);
+		} catch (DatabaseException d) {
+			throw new OBStorageException(d);
+		}
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
+			OBStorageException {
+		if (duplicates) {
+			throw new IllegalArgumentException();
+		}
+		DatabaseEntry search = new DatabaseEntry(key);
+		DatabaseEntry value = new DatabaseEntry();
+		try {
+			OperationStatus res = db.get(null, search, value, null);
+			if (res == OperationStatus.SUCCESS) {
+				if (this.stats != null) {
+					stats.add(value.getData().length);
+				}
+				return ByteConversion.createByteBuffer(value.getData());
+			} else {
+				return null;
+			}
+		} catch (DatabaseException e) {
+			throw new OBStorageException(e);
+		}
+	}
+
+	public net.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
+			throws OBStorageException {
+
+		DatabaseEntry k = new DatabaseEntry(key);
+		DatabaseEntry v = new DatabaseEntry(value.array());
+		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
+		try {
+			OperationStatus r = db.put(null, k, v);
+			if (r == OperationStatus.SUCCESS) {
+				res.setStatus(Status.OK);
+			} // Result() is always initialized with error.
+		} catch (DatabaseException e) {
+			throw new OBStorageException(e);
+		}
+		return res;
+	}
+
+	public boolean allowsDuplicatedData() {
+		return duplicates;
+	}
+	
+	
+	public CloseIterator<TupleBytes> processRange(byte[] low, byte[] high)
+	throws OBStorageException{
+    	return new ByteArrayIterator(low,high,false, false);
+    }
+	
+	public CloseIterator<TupleBytes> processRangeReverse(byte[] low, byte[] high)
+	throws OBStorageException{
+    	return new ByteArrayIterator(low,high,false, true);
     }
 
-    public void close() throws OBStorageException {
-        try {
-            db.close();
-            sequence.close();
-        } catch (DatabaseException d) {
-            throw new OBStorageException(d);
-        }
-    }
+	/**
+	 * Base class used to iterate over cursors.
+	 * 
+	 * @param <O>
+	 *            The type of tuple that will be returned by the iterator.
+	 */
+	protected abstract class CursorIterator<T> implements CloseIterator<T> {
 
-    public net.obsearch.OperationStatus delete(byte[] key)
-            throws OBStorageException {
-        net.obsearch.OperationStatus r = new net.obsearch.OperationStatus();
-        try {
-            OperationStatus res = db.delete(null, new DatabaseEntry(key));
-            if (res.NOTFOUND == res) {
-                r.setStatus(Status.NOT_EXISTS);
-            } else if (res.SUCCESS == res) {
-                r.setStatus(Status.OK);
-            } else {
-                assert false;
-            }
-        } catch (Exception e) {
-            throw new OBStorageException(e);
-        }
-        return r;
-    }
+		protected Cursor cursor;
 
-    public void deleteAll() throws OBStorageException {
-        try {
-            db.getEnvironment().truncateDatabase(null, db.getDatabaseName(),
-                    false);
-        } catch (DatabaseException d) {
-            throw new OBStorageException(d);
-        }
-    }
+		private boolean cursorClosed = false;
 
-    public String getName() {
-        return this.name;
-    }
+		protected DatabaseEntry keyEntry = new DatabaseEntry();
 
-    public ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
-            OBStorageException {
-        if (duplicates) {
-            throw new IllegalArgumentException();
-        }
-        DatabaseEntry search = new DatabaseEntry(key);
-        DatabaseEntry value = new DatabaseEntry();
-        try {
-            OperationStatus res = db.get(null, search, value, null);
-            if (res == OperationStatus.SUCCESS) {
-                if (this.stats != null) {
-                    stats.add(value.getData().length);
-                }
-                return ByteConversion.createByteBuffer(value.getData());
-            } else {
-                return null;
-            }
-        } catch (DatabaseException e) {
-            throw new OBStorageException(e);
-        }
-    }
+		protected DatabaseEntry dataEntry = new DatabaseEntry();
 
-    public net.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
-            throws OBStorageException {
+		/**
+		 * Previous key entry
+		 */
+		protected DatabaseEntry prevKeyEntry = null;
 
-        DatabaseEntry k = new DatabaseEntry(key);
-        DatabaseEntry v = new DatabaseEntry(value.array());
-        net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
-        try {
-            OperationStatus r = db.put(null, k, v);
-            if (r == OperationStatus.SUCCESS) {
-                res.setStatus(Status.OK);
-            } // Result() is always initialized with error.
-        } catch (DatabaseException e) {
-            throw new OBStorageException(e);
-        }
-        return res;
-    }
+		/**
+		 * Previous data entry
+		 */
+		protected DatabaseEntry prevDataEntry = null;
 
-    public boolean allowsDuplicatedData() {
-        return duplicates;
-    }
+		protected OperationStatus retVal;
 
-    /**
-     * Base class used to iterate over cursors.
-     * @param <O>
-     *                The type of tuple that will be returned by the iterator.
-     */
-    protected abstract class CursorIterator < T > implements CloseIterator < T > {
+		private T next = null;
 
-        protected Cursor cursor;
+		private byte[] min;
 
-        private boolean cursorClosed = false;
+		private byte[] max;
 
-        protected DatabaseEntry keyEntry = new DatabaseEntry();
+		private byte[] current;
 
-        protected DatabaseEntry dataEntry = new DatabaseEntry();
+		private boolean full;
 
-        /**
-         * Previous key entry
-         */
-        protected DatabaseEntry prevKeyEntry = null;
+		/**
+		 * If this iterator goes backwards.
+		 */
+		private boolean backwardsMode;
 
-        /**
-         * Previous data entry
-         */
-        protected DatabaseEntry prevDataEntry = null;
+		/**
+		 * Creates a cursor iterator in full mode.
+		 * 
+		 * @throws OBStorageException
+		 */
+		protected CursorIterator() throws OBStorageException {
+			this(null, null, true, false);
+		}
 
-        protected OperationStatus retVal;
+		public CursorIterator(byte[] min, byte[] max) throws OBStorageException {
+			this(min, max, false, false);
+		}
 
-        private T next = null;
+		protected CursorIterator(byte[] min, byte[] max, boolean full,
+				boolean backwards) throws OBStorageException {
+			this.max = max;
+			this.min = min;
 
-        private byte[] max;
+			this.full = full;
+			this.backwardsMode = backwards;
 
-        private byte[] current;
+			if (backwardsMode) {
+				this.current = max;
+			} else {
+				this.current = min;
+			}
+			try {
+				CursorConfig config = new CursorConfig();
+				config.setReadUncommitted(true);
+				this.cursor = db.openCursor(null, config);
+				keyEntry.setData(current);
+				if (!full) {
+					retVal = cursor
+							.getSearchKeyRange(keyEntry, dataEntry, null);
+				} else {
+					if (backwardsMode) {
+						retVal = cursor.getLast(keyEntry, dataEntry, null);
+					} else {
+						retVal = cursor.getFirst(keyEntry, dataEntry, null);
+					}
+				}
 
-        private boolean full;
+			} catch (DatabaseException e) {
+				throw new OBStorageException(e);
+			}
+			loadNext();
+		}
 
-        /**
-         * Creates a cursor iterator in full mode.
-         * @throws OBStorageException
-         */
-        protected CursorIterator() throws OBStorageException {
-            this(null, null, true);
-        }
+		public boolean hasNext() {
+			return next != null;
+		}
 
-        public CursorIterator(byte[] min, byte[] max) throws OBStorageException {
-            this(min, max, false);
-        }
+		/**
+		 * Loads data from keyEntry and dataEntry and puts it into next. If we
+		 * go beyond max, we set next to null so that everybody will work
+		 * properly.
+		 */
+		private void loadNext() throws NoSuchElementException {
+			if (retVal == OperationStatus.SUCCESS) {
+				current = keyEntry.getData();
 
-        protected CursorIterator(byte[] min, byte[] max, boolean full)
-                throws OBStorageException {
-            this.max = max;
-            this.current = min;
-            this.full = full;
-            try {
-                CursorConfig config = new CursorConfig();
-                config.setReadUncommitted(true);
-                this.cursor = db.openCursor(null, config);
-                keyEntry.setData(current);
-                if (!full) {
-                    retVal = cursor
-                            .getSearchKeyRange(keyEntry, dataEntry, null);
-                } else {
-                    retVal = cursor.getFirst(keyEntry, dataEntry, null);
-                }
+				int c = -1; // full mode
+				if (!full) {
+					if (this.backwardsMode) {
+						c = comp.compare(current, min);
+					} else {
+						c = comp.compare(current, max);
+					}
+				}
+				if (backwardsMode) {
+					if (c >= 0) {
+						next = createTuple(current, ByteConversion
+								.createByteBuffer(dataEntry.getData()));
+						stats.add(dataEntry.getData().length);
+					} else { // end of the loop
+						next = null;
+						// close the cursor
+						// closeCursor();
+					}
 
-            } catch (DatabaseException e) {
-                throw new OBStorageException(e);
-            }
-            loadNext();
-        }
+				} else {
+					if (c <= 0) {
+						next = createTuple(current, ByteConversion
+								.createByteBuffer(dataEntry.getData()));
+						stats.add(dataEntry.getData().length);
+					} else { // end of the loop
+						next = null;
+						// close the cursor
+						// closeCursor();
+					}
+				}
+			} else { // we are done
+				next = null;
+				// close the cursor
+				// closeCursor();
+			}
+		}
 
-        public boolean hasNext() {
-            return next != null;
-        }
+		/**
+		 * Creates a tuple from the given key and value.
+		 * 
+		 * @param key
+		 *            raw key.
+		 * @param value
+		 *            raw value.
+		 * @return A new tuple of type T created from the raw data key and
+		 *         value.
+		 */
+		protected abstract T createTuple(byte[] key, ByteBuffer value);
 
-        /**
-         * Loads data from keyEntry and dataEntry and puts it into next. If we
-         * go beyond max, we set next to null so that everybody will work
-         * properly.
-         */
-        private void loadNext() throws NoSuchElementException {
-            if (retVal == OperationStatus.SUCCESS) {
-                current = keyEntry.getData();
+		public T next() {
+			synchronized (keyEntry) {
+				if (next == null) {
+					throw new NoSuchElementException(
+							"You tried to access an iterator with no next elements");
+				}
+				T res = next;
+				try {
+					prevKeyEntry = keyEntry;
+					prevDataEntry = dataEntry;
+					if(backwardsMode){
+						retVal = cursor.getPrev(keyEntry, dataEntry, null);
+					}else{
+						retVal = cursor.getNext(keyEntry, dataEntry, null);
+					}
+					
+				} catch (DatabaseException e) {
+					throw new NoSuchElementException("Berkeley DB's error: "
+							+ e.getMessage());
+				}
+				// get the next elements.
+				loadNext();
+				return res;
+			}
+		}
 
-                int c = -1; // full mode
-                if (!full) {
-                    c = comp.compare(current, max);
-                }
-                if (c <= 0) {
-                    next = createTuple(current, ByteConversion
-                            .createByteBuffer(dataEntry.getData()));
-                    stats.add(dataEntry.getData().length);
-                } else { // end of the loop
-                    next = null;
-                    // close the cursor
-                    // closeCursor();
-                }
-            } else { // we are done
-                next = null;
-                // close the cursor
-                // closeCursor();
-            }
-        }
+		public void closeCursor() throws OBException {
+			try {
+				synchronized (cursor) {
+					if (!cursorClosed) {
+						cursor.close();
+						cursorClosed = true;
+					}
+				}
+			} catch (DatabaseException e) {
+				throw new NoSuchElementException(
+						"Could not close the internal cursor");
+			}
+		}
 
-        /**
-         * Creates a tuple from the given key and value.
-         * @param key
-         *                raw key.
-         * @param value
-         *                raw value.
-         * @return A new tuple of type T created from the raw data key and
-         *         value.
-         */
-        protected abstract T createTuple(byte[] key, ByteBuffer value);
+		/**
+		 * Currently not supported. To be supported in the future.
+		 */
+		public void remove() {
+			try {
+				if(backwardsMode){
+					throw new UnsupportedOperationException();
+				}
+				// double x1 = SortedDoubleBinding.entryToDouble(keyEntry);
+				OperationStatus ret = null; // cursor.getPrev(keyEntry,
+				// dataEntry, null);
+				// double x = SortedDoubleBinding.entryToDouble(keyEntry);
+				if (this.retVal != OperationStatus.SUCCESS) {
+					Cursor c = db.openCursor(null, null);
+					ret = c.getLast(keyEntry, dataEntry, null);
+					if (ret != OperationStatus.SUCCESS) {
+						throw new NoSuchElementException();
+					}
+					ret = c.delete();
+					c.close();
+				} else {
 
-        public T next() {
-            synchronized (keyEntry) {
-                if (next == null) {
-                    throw new NoSuchElementException(
-                            "You tried to access an iterator with no next elements");
-                }
-                T res = next;
-                try {
-                    prevKeyEntry = keyEntry;
-                    prevDataEntry = dataEntry;
-                    retVal = cursor.getNext(keyEntry, dataEntry, null);
-                } catch (DatabaseException e) {
-                    throw new NoSuchElementException("Berkeley DB's error: "
-                            + e.getMessage());
-                }
-                // get the next elements.
-                loadNext();
-                return res;
-            }
-        }
+					ret = cursor.getPrev(keyEntry, dataEntry, null);
+					if (ret != OperationStatus.SUCCESS) {
+						throw new NoSuchElementException();
+					}
+					ret = cursor.delete();
+				}
 
-        public void closeCursor() throws OBException {
-            try {
-                synchronized (cursor) {
-                    if (!cursorClosed) {
-                        cursor.close();
-                        cursorClosed = true;
-                    }
-                }
-            } catch (DatabaseException e) {
-                throw new NoSuchElementException(
-                        "Could not close the internal cursor");
-            }
-        }
+				if (ret != OperationStatus.SUCCESS) {
+					throw new NoSuchElementException();
+				}
 
-        /**
-         * Currently not supported. To be supported in the future.
-         */
-        public void remove() {
-            try {
-                // double x1 = SortedDoubleBinding.entryToDouble(keyEntry);
-                OperationStatus ret = null; // cursor.getPrev(keyEntry,
-                // dataEntry, null);
-                // double x = SortedDoubleBinding.entryToDouble(keyEntry);
-                if (this.retVal !=  OperationStatus.SUCCESS) {
-                    Cursor c = db.openCursor(null, null);
-                    ret = c.getLast(keyEntry, dataEntry, null);
-                    if (ret != OperationStatus.SUCCESS) {
-                        throw new NoSuchElementException();
-                    }
-                    ret = c.delete();                    
-                    c.close();
-                } else {
+			} catch (DatabaseException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
 
-                    ret = cursor.getPrev(keyEntry, dataEntry, null);
-                    if (ret != OperationStatus.SUCCESS) {
-                        throw new NoSuchElementException();
-                    }
-                    ret = cursor.delete();
-                }
+		/*
+		 * public void finalize() throws Throwable { try { closeCursor(); }
+		 * finally { super.finalize(); } }
+		 */
 
-                if (ret != OperationStatus.SUCCESS) {
-                    throw new NoSuchElementException();
-                }
+	}
 
-            } catch (DatabaseException e) {
-                throw new IllegalArgumentException(e);
-            }
-        }
+	public long size() throws OBStorageException {
+		long res;
 
-        /*
-         * public void finalize() throws Throwable { try { closeCursor(); }
-         * finally { super.finalize(); } }
-         */
+		try {
+			res = db.count();
+		} catch (DatabaseException e) {
+			throw new OBStorageException(e);
+		}
+		return res;
+	}
 
-    }
+	/**
+	 * Returns the next id from the database (incrementing sequences).
+	 * 
+	 * @return The next id that can be inserted.
+	 */
+	public long nextId() throws OBStorageException {
+		long res;
+		try {
+			res = this.counter.get(null, 1);
+		} catch (DatabaseException e) {
+			throw new OBStorageException(e);
+		}
+		return res;
+	}
 
-    public long size() throws OBStorageException {
-        long res;
+	@Override
+	public StaticBin1D getReadStats() {
+		return this.stats;
+	}
 
-        try {
-            res = db.count();
-        } catch (DatabaseException e) {
-            throw new OBStorageException(e);
-        }
-        return res;
-    }
+	@Override
+	public void setReadStats(StaticBin1D stats) {
+		this.stats = stats;
+	}
 
-    /**
-     * Returns the next id from the database (incrementing sequences).
-     * @return The next id that can be inserted.
-     */
-    public long nextId() throws OBStorageException {
-        long res;
-        try {
-            res = this.counter.get(null, 1);
-        } catch (DatabaseException e) {
-            throw new OBStorageException(e);
-        }
-        return res;
-    }
+	/**
+	 * Iterator used to process range results.
+	 */
+	/*
+	 * TODO: I am leaving the closing of the cursor to the last iteration or the
+	 * finalize method (whichever happens first). We should test if this is ok,
+	 * or if there is an issue with this because Berkeley's iterator explicitly
+	 * have a "close" method.
+	 */
+	protected class ByteArrayIterator extends CursorIterator<TupleBytes> {
 
-    @Override
-    public StaticBin1D getReadStats() {
-        return this.stats;
-    }
+		protected ByteArrayIterator() throws OBStorageException {
+			super();
+		}
 
-    @Override
-    public void setReadStats(StaticBin1D stats) {
-        this.stats = stats;
-    }
+		protected ByteArrayIterator(byte[] min, byte[] max)
+				throws OBStorageException {
+			super(min, max);
+		}
 
+		protected ByteArrayIterator(byte[] min, byte[] max, boolean full, boolean backwardsMode)
+				throws OBStorageException {
+			super(min, max, full, backwardsMode);
+		}
 
-    /**
-     * Iterator used to process range results.
-     */
-    /*
-     * TODO: I am leaving the closing of the cursor to the last iteration or the
-     * finalize method (whichever happens first). We should test if this is ok,
-     * or if there is an issue with this because Berkeley's iterator explicitly
-     * have a "close" method.
-     */
-    protected class ByteArrayIterator
-            extends CursorIterator < TupleBytes > {
-
-        protected ByteArrayIterator() throws OBStorageException {
-            super();
-        }
-
-        protected ByteArrayIterator(byte[] min, byte[] max)
-                throws OBStorageException {
-            super(min, max);
-        }
-
-        protected ByteArrayIterator(byte[] min, byte[] max, boolean full)
-                throws OBStorageException {
-            super(min, max, full);
-        }
-
-        @Override
-        protected TupleBytes createTuple(byte[] key, ByteBuffer value) {
-            return new TupleBytes(key, value);
-        }
-    }
+		@Override
+		protected TupleBytes createTuple(byte[] key, ByteBuffer value) {
+			return new TupleBytes(key, value);
+		}
+	}
 
 }

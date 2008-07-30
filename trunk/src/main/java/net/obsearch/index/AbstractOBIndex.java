@@ -34,7 +34,7 @@ import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.cache.OBCache;
-import net.obsearch.cache.OBCacheLoader;
+import net.obsearch.cache.OBCacheLoaderInt;
 import net.obsearch.cache.OBCacheLoaderLong;
 import net.obsearch.cache.OBCacheLong;
 import net.obsearch.exception.AlreadyFrozenException;

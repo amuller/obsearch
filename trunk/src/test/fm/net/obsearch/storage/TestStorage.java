@@ -106,6 +106,29 @@ public class StorageValidation${Type} extends TestCase {
             i++;
         }
         assertEquals(testData.size(), i);
+
+				// do a range search       
+        it = storage.processRangeReverse(min, max);
+        i = 0;
+        first = true;
+        prev = ${Type2}.MIN_VALUE;
+        while(it.hasNext()){
+            Tuple${Type} t = it.next();
+            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
+            if(first){
+                prev = t.getKey();
+                first = false;
+            }else{
+           
+                assertTrue( "Prev: " + prev + " t: " + t.getKey(), prev > t.getKey());
+                prev = t.getKey();
+            }
+            i++;
+        }
+        assertEquals(testData.size(), i);
+
+
+				
         // TODO: add more tests for the iterator
         
         // Test updates:

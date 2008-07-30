@@ -28,17 +28,22 @@ import net.obsearch.storage.OBStore;
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
+
 import net.obsearch.storage.OBStore${Type};
+
 </#list>
 
-import net.obsearch.storage.TupleBytes;
 
+
+import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStoreFactory;
 
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.bind.tuple.*;
+import com.sleepycat.je.DatabaseEntry;
 
 import java.io.File;
 
@@ -108,7 +113,6 @@ public class BDBFactory implements OBStoreFactory {
        return res;
     }
 
-
     
     /**
      * Creates a default database configuration.
@@ -126,6 +130,18 @@ public class BDBFactory implements OBStoreFactory {
 <#list types as t>
 <#assign type = t.name>
 <#assign Type = t.name?cap_first>
+
+<#if type == "int">
+<#assign binding = "Integer">
+<#elseif type == "float">
+<#assign binding = "SortedFloat">
+<#elseif type == "double">
+<#assign binding = "SortedDouble">
+<#else>
+<#assign binding = Type>
+</#if>
+
+
 				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException{
         
         OBStore${Type} res = null;
@@ -140,6 +156,14 @@ public class BDBFactory implements OBStoreFactory {
         }
        return res;
     }
+
+		
+		public byte[] serialize${Type}(${type} value){
+				DatabaseEntry entry = new DatabaseEntry();
+				${binding}Binding.${type}ToEntry(value, entry);
+				assert entry.getData().length == net.obsearch.constants.ByteConstants.${Type}.getSize();
+				return entry.getData();
+		}
 </#list>
 
 }

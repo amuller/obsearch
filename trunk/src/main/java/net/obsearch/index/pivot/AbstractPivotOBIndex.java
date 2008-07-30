@@ -178,7 +178,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
 
         }
         createPivotsArray(ids.length);
-        assert ids.length == pivots.length && pivots.length == this.getPivotCount();
+        //assert ids.length == pivots.length && pivots.length == this.getPivotCount();
         this.pivotsBytes = serializePivots(ids);
         int i = 0;
         for(long id : ids){
