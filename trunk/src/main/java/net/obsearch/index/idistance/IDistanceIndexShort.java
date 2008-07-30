@@ -3,6 +3,8 @@ package net.obsearch.index.idistance;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
@@ -35,12 +37,12 @@ public class IDistanceIndexShort<O extends OBShort>
 		implements IndexShort<O> {
 
 	private static ByteArrayComparator comp = new ByteArrayComparator();
-	
+
 	/**
 	 * min max values per pivot.
 	 */
 	private OBStoreInt minMax;
-	
+
 	private OBCache minMaxCache;
 
 	/**
@@ -146,82 +148,27 @@ public class IDistanceIndexShort<O extends OBShort>
 		DimensionShort[] smap = DimensionShort.transformPrimitiveTuple(b
 				.getSmapVector());
 		Arrays.sort(smap);
-		IntegerHolder smapCount = new IntegerHolder(0);
-		short lastRange = r; // keep track of the last used range.
+		LinkedList<DimensionProcessor> ll = new LinkedList<DimensionProcessor>();
 		for (DimensionShort s : smap) {
-			short center = s.getValue();
-			short low = q.getLow()[s.getOrder()];
-			short high = q.getHigh()[s.getOrder()];
-			byte[] centerKey = buildKey(s.getOrder(), center);
-			byte[] lowKey = buildKey(s.getOrder(), low);
-			byte[] highKey = buildKey(s.getOrder(), high);
-			CloseIterator<TupleBytes> itRight = Buckets.processRange(centerKey,
-					highKey);
-			CloseIterator<TupleBytes> itLeft = Buckets.processRangeReverse(
-					lowKey, centerKey);
-			if (itLeft.hasNext()) {
-				itLeft.next();// right has the same element!
-			}
-			
-			// if we should continue to the right or left
-			// (if the range was reduced we have to recalculate our current
-			// position.
-			boolean continueRight = true;
-			boolean continueLeft = true;
-			while ( (itRight.hasNext() && continueRight ) || ( itLeft.hasNext() && continueLeft)
-					) {
-				if (itRight.hasNext() && continueRight) {
-					TupleBytes t = itRight.next();
-					// make sure we are within the key limits.
-					if (comp.compare(t.getKey(), highKey) > 0) {
-						continueRight = false;
-					} else {
-						BucketContainerShort<O> bt = this
-								.instantiateBucketContainer(t.getValue(), null);
-						stats
-								.incDistanceCount(bt.searchSorted(q, b,
-										smapCount));
-						stats.incBucketsRead();
-						stats.incDataRead(bt.getBytes().array().length);
-						// update ranges
-						if (q.updatedRange(lastRange)) {
-							low = q.getLow()[s.getOrder()];
-							high = q.getHigh()[s.getOrder()];
-							lowKey = buildKey(s.getOrder(), low);
-							highKey = buildKey(s.getOrder(), high);
-							lastRange = q.getDistance();					
-					}
-					}
-				}
-
-				if (itLeft.hasNext() && continueLeft) {
-					TupleBytes t = itLeft.next();
-					if (comp.compare(t.getKey(), lowKey) < 0) {
-						continueLeft = false;
-					} else {
-						BucketContainerShort<O> bt = this
-								.instantiateBucketContainer(t.getValue(), null);
-						stats
-								.incDistanceCount(bt.searchSorted(q, b,
-										smapCount));
-						stats.incDataRead(bt.getBytes().array().length);
-						stats.incBucketsRead();
-						if (q.updatedRange(lastRange)) {
-							low = q.getLow()[s.getOrder()];
-							high = q.getHigh()[s.getOrder()];
-							lowKey = buildKey(s.getOrder(), low);
-							highKey = buildKey(s.getOrder(), high);
-							lastRange = q.getDistance();
-						}
-					}
-				}
-
-				
-
-			}
-			itRight.closeCursor();
-			itLeft.closeCursor();
+			ll.add(new DimensionProcessor(b, q, s));
 		}
+		IntegerHolder smapCount = new IntegerHolder(0);
+		while (ll.size() > 0) {
+			ListIterator<DimensionProcessor> pit = ll.listIterator();
+			while (pit.hasNext()) {
+				DimensionProcessor p = pit.next();
+				if (p.hasNext()) {
+					p.doIt(smapCount);
+				} else {
+					p.close();
+					pit.remove();
+				}
+			}
+			//if(q.getResult().getSize() == q.getResult().getK()){
+				// do something when k is found.
+			//}
+		}
+
 		stats.incSmapCount(smapCount.getValue());
 	}
 
@@ -232,6 +179,122 @@ public class IDistanceIndexShort<O extends OBShort>
 			OBException {
 		throw new UnsupportedOperationException();
 	}
-	
-	
+
+	/**
+	 * Process an entire dimension little by little.
+	 * 
+	 * @author Arnoldo Muller Molina
+	 * 
+	 */
+	private class DimensionProcessor {
+
+		private CloseIterator<TupleBytes> itRight;
+		private CloseIterator<TupleBytes> itLeft;
+		boolean continueRight = true;
+		boolean continueLeft = true;
+		boolean iteration = true;// iteration id.
+		BucketObjectShort b;
+		private OBQueryShort<O> q;
+		DimensionShort s;
+		byte[] centerKey;
+		byte[] lowKey;
+		byte[] highKey;
+		short lastRange;
+
+		public DimensionProcessor(BucketObjectShort b, OBQueryShort<O> q,
+				DimensionShort s) throws OBStorageException {
+			super();
+			this.b = b;
+			this.q = q;
+			this.s = s;
+			updateHighLow();
+			itRight = Buckets.processRange(centerKey, highKey);
+			itLeft = Buckets.processRangeReverse(lowKey, centerKey);
+			if(itLeft.hasNext()){
+				itLeft.next();
+			}
+		}
+
+		/**
+		 * Update high and low intervals.
+		 */
+		private void updateHighLow() {
+			short center = s.getValue();
+			short low = q.getLow()[s.getOrder()];
+			short high = q.getHigh()[s.getOrder()];
+			centerKey = buildKey(s.getOrder(), center);
+			lowKey = buildKey(s.getOrder(), low);
+			highKey = buildKey(s.getOrder(), high);
+			this.lastRange = q.getDistance();
+		}
+
+		public void close() throws OBException {
+			itRight.closeCursor();
+			itLeft.closeCursor();
+		}
+
+		public boolean hasNext() {
+			return (itRight.hasNext() && continueRight)
+					|| (itLeft.hasNext() && continueLeft);
+		}
+
+		/**
+		 * Perform one matching iteration.
+		 * 
+		 * @param low
+		 * @param high
+		 * @return
+		 * @throws InstantiationException
+		 * @throws OBException
+		 * @throws IllegalAccessException
+		 * @throws IllegalIdException
+		 */
+		public void doIt(IntegerHolder smapCount) throws IllegalIdException,
+				IllegalAccessException, OBException, InstantiationException {
+			if (iteration) {
+				if (itRight.hasNext() && continueRight) {
+					TupleBytes t = itRight.next();
+					// make sure we are within the key limits.
+					if (comp.compare(t.getKey(), highKey) > 0) {
+						continueRight = false;
+					} else {
+						BucketContainerShort<O> bt = instantiateBucketContainer(
+								t.getValue(), null);
+						stats
+								.incDistanceCount(bt.searchSorted(q, b,
+										smapCount));
+						stats.incBucketsRead();
+						stats.incDataRead(bt.getBytes().array().length);
+						// update ranges
+						if (q.updatedRange(lastRange)) {
+							updateHighLow();
+						}
+					}
+				}
+				iteration = false;
+			} else {
+
+				if (itLeft.hasNext() && continueLeft) {
+					TupleBytes t = itLeft.next();
+					if (comp.compare(t.getKey(), lowKey) < 0) {
+						continueLeft = false;
+					} else {
+						BucketContainerShort<O> bt = instantiateBucketContainer(
+								t.getValue(), null);
+						stats
+								.incDistanceCount(bt.searchSorted(q, b,
+										smapCount));
+						stats.incDataRead(bt.getBytes().array().length);
+						stats.incBucketsRead();
+						if (q.updatedRange(lastRange)) {
+							updateHighLow();
+						}
+					}
+				}
+				iteration = true;
+			}
+		}
+
+	}
+
 }
