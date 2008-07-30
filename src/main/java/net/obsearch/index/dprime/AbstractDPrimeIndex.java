@@ -32,13 +32,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.apache.log4j.Logger;
+
 import net.obsearch.AbstractOBPriorityQueue;
 import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.cache.OBCache;
-import net.obsearch.cache.OBCacheLoader;
+import net.obsearch.cache.OBCacheLoaderInt;
 import net.obsearch.cache.OBCacheLoaderLong;
 import net.obsearch.cache.OBCacheLong;
 import net.obsearch.exception.AlreadyFrozenException;
@@ -48,6 +50,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.index.bucket.SimpleBloomFilter;
@@ -60,7 +63,6 @@ import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreInt;
 import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.TupleLong;
-import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
@@ -271,11 +273,10 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected abstract long getBucketId(B b);
 	
-	private void bucketStats() throws OBStorageException, IllegalIdException,
+	protected void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {
 
-		CloseIterator<TupleLong> it = Buckets.processRange(Long.MIN_VALUE,
-				Long.MAX_VALUE);
+		CloseIterator<TupleLong> it = Buckets.processAll();
 		StaticBin1D s = new StaticBin1D();
 		while (it.hasNext()) {
 			TupleLong t = it.next();
@@ -325,7 +326,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 *         object was inserted successfully.
 	 * @throws OBStorageException
 	 */
-	private OperationStatus insertBucket(B b, O object)
+	protected OperationStatus insertBucket(B b, O object)
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
@@ -357,6 +358,15 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 		return res;
 	}
+	
+	/**
+	 * Get a bucket container fromt he given data.
+	 * 
+	 * @param data
+	 *            The data from which the bucket container will be loaded.
+	 * @return A new bucket container ready to be used.
+	 */
+	protected abstract BC instantiateBucketContainer(ByteBuffer data);
 
 	private OperationStatus insertBuckets(java.util.List<B> b)
 			throws OBStorageException, IllegalIdException,
@@ -454,14 +464,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 
 
-	/**
-	 * Get a bucket container fromt he given data.
-	 * 
-	 * @param data
-	 *            The data from which the bucket container will be loaded.
-	 * @return A new bucket container ready to be used.
-	 */
-	protected abstract BC instantiateBucketContainer(ByteBuffer data);
+	
 
 	private class BucketLoader implements OBCacheLoaderLong<BC> {
 

@@ -55,7 +55,7 @@ public final class OBCache < O > {
     // private ConcurrentHashMap< Integer,O > map;
     private OpenIntObjectHashMap map;
 
-    private OBCacheLoader < O > loader;
+    private OBCacheLoaderInt < O > loader;
 
     /**
      * Initialize the cache with the given amount of elements.
@@ -63,7 +63,7 @@ public final class OBCache < O > {
      *                Number of elements that the internal hash table will be
      *                initialized with.
      */
-    public OBCache(OBCacheLoader < O > loader) throws  OBException{
+    public OBCache(OBCacheLoaderInt < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
         map = new OpenIntObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);

@@ -60,6 +60,13 @@ public interface OBStoreFactory {
      */
     OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException;	
 
+    /**
+     * Creates a binary representation of the given value.
+     * The value must be returned in such a way that it can be sorted
+     * with bytes.
+		 */
+		byte[] serialize${Type}(${type} value);
+
 </#list>
     
     /** 

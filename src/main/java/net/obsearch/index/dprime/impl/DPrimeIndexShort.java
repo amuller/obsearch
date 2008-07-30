@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
@@ -26,7 +28,6 @@ import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.index.bucket.BucketObjectShort;
 import net.obsearch.index.dprime.AbstractDPrimeIndex;
 import net.obsearch.index.utils.IntegerHolder;
-import net.obsearch.index.utils.ShortUtils;
 import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.ob.OBShort;
 import net.obsearch.pivots.IncrementalPivotSelector;
@@ -35,7 +36,6 @@ import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreLong;
-import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
@@ -49,6 +49,12 @@ public final class DPrimeIndexShort<O extends OBShort>
 		extends
 		AbstractDPrimeIndex<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
 		implements IndexShort<O> {
+	
+	/**
+	 * Logger.
+	 */
+	private static final transient Logger logger = Logger
+			.getLogger(DPrimeIndexShort.class);
 
 	public int hackOne = 5;
 
@@ -73,12 +79,6 @@ public final class DPrimeIndexShort<O extends OBShort>
 	
 
 	
-
-	/**
-	 * Logger.
-	 */
-	private static final transient Logger logger = Logger
-			.getLogger(DPrimeIndexShort.class);
 
 	/**
 	 * Creates a new DIndex for shorts
@@ -313,7 +313,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	@Override
 	public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
-			int[] boxes) throws NotFrozenException, DatabaseException,
+			int[] boxes) throws NotFrozenException, 
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
 		throw new UnsupportedOperationException();
@@ -482,6 +482,20 @@ public final class DPrimeIndexShort<O extends OBShort>
 		return res;
 	}
 
+	@Override
+	protected byte[] getAddress(BucketObjectShort bucket) {
+		// TODO Auto-generated method stub
+		return null ;
+	}
+
+	@Override
+	protected BucketContainerShort<O> instantiateBucketContainer(
+			ByteBuffer data, byte[] address) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	
 
 }

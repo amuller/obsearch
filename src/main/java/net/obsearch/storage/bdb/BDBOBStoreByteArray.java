@@ -54,6 +54,8 @@ public class BDBOBStoreByteArray
             throws DatabaseException {
         super(name, db, sequences);
     }
+    
+    
 
     @Override
     public CloseIterator < TupleBytes > processAll() throws OBStorageException {

@@ -6,9 +6,9 @@ import java.util.HashMap;
 import hep.aida.bin.StaticBin1D;
 
 import net.obsearch.Index;
+import net.obsearch.dimension.DimensionShort;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
-import net.obsearch.index.utils.ShortUtils;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
@@ -72,7 +72,7 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
         while ( i < x.length){
             short[] tupleA = getTuple(pivots, x[i], (Index<OBShort>)index);
             short[] tupleB = getTuple(pivots, y[i], (Index<OBShort>)index);
-            short distance = ShortUtils.lInfinite(tupleA, tupleB);
+            short distance = DimensionShort.lInfinite(tupleA, tupleB);
             data.add(distance);
             i++;
         }                
@@ -109,7 +109,7 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     protected boolean validatePivots(long[] pivots, long id, Index<O> index) throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException {
-        short[] real = ShortUtils.getTuple(pivots, id, index);
+        short[] real = DimensionShort.getPrimitiveTuple(pivots, id, index);
         short[] localTuple = smapCache.get(id);
         return Arrays.equals(real, localTuple);
     }

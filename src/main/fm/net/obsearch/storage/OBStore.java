@@ -65,6 +65,19 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 the nature of the error.
      */
     CloseIterator<Tuple${Type}> processRange(${type} low, ${type} high)throws OBStorageException;
+
+
+		/**
+     * Process the given range of items (from high to low), including low and high. The TupleProcessor's process
+     * method will be called for each value found within the range.
+     * @param low
+     * @param high
+		 * @throws OBStorageException 
+		 *                 If an exception occurs at the underlying storage system.
+     *                 You can query the exception to see more details regarding
+     *                 the nature of the error.
+     */
+    CloseIterator<Tuple${Type}> processRangeReverse(${type} low, ${type} high)throws OBStorageException;
     
 		
 		/**

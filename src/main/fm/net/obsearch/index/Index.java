@@ -56,8 +56,6 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          *            A priority queue that will hold the result
          * @throws NotFrozenException
          *             if the index has not been frozen.
-         * @throws DatabaseException
-         *             If something goes wrong with the DB
          * @throws OBException
          *             User generated exception
          * @throws IllegalAccessException
@@ -178,7 +176,7 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
              * @since 0.0
              */    
     void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result, int[] boxes)
-            throws NotFrozenException
+				throws NotFrozenException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 		
 }
