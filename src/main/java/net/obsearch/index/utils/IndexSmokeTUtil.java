@@ -14,9 +14,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
+import net.obsearch.Index;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.example.OBSlice;
+import net.obsearch.exception.IllegalIdException;
+import net.obsearch.exception.OBException;
 
 import net.obsearch.index.IndexShort;
 import net.obsearch.ob.OBShort;
@@ -174,8 +177,8 @@ public class IndexSmokeTUtil<O extends OBShort> {
         int cx = 0;
 
         initIndex(index);
-        search(index, (short) 3, (byte) 3);
-        search(index, (short) 7, (byte) 3);
+        search(index, (short) 2, (byte) 3);
+        //search(index, (short) 7, (byte) 3);
         long i = 0;
         // int realIndex = 0;
         // test special methods that only apply to
@@ -277,8 +280,11 @@ public class IndexSmokeTUtil<O extends OBShort> {
                             k);
                     searchSequential(realIndex, s, x2, index, range);
                     OBPriorityQueueShort < O > x1 = it.next();
-                    assertEquals("Error in query line: " + i + " slice: "
-                            + line, x2, x1);                   
+                    //assertEquals("Error in query line: " + i + " slice: "
+                    //        + line, x2, x1);  
+                    
+                    assertEquals("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
+                            + line + " " + debug(x2,index ) + "\n" + debug(x1,index), x2, x1);
 
                     i++;
                 }
@@ -293,6 +299,29 @@ public class IndexSmokeTUtil<O extends OBShort> {
         r.close();
         logger.info("Finished  matching validation.");
         assertFalse(it.hasNext());
+    }
+    
+    /**
+     * Prints debug info for the given priority queue.	
+     * @return
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
+     * @throws OBException 
+     * @throws IllegalIdException 
+     */
+    private String debug( OBPriorityQueueShort < O > q, Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
+    	StringBuilder res = new StringBuilder();
+    	Iterator<OBResultShort<O>> it = q.iterator();
+    	while(it.hasNext()){
+    		OBResultShort<O> r = it.next();
+    		res.append(r.getId());
+    		res.append(" r: ");
+    		res.append(r.getDistance());
+    		res.append("\n");
+    		res.append(index.debug(index.getObject(r.getId())));
+    		res.append("\n");
+    	}
+    	return res.toString();
     }
 
     /**
