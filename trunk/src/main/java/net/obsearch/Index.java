@@ -214,15 +214,8 @@ public interface Index < O extends OB > {
      */
     long databaseSize() throws OBStorageException;
 
-    /**
-     * Returns the database size from the perspective of a multi-set.
-     * @return Number of elements in the database (m-set view)
-     * @throws OBStorageException
-     *                 If something goes wrong with the DB
-     * @throws OBStorageException
-     *                 If the underlying storage device signaled an error.
-     */
-    long databaseSizeMSet() throws OBStorageException;
+    
+    
 
     /**
      * This method *must* be called after de-serializing the database object and after
@@ -264,4 +257,15 @@ public interface Index < O extends OB > {
      * Size in bytes of the object IDs used in OBSearch.
      */
     int ID_SIZE = Long.SIZE / 8;
+    
+    
+    /**
+     * Routine that helps to debug objects. Returns some
+     * human-readable information regarding the given object.
+     * This method is optional.
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
+     * @throws OBException 
+     */
+    String debug(O object) throws OBException, InstantiationException, IllegalAccessException;
 }

@@ -1,5 +1,9 @@
 package net.obsearch.stats;
 
+import java.util.HashMap;
+
+import net.obsearch.index.utils.IntegerHolder;
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -25,6 +29,8 @@ package net.obsearch.stats;
  */
 
 public class Statistics {
+	
+	private HashMap<String, IntegerHolder> extra = new HashMap<String, IntegerHolder>();
 
     /**
      * # of distance computations.
@@ -68,6 +74,57 @@ public class Statistics {
      */
     public void incBucketsRead(){
         bucketsRead++;
+    }
+    
+    /**
+     * Increment an extra value.
+     * @param key
+     */
+    public void incExtra(String key){
+    	IntegerHolder i = extra.get(key);
+    	if(i == null){
+    		i = new IntegerHolder(0);
+    		extra.put(key, i);
+    	}
+    	i.inc();
+    }
+    
+    /**
+     * Increment an extra value.
+     * @param key
+     */
+    public void incExtra(String key, int value){
+    	IntegerHolder i = extra.get(key);
+    	if(i == null){
+    		i = new IntegerHolder(0);
+    		extra.put(key, i);
+    	}
+    	i.add(value);
+    }
+    
+    /**
+     * Increment an extra value.
+     * @param key
+     */
+    public void setExtra(String key, int value){
+    	IntegerHolder i = extra.get(key);
+    	if(i == null){
+    		i = new IntegerHolder(0);
+    		extra.put(key, i);
+    	}
+    	i.setValue(value);
+    }
+    
+    /**
+     * Increment an extra value.
+     * @param key
+     */
+    public int getExtra(String key){
+    	IntegerHolder i = extra.get(key);
+    	if(i == null){
+    		return 0;
+    	}
+    	return i.getValue();
     }
     
     /**
@@ -202,6 +259,7 @@ public class Statistics {
         queryCount = 0;         
         dataRead = 0;
         this.bucketsRead = 0;
+        extra = new HashMap<String, IntegerHolder>();
     }
     
     public String toString(){
@@ -210,7 +268,7 @@ public class Statistics {
             " Disk access count: " + diskAccessCount +        
         " Query count: " + queryCount +         
         " Data read: " + dataRead +
-        " Buckets Read: " + this.bucketsRead ;
+        " Buckets Read: " + this.bucketsRead + " extra: " + extra ;
     }
     
     

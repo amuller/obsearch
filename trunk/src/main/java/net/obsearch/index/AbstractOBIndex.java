@@ -236,14 +236,9 @@ public abstract class AbstractOBIndex < O extends OB > implements Index < O > {
         return A.size();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see net.obsearch.result.Index#databaseSizeMSet()
-     */
-    @Override
-    public long databaseSizeMSet() throws OBStorageException {
-        throw new UnsupportedOperationException();
-        // return 0;
+    
+    public String debug(O object) throws OBException, InstantiationException, IllegalAccessException{
+    	return object.toString();
     }
 
     @Override

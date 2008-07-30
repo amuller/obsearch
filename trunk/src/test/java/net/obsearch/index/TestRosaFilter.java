@@ -66,12 +66,12 @@ public class TestRosaFilter
        //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
         
         
-        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 50, 100, (short)12);
+        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 200, 100, (short)4);
         BDBFactory fact = Utils.getFactory();
         
         RosaFilterShort<OBSlice> index = new  RosaFilterShort<OBSlice>(OBSlice.class,
     			sel, 20,
-    			50, (short)7) ;
+    			50, (short)2) ;
         
         index.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());

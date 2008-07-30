@@ -424,7 +424,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
                 break;
             }
             short max = current.lInf(b);
-
+            smapComputations.inc();
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 long id = current.getId();
                 O toCompare = index.getObject(id);
