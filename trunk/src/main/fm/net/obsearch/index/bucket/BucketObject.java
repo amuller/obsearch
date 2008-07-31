@@ -2,7 +2,7 @@
 <#include "/@inc/ob.ftl">
 <#list types as t>
 <@type_info t=t/>
-<@pp.changeOutputFile name="BucketObject${Type}"+Type+".java" />
+<@pp.changeOutputFile name="BucketObject${Type}.java" />
 package net.obsearch.index.bucket;
 
 import java.nio.ByteBuffer;
@@ -32,10 +32,10 @@ import java.util.Arrays;
  * the number of distance computations required per object.
  * @author Arnoldo Jose Muller Molina
  */
-
+<@gen_warning filename="BucketObject.java "/>
 public class BucketObject${Type}
         extends BucketObject implements Comparable<BucketObject${Type}>{
-
+						
     /**
      * SMAP vector of the object.
      */
@@ -73,7 +73,7 @@ public class BucketObject${Type}
      */
     public ${type} lInf(BucketObject${Type} b){
         int cx = 0;
-        ${type} max = ${Type}.MIN_VALUE;
+        ${type} max = ${ClassType}.MIN_VALUE;
         ${type} t;
         ${type}[] other = b.getSmapVector();
         assert smapVector.length == other.length;
@@ -102,7 +102,7 @@ public class BucketObject${Type}
      */
     public void write(ByteBuffer out){
         for (${type} j : getSmapVector()) {
-            out.put${Type}(j);
+            out.put${BBType}(j);
         }
         out.putLong(getId());
     }
@@ -116,7 +116,7 @@ public class BucketObject${Type}
     	this.smapVector = new ${type}[pivots];
     	int i = 0;
     	while(i < pivots){
-    		smapVector[i] = in.get${Type}();
+    		smapVector[i] = in.get${BBType}();
     		i++;
     	}        
         super.setId(in.getLong());
@@ -182,6 +182,6 @@ public class BucketObject${Type}
     public String toString(){
         return Arrays.toString(smapVector);
     }
-
+		<@gen_warning filename="BucketObject.java "/>
 }
 </#list>
