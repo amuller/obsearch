@@ -1,7 +1,8 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
+<@type_info t=t/>
+
 <@pp.changeOutputFile name="OBStore"+Type+".java" />
 package net.obsearch.storage;
 
@@ -64,7 +65,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    CloseIterator<Tuple${Type}> processRange(${type} low, ${type} high)throws OBStorageException;
+    CloseIterator<Tuple${Type}> processRange(${type} low, ${type} high) throws OBStorageException;
 
 
 		/**
@@ -77,7 +78,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    CloseIterator<Tuple${Type}> processRangeReverse(${type} low, ${type} high)throws OBStorageException;
+    CloseIterator<Tuple${Type}> processRangeReverse(${type} low, ${type} high) throws OBStorageException;
     
 		
 		/**

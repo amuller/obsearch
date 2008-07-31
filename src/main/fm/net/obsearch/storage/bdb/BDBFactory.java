@@ -1,3 +1,4 @@
+<#include "/@inc/ob.ftl">
 package net.obsearch.storage.bdb;
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -26,11 +27,9 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.storage.OBStore;
 
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-
+<@type_info t=t/>
+<@binding_info t=t/>
 import net.obsearch.storage.OBStore${Type};
-
 </#list>
 
 
@@ -102,8 +101,7 @@ public class BDBFactory implements OBStoreFactory {
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
 					if(duplicates){
-								dbConfig.setSortedDuplicates(true);
-								
+								dbConfig.setSortedDuplicates(true);								
 						}
         try{
             res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
@@ -128,18 +126,8 @@ public class BDBFactory implements OBStoreFactory {
     }
 
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-
-<#if type == "int">
-<#assign binding = "Integer">
-<#elseif type == "float">
-<#assign binding = "SortedFloat">
-<#elseif type == "double">
-<#assign binding = "SortedDouble">
-<#else>
-<#assign binding = Type>
-</#if>
+<@type_info t=t/>
+<@binding_info t=t/>
 
 
 				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException{
