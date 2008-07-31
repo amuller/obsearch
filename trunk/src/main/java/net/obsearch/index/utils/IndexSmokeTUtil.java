@@ -178,7 +178,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
 
         initIndex(index);
         search(index, (short) 3, (byte) 3);
-        search(index, (short) 7, (byte) 3);
+        search(index, (short) 20, (byte) 3);
         long i = 0;
         // int realIndex = 0;
         // test special methods that only apply to

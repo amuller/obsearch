@@ -6,16 +6,38 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.pivots.PivotResult;
-
-
-import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
+/*
+		OBSearch: a distributed similarity search engine This project is to
+ similarity search what 'bit-torrent' is to downloads. 
+    Copyright (C) 2008 Arnoldo Jose Muller Molina
+
+  	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/** 
+	*  IncrementalFixedPivotSelector 
+	*  
+  *  @author      Arnoldo Jose Muller Molina    
+  */
 
 public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
 
     /**
      * Pre-computed pivot definitions
-     */
+     */	
+	public static long[] def = { 290, 960, 35, 263, 360, 75, 619, 519, 335, 681, 332, 497, 306, 169, 281, 890, 387, 850, 971, 804};
 
     public static long[] levScalab = { 94323, 63655, 37558, 34472, 54433, 88958,
             97696, 88615, 93960, 93739, 97697, 20414, 34162, 21023, 66357,
@@ -126,16 +148,20 @@ public class IncrementalFixedPivotSelector implements IncrementalPivotSelector {
                     204242 },
             { 283781, 257700, 152463, 236670, 4420, 125697, 55347, 246946 }, };
 
-    int[][] data;
+    long[][] data;
 
     int ind = 0; // next level
+    
+    public IncrementalFixedPivotSelector() {
+    	this(def);
+    }
 
-    public IncrementalFixedPivotSelector(int[] ids) {
-        data = new int[1][];
+    public IncrementalFixedPivotSelector(long[] ids) {
+        data = new long[1][];
         data[0] = ids;
     }
 
-    public IncrementalFixedPivotSelector(int[][] ids) {
+    public IncrementalFixedPivotSelector(long[][] ids) {
         data = ids;
     }
 
