@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="IncrementalKMeansPPPivotSelector${Type}.java" />
 package net.obsearch.pivots.kmeans.impl;
 
 import java.util.Arrays;
@@ -13,7 +18,7 @@ import net.obsearch.pivots.AbstractIncrementalPivotSelector;
 import net.obsearch.pivots.PivotResult;
 import net.obsearch.pivots.Pivotable;
 
-import net.obsearch.ob.OBShort;
+import net.obsearch.ob.OB${Type};
 import org.apache.log4j.Logger;
 
 import cern.colt.list.IntArrayList;
@@ -47,7 +52,7 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  * @since 0.8
  */
-public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends AbstractIncrementalPivotSelector<O>
+public class IncrementalKMeansPPPivotSelector${Type}<O extends OB${Type}> extends AbstractIncrementalPivotSelector<O>
          {
 
     private int retries = 3;
@@ -55,15 +60,15 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
      * Logger.
      */
     private static final transient Logger logger = Logger
-            .getLogger(IncrementalKMeansPPPivotSelectorShort.class);
+            .getLogger(IncrementalKMeansPPPivotSelector${Type}.class);
 
     /**
-     * Creates a new IncrementalKMeansPPPivotSelectorShort that will accept pivots
+     * Creates a new IncrementalKMeansPPPivotSelector${Type} that will accept pivots
      * accepted by pivotable and will use index as the source of data.
      * @param index Index used to load and search objects
      * @param pivotable Object used to determine which objects are suitable for being pivots.
      */
-    public IncrementalKMeansPPPivotSelectorShort(Pivotable<O> pivotable){
+    public IncrementalKMeansPPPivotSelector${Type}(Pivotable<O> pivotable){
         super(pivotable);
     }
     
@@ -77,10 +82,10 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
         try{
         // we need to prepare the index for freezing!
         int k = pivotsCount;
-        float potential = 0;
+        double potential = 0;
         int databaseSize = max(elements,index);
         centroidIds = new long[k]; // keep track of the selected centroids
-        short[] closestDistances = new short[databaseSize];
+        ${type}[] closestDistances = new ${type}[databaseSize];
         OBRandom r = new OBRandom();
        
         // Randomly select one center
@@ -107,12 +112,12 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
         while (centerCount < k) {
             logger.debug("Finding pivot: " + centerCount + " : " + Arrays.toString(centroidIds));
             // Repeat several times
-            float bestPotential = -1;
+            double bestPotential = -1;
             int bestIndex = -1;
             for (int retry = 0; retry < retries; retry++) {
 
                 // choose the new center
-                float probability = r.nextFloat() * potential;
+                double probability = r.nextFloat() * potential;
                 O tempB = null; 
                 for (ind = 0; ind < databaseSize ; ind++) {
                     if (contains(ind, centroidIds, centerCount)) {
@@ -131,7 +136,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
                     throw new PivotsUnavailableException();
                 }
                 // Compute the new potential
-                short newPotential = 0;
+                ${type} newPotential = 0;
                 
                 for (i = 0; i < databaseSize ; i++) {
                     if (contains(ind, centroidIds, centerCount)) {
@@ -163,7 +168,7 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
                     continue;
                 }
                 O tempA = getObject(i, elements, index);
-                closestDistances[i] = (short)Math.min(tempA.distance( tempB),
+                closestDistances[i] = (${type})Math.min(tempA.distance( tempB),
                         closestDistances[i]);
             }                        
             centerCount++;
@@ -209,3 +214,4 @@ public class IncrementalKMeansPPPivotSelectorShort<O extends OBShort> extends Ab
     }
 
 }
+</#list>
