@@ -1,5 +1,35 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="AbstractBucketContainer${Type}"+Type+".java" />
 package net.obsearch.index.bucket;
+/*
+		OBSearch: a distributed similarity search engine This project is to
+    similarity search what 'bit-torrent' is to downloads. 
+    Copyright (C) 2008 Arnoldo Jose Muller Molina
 
+  	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/** 
+	*  AbstractBucketContainer${Type} Holds the functionality of a
+  *  bucket that sorts its smap-vectors lexicographically. Binary
+  *  searches are employed inside the vector.
+	*  
+  *  @author      Arnoldo Jose Muller Molina    
+  */
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,12 +46,12 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.index.utils.IntegerHolder;
 
-import net.obsearch.ob.OBShort;
-import net.obsearch.query.OBQueryShort;
+import net.obsearch.ob.OB${Type};
+import net.obsearch.query.OBQuery${Type};
 import net.obsearch.utils.bytes.ByteConversion;
 
-public abstract class AbstractBucketContainerShort < O extends OBShort, B extends BucketObjectShort > implements
-        BucketContainer < O, B, OBQueryShort < O >> {
+public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B extends BucketObject${Type} > implements
+        BucketContainer < O, B, OBQuery${Type} < O >> {
 
     /**
      * # of pivots in this Bucket container.
@@ -44,17 +74,20 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      * We need the index to perform some extra operations.
      */
     private Index < O > index;
-
-    private static final int BASE = 4 * 2; // pivots count level
+		
+		/**
+     * Header size of the bucket (pivot count and # of elements in the bucket)
+		 */
+    private static final int BASE = net.obsearch.constants.ByteConstants.Int.getValue() * 2; // pivots count level
 
     private int TUPLE_SIZE;
 
     /**
      * Cache used to avoid byte readings.
      */
-    private BucketObjectShort[] cache;
+    private BucketObject${Type}[] cache;
 
-    public AbstractBucketContainerShort(Index < O > index, ByteBuffer data, int pivots) {
+    public AbstractBucketContainer${Type}(Index < O > index, ByteBuffer data, int pivots) {
         assert index != null;
         this.index = index;
         this.data = data;
@@ -74,7 +107,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
     }
 
     private void updateTupleSize(int pivots) {
-        TUPLE_SIZE = (pivots * net.obsearch.constants.ByteConstants.Short
+        TUPLE_SIZE = (pivots * net.obsearch.constants.ByteConstants.${Type}
                 .getSize())
                 + Index.ID_SIZE;
     }
@@ -111,7 +144,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
             this.updateHeader(size - 1, pivots, newByteBuffer);
             int i = 0;
             while (i < size) {
-                BucketObjectShort j = getIthSMAP(i, this.data);
+                BucketObject${Type} j = getIthSMAP(i, this.data);
                 if (!found && j.compareTo(bucket) == 0
                         && index.getObject(j.getId()).distance(object) == 0) {
                     // delete this guy
@@ -134,7 +167,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      * Insert the given bucket into the container. We assume the bucket to be
      * inserted does not exist.
      */
-    public OperationStatus insert(BucketObjectShort bucket) throws OBException,
+    public OperationStatus insert(BucketObject${Type} bucket) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException {
 
         OperationStatus res = new OperationStatus();
@@ -149,7 +182,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
         // search the position for the given bucket.
         int low = binSearch(bucket, data);
         while (i < size) {
-            BucketObjectShort j = getIthSMAP(i, this.data);
+            BucketObject${Type} j = getIthSMAP(i, this.data);
             if (i == low) {
                 // insert my object.
                 res.setStatus(Status.OK);
@@ -203,7 +236,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
                 assert pivots == v.get(0).getSmapVector().length;
             }
             this.updateHeader(v.size(), pivots, out);
-            for (BucketObjectShort b : v) {
+            for (BucketObject${Type} b : v) {
                 assert pivots == b.getSmapVector().length : " pivots: "
                         + pivots + " item: " + b.getSmapVector().length;
                 b.write(out);
@@ -232,7 +265,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
                 // if it was found.
 
                 while (low < size()) {
-                    BucketObjectShort tuple = this.getIthSMAP(low, in);
+                    BucketObject${Type} tuple = this.getIthSMAP(low, in);
                     if (tuple.getSmapVector()[0] != bucket.getSmapVector()[0]) {
                         break;
                     }
@@ -275,7 +308,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      *      net.obsearch.result.OB) returns the # of distance computations.
      */
     @Override
-    public long search(OBQueryShort < O > query, B b)
+    public long search(OBQuery${Type} < O > query, B b)
             throws IllegalAccessException, OBException, InstantiationException,
             IllegalIdException {
         if (data == null) {
@@ -286,18 +319,18 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
         assert pivots == b.getSmapVector().length;
 
         int i = 0;
-        short range = query.getDistance();
+        ${type} range = query.getDistance();
         // for every item in this bucket.
         long res = 0;
         while (i < size) {
             // calculate L-inf
-            BucketObjectShort other = this.getIthSMAP(i, data);
-            short max = b.lInf(other);
+            BucketObject${Type} other = this.getIthSMAP(i, data);
+            ${type} max = b.lInf(other);
 
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 long id = other.getId();
                 O toCompare = index.getObject(id);
-                short realDistance = object.distance(toCompare);
+                ${type} realDistance = object.distance(toCompare);
                 res++;
                 if (realDistance <= range) {
                     query.add(id, toCompare, realDistance);
@@ -320,27 +353,27 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      * @return
      */
     private int getByteArrayIndex(int i) {
-        return AbstractBucketContainerShort.BASE + (i * TUPLE_SIZE);
+        return AbstractBucketContainer${Type}.BASE + (i * TUPLE_SIZE);
     }
 
     /**
-     * Gets the ith BucketObjectShort from this bucket.
+     * Gets the ith BucketObject${Type} from this bucket.
      * @param i
      *                I-th vector.
      * @param in
      *                the bucket to modify
      * @return
      */
-    private BucketObjectShort getIthSMAP(int i, ByteBuffer in) {
+    private BucketObject${Type} getIthSMAP(int i, ByteBuffer in) {
         if (cache == null) {
-            cache = new BucketObjectShort[size];
+            cache = new BucketObject${Type}[size];
         }
         if (cache[i] != null ) {
             return cache[i];
         } else {
             setIth(i, in);
             
-            BucketObjectShort result = instantiateBucketObject();
+            BucketObject${Type} result = instantiateBucketObject();
             result.read(in, this.getPivots());
             cache[i] = result;
             return result;
@@ -349,12 +382,12 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
     
     /**
      * Instantiate an empty bucket ready to be filled with stuff.
-     * @return empty BucketObjectShort;
+     * @return empty BucketObject${Type};
      */
-    protected abstract BucketObjectShort instantiateBucketObject();
+    protected abstract BucketObject${Type} instantiateBucketObject();
     
-    protected BucketObjectShort instantiateBucketObject(short[] smap, long id){
-    	BucketObjectShort res = instantiateBucketObject();
+    protected BucketObject${Type} instantiateBucketObject(${type}[] smap, long id){
+    	BucketObject${Type} res = instantiateBucketObject();
     	res.setId(id);
     	res.setSmapVector(smap);
     	return res;
@@ -369,7 +402,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      * @param in
      * @return the position in which b should be inserted.
      */
-    private int binSearch(BucketObjectShort b, ByteBuffer in) {
+    private int binSearch(BucketObject${Type} b, ByteBuffer in) {
         int low = 0;
         int high = size();
 
@@ -397,7 +430,7 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
      * @throws InstantiationException
      * @throws IllegalIdException
      */
-    public long searchSorted(OBQueryShort < O > query, BucketObjectShort b,
+    public long searchSorted(OBQuery${Type} < O > query, BucketObject${Type} b,
             IntegerHolder smapComputations) throws IllegalAccessException,
             OBException, InstantiationException, IllegalIdException {
         if (data == null) {
@@ -414,21 +447,21 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
 
         int i = low;
 
-        short range = query.getDistance();
-        BucketObjectShort top = this.instantiateBucketObject(query.getHigh(), -1);
+        ${type} range = query.getDistance();
+        BucketObject${Type} top = this.instantiateBucketObject(query.getHigh(), -1);
         // for every item in this bucket.
         long res = 0;
         while (i < size) {
-            BucketObjectShort current = getIthSMAP(i, in);
+            BucketObject${Type} current = getIthSMAP(i, in);
             if (!(current.compareTo(top) <= 0)) {
                 break;
             }
-            short max = current.lInf(b);
+            ${type} max = current.lInf(b);
             smapComputations.inc();
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 long id = current.getId();
                 O toCompare = index.getObject(id);
-                short realDistance = object.distance(toCompare);
+                ${type} realDistance = object.distance(toCompare);
                 res++;
                 if (realDistance <= range) {
                     query.add(id, toCompare, realDistance);
@@ -449,3 +482,4 @@ public abstract class AbstractBucketContainerShort < O extends OBShort, B extend
     }
 
 }
+</#list>
