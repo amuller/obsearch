@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="BucketObject${Type}"+Type+".java" />
 package net.obsearch.index.bucket;
 
 import java.nio.ByteBuffer;
@@ -23,26 +28,26 @@ import java.util.Arrays;
  */
 
 /**
- * BucketObjectShort extends {@link BucketObject} by adding an SMAP vector used to minimize
+ * BucketObject${Type} extends {@link BucketObject} by adding an SMAP vector used to minimize
  * the number of distance computations required per object.
  * @author Arnoldo Jose Muller Molina
  */
 
-public class BucketObjectShort
-        extends BucketObject implements Comparable<BucketObjectShort>{
+public class BucketObject${Type}
+        extends BucketObject implements Comparable<BucketObject${Type}>{
 
     /**
      * SMAP vector of the object.
      */
-    private short[] smapVector;
+    private ${type}[] smapVector;
     
-    public BucketObjectShort(){
+    public BucketObject${Type}(){
     	super(-1);
     	smapVector = null;
     }
 
     /**
-     * Creates a new bucket short with
+     * Creates a new bucket ${type} with
      * @param bucket
      *                Bucket number.
      * @param level
@@ -55,7 +60,7 @@ public class BucketObjectShort
      *                zone.
      * @param id Optional id of the given object. Not always used.
      */
-    public BucketObjectShort(short[] smapVector,
+    public BucketObject${Type}(${type}[] smapVector,
              long id) {
         super(id);
         this.smapVector = smapVector;
@@ -66,14 +71,14 @@ public class BucketObjectShort
      * @param b
      * @return l-inf
      */
-    public short lInf(BucketObjectShort b){
+    public ${type} lInf(BucketObject${Type} b){
         int cx = 0;
-        short max = Short.MIN_VALUE;
-        short t;
-        short[] other = b.getSmapVector();
+        ${type} max = ${Type}.MIN_VALUE;
+        ${type} t;
+        ${type}[] other = b.getSmapVector();
         assert smapVector.length == other.length;
         while (cx < smapVector.length) {
-            t = (short) Math.abs(smapVector[cx] - other[cx]);
+            t = (${type}) Math.abs(smapVector[cx] - other[cx]);
             if (t > max) {
                 max = t;               
             }
@@ -87,7 +92,7 @@ public class BucketObjectShort
     /**
      * @return the smapVector
      */
-    public short[] getSmapVector() {
+    public ${type}[] getSmapVector() {
         return smapVector;
     }
     
@@ -96,8 +101,8 @@ public class BucketObjectShort
      * @param data The ByteBuffer that will be modified.
      */
     public void write(ByteBuffer out){
-        for (short j : getSmapVector()) {
-            out.putShort(j);
+        for (${type} j : getSmapVector()) {
+            out.put${Type}(j);
         }
         out.putLong(getId());
     }
@@ -108,10 +113,10 @@ public class BucketObjectShort
      * @param pivots
      */
     public void read(ByteBuffer in, int pivots){
-    	this.smapVector = new short[pivots];
+    	this.smapVector = new ${type}[pivots];
     	int i = 0;
     	while(i < pivots){
-    		smapVector[i] = in.getShort();
+    		smapVector[i] = in.get${Type}();
     		i++;
     	}        
         super.setId(in.getLong());
@@ -122,7 +127,7 @@ public class BucketObjectShort
      * @param smapVector
      *                the smapVector to set
      */
-    public void setSmapVector(short[] smapVector) {
+    public void setSmapVector(${type}[] smapVector) {
         this.smapVector = smapVector;
     }
     
@@ -134,7 +139,7 @@ public class BucketObjectShort
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
-    public int compareTo(BucketObjectShort o) {
+    public int compareTo(BucketObject${Type} o) {
         int i = 0;
         assert smapVector.length == o.smapVector.length;
         while(i < smapVector.length){
@@ -148,7 +153,7 @@ public class BucketObjectShort
         return 0;
     }
     
-    /*public int compareTo(BucketObjectShort o) {
+    /*public int compareTo(BucketObject${Type} o) {
         if(smapVector[0] < o.smapVector[0]){
             return -1;
         }else if (smapVector[0] > o.smapVector[0]){
@@ -164,7 +169,7 @@ public class BucketObjectShort
      * @param b another vector value.
      * @return -1 if a < b, 0 if a == b otherwise 1.
      */
-    private final int compareDim(short a, short b){
+    private final int compareDim(${type} a, ${type} b){
         if( a < b){
             return -1;
         }else if( a > b){
@@ -179,3 +184,4 @@ public class BucketObjectShort
     }
 
 }
+</#list>
