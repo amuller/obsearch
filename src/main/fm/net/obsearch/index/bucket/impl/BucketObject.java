@@ -3,10 +3,11 @@
 <#list types as t>
 <@type_info t=t/>
 <@pp.changeOutputFile name="BucketObject${Type}.java" />
-package net.obsearch.index.bucket;
+package net.obsearch.index.bucket.impl;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import net.obsearch.index.bucket.BucketObject;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
