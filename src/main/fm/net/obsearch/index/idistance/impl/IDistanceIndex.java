@@ -263,7 +263,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		 */
 		public void doIt(IntegerHolder smapCount) throws IllegalIdException,
 				IllegalAccessException, OBException, InstantiationException {
-			if (iteration) {
+				//			if (iteration) {
 				if (itRight.hasNext() && continueRight) {
 					TupleBytes t = itRight.next();
 					// make sure we are within the key limits.
@@ -284,7 +284,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					}
 				}
 				iteration = false;
-			} else {
+				//} else {
 
 				if (itLeft.hasNext() && continueLeft) {
 					TupleBytes t = itLeft.next();
@@ -304,7 +304,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					}
 				}
 				iteration = true;
-			}
+				//}
 		}
 
 	}

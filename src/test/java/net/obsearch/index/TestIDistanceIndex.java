@@ -19,6 +19,7 @@ import net.obsearch.index.utils.IndexSmokeTUtil;
 import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
 import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
 import net.obsearch.storage.bdb.BDBFactory;
@@ -67,9 +68,9 @@ public class TestIDistanceIndex
 
        //IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
         //        30, 30);
-    	IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
+    	//IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
     	//IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)7);
-
+    	IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
     	
     	BDBFactory fact = Utils.getFactory();
         IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 20);
