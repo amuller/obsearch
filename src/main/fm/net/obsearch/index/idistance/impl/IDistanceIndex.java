@@ -1,5 +1,6 @@
 <@pp.dropOutputFile />
 <#include "/@inc/ob.ftl">
+<#include "/@inc/index.ftl">
 <#list types as t>
 <@type_info t=t/>
 <@pp.changeOutputFile name="IDistanceIndex${Type}.java" />
@@ -57,15 +58,17 @@ import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 */
 
 /** 
-	*  IDistanceIndex${Type} implements a metric index for ${type}. The
+	*  IDistanceIndex${Type} implements a metric index for ${type}s. The
   *  index employed is called the IDistance. The paper:
 	* H. V. Jagadish, Beng Chin Ooi, Kian-Lee Tan, Cui Yu, Rui Zhang: iDistance: 
   *  An adaptive B+-tree based indexing method for nearest neighbor search. 
   *  ACM Trans. Database Syst. 30(2): 364-397 (2005)
-	*  describes the technique.
+	*  describes the technique. It is like the pyramid technique, but for
+  * metric datasets.
   *
   *  @author      Arnoldo Jose Muller Molina    
   */
+  <@gen_warning filename="IDistanceIndex.java "/>
 public class IDistanceIndex${Type}<O extends OB${Type}>
 		extends
 		AbstractIDistanceIndex<O, BucketObject${Type}, OBQuery${Type}<O>, BucketContainer${Type}<O>>
@@ -97,24 +100,16 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			throws OBStorageException, OBException {
 		super(type, pivotSelector, pivotCount);
 	}
+	
+  <#-- default implementations of some methods -->
 
-	@Override
-	public OperationStatus exists(O object) throws OBException,
-			IllegalAccessException, InstantiationException {
-		OBPriorityQueue${Type}<O> result = new OBPriorityQueue${Type}<O>((byte) 1);
-		searchOB(object, (${type}) 0, result);
-		OperationStatus res = new OperationStatus();
-		res.setStatus(Status.NOT_EXISTS);
-		if (result.getSize() == 1) {
-			Iterator<OBResult${Type}<O>> it = result.iterator();
-			OBResult${Type}<O> r = it.next();
-			if (r.getObject().equals(object)) {
-				res.setId(r.getId());
-				res.setStatus(Status.EXISTS);
-			}
-		}
-		return res;
-	}
+	<@existsDefault/>
+
+	<@intersectingBoxesUnsupported/>
+
+  <@intersectsUnsupported/>
+
+  <@searchOBBoxesUnsupported/>
 
 	@Override
 	protected byte[] getAddress(BucketObject${Type} bucket) {
@@ -122,7 +117,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		${type}[] smap = bucket.getSmapVector();
 		int i = 0;
 		int iMin = -1;
-		${type} minValue = ${Type}.MAX_VALUE;
+		${type} minValue = ${ClassType}.MAX_VALUE;
 		while (i < smap.length) {
 			if (smap[i] < minValue) {
 				iMin = i;
@@ -156,22 +151,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		return new BucketContainer${Type}<O>(this, data, getPivotCount());
 	}
 
-	@Override
-	public Iterator<Long> intersectingBoxes(O object, ${type} r)
-			throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		throw new UnsupportedOperationException();
-	}
+  
 
-	@Override
-	public boolean intersects(O object, ${type} r, int box)
-			throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		throw new UnsupportedOperationException();
-	}
-
+	
+  <@gen_warning filename="IDistanceIndex.java "/>
 	@Override
 	public void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result)
 			throws NotFrozenException, InstantiationException,
@@ -207,16 +190,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		stats.incSmapCount(smapCount.getValue());
 	}
 
-	@Override
-	public void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result,
-			int[] boxes) throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		throw new UnsupportedOperationException();
-	}
+	
 
 	/**
-	 * Process an entire dimension little by little.
+	 * Process from the closest dimensions little by little.
 	 * 
 	 * @author Arnoldo Muller Molina
 	 * 
