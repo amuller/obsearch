@@ -1,48 +1,32 @@
 package net.obsearch.index.dprime.impl;
 
-import hep.aida.bin.StaticBin1D;
-
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
-
-import net.obsearch.Index;
-import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
-import net.obsearch.cache.OBCacheLoaderLong;
-import net.obsearch.cache.OBCacheLong;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.IndexShort;
-import net.obsearch.index.bucket.BucketContainer;
-import net.obsearch.index.bucket.AbstractBucketContainerShort;
-import net.obsearch.index.bucket.BucketContainerShort;
-import net.obsearch.index.bucket.BucketObject;
-import net.obsearch.index.bucket.BucketObjectShort;
+import net.obsearch.index.bucket.impl.BucketContainerShort;
+import net.obsearch.index.bucket.impl.BucketObjectShort;
 import net.obsearch.index.dprime.AbstractDPrimeIndex;
 import net.obsearch.index.utils.IntegerHolder;
-import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.ob.OBShort;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
-import net.obsearch.storage.OBStoreFactory;
-import net.obsearch.storage.OBStoreLong;
 
-import cern.colt.list.IntArrayList;
+import org.apache.log4j.Logger;
+
 import cern.colt.list.LongArrayList;
 import cern.colt.list.ShortArrayList;
 
-import com.sleepycat.bind.tuple.TupleInput;
-import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.DatabaseException;
 
 public final class DPrimeIndexShort<O extends OBShort>

@@ -28,6 +28,9 @@
 	
 	<!-- generate texen files -->
 	<target name="generateSources">
+		<!-- etags file will be stored here -->
+		<property name="etags_file" value="${home}/TAGS"/>
+
 		  <taskdef name="fmpp" classname="fmpp.tools.AntTask" /> 
 			<!-- now we generate code using texen -->	
 			<echo>Defs: ${defs}</echo>
@@ -39,6 +42,26 @@
 				      excludes="Types.csv"				
               freemarkerlinks="inc: ${defs}/include/"> <!-- Add the library includes -->
      </fmpp>
+		 
+
+		 <apply executable="etags"  parallel="true">
+      <arg value="--regex=@ftl.tags"/> 
+			<arg value="-a"/> 
+      <arg value="-o"/> 
+      <arg value="${etags_file}"/>  
+      <srcfile/>
+      <fileset dir="src" includes="**/fm/**/*.java"/>
+      </apply>
+			<apply executable="etags"  parallel="true">
+				<arg value="-a"/> 
+       <arg value="-o"/> 			 
+      <arg value="${etags_file}"/>  
+			<arg value="--language=auto"/>
+			<arg value="--declarations"/>
+			<arg value="--members"/>
+      <srcfile/>
+      <fileset dir="src" includes="**/*.java"/>
+      </apply>
 	</target>
 
 </project>

@@ -38,6 +38,7 @@ import net.obsearch.Status;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.index.utils.IntegerHolder;
+import net.obsearch.index.bucket.BucketContainer;
 
 import net.obsearch.ob.OB${Type};
 import net.obsearch.query.OBQuery${Type};

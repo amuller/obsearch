@@ -17,8 +17,9 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.IndexShort;
-import net.obsearch.index.bucket.BucketContainerShort;
-import net.obsearch.index.bucket.BucketObjectShort;
+
+import net.obsearch.index.bucket.impl.BucketContainerShort;
+import net.obsearch.index.bucket.impl.BucketObjectShort;
 import net.obsearch.index.utils.ByteArrayComparator;
 import net.obsearch.index.utils.IntegerHolder;
 import net.obsearch.ob.OBShort;

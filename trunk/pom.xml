@@ -341,6 +341,7 @@ Would be cool to use this.
 							
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"></target>
+										<property name="home" value="${user.home}"></property>
 									<property name="in" value="${project.build.sourceDirectory}/../fm/"></property>
 									<property name="out" value="${project.build.directory}/generated-sources/main/fm/"></property>
 									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>

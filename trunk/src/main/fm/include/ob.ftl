@@ -4,6 +4,19 @@
 <#macro type_info t>
 <#global type = t.name>
 <#global Type = t.name?cap_first>
+<#-- used for doing the typical Integer.MAX_VALUE -->
+<#if t.name == "int">
+<#global ClassType = "Integer">
+<#else>
+<#global ClassType = Type>
+</#if>
+
+<#-- used for accessing ByteBuffer objects -->
+<#if t.name == "byte">
+<#global BBType = "">
+<#else>
+<#global BBType = Type>
+</#if>
 </#macro> 
 
 <#-- Binding exceptions used in BDB -->
@@ -23,3 +36,11 @@
 <#assign binding2 = t.name?cap_first>
 </#if>
 </#macro> 
+
+
+<#macro gen_warning filename>
+//*********************************************************
+//****** Warning: this is a generated file ****************
+//****** The source file is: ${filename}   
+//*********************************************************
+</#macro>
