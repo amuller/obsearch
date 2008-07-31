@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="IncrementalBustosNavarroChavez${Type}.java" />
 package net.obsearch.pivots.bustos.impl;
 
 import java.util.Arrays;
@@ -6,13 +11,13 @@ import java.util.HashMap;
 import hep.aida.bin.StaticBin1D;
 
 import net.obsearch.Index;
-import net.obsearch.dimension.DimensionShort;
+import net.obsearch.dimension.Dimension${Type};
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
 
-import net.obsearch.ob.OBShort;
+import net.obsearch.ob.OB${Type};
 
 import com.sleepycat.je.DatabaseException;
 
@@ -36,18 +41,18 @@ import com.sleepycat.je.DatabaseException;
  */
 
 /**
- * IncrementalBustosNavarroChavezShort is an implementation 
- * for OBShort objects
+ * IncrementalBustosNavarroChavez${Type} is an implementation 
+ * for OB${Type} objects
  * @author Arnoldo Jose Muller Molina
  */
-
-public class IncrementalBustosNavarroChavezShort<O extends OBShort>
+<@gen_warning filename="IncrementalBustosNavarroChavez.java "/>
+public class IncrementalBustosNavarroChavez${Type}<O extends OB${Type}>
         extends AbstractIncrementalBustosNavarroChavez<O> {
     
     /**
      * Keeps track of the SMAP values of objects.
      */
-    private HashMap<Long, short[]> smapCache;
+    private HashMap<Long, ${type}[]> smapCache;
     
     /**
      * Receives the object that accepts pivots as possible candidates. Selects l
@@ -57,10 +62,10 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
      * @param l pairs of objects to select
      * @param m m possible pivot candidates to be randomly picked.
      */
-    public IncrementalBustosNavarroChavezShort(Pivotable < O > pivotable,
+    public IncrementalBustosNavarroChavez${Type}(Pivotable < O > pivotable,
             int l, int m) {
         super(pivotable, l , m);
-        smapCache = new HashMap<Long, short[]>(l);
+        smapCache = new HashMap<Long, ${type}[]>(l);
     }
 
     @Override
@@ -70,9 +75,9 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
         StaticBin1D data = new StaticBin1D();  
         int i = 0;
         while ( i < x.length){
-            short[] tupleA = getTuple(pivots, x[i], (Index<OBShort>)index);
-            short[] tupleB = getTuple(pivots, y[i], (Index<OBShort>)index);
-            short distance = DimensionShort.lInfinite(tupleA, tupleB);
+            ${type}[] tupleA = getTuple(pivots, x[i], (Index<OB${Type}>)index);
+            ${type}[] tupleB = getTuple(pivots, y[i], (Index<OB${Type}>)index);
+            ${type} distance = Dimension${Type}.lInfinite(tupleA, tupleB);
             data.add(distance);
             i++;
         }                
@@ -80,19 +85,19 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     }
     
     protected void resetCache(int x){
-        smapCache = new HashMap<Long, short[]>(x);
+        smapCache = new HashMap<Long, ${type}[]>(x);
     }
     
-    private short[] getTuple(long[] pivots, long id, Index<OBShort>index  )throws DatabaseException,
+    private ${type}[] getTuple(long[] pivots, long id, Index<OB${Type}>index  )throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException{
-        short[] t = smapCache.get(id);
+        ${type}[] t = smapCache.get(id);
         if(t == null){
-            t = new short[pivots.length];
+            t = new ${type}[pivots.length];
             smapCache.put(id, t);
             assert pivots.length == 1;
         }else{          
-            short [] td = new short[pivots.length];
+            ${type} [] td = new ${type}[pivots.length];
             System.arraycopy(t, 0, td, 0, t.length );
             smapCache.put(id, td);
             t = td;
@@ -109,11 +114,12 @@ public class IncrementalBustosNavarroChavezShort<O extends OBShort>
     protected boolean validatePivots(long[] pivots, long id, Index<O> index) throws DatabaseException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBException {
-        short[] real = DimensionShort.getPrimitiveTuple(pivots, id, index);
-        short[] localTuple = smapCache.get(id);
+        ${type}[] real = Dimension${Type}.getPrimitiveTuple(pivots, id, index);
+        ${type}[] localTuple = smapCache.get(id);
         return Arrays.equals(real, localTuple);
     }
     
     
 
 }
+</#list>

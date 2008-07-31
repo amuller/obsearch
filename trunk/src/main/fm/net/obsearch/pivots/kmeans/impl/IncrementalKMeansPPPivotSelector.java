@@ -52,6 +52,7 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  * @since 0.8
  */
+<@gen_warning filename="IncrementalKMeansPPPivotSelector.java "/>
 public class IncrementalKMeansPPPivotSelector${Type}<O extends OB${Type}> extends AbstractIncrementalPivotSelector<O>
          {
 
