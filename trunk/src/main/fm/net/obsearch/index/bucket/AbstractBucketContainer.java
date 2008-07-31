@@ -3,7 +3,7 @@
 <#list types as t>
 <@type_info t=t/>
 <@pp.changeOutputFile name="AbstractBucketContainer${Type}.java" />
-package net.obsearch.index.bucket;
+package net.obsearch.index.bucket.impl;
 /*
 		OBSearch: a distributed similarity search engine This project is to
     similarity search what 'bit-torrent' is to downloads. 
