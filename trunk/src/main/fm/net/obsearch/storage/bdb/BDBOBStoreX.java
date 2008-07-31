@@ -1,23 +1,8 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<#if type == "int">
-<#assign binding = "Integer">
-<#assign binding2 = "Int">
-<#elseif type == "float">
-<#assign binding = "SortedFloat">
-<#assign binding2 = binding>
-<#elseif type == "double">
-<#assign binding = "SortedDouble">
-<#assign binding2 = binding>
-<#else>
-<#assign binding = Type>
-<#assign binding2 = binding>
-</#if>
-
-
-
+<@type_info t=t/>
+<@binding_info t=t/>
 <@pp.changeOutputFile name="BDBOBStore"+Type+".java" />
 package net.obsearch.storage.bdb;
 
