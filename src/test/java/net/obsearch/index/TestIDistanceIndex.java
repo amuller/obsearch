@@ -12,7 +12,7 @@ import net.obsearch.example.OBSliceFactory;
 import net.obsearch.example.ted.OBTed;
 import net.obsearch.example.ted.OBTedFactory;
 import net.obsearch.index.dprime.impl.DPrimeIndexShort;
-import net.obsearch.index.idistance.IDistanceIndexShort;
+import net.obsearch.index.idistance.impl.IDistanceIndexShort;
 import net.obsearch.index.rosa.RosaFilterShort;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
