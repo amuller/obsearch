@@ -13,7 +13,7 @@ public class BucketContainerShort<O extends OBShort> extends AbstractBucketConta
 	}
 	
 	protected BucketObjectShort instantiateBucketObject(){
-    	return  new BucketObjectShort();
+    	return new BucketObjectShort();
     }
     
 
