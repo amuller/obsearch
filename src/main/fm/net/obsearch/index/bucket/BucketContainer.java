@@ -2,7 +2,7 @@
 <#include "/@inc/ob.ftl">
 <#list types as t>
 <@type_info t=t/>
-<@pp.changeOutputFile name="BucketContainer"+Type+".java" />
+<@pp.changeOutputFile name="BucketContainer${Type}.java" />
 package net.obsearch.index.bucket;
 /*
 		OBSearch: a distributed similarity search engine This project is to
@@ -23,16 +23,17 @@ package net.obsearch.index.bucket;
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+import java.nio.ByteBuffer;
+import net.obsearch.Index;
+import net.obsearch.ob.OB${Type};
 /** 
 	*  BucketContainer is a dummy class that is used to directly
   *  inherit the functionality from AbstractBucketContainer${Type}.
 	*  
   *  @author      Arnoldo Jose Muller Molina    
   */
-import java.nio.ByteBuffer;
-
-import net.obsearch.Index;
-import net.obsearch.ob.OB${Type};
+<@gen_warning filename="BucketContainer.java "/>
 
 public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketContainer${Type}<O, BucketObject${Type}>{
 
@@ -45,7 +46,7 @@ public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketC
     	return new BucketObject${Type}();
     }
     
-
+	<@gen_warning filename="BucketContainer.java "/>
 }
 </#list>
 

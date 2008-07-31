@@ -2,7 +2,7 @@
 <#include "/@inc/ob.ftl">
 <#list types as t>
 <@type_info t=t/>
-<@pp.changeOutputFile name="AbstractBucketContainer${Type}"+Type+".java" />
+<@pp.changeOutputFile name="AbstractBucketContainer${Type}.java" />
 package net.obsearch.index.bucket;
 /*
 		OBSearch: a distributed similarity search engine This project is to
@@ -23,13 +23,6 @@ package net.obsearch.index.bucket;
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** 
-	*  AbstractBucketContainer${Type} Holds the functionality of a
-  *  bucket that sorts its smap-vectors lexicographically. Binary
-  *  searches are employed inside the vector.
-	*  
-  *  @author      Arnoldo Jose Muller Molina    
-  */
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +43,14 @@ import net.obsearch.ob.OB${Type};
 import net.obsearch.query.OBQuery${Type};
 import net.obsearch.utils.bytes.ByteConversion;
 
+/** 
+	*  AbstractBucketContainer${Type} Holds the functionality of a
+  *  bucket that sorts its smap-vectors lexicographically. Binary
+  *  searches are employed inside the vector.
+	*  
+  *  @author      Arnoldo Jose Muller Molina    
+  */
+<@gen_warning filename="AbstractBucketContainer.java "/>
 public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B extends BucketObject${Type} > implements
         BucketContainer < O, B, OBQuery${Type} < O >> {
 
@@ -78,7 +79,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
 		/**
      * Header size of the bucket (pivot count and # of elements in the bucket)
 		 */
-    private static final int BASE = net.obsearch.constants.ByteConstants.Int.getValue() * 2; // pivots count level
+    private static final int BASE = net.obsearch.constants.ByteConstants.Int.getSize() * 2; // pivots count level
 
     private int TUPLE_SIZE;
 
@@ -218,6 +219,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      *                Number of items to add.
      * @return the number of bytes required to store n smap vectors.
      */
+		<@gen_warning filename="AbstractBucketContainer.java "/>
     private int calculateBufferSize(int i) {
         return (TUPLE_SIZE * i) + BASE;
     }
@@ -307,6 +309,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * @see net.obsearch.index.bucket.BucketContainer#search(java.lang.Object,
      *      net.obsearch.result.OB) returns the # of distance computations.
      */
+		<@gen_warning filename="AbstractBucketContainer.java "/>
     @Override
     public long search(OBQuery${Type} < O > query, B b)
             throws IllegalAccessException, OBException, InstantiationException,
@@ -476,6 +479,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * (non-Javadoc)
      * @see net.obsearch.index.bucket.BucketContainer#getPivots()
      */
+		<@gen_warning filename="AbstractBucketContainer.java "/>
     @Override
     public int getPivots() {
         return this.pivots;
