@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="IDistanceIndex${Type}.java" />
 package net.obsearch.index.idistance.impl;
 
 import java.nio.ByteBuffer;
@@ -10,33 +15,61 @@ import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.cache.OBCache;
-import net.obsearch.dimension.DimensionShort;
+import net.obsearch.dimension.Dimension${Type};
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
-import net.obsearch.index.IndexShort;
+import net.obsearch.index.Index${Type};
 
-import net.obsearch.index.bucket.impl.BucketContainerShort;
-import net.obsearch.index.bucket.impl.BucketObjectShort;
+import net.obsearch.index.bucket.impl.BucketContainer${Type};
+import net.obsearch.index.bucket.impl.BucketObject${Type};
 import net.obsearch.index.idistance.AbstractIDistanceIndex;
 import net.obsearch.index.utils.ByteArrayComparator;
 import net.obsearch.index.utils.IntegerHolder;
-import net.obsearch.ob.OBShort;
+import net.obsearch.ob.OB${Type};
 import net.obsearch.pivots.IncrementalPivotSelector;
-import net.obsearch.query.OBQueryShort;
-import net.obsearch.result.OBPriorityQueueShort;
-import net.obsearch.result.OBResultShort;
+import net.obsearch.query.OBQuery${Type};
+import net.obsearch.result.OBPriorityQueue${Type};
+import net.obsearch.result.OBResult${Type};
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStoreInt;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
+/*
+		OBSearch: a distributed similarity search engine This project is to
+ similarity search what 'bit-torrent' is to downloads. 
+    Copyright (C) 2008 Arnoldo Jose Muller Molina
 
-public class IDistanceIndexShort<O extends OBShort>
+  	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/** 
+	*  IDistanceIndex${Type} implements a metric index for ${type}. The
+  *  index employed is called the IDistance. The paper:
+	* H. V. Jagadish, Beng Chin Ooi, Kian-Lee Tan, Cui Yu, Rui Zhang: iDistance: 
+  *  An adaptive B+-tree based indexing method for nearest neighbor search. 
+  *  ACM Trans. Database Syst. 30(2): 364-397 (2005)
+	*  describes the technique.
+  *
+  *  @author      Arnoldo Jose Muller Molina    
+  */
+public class IDistanceIndex${Type}<O extends OB${Type}>
 		extends
-		AbstractIDistanceIndex<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
-		implements IndexShort<O> {
+		AbstractIDistanceIndex<O, BucketObject${Type}, OBQuery${Type}<O>, BucketContainer${Type}<O>>
+		implements Index${Type}<O> {
 
 	private static ByteArrayComparator comp = new ByteArrayComparator();
 
@@ -59,7 +92,7 @@ public class IDistanceIndexShort<O extends OBShort>
 	 * @throws OBStorageException
 	 * @throws OBException
 	 */
-	public IDistanceIndexShort(Class<O> type,
+	public IDistanceIndex${Type}(Class<O> type,
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount)
 			throws OBStorageException, OBException {
 		super(type, pivotSelector, pivotCount);
@@ -68,13 +101,13 @@ public class IDistanceIndexShort<O extends OBShort>
 	@Override
 	public OperationStatus exists(O object) throws OBException,
 			IllegalAccessException, InstantiationException {
-		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte) 1);
-		searchOB(object, (short) 0, result);
+		OBPriorityQueue${Type}<O> result = new OBPriorityQueue${Type}<O>((byte) 1);
+		searchOB(object, (${type}) 0, result);
 		OperationStatus res = new OperationStatus();
 		res.setStatus(Status.NOT_EXISTS);
 		if (result.getSize() == 1) {
-			Iterator<OBResultShort<O>> it = result.iterator();
-			OBResultShort<O> r = it.next();
+			Iterator<OBResult${Type}<O>> it = result.iterator();
+			OBResult${Type}<O> r = it.next();
 			if (r.getObject().equals(object)) {
 				res.setId(r.getId());
 				res.setStatus(Status.EXISTS);
@@ -84,12 +117,12 @@ public class IDistanceIndexShort<O extends OBShort>
 	}
 
 	@Override
-	protected byte[] getAddress(BucketObjectShort bucket) {
+	protected byte[] getAddress(BucketObject${Type} bucket) {
 
-		short[] smap = bucket.getSmapVector();
+		${type}[] smap = bucket.getSmapVector();
 		int i = 0;
 		int iMin = -1;
-		short minValue = Short.MAX_VALUE;
+		${type} minValue = ${Type}.MAX_VALUE;
 		while (i < smap.length) {
 			if (smap[i] < minValue) {
 				iMin = i;
@@ -101,30 +134,30 @@ public class IDistanceIndexShort<O extends OBShort>
 		return buildKey(iMin, minValue);
 	}
 
-	private byte[] buildKey(int i, short value) {
+	private byte[] buildKey(int i, ${type} value) {
 		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(0, 1, 1,
 				0, 0, 0);
 		buf.put(fact.serializeInt(i));
-		buf.put(fact.serializeShort(value));
+		buf.put(fact.serialize${Type}(value));
 		return buf.array();
 	}
 
 	@Override
-	protected BucketObjectShort getBucket(O object) throws OBException,
+	protected BucketObject${Type} getBucket(O object) throws OBException,
 			InstantiationException, IllegalAccessException {
-		short[] smapTuple = DimensionShort.getPrimitiveTuple(super.pivots,
+		${type}[] smapTuple = Dimension${Type}.getPrimitiveTuple(super.pivots,
 				object);
-		return new BucketObjectShort(smapTuple, -1);
+		return new BucketObject${Type}(smapTuple, -1);
 	}
 
 	@Override
-	protected BucketContainerShort<O> instantiateBucketContainer(
+	protected BucketContainer${Type}<O> instantiateBucketContainer(
 			ByteBuffer data, byte[] address) {
-		return new BucketContainerShort<O>(this, data, getPivotCount());
+		return new BucketContainer${Type}<O>(this, data, getPivotCount());
 	}
 
 	@Override
-	public Iterator<Long> intersectingBoxes(O object, short r)
+	public Iterator<Long> intersectingBoxes(O object, ${type} r)
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
@@ -132,7 +165,7 @@ public class IDistanceIndexShort<O extends OBShort>
 	}
 
 	@Override
-	public boolean intersects(O object, short r, int box)
+	public boolean intersects(O object, ${type} r, int box)
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
@@ -140,18 +173,18 @@ public class IDistanceIndexShort<O extends OBShort>
 	}
 
 	@Override
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result)
+	public void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result)
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
-		BucketObjectShort b = getBucket(object);
-		OBQueryShort<O> q = new OBQueryShort<O>(object, r, result, b
+		BucketObject${Type} b = getBucket(object);
+		OBQuery${Type}<O> q = new OBQuery${Type}<O>(object, r, result, b
 				.getSmapVector());
-		DimensionShort[] smap = DimensionShort.transformPrimitiveTuple(b
+		Dimension${Type}[] smap = Dimension${Type}.transformPrimitiveTuple(b
 				.getSmapVector());
 		Arrays.sort(smap);
 		LinkedList<DimensionProcessor> ll = new LinkedList<DimensionProcessor>();
-		for (DimensionShort s : smap) {
+		for (Dimension${Type} s : smap) {
 			ll.add(new DimensionProcessor(b, q, s));
 		}
 		IntegerHolder smapCount = new IntegerHolder(0);
@@ -175,7 +208,7 @@ public class IDistanceIndexShort<O extends OBShort>
 	}
 
 	@Override
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
+	public void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result,
 			int[] boxes) throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
@@ -195,16 +228,16 @@ public class IDistanceIndexShort<O extends OBShort>
 		boolean continueRight = true;
 		boolean continueLeft = true;
 		boolean iteration = true;// iteration id.
-		BucketObjectShort b;
-		private OBQueryShort<O> q;
-		DimensionShort s;
+		BucketObject${Type} b;
+		private OBQuery${Type}<O> q;
+		Dimension${Type} s;
 		byte[] centerKey;
 		byte[] lowKey;
 		byte[] highKey;
-		short lastRange;
+		${type} lastRange;
 
-		public DimensionProcessor(BucketObjectShort b, OBQueryShort<O> q,
-				DimensionShort s) throws OBStorageException {
+		public DimensionProcessor(BucketObject${Type} b, OBQuery${Type}<O> q,
+				Dimension${Type} s) throws OBStorageException {
 			super();
 			this.b = b;
 			this.q = q;
@@ -221,9 +254,9 @@ public class IDistanceIndexShort<O extends OBShort>
 		 * Update high and low intervals.
 		 */
 		private void updateHighLow() {
-			short center = s.getValue();
-			short low = q.getLow()[s.getOrder()];
-			short high = q.getHigh()[s.getOrder()];
+			${type} center = s.getValue();
+			${type} low = q.getLow()[s.getOrder()];
+			${type} high = q.getHigh()[s.getOrder()];
 			centerKey = buildKey(s.getOrder(), center);
 			lowKey = buildKey(s.getOrder(), low);
 			highKey = buildKey(s.getOrder(), high);
@@ -260,7 +293,7 @@ public class IDistanceIndexShort<O extends OBShort>
 					if (comp.compare(t.getKey(), highKey) > 0) {
 						continueRight = false;
 					} else {
-						BucketContainerShort<O> bt = instantiateBucketContainer(
+						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.searchSorted(q, b,
@@ -281,7 +314,7 @@ public class IDistanceIndexShort<O extends OBShort>
 					if (comp.compare(t.getKey(), lowKey) < 0) {
 						continueLeft = false;
 					} else {
-						BucketContainerShort<O> bt = instantiateBucketContainer(
+						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.searchSorted(q, b,
@@ -300,3 +333,5 @@ public class IDistanceIndexShort<O extends OBShort>
 	}
 
 }
+
+</#list>
