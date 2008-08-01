@@ -174,7 +174,7 @@ public abstract class AbstractIncrementalBustosNavarroChavez < O extends OB >
             long[] x, long[] y, Index < O > index) throws DatabaseException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBException {
-        double bestMedian = Double.MIN_VALUE;
+        double bestMedian = Double.NEGATIVE_INFINITY;
         long bestPivot = -1;
         previousPivots.trimToSize();
         long[] pivots = Arrays.copyOf(previousPivots.elements(), previousPivots.size() + 1);

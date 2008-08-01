@@ -364,12 +364,12 @@ Would be cool to use this.
 								<ant antfile="${basedir}/build.xml" inheritRefs="true" dir="${basedir}">
                   <target name="generateSources"></target>
 									<property name="in" value="${project.build.testSourceDirectory}/../fm/"></property>
-									<property name="out" value="${project.build.directory}/generated-sources/test/fm"></property>
+									<property name="out" value="${project.build.directory}/generated-sources/main/fm"></property>
 									<property name="defs" value="${project.build.sourceDirectory}/../fm/"></property>
 								</ant>
 
               </tasks>
-							<testSourceRoot>${project.build.directory}/generated-sources/test/fm</testSourceRoot>
+							<testSourceRoot>${project.build.directory}/generated-sources/main/fm</testSourceRoot>
             </configuration>
             <goals>
               <goal>run</goal>

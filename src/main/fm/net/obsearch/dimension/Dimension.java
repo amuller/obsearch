@@ -1,13 +1,7 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<#if t.name == "int">
-<#assign TypeClass = "Integer">
-<#else>
-<#assign TypeClass = Type>
-</#if>
-
+<@type_info t=t/>
 
 <@pp.changeOutputFile name="Dimension"+Type+".java" />
 package net.obsearch.dimension;
@@ -182,7 +176,7 @@ import net.obsearch.Index;
      */
     public static ${type} lInfinite(${type}[] a, ${type}[] b){
         assert a.length == b.length;
-        ${type} max = ${TypeClass}.MIN_VALUE;
+        ${type} max = <@min_value/>;
         int i = 0;
         while(i < a.length){
             ${type} t = (${type})Math.abs(a[i]  - b[i]);

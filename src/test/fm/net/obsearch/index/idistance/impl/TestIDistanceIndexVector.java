@@ -15,10 +15,7 @@ import net.obsearch.example.ted.OBTed;
 import net.obsearch.example.ted.OBTedFactory;
 import net.obsearch.index.OBVector${Type};
 import net.obsearch.index.VectorTestFramework${Type};
-import net.obsearch.index.dprime.impl.DPrimeIndex${Type};
-import net.obsearch.index.dprime.impl.TestDPrimeIndex;
 import net.obsearch.index.idistance.impl.IDistanceIndex${Type};
-import net.obsearch.index.rosa.RosaFilter${Type};
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
 import net.obsearch.index.utils.TUtils;
@@ -26,7 +23,6 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavez${Type};
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelector${Type};
-import net.obsearch.pivots.muller2.impl.IncrementalMuller${Type};
 import net.obsearch.storage.bdb.BDBFactory;
 import net.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
@@ -75,7 +71,7 @@ public class TestIDistanceIndexVector${Type}
                 100, 100);    	
     	
     	BDBFactory fact = Utils.getFactory();
-        IDistanceIndex${Type}<OBVector${Type}> i = new IDistanceIndex${Type}<OBVector${Type}>(OBVector${Type}.class, sel, 20);
+        IDistanceIndex${Type}<OBVector${Type}> i = new IDistanceIndex${Type}<OBVector${Type}>(OBVector${Type}.class, sel, 15);
         i.init(fact);
         VectorTestFramework${Type} t = new VectorTestFramework${Type}(<@vectorSize/>, 10000, 1000,
     			 i);

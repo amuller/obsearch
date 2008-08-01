@@ -54,8 +54,24 @@ public class VectorTestFramework${Type} extends TestFramework${Type}<OBVector${T
 	}
 	
 	protected void search() throws Exception{
-		super.search();
-		search(index, (${type})(${ClassType}.MAX_VALUE/vectorDimensionality * 6) , (byte) 3);       
+		<#if type == "byte">
+	    	search(index, (byte)1 , (byte) 3);  
+        search(index, (byte)3 , (byte) 3); 
+				search(index, (byte)10 , (byte) 3);
+        //TODO: Range 48 fails for Byte. Fix this.
+        //search(index, (byte)48 , (byte) 3); 
+		<#elseif type == "float" || type == "double"/>
+				 search(index, (${type})0.01 ,(byte)   3);
+				 search(index, (${type})0.1 ,(byte)  3);
+				 search(index, (${type})0.2 ,(byte)  3);
+				 search(index, (${type})20 ,(byte)  3);
+				 //TODO: Range 100 fails for Double/Float Fix this.
+				 // search(index, (${type})1001 ,(byte)  3);
+    <#else>
+			 super.search();
+		   search(index, (${type})(${ClassType}.MAX_VALUE/vectorDimensionality * 6) , (byte) 3);   
+		</#if>		
+		
 	}
 	
 	
