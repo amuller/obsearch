@@ -3,6 +3,8 @@ package net.obsearch.index.idistance;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.log4j.Logger;
+
 import net.obsearch.OB;
 import net.obsearch.cache.OBCacheLoaderInt;
 import net.obsearch.cache.OBCacheLoaderByteArray;
@@ -21,6 +23,9 @@ import net.obsearch.storage.TupleBytes;
 
 public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
 		extends AbstractBucketIndex<O, B, Q, BC> {
+	
+	private static transient final Logger logger = Logger
+	.getLogger(AbstractIDistanceIndex.class);
 
 	/**
 	 * Initializes this abstract class.
@@ -60,6 +65,9 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 		int i = 0;
 		while (i < A.size()) {
 			O o = getObjectFreeze(i, null);
+			if(i % 1000 == 0){
+				logger.info("Insert after freeze: " + i);
+			}
 			insertAux(i, o);
 			i++;
 		}

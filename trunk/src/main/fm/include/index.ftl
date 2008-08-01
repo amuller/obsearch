@@ -16,7 +16,7 @@
 		if (result.getSize() == 1) {
 			Iterator<OBResult${Type}<O>> it = result.iterator();
 			OBResult${Type}<O> r = it.next();
-			if (r.getObject().equals(object)) {
+			if (r.getDistance() == 0) {
 				res.setId(r.getId());
 				res.setStatus(Status.EXISTS);
 			}
