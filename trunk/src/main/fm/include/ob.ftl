@@ -68,3 +68,13 @@
 	 ${r}.next${Type}()/${dimensionality};
   </#if>
 </#macro>
+
+<#-- vector size depending on the type used -->
+<#macro vectorSize>
+<#if type == "byte">
+30
+<#else>
+200
+</#if>
+</#macro>
+

@@ -1,6 +1,8 @@
-
-
-
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="TestIDistanceIndexVector${Type}.java" />
 package net.obsearch.index.idistance.impl;
 
 import java.io.File;
@@ -11,20 +13,20 @@ import net.obsearch.example.OBSlice;
 import net.obsearch.example.OBSliceFactory;
 import net.obsearch.example.ted.OBTed;
 import net.obsearch.example.ted.OBTedFactory;
-import net.obsearch.index.OBVectorShort;
-import net.obsearch.index.VectorTestFrameworkShort;
-import net.obsearch.index.dprime.impl.DPrimeIndexShort;
+import net.obsearch.index.OBVector${Type};
+import net.obsearch.index.VectorTestFramework${Type};
+import net.obsearch.index.dprime.impl.DPrimeIndex${Type};
 import net.obsearch.index.dprime.impl.TestDPrimeIndex;
-import net.obsearch.index.idistance.impl.IDistanceIndexShort;
-import net.obsearch.index.rosa.RosaFilterShort;
+import net.obsearch.index.idistance.impl.IDistanceIndex${Type};
+import net.obsearch.index.rosa.RosaFilter${Type};
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
 import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
-import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavez${Type};
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
-import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
-import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
+import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelector${Type};
+import net.obsearch.pivots.muller2.impl.IncrementalMuller${Type};
 import net.obsearch.storage.bdb.BDBFactory;
 import net.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
@@ -53,14 +55,14 @@ import org.apache.log4j.Logger;
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
-public class TestIDistanceIndexVectorShort
+public class TestIDistanceIndexVector${Type}
         extends TestCase {
 
     /**
      * Logger.
      */
     private static transient final Logger logger = Logger
-            .getLogger(TestIDistanceIndexVectorShort.class);
+            .getLogger(TestIDistanceIndexVector${Type}.class);
 
     /**
      * Tests on the P+Tree.
@@ -69,16 +71,17 @@ public class TestIDistanceIndexVectorShort
     public void testIDistanceTree() throws Exception {
         
 
-       IncrementalBustosNavarroChavezShort<OBVectorShort> sel = new IncrementalBustosNavarroChavezShort<OBVectorShort>(new AcceptAll(),
+       IncrementalBustosNavarroChavez${Type}<OBVector${Type}> sel = new IncrementalBustosNavarroChavez${Type}<OBVector${Type}>(new AcceptAll(),
                 100, 100);    	
     	
     	BDBFactory fact = Utils.getFactory();
-        IDistanceIndexShort<OBVectorShort> i = new IDistanceIndexShort<OBVectorShort>(OBVectorShort.class, sel, 20);
+        IDistanceIndex${Type}<OBVector${Type}> i = new IDistanceIndex${Type}<OBVector${Type}>(OBVector${Type}.class, sel, 20);
         i.init(fact);
-        VectorTestFrameworkShort t = new VectorTestFrameworkShort(200, 10000, 1000,
+        VectorTestFramework${Type} t = new VectorTestFramework${Type}(<@vectorSize/>, 10000, 1000,
     			 i);
         t.test();
 
     }
 
 }
+</#list>
