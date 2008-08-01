@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list types as t>
+<@type_info t=t/>
+<@pp.changeOutputFile name="TestFramework${Type}.java" />
 package net.obsearch.index;
 
 import java.io.IOException;
@@ -15,23 +20,47 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
-import net.obsearch.ob.OBShort;
-import net.obsearch.result.OBPriorityQueueShort;
-import net.obsearch.result.OBResultShort;
+import net.obsearch.ob.OB${Type};
+import net.obsearch.result.OBPriorityQueue${Type};
+import net.obsearch.result.OBResult${Type};
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+/*
+		OBSearch: a distributed similarity search engine This project is to
+ similarity search what 'bit-torrent' is to downloads. 
+    Copyright (C) 2008 Arnoldo Jose Muller Molina
 
-public abstract class TestFrameworkShort<O extends OBShort> {
+  	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/** 
+	*  TestFramework${Type} performs several tests on an index. 
+	*  This generated file works on ${type}s.
+  *  @author      Arnoldo Jose Muller Molina    
+  */
+<@gen_warning filename="TestFramework.java "/>
+public abstract class TestFramework${Type}<O extends OB${Type}> {
 
 	private static transient final Logger logger = Logger
-			.getLogger(TestFrameworkShort.class);
+			.getLogger(TestFramework${Type}.class);
 
 	private O[] queries;
 	private O[] data;
 
-	protected IndexShort<O> index;
+	protected Index${Type}<O> index;
 	
 	private Class<O> type;
 
@@ -43,7 +72,7 @@ public abstract class TestFrameworkShort<O extends OBShort> {
 	 * @param index
 	 *            The index that will be used for testing.
 	 */
-	public TestFrameworkShort(Class<O> type, int dbSize, int querySize, IndexShort<O> index) {
+	public TestFramework${Type}(Class<O> type, int dbSize, int querySize, Index${Type}<O> index) {
 		this.type = type;
 		queries = createArray(querySize);
 		data = createArray(dbSize);		
@@ -59,10 +88,11 @@ public abstract class TestFrameworkShort<O extends OBShort> {
 		search();
 		deletes();
 	}
-	
+
+	<@gen_warning filename="TestFramework.java "/>
 	protected void search() throws Exception{
-		search(index, (short) 3, (byte) 3);
-		search(index, (short) 7 , (byte) 3);       
+		search(index, (${type}) 3, (byte) 3);
+		search(index, (${type}) 7 , (byte) 3);       
 	}
 	
 	protected void deletes() throws Exception{
@@ -83,14 +113,14 @@ public abstract class TestFrameworkShort<O extends OBShort> {
         index.close();
 	}
 	
-	/**
+  	/**
      * Perform all the searches with
      * @param x
      *                the index that will be used
      * @param range
      * @param k
      */
-    public void search(IndexShort < O > index, short range, byte k)
+    public void search(Index${Type} < O > index, ${type} range, byte k)
             throws Exception {
         
         index.resetStats();
@@ -101,9 +131,9 @@ public abstract class TestFrameworkShort<O extends OBShort> {
         
         int i = 0;
         long realIndex = index.databaseSize();
-        List < OBPriorityQueueShort < O >> result = new LinkedList < OBPriorityQueueShort < O >>();        
+        List < OBPriorityQueue${Type} < O >> result = new LinkedList < OBPriorityQueue${Type} < O >>();        
         while (i < this.queries.length) {
-                OBPriorityQueueShort < O > x = new OBPriorityQueueShort < O >(
+                OBPriorityQueue${Type} < O > x = new OBPriorityQueue${Type} < O >(
                         k);
                 if (i % 100 == 0) {
                     logger.info("Matching " + i);
@@ -118,17 +148,17 @@ public abstract class TestFrameworkShort<O extends OBShort> {
        
         int maxQuery = i;
 
-        Iterator < OBPriorityQueueShort < O >> it = result.iterator();
+        Iterator < OBPriorityQueue${Type} < O >> it = result.iterator();
         i = 0;
         while (i < queries.length) {
         	if (i % 300 == 0) {
                     logger.info("Validating " + i + " of " + maxQuery);
         	}
                 O s = queries[i];
-                    OBPriorityQueueShort < O > x2 = new OBPriorityQueueShort < O >(
+                    OBPriorityQueue${Type} < O > x2 = new OBPriorityQueue${Type} < O >(
                             k);
                     searchSequential( s, x2, index, range);
-                    OBPriorityQueueShort < O > x1 = it.next();
+                    OBPriorityQueue${Type} < O > x1 = it.next();
                     
                     assertEquals("Error in query line: " + i + " " + index.debug(s) + "\n"
                             + debug(x2,index ) + "\n" + debug(x1,index), x2, x1);
@@ -149,11 +179,11 @@ public abstract class TestFrameworkShort<O extends OBShort> {
  * @throws OBException 
  * @throws IllegalIdException 
  */
-private String debug( OBPriorityQueueShort < O > q, IndexShort<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
+private String debug( OBPriorityQueue${Type} < O > q, Index${Type}<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
 	StringBuilder res = new StringBuilder();
-	Iterator<OBResultShort<O>> it = q.iterator();
+	Iterator<OBResult${Type}<O>> it = q.iterator();
 	while(it.hasNext()){
-		OBResultShort<O> r = it.next();
+		OBResult${Type}<O> r = it.next();
 		res.append(r.getId());
 		res.append(" r: ");
 		res.append(r.getDistance());
@@ -177,13 +207,14 @@ private String debug( OBPriorityQueueShort < O > q, IndexShort<O> index) throws 
      * @throws Exception
      *                 If something goes really bad.
      */
+    <@gen_warning filename="TestFramework.java "/>
     public void searchSequential( O o,
-            OBPriorityQueueShort < O > result,
-            IndexShort < O > index, short range) throws Exception {
+            OBPriorityQueue${Type} < O > result,
+            Index${Type} < O > index, ${type} range) throws Exception {
         int i = 0;
         while (i < data.length) {
             O obj = data[i];
-            short res = o.distance(obj);
+            ${type} res = o.distance(obj);
             if (res <= range) {
                 result.add(i, obj, res);
             }
@@ -291,3 +322,4 @@ private String debug( OBPriorityQueueShort < O > q, IndexShort<O> index) throws 
 		return next();
 	}
 }
+</#list>

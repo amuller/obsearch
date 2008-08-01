@@ -50,3 +50,21 @@
 //****** Warning: this is a generated file *******
 //************************************************
 </#macro>
+
+<#-- Generate a random value for the given type 
+     The random  object must be called "r"
+-->
+
+
+<#-- Generate a random value for the given type 
+     on the random object r with the given 
+     dimensionality.
+-->
+<#macro random r dimensionality>
+  			
+  <#if type == "int" || type == "short" || type == "byte">
+	 (${type})${r}.nextInt(${ClassType}.MAX_VALUE/${dimensionality});
+  <#else>
+	 ${r}.next${Type}()/${dimensionality};
+  </#if>
+</#macro>
