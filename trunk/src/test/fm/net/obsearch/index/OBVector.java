@@ -58,6 +58,9 @@ public class OBVector${Type} implements OB${Type} {
 		${type} res = 0;
 		int i = 0;
 		while(i < data.length){
+				assert (data[i] - o.data[i]) >= <@min_value/> && (data[i] - o.data[i]) <= ${ClassType}.MAX_VALUE : "a: " + data[i] + " b: "  + o.data[i] ;		 
+
+				
 			res += Math.abs(data[i] - o.data[i]);
 			i++;
 		}

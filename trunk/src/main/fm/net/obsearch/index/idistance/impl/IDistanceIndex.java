@@ -125,15 +125,16 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			}
 			i++;
 		}
-
+		assert iMin != -1;
 		return buildKey(iMin, minValue);
 	}
 
 	private byte[] buildKey(int i, ${type} value) {
-		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(0, 1, 1,
-				0, 0, 0);
-		buf.put(fact.serializeInt(i));
-		buf.put(fact.serialize${Type}(value));
+			byte[] pivotId = fact.serializeInt(i);
+      byte[] v = fact.serialize${Type}(value);
+		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(pivotId.length + v.length);
+		buf.put(pivotId);
+		buf.put(v);
 		return buf.array();
 	}
 

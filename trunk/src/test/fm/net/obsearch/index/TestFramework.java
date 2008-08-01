@@ -122,7 +122,7 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
      */
     public void search(Index${Type} < O > index, ${type} range, byte k)
             throws Exception {
-        
+        range = (${type})Math.min(${ClassType}.MAX_VALUE, range);
         index.resetStats();
         // it is time to Search
         

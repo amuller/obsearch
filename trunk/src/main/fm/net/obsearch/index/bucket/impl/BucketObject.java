@@ -74,7 +74,7 @@ public class BucketObject${Type}
      */
     public ${type} lInf(BucketObject${Type} b){
         int cx = 0;
-        ${type} max = ${ClassType}.MIN_VALUE;
+        ${type} max = <@min_value/>;
         ${type} t;
         ${type}[] other = b.getSmapVector();
         assert smapVector.length == other.length;

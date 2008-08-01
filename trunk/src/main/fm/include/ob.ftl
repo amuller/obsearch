@@ -64,6 +64,8 @@
   			
   <#if type == "int" || type == "short" || type == "byte">
 	 (${type})${r}.nextInt(${ClassType}.MAX_VALUE/${dimensionality});
+	<#elseif type == "float" || type == "double"/>
+	  ${r}.next${Type}();
   <#else>
 	 ${r}.next${Type}()/${dimensionality};
   </#if>
@@ -72,9 +74,17 @@
 <#-- vector size depending on the type used -->
 <#macro vectorSize>
 <#if type == "byte">
-30
+15
 <#else>
 200
+</#if>
+</#macro>
+
+<#macro min_value>
+<#if type == "double" || type == "float">
+${ClassType}.NEGATIVE_INFINITY 
+<#else>
+${ClassType}.MIN_VALUE
 </#if>
 </#macro>
 
