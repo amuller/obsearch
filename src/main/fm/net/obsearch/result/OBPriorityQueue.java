@@ -39,7 +39,7 @@ import net.obsearch.ob.OB${Type};
      * Create the priority queue with k elements. This is how you set the k
      * for a query.
      */
-    public OBPriorityQueue${Type}(byte k){
+    public OBPriorityQueue${Type}(int k){
         super(k);
     }
     /**

@@ -43,7 +43,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      * Maximum number of elements to be used. Note that this value is byte. Many
      * elements would make OBSearch very slow.
      */
-    protected byte k;
+    protected int k;
 
     /**
      * Returns an interator with all the elements in no particular order.
@@ -66,7 +66,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      * @param k
      *                maximum number of elements to accept
      */
-    public AbstractOBPriorityQueue(final byte k) {
+    public AbstractOBPriorityQueue(final int k) {
         queue = new PriorityQueue < O >();
         this.k = k;
     }
@@ -81,7 +81,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
     /**
      * @return The k of the given queue.
      */
-    public final byte getK() {
+    public final int getK() {
         return k;
     }
 
