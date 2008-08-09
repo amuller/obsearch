@@ -118,6 +118,8 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 			throw new OBStorageException(d);
 		}
 	}
+	
+	
 
 	public net.obsearch.OperationStatus delete(byte[] key)
 			throws OBStorageException {
@@ -139,7 +141,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 
 	public void deleteAll() throws OBStorageException {
 		try {
-			db.getEnvironment().truncateDatabase(null, db.getDatabaseName(),
+			db.getEnvironment().truncateDatabase(null, name,
 					false);
 		} catch (DatabaseException d) {
 			throw new OBStorageException(d);

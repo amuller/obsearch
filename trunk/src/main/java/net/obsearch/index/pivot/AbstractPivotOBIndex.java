@@ -107,8 +107,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
-        selectPivots(getPivotCount());
-       
+        selectPivots(getPivotCount());      
     }
     
    

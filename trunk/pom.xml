@@ -86,12 +86,18 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
     </dependency>
 
 
-		<dependency>
+	<!--	<dependency>
       <groupId>berkeleydb</groupId>
       <artifactId>je</artifactId>
       <version>3.2.44</version>
       <scope>compile</scope>
-    </dependency>
+    </dependency>-->
+
+		 <dependency>
+       <groupId>com.sleepycat</groupId>
+			 <artifactId>je</artifactId>
+			 <version>3.3.62</version>
+		 </dependency>
 
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -576,7 +582,11 @@ Would be cool to use this.
 			 <url>http://repository.codehaus.org/com/thoughtworks/</url>
 		 </repository>
 
-		
+		 <repository>
+			 <id>berkeleydb-je.repository</id>
+			 <url>http://download.oracle.com/maven/</url>
+		 </repository>
+
 		 	
 
 		<repository>

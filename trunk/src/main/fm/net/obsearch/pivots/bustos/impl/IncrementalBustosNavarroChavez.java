@@ -52,7 +52,7 @@ public class IncrementalBustosNavarroChavez${Type}<O extends OB${Type}>
     /**
      * Keeps track of the SMAP values of objects.
      */
-    private HashMap<Long, ${type}[]> smapCache;
+    private transient HashMap<Long, ${type}[]> smapCache;
     
     /**
      * Receives the object that accepts pivots as possible candidates. Selects l

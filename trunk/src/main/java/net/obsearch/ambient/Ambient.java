@@ -61,5 +61,11 @@ public interface Ambient < O extends OB, I extends Index < O >> {
     public abstract void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBStorageException, OutOfRangeException, OBException;
+    
+    /**
+     * Close all the internally used resources.
+     * @throws OBException
+     */
+    public void close() throws OBException;
 
 }

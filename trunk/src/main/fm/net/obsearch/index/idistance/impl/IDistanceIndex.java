@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
+import org.apache.log4j.Logger;
+
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
@@ -75,6 +77,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		implements Index${Type}<O> {
 
 	private static ByteArrayComparator comp = new ByteArrayComparator();
+
+	private static transient final Logger logger = Logger
+	.getLogger(IDistanceIndex${Type}.class);
+
 
 	/**
 	 * min max values per pivot.
@@ -175,6 +181,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		while (ll.size() > 0) {
 			ListIterator<DimensionProcessor> pit = ll.listIterator();
 			while (pit.hasNext()) {
+					//					logger.info("Iteration" + stats.getDistanceCount());
 				DimensionProcessor p = pit.next();
 				if (p.hasNext()) {
 					p.doIt(smapCount);
