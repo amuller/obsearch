@@ -71,6 +71,12 @@ public final class OBAsserts {
         }
     }
     
+    public static void notNull(Object x) throws OBException{
+    	if(x == null){
+    		throw new OBException("Null objects are invalid");
+    	}
+    }
+    
     /**
      * Checks that the given file exists, otherwise throws an IOException
      * @throws IOException if the given file does not exist
@@ -80,6 +86,18 @@ public final class OBAsserts {
        if(! file.exists()){
            throw new IOException("File:" + file + "does not exist");
        }
+    }
+    
+    public static void chkFileExists(String file) throws IOException{
+    	chkFileExists(new File(file));
+     }
+    
+    /**
+     * Fail with the given message.
+     * @param msg The message to be thrown.
+     */
+    public static void fail(String msg) throws OBException{
+    	throw new OBException(msg);
     }
 
     /**

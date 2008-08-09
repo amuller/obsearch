@@ -127,6 +127,10 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
         index.init(fact);
     }
     
+    public void close() throws OBException{
+    	index.close();
+    }
+    
     /* (non-Javadoc)
      * @see net.obsearch.ambient.Ambient#getIndex()
      */

@@ -100,15 +100,15 @@ public final class OBCache < O > {
         SoftReference < O > ref = (SoftReference < O >) map.get(id);
         if (ref == null || ref.get() == null) {
             // we load the object.
-            synchronized (loader) {
+           // synchronized (loader) {
                 // we have to check if the obj is there again in
                 // case someone else added it already
                 ref = (SoftReference < O >) map.get(id);
-                if (ref == null || ref.get() == null) {
+           //     if (ref == null || ref.get() == null) {
                     ref = new SoftReference < O >(loader.loadObject(id));
                     map.put(id, ref);
-                }
-            }
+             //   }
+           // }
         }
         return ref.get();
     }

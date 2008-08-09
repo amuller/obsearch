@@ -45,6 +45,13 @@ public interface OBStoreFactory {
      */
     OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException;
     
+		/**
+     * Removes all indexes and structures related to the given storage device.
+		 * @param storage The storage device to remove.
+		 * @throws OBStorageException If something goes wrong with the delete operation.
+		 */
+		void removeOBStore(OBStore storage) throws OBStorageException;	
+
     
 <#list types as t>
 <@type_info t=t/>
@@ -59,6 +66,10 @@ public interface OBStoreFactory {
      * @throws OBStorageException If the DB cannot be created.
      */
     OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException;	
+
+
+		
+		
 
     /**
      * Creates a binary representation of the given value.

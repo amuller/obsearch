@@ -83,6 +83,15 @@ public class BDBFactory implements OBStoreFactory {
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
+				envConfig.setTxnNoSync(true);
+        envConfig.setTxnWriteNoSync(true);
+				envConfig.setCachePercent(90);
+				// 100 k gave the best performance in one thread and for 30 pivots of
+        // shorts
+				//envConfig.setConfigParam("je.log.faultReadSize", "30720");
+        // envConfig.setConfigParam("je.log.faultReadSize", "10240");																															 
+				envConfig.setConfigParam("je.evictor.lruOnly", "false");
+        envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         return envConfig;
     }
 
@@ -111,6 +120,15 @@ public class BDBFactory implements OBStoreFactory {
        return res;
     }
 
+		/**
+	 * Generate the name of the sequential database based on name.
+	 * @param name The name of the database.
+	 * @return The sequential database name.
+	 */
+	private String sequentialDatabaseName(String name){
+		return name + "seq";
+	}
+
     
     /**
      * Creates a default database configuration.
@@ -125,10 +143,21 @@ public class BDBFactory implements OBStoreFactory {
         return dbConfig;
     }
 
+		public void removeOBStore(OBStore storage) throws OBStorageException{
+						storage.close();
+						try{
+						env.removeDatabase(null, storage.getName());
+						env.removeDatabase(null, sequentialDatabaseName(storage.getName()));
+						}catch(DatabaseException e){
+								throw new OBStorageException(e);
+						}
+				}
+
 <#list types as t>
 <@type_info t=t/>
 <@binding_info t=t/>
-
+				
+				
 
 				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException{
         
@@ -138,7 +167,7 @@ public class BDBFactory implements OBStoreFactory {
 						if(duplicates){
 								dbConfig.setSortedDuplicates(true);
 						}
-            res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
+            res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name), dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
