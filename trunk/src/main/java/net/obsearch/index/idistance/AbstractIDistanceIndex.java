@@ -17,9 +17,11 @@ import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.TupleLong;
 
 public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
 		extends AbstractBucketIndex<O, B, Q, BC> {
@@ -63,14 +65,18 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 			OutOfRangeException, OBException {
 		super.freeze();
 		int i = 0;
-		while (i < A.size()) {
-			O o = getObjectFreeze(i, null);
+		CloseIterator<TupleLong> it = A.processAll();
+		
+		while (it.hasNext()) {
+			TupleLong t = it.next();
+			O o = getObjectFreeze(t.getKey(), null);
 			if(i % 1000 == 0){
 				logger.info("Insert after freeze: " + i);
 			}
-			insertAux(i, o);
+			insertAux(t.getKey(), o);
 			i++;
 		}
+		it.closeCursor();
 		bucketStats();
 	}
 

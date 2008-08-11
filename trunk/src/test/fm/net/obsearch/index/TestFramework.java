@@ -87,6 +87,10 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
 		init();
 		search();
 		deletes();
+		init2();
+		search();
+		deletes();
+		close();
 	}
 
 	<@gen_warning filename="TestFramework.java "/>
@@ -110,7 +114,11 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
             assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);
             i++;
         }
-        index.close();
+        
+	}
+
+	protected void close()throws Exception{
+			index.close();
 	}
 	
   	/**
@@ -267,6 +275,63 @@ private String debug( OBPriorityQueue${Type} < O > q, Index${Type}<O> index) thr
 			// attempt to insert the object again, and get
 			// the -1
 			res = index.insert(s);
+			assertEquals(res.getId(), (long)i);
+			assertTrue(res.getStatus() == Status.EXISTS);
+			i++;
+
+			if (i % 10000 == 0) {
+				logger.info("Exists/insert : " + i);
+			}
+
+		}
+		assertEquals((long)i, index.databaseSize());
+
+	}
+
+
+
+	/**
+   * Test insert(O,long) insertions.
+   */
+	private void init2() throws AlreadyFrozenException, IllegalIdException,
+			OutOfRangeException, IOException, IllegalAccessException,
+			InstantiationException, OBException {
+
+		index.setIdAutoGeneration(false);
+
+		// insert data into the index.
+		logger.info("Inserting data...");
+		int i = 0;
+		while (i < data.length) {
+			O s = data[i];
+			if(i % 1000 == 0){
+				logger.info("Inserting: " + i);
+			}
+			OperationStatus res = index.insert(s, i);
+			assertTrue("Returned status: " + res.getStatus().toString(), res
+					.getStatus() == Status.OK);
+			assertEquals((long)i, res.getId());
+
+			res = index.insert(s,i);
+			assertTrue(res.getStatus() == Status.EXISTS);
+			assertEquals(res.getId(), (long)i);
+			i++;
+
+		}
+
+
+		logger.info("Checking exists and insert");
+		i = 0;
+		while (i < data.length) {
+
+			O s = data[i];
+			OperationStatus res = index.exists(s);
+			assertTrue("Str: " + s.toString() + " line: " + i,
+					res.getStatus() == Status.EXISTS);
+			assertEquals((long)i, res.getId());
+			// attempt to insert the object again, and get
+			// the -1
+			res = index.insert(s,i);
 			assertEquals(res.getId(), (long)i);
 			assertTrue(res.getStatus() == Status.EXISTS);
 			i++;

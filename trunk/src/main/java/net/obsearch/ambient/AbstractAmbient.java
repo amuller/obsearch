@@ -57,7 +57,7 @@ import com.thoughtworks.xstream.XStream;
  * @param <I> The index that we want to create with this ambient.
  */
 
-public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> implements Ambient < O, I > {
+public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> implements Ambient < O, I> {
 
     /**
      * Index that will be used.
@@ -176,5 +176,12 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
      * @throws OBStorageException if something goes wrong with the DB.
      */
     protected abstract OBStoreFactory createFactory(File factoryDirectory) throws OBStorageException;
+
+	@Override
+	public OBStoreFactory getFactory() {
+		// TODO Auto-generated method stub
+		return fact;
+	}
+    
     
 }

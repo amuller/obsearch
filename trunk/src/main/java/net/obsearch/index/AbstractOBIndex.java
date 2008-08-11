@@ -33,6 +33,7 @@ import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
+import net.obsearch.asserts.OBAsserts;
 import net.obsearch.cache.OBCache;
 import net.obsearch.cache.OBCacheLoaderInt;
 import net.obsearch.cache.OBCacheLoaderLong;
@@ -63,6 +64,16 @@ import com.thoughtworks.xstream.XStream;
 public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 
 	/**
+	 * If we should auto generate the id. true if we call first
+	 * {@link #insert(OB)}.
+	 */
+	private boolean autoGenerateId = true;
+	/**
+	 * Used to detect the first call of an insert method.
+	 */
+	private boolean firstInsert = true;
+
+	/**
 	 * Statistics related to this index.
 	 */
 	protected transient Statistics stats;
@@ -88,10 +99,10 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	/**
 	 * If we should use the pre-freeze db. Use this if you don't know if the
 	 * before-freeze data is totally unique. Setting this to false will speed up
-	 * a lot insertion before freeze. You should turn this flag off specially
-	 * if the data objects (OBs) are big.
-	 * TODO: use an md5 sum to check if objects are in preFreeze.
-	 * It would make things much more efficient and cheap for prefreeze.
+	 * a lot insertion before freeze. You should turn this flag off specially if
+	 * the data objects (OBs) are big. TODO: use an md5 sum to check if objects
+	 * are in preFreeze. It would make things much more efficient and cheap for
+	 * prefreeze.
 	 */
 	private boolean isPreFreeze = true;
 
@@ -385,6 +396,11 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	public Statistics getStats() {
 		return stats;
 	}
+	
+	public void setIdAutoGeneration(boolean auto)throws OBException{
+		OBAsserts.chkAssert(A.size() == 0, "Cannot change id generation if the index is not empty");
+		autoGenerateId = auto;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -394,6 +410,13 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	@Override
 	public OperationStatus insert(O object) throws OBStorageException,
 			OBException, IllegalAccessException, InstantiationException {
+		if (this.firstInsert) {
+			firstInsert = false;
+			this.autoGenerateId = true;
+		} else {
+			OBAsserts.chkAssert(autoGenerateId,
+					"id auto generation is not enabled, you cannot call this method. Use insert(O,long)");
+		}
 		OperationStatus res = new OperationStatus();
 		res.setStatus(Status.OK);
 		if (this.isFrozen()) {
@@ -423,13 +446,69 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 					res.setStatus(Status.EXISTS);
 					res.setId(ByteConversion.byteBufferToLong(value));
 				}
-			}else{
+			} else {
 				long id = A.nextId();
 				res.setId(id);
 			}
 
 			// insert the object in A if everything is OK.
 			if (res.getStatus() == Status.OK) {
+				this.A.put(res.getId(), objectToByteBuffer(object));
+			}
+
+		}
+		return res;
+	}
+
+	public OperationStatus insert(O object, long id) throws OBStorageException,
+			OBException, IllegalAccessException, InstantiationException {
+		if (this.firstInsert) {
+			firstInsert = false;
+			this.autoGenerateId = false;
+		} else {
+			OBAsserts.chkAssert(! autoGenerateId,
+					"id auto generation is enabled, use insert(O) instead");
+		}
+		OperationStatus res = new OperationStatus();
+		res.setStatus(Status.OK);
+		
+		// validate if the id is not in the DB.
+		
+		
+		
+		if (this.isFrozen()) {
+			res = exists(object);
+			if (res.getStatus() == Status.NOT_EXISTS) {
+				// must insert object into A before the index is updated
+				OBAsserts.chkAssert(A.getValue(id) == null, "id already used, fatal error");
+				this.A.put(id, objectToByteBuffer(object));
+				// update the index:
+				res = insertAux(id, object);
+				res.setId(id);
+			}
+
+		} else { // before freeze
+			// we keep track of objects that have been inserted
+			// based on their binary signature.
+			// TODO: maybe change this to a hash to avoid the problem
+			// with objects that have multiplicity.
+			if (isPreFreeze) {
+				byte[] key = objectToBytes(object);
+				ByteBuffer value = this.preFreeze.getValue(key);
+				if (value == null) {
+					res.setId(id);
+					preFreeze.put(key, ByteConversion.longToByteBuffer(id));
+				} else {
+					res.setStatus(Status.EXISTS);
+					res.setId(ByteConversion.byteBufferToLong(value));
+				}
+			} else {
+				res.setId(id);
+			}
+
+			// insert the object in A if everything is OK.
+			if (res.getStatus() == Status.OK) {
+				OBAsserts.chkAssert(A.getValue(id) == null, "id already used, fatal error");
 				this.A.put(res.getId(), objectToByteBuffer(object));
 			}
 

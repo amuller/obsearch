@@ -37,6 +37,7 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.storage.OBStoreFactory;
 
 
 public interface Ambient < O extends OB, I extends Index < O >> {
@@ -67,5 +68,12 @@ public interface Ambient < O extends OB, I extends Index < O >> {
      * @throws OBException
      */
     public void close() throws OBException;
+    
+    /**
+     * Returns the factory (if the user wants to create some
+     * storages for personal use).
+     * @return The factory used to create storage devices.
+     */
+    public OBStoreFactory getFactory();
 
 }

@@ -25,7 +25,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.TupleLong;
+
 import org.apache.log4j.Logger;
 
 import com.sleepycat.je.DatabaseException;
@@ -119,7 +122,14 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
-        LongArrayList elementsSource = null;
+    	OBAsserts.chkAssert(A.size() <= Integer.MAX_VALUE, "Cannot accept more than " + Integer.MAX_VALUE + " on freeze");
+        LongArrayList elementsSource = new LongArrayList((int)A.size());
+        CloseIterator<TupleLong> it = A.processAll();
+        while(it.hasNext()){
+        	TupleLong t = it.next();
+        	elementsSource.add(t.getKey());
+        }
+        it.closeCursor();
         try{
         PivotResult pivots = this.pivotSelector.generatePivots(pivotCount,
                 elementsSource, this);       
