@@ -63,7 +63,7 @@ public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbie
      * @see net.obsearch.ambient.AbstractAmbient#createFactory(java.io.File)
      */
     @Override
-    protected OBStoreFactory createFactory(File factoryDirectory) throws OBStorageException{        
+    protected BDBFactory createFactory(File factoryDirectory) throws OBStorageException{        
         BDBFactory fact = null;
         try{
             fact = new BDBFactory(factoryDirectory);

@@ -97,6 +97,7 @@ public abstract class AbstractIncrementalPivotSelector < O extends OB >
     IllegalAccessException, InstantiationException, OBStorageException,
     PivotsUnavailableException
     {
+    	
         return generatePivots(pivotsCount,null, index);
     }
     

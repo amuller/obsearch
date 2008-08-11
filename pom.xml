@@ -477,7 +477,7 @@ Would be cool to use this.
 					<argLine>-server</argLine>
 <!--					<argLine>-Xshare:off</argLine>-->
 
-					<argLine>-agentlib:hprof=cpu=samples,interval=20,depth=5</argLine>
+<!--					<argLine>-agentlib:hprof=cpu=samples,interval=20,depth=5</argLine>-->
 					<childDelegation>true</childDelegation>
         </configuration>
       </plugin>
