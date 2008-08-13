@@ -120,9 +120,9 @@ public class OBTed  implements OBShort {
      *                A byte stream with the data that must be loaded.
      * @see net.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
-    public final void load(DataInputStream in) throws OBException, IOException {
+    public final void load(byte[] in) throws OBException, IOException {
         
-        updateTree(in.readUTF());
+        updateTree(new String(in));
     }
 
     /**
@@ -131,9 +131,8 @@ public class OBTed  implements OBShort {
      *                The byte stream to be used
      * @see net.obsearch.Storable#store(com.sleepycat.bind.tuple.TupleOutput)
      */
-    public final void store(DataOutputStream out) throws IOException{
-        String str = tree.toFuriaChanTree();
-       out.writeUTF(str);
+    public final byte[] store() throws IOException{
+        return tree.toFuriaChanTree().getBytes();
     }
 
     /**

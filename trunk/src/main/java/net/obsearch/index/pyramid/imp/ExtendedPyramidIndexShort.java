@@ -14,6 +14,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.filter.Filter;
 import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.storage.CloseIterator;
@@ -514,6 +515,15 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         // TODO Auto-generated method stub
 
     }
+    
+    
+	public void searchOB(O object, short r, Filter<O> filter,
+			OBPriorityQueueShort<O> result) throws NotFrozenException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		
+    	throw new UnsupportedOperationException();
+	}
 
     public double distance(O a, O b) throws OBException {
         short result = ((OBShort) a).distance((OBShort) b);

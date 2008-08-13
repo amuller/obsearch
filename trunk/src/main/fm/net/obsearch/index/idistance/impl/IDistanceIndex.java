@@ -40,6 +40,8 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStoreInt;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
+import net.obsearch.filter.Filter;
+
 /*
 		OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -167,6 +169,13 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
+			searchOB(object,r,null,result);
+	}
+
+	public void searchOB(O object, ${type} r, Filter<O> filter, OBPriorityQueue${Type}<O> result)
+			throws NotFrozenException, InstantiationException,
+			IllegalIdException, IllegalAccessException, OutOfRangeException,
+			OBException {
 		BucketObject${Type} b = getBucket(object);
 		OBQuery${Type}<O> q = new OBQuery${Type}<O>(object, r, result, b
 				.getSmapVector());
@@ -175,7 +184,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		Arrays.sort(smap);
 		LinkedList<DimensionProcessor> ll = new LinkedList<DimensionProcessor>();
 		for (Dimension${Type} s : smap) {
-			ll.add(new DimensionProcessor(b, q, s));
+				ll.add(new DimensionProcessor(b, q, s, filter));
 		}
 		IntegerHolder smapCount = new IntegerHolder(0);
 		while (ll.size() > 0) {
@@ -220,9 +229,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		byte[] lowKey;
 		byte[] highKey;
 		${type} lastRange;
+		Filter<O> filter;
 
 		public DimensionProcessor(BucketObject${Type} b, OBQuery${Type}<O> q,
-				Dimension${Type} s) throws OBStorageException {
+															Dimension${Type} s, Filter<O> filter) throws OBStorageException {
 			super();
 			this.b = b;
 			this.q = q;
@@ -233,6 +243,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			if(itLeft.hasNext()){
 				itLeft.next();
 			}
+			this.filter = filter;
 		}
 
 		/**
@@ -282,7 +293,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.searchSorted(q, b,
-										smapCount));
+																									smapCount, filter));
 						stats.incBucketsRead();
 						stats.incDataRead(bt.getBytes().array().length);
 						// update ranges
@@ -303,7 +314,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.searchSorted(q, b,
-										smapCount));
+																									smapCount, filter));
 						stats.incDataRead(bt.getBytes().array().length);
 						stats.incBucketsRead();
 						if (q.updatedRange(lastRange)) {

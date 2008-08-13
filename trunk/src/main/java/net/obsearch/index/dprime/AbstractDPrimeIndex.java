@@ -57,6 +57,7 @@ import net.obsearch.index.bucket.SimpleBloomFilter;
 import net.obsearch.index.utils.OBFactory;
 import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.stats.Statistics;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreFactory;
@@ -283,7 +284,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			BC bc = this.bucketContainerCache.get(t.getKey());
 			s.add(bc.size());
 		} // add exlucion
-		logger.info(StatsUtil.mightyIOStats("Bucket distribution", s));
+		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();
 	}
 
@@ -462,7 +463,9 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 	
 
-
+	public Statistics getStats() throws OBStorageException{
+		return super.stats;
+	}
 
 	
 

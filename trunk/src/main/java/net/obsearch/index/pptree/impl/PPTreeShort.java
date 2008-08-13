@@ -21,6 +21,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.filter.Filter;
 import net.obsearch.index.pptree.AbstractPPTree;
 import net.obsearch.index.pptree.SpaceTreeLeaf;
 import net.obsearch.pivots.IncrementalPivotSelector;
@@ -700,8 +701,19 @@ public class PPTreeShort < O extends OBShort >
     
 
     
+	
+    
 
-    public double distance(O a, O b) throws OBException {
+    @Override
+	public void searchOB(O object, short r, Filter<O> filter,
+			OBPriorityQueueShort<O> result) throws NotFrozenException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		
+    	throw new UnsupportedOperationException();
+	}
+
+	public double distance(O a, O b) throws OBException {
         short result = ((OBShort) a).distance((OBShort) b);
         return normalizeFirstPassAux(result);
     }

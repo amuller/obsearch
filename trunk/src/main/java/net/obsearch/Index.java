@@ -288,7 +288,7 @@ public interface Index < O extends OB > {
     /**
      * @return A human-readable list of stats relevant for this index.
      */
-    Statistics getStats();
+    Statistics getStats() throws OBStorageException;
 
     /**
      * Size in bytes of the object IDs used in OBSearch.

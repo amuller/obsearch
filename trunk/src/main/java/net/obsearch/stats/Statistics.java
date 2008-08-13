@@ -1,8 +1,12 @@
 package net.obsearch.stats;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import net.obsearch.index.utils.IntegerHolder;
+import net.obsearch.index.utils.StatsUtil;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -30,7 +34,22 @@ import net.obsearch.index.utils.IntegerHolder;
 
 public class Statistics {
 	
+	/**
+	 * Additional counters.
+	 */
 	private HashMap<String, IntegerHolder> extra = new HashMap<String, IntegerHolder>();
+	
+	
+	/**
+	 * Additional information regarding the index.
+	 */
+	private HashMap<String, StaticBin1D> extraStats = new HashMap<String, StaticBin1D>();
+	
+	
+	/**
+	 * Additional information regarding the index.
+	 */
+	private HashMap<String, Object> extraObjects = new HashMap();
 
     /**
      * # of distance computations.
@@ -262,13 +281,44 @@ public class Statistics {
         extra = new HashMap<String, IntegerHolder>();
     }
     
+    /**
+     * Add the given set of statistics.
+     * @param name Name of the statistics
+     * @param stats The stats.
+     */
+    public void putStats(String name, StaticBin1D stats){
+    	this.extraStats.put(name, stats);
+    }
+    
+    /**
+     * Add arbitrary info.
+     * @param name Name of the statistics
+     * @param stats The stats.
+     */
+    public void putObjects(String name, Object stats){
+    	this.extraObjects.put(name, stats);
+    }
+    
+    public String toStringSummary(){
+    	return "Distances: " + distanceCount +
+        " Smap count: " + smapCount +        
+        " Disk access count: " + diskAccessCount +        
+    " Query count: " + queryCount +         
+    " Data read: " + dataRead +
+    " Buckets Read: " + this.bucketsRead + " extra: " + extra;
+    }
+    
     public String toString(){
-        return "Distances: " + distanceCount +
-               " Smap count: " + smapCount +        
-            " Disk access count: " + diskAccessCount +        
-        " Query count: " + queryCount +         
-        " Data read: " + dataRead +
-        " Buckets Read: " + this.bucketsRead + " extra: " + extra ;
+        StringBuilder res = new StringBuilder( toStringSummary() );
+        for(Entry<String, StaticBin1D> e : extraStats.entrySet()){
+        	res.append(StatsUtil.prettyPrintStats(e.getKey(), e.getValue()));
+        }
+        for(Entry<String, Object> e : extraObjects.entrySet()){
+        	res.append(e.getKey());
+        	res.append("\n");
+        	res.append(e.getValue());
+        }
+        return res.toString();
     }
     
     

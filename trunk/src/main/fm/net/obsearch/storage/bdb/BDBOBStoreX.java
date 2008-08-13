@@ -77,9 +77,7 @@ public final class BDBOBStore${Type}
      * @return An array of bytes with the given value encoded.
      */
     private byte[] getBytes(${type} value) {
-        TupleOutput out = new TupleOutput();
-        out.write${binding2}(value);
-        return out.getBufferBytes();
+        return BDBFactory.${type}ToBytes(value);
     }
 
 

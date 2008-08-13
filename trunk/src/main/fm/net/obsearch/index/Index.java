@@ -13,6 +13,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OutOfRangeException;
 import java.util.Iterator;
+import net.obsearch.filter.Filter;
 
 
 /*
@@ -42,7 +43,7 @@ import java.util.Iterator;
  * @since 0.7
  */
 public interface Index${Type}<O extends OB${Type}> extends Index<O> {
-	/**
+	     /**
          * Searches the Index and returns OBResult (ID, OB and distance)
          * elements that are closer to "object". The closest element is at the
          * beginning of the list and the farthest elements is at the end of the
@@ -72,6 +73,43 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
          */
     
     void searchOB(O object, ${type} r, OBPriorityQueue${Type}<O> result)
+            throws NotFrozenException,
+            InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
+
+
+		 /**
+         * Searches the Index and returns OBResult (ID, OB and distance)
+         * elements that are closer to "object". The closest element is at the
+         * beginning of the list and the farthest elements is at the end of the
+         * list. You can control the size of the resulting set when you create
+         * the object "result". This becomes the k parameter of the search.
+				 * The parameter "filter" is used to remove unwanted objects from 
+         * the result (a select where clause). Users are responsible to
+         * implement at least one filter that can be used with their O.
+         * @param object
+         *            The object that has to be searched
+         * @param r
+         *            The range to be used
+         * @param result
+         *            A priority queue that will hold the result
+         * @throws NotFrozenException
+         *             if the index has not been frozen.
+         * @throws OBException
+         *             User generated exception
+         * @throws IllegalAccessException
+         *             If there is a problem when instantiating objects O
+         * @throws InstantiationException
+         *             If there is a problem when instantiating objects O
+         * @throws IllegalIdException
+         *             This exception is left as a Debug flag. If you receive
+         *             this exception please report the problem to:
+         *             http://code.google.com/p/obsearch/issues/list
+         * @throws OutOfRangeException
+         *             If the distance of any object to any other object exceeds
+         *             the range defined by the user.
+         */
+    
+    void searchOB(O object, ${type} r, Filter<O> filter, OBPriorityQueue${Type}<O> result)
             throws NotFrozenException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 

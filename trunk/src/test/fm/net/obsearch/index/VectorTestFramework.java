@@ -66,7 +66,7 @@ public class VectorTestFramework${Type} extends TestFramework${Type}<OBVector${T
 				 search(index, (${type})0.2 ,(byte)  3);
 				 search(index, (${type})20 ,(byte)  3);
 				 //TODO: Range 100 fails for Double/Float Fix this.
-				 search(index, (${type})2001 ,(byte)  3);
+				 //search(index, (${type})2001 ,(byte)  3);
     <#else>
 			 super.search();
 		   search(index, (${type})(${ClassType}.MAX_VALUE/vectorDimensionality * 6) , (byte) 3);   

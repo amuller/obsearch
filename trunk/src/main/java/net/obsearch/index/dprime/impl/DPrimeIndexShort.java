@@ -11,6 +11,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.filter.Filter;
 import net.obsearch.index.IndexShort;
 import net.obsearch.index.bucket.impl.BucketContainerShort;
 import net.obsearch.index.bucket.impl.BucketObjectShort;
@@ -477,6 +478,15 @@ public final class DPrimeIndexShort<O extends OBShort>
 			ByteBuffer data, byte[] address) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void searchOB(O object, short r, Filter<O> filter,
+			OBPriorityQueueShort<O> result) throws NotFrozenException,
+			InstantiationException, IllegalIdException, IllegalAccessException,
+			OutOfRangeException, OBException {
+		throw new UnsupportedOperationException();
+		
 	}
 
 	

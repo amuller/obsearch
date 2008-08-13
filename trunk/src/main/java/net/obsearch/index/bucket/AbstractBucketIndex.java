@@ -24,6 +24,7 @@ import net.obsearch.index.pivot.AbstractPivotOBIndex;
 import net.obsearch.index.rosa.AbstractRosaFilter;
 import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.stats.Statistics;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.TupleBytes;
@@ -32,7 +33,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		extends AbstractPivotOBIndex<O> {
 
 	private static final transient Logger logger = Logger
-			.getLogger(AbstractRosaFilter.class);
+			.getLogger(AbstractBucketIndex.class);
 
 	/**
 	 * We store the buckets in this storage device.
@@ -67,6 +68,8 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		}
 	}
 
+	
+
 	/**
 	 * Auxiliary function used in freeze to get objects directly from the DB, or
 	 * by using an array of object ids.
@@ -89,8 +92,6 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected abstract B getBucket(O object) throws OBException,
 			InstantiationException, IllegalAccessException;
-
-	
 
 	/**
 	 * Initializes the bucket byte array storage. To be called by the init
@@ -174,7 +175,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			BC bc = this.bucketContainerCache.get(t.getKey());
 			s.add(bc.size());
 		} // add exlucion
-		logger.info(StatsUtil.mightyIOStats("Bucket distribution", s));
+		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();
 	}
 
@@ -207,6 +208,12 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		res = this.insertBucket(b, object);
 		res.setId(id);
 		return res;
+	}
+	
+	public Statistics getStats() throws OBStorageException{
+		Statistics s = super.getStats();
+			s.putStats("Read Stats Buckets:", this.Buckets.getReadStats());
+		return s;
 	}
 
 	/**

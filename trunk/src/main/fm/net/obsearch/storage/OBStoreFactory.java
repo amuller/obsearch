@@ -88,4 +88,11 @@ public interface OBStoreFactory {
      */ 
     void close() throws OBStorageException;
 
+
+		/**
+     * Return a stats object that is to be printed
+     * @throws OBStorageException if something goes wrong with the
+     * underlying storage system.
+     */
+		Object stats() throws OBStorageException;
 }

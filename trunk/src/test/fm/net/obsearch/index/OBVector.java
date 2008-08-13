@@ -22,12 +22,12 @@ package net.obsearch.index;
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-
+import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OB${Type};
+import java.nio.ByteBuffer;
+import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 /**
  * L1 distance implementation for ${type}s.
  * @author Arnoldo Jose Muller Molina
@@ -69,23 +69,28 @@ public class OBVector${Type} implements OB${Type} {
 
 	<@gen_warning filename="OBVector.java "/>
 	@Override
-	public void load(DataInputStream in) throws OBException, IOException {
-		int size = in.readInt();
+	public void load(byte[] input) throws OBException, IOException {
+		ByteBuffer in = ByteBufferFactoryConversion.createByteBuffer(input);
+		int size = in.getInt();
+		
 		data = new ${type}[size];
 		int i = 0;
 		while(i < size){
-			data[i] = in.read${Type}();
+			data[i] = in.get${BBType}();
 			i++;
 		}
 	}
 	
 	<@gen_warning filename="OBVector.java "/>
 	@Override
-	public void store(DataOutputStream out) throws OBException, IOException {
-		out.writeInt(data.length);
+	public byte[] store() throws OBException, IOException {
+			ByteBuffer out = ByteBufferFactoryConversion.createByteBuffer(ByteConstants.${Type}.getSize() * data.length + ByteConstants.Int.getSize() );
+		
+		out.putInt(data.length);
 		for(${type} v : data){
-			out.write${Type}(v);
+			out.put${BBType}(v);
 		}
+			return out.array();
 	}
 
 }
