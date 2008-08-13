@@ -255,10 +255,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	protected O bytesToObject(byte[] data) throws OBException,
 			InstantiationException, IllegalAccessException, IllegalIdException {
 		O res = type.newInstance();
-		ByteArrayInputStream in = new ByteArrayInputStream(data);
-		DataInputStream ind = new DataInputStream(in);
 		try {
-			res.load(ind);
+			res.load(data);
 		} catch (IOException e) {
 			throw new OBException(e);
 		}
@@ -329,16 +327,12 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @return The bytes array representation of the object.
 	 */
 	protected byte[] objectToBytes(O object) throws OBException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		DataOutputStream outD = new DataOutputStream(out);
 		try {
-			object.store(outD);
-			outD.close();
+			return object.store();
+
 		} catch (IOException e) {
 			throw new OBException(e);
 		}
-
-		return out.toByteArray();
 	}
 
 	protected ByteBuffer objectToByteBuffer(O object) throws OBException {
@@ -393,7 +387,9 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @see net.obsearch.result.Index#getStats()
 	 */
 	@Override
-	public Statistics getStats() {
+	public Statistics getStats() throws OBStorageException{
+		stats.putStats("Read Stats A", A.getReadStats());
+		stats.putObjects("Env", fact.stats());
 		return stats;
 	}
 	
@@ -550,7 +546,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			throw new AlreadyFrozenException();
 		}
 		this.isFrozen = true;
-		fact.removeOBStore(preFreeze);
+		preFreeze.close(); // only during freeze.
+		//fact.removeOBStore(preFreeze);
 	}
 
 	/*

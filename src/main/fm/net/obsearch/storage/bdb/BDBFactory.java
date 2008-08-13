@@ -85,10 +85,10 @@ public class BDBFactory implements OBStoreFactory {
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
 				envConfig.setTxnNoSync(true);
         envConfig.setTxnWriteNoSync(true);
-				envConfig.setCachePercent(90);
+				//envConfig.setCachePercent(90);
 				// 100 k gave the best performance in one thread and for 30 pivots of
         // shorts
-				//envConfig.setConfigParam("je.log.faultReadSize", "30720");
+				envConfig.setConfigParam("je.log.faultReadSize", "140000");
         // envConfig.setConfigParam("je.log.faultReadSize", "10240");																															 
 				envConfig.setConfigParam("je.evictor.lruOnly", "false");
         envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
@@ -109,9 +109,9 @@ public class BDBFactory implements OBStoreFactory {
     public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException{       
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-					if(duplicates){
-								dbConfig.setSortedDuplicates(true);								
-						}
+				
+					dbConfig.setSortedDuplicates(duplicates);								
+					dbConfig.setTemporary(temp);
         try{
             res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
@@ -164,9 +164,9 @@ public class BDBFactory implements OBStoreFactory {
         OBStore${Type} res = null;
         try{
             DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-						if(duplicates){
-								dbConfig.setSortedDuplicates(true);
-						}
+						
+								dbConfig.setSortedDuplicates(duplicates);
+								dbConfig.setTemporary(temp);
             res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name), dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);
@@ -175,12 +175,24 @@ public class BDBFactory implements OBStoreFactory {
     }
 
 		
-		public byte[] serialize${Type}(${type} value){
+		public  byte[] serialize${Type}(${type} value){
+				return BDBFactory.${type}ToBytes(value);
+		}
+
+		public static byte[] ${type}ToBytes(${type} value){
 				DatabaseEntry entry = new DatabaseEntry();
 				${binding}Binding.${type}ToEntry(value, entry);
 				assert entry.getData().length == net.obsearch.constants.ByteConstants.${Type}.getSize();
 				return entry.getData();
 		}
-</#list>
 
+</#list>
+		
+		public Object stats() throws OBStorageException{
+		try{
+				return	env.getStats(null);
+		}catch(DatabaseException d){
+				throw new OBStorageException(d);    
+    }
+}
 }

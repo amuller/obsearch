@@ -34,7 +34,7 @@ public class StatsUtil {
      * @param stats
      * @return
      */
-    public static String mightyIOStats(String component, StaticBin1D stats){
+    public static String prettyPrintStats(String component, StaticBin1D stats){
         StringBuilder res = new StringBuilder();
         // gloria cantamos gloria.
         res.append("Component: " + component);

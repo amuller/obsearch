@@ -37,7 +37,7 @@ public interface Storable {
      *            A DataOutputStream where values can be stored
      * @since 0.0
      */
-    void store(DataOutputStream out) throws OBException, IOException;
+    byte[] store() throws OBException, IOException;
 
     /**
      * Populates the object's internal properties from the given byte stream.
@@ -47,5 +47,5 @@ public interface Storable {
      *             if the data cannot be loaded.
      * @since 0.0
      */
-    void load(DataInputStream in) throws OBException, IOException;
+    void load(byte[] input) throws OBException, IOException;
 }

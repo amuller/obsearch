@@ -43,7 +43,7 @@ import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.ob.OB${Type};
 import net.obsearch.query.OBQuery${Type};
 import net.obsearch.utils.bytes.ByteConversion;
-
+import net.obsearch.filter.Filter;
 /** 
 	*  AbstractBucketContainer${Type} Holds the functionality of a
   *  bucket that sorts its smap-vectors lexicographically. Binary
@@ -83,6 +83,8 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
     private static final int BASE = net.obsearch.constants.ByteConstants.Int.getSize() * 2; // pivots count level
 
     private int TUPLE_SIZE;
+
+		
 
     /**
      * Cache used to avoid byte readings.
@@ -422,6 +424,12 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
 
     }
 
+		public long searchSorted(OBQuery${Type} < O > query, BucketObject${Type} b,
+														 IntegerHolder smapComputations) throws IllegalAccessException,
+            OBException, InstantiationException, IllegalIdException {
+				return searchSorted(query,b,smapComputations, null);
+		}
+
     /**
      * Searches the data by using a binary search to reduce SMAP vector
      * computations.
@@ -435,7 +443,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * @throws IllegalIdException
      */
     public long searchSorted(OBQuery${Type} < O > query, BucketObject${Type} b,
-            IntegerHolder smapComputations) throws IllegalAccessException,
+														 IntegerHolder smapComputations, Filter<O> filter) throws IllegalAccessException,
             OBException, InstantiationException, IllegalIdException {
         if (data == null) {
             return 0;
@@ -465,11 +473,14 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
             if (max <= query.getDistance() && query.isCandidate(max)) {
                 long id = current.getId();
                 O toCompare = index.getObject(id);
+								// Process query only if the filter is null.
+								if(filter == null || filter.accept(toCompare, object)){
                 ${type} realDistance = object.distance(toCompare);
                 res++;
                 if (realDistance <= range) {
                     query.add(id, toCompare, realDistance);
                 }
+										}
             }
             i++;
         }
