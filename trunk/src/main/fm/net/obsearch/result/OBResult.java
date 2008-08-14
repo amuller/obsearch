@@ -34,7 +34,7 @@ import net.obsearch.ob.OB${Type};
  */
 
 
-public class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
+public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
 
 
     /**

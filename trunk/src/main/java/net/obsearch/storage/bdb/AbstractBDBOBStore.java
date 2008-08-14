@@ -22,6 +22,7 @@ import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Sequence;
 import com.sleepycat.je.SequenceConfig;
@@ -160,7 +161,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 		DatabaseEntry search = new DatabaseEntry(key);
 		DatabaseEntry value = new DatabaseEntry();
 		try {
-			OperationStatus res = db.get(null, search, value, null);
+			OperationStatus res = db.get(null, search, value, LockMode.READ_UNCOMMITTED);
 			if (res == OperationStatus.SUCCESS) {
 				if (this.stats != null) {
 					stats.add(value.getData().length);

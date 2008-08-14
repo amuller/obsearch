@@ -292,7 +292,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
-								.incDistanceCount(bt.searchSorted(q, b,
+								.incDistanceCount(bt.searchSortedUnCached(q, b,
 																									smapCount, filter));
 						stats.incBucketsRead();
 						stats.incDataRead(bt.getBytes().array().length);
@@ -313,7 +313,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
-								.incDistanceCount(bt.searchSorted(q, b,
+								.incDistanceCount(bt.searchSortedUnCached(q, b,
 																									smapCount, filter));
 						stats.incDataRead(bt.getBytes().array().length);
 						stats.incBucketsRead();

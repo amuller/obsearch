@@ -1,6 +1,7 @@
 package net.obsearch.cache;
 
 import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TLongObjectHashMap;
 
 import java.lang.ref.SoftReference;
 import java.util.WeakHashMap;
@@ -54,8 +55,8 @@ public final class OBCacheLong < O > {
      * The map that stores the cache.
      */
     // private ConcurrentHashMap< Integer,O > map;
-    private OpenLongObjectHashMap map;
-
+    //private OpenLongObjectHashMap map;
+	private TLongObjectHashMap<SoftReference<O>> map;
     private OBCacheLoaderLong < O > loader;
 
     /**
@@ -67,7 +68,8 @@ public final class OBCacheLong < O > {
     public OBCacheLong(OBCacheLoaderLong < O > loader) throws  OBException{
         // using open addressing because it is cheaper
         try{
-        map = new OpenLongObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);
+        // map = new OpenLongObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);
+        	map = new TLongObjectHashMap<SoftReference<O>>(2 * (int)loader.getDBSize(), 0.5f);
         }catch(Exception e){
             throw new OBException(e);
         }
@@ -82,7 +84,7 @@ public final class OBCacheLong < O > {
      *                the id to be removed
      */
     public void remove(long id) {
-        map.removeKey(id);
+        map.remove(id);
     }
 
     /**
