@@ -385,6 +385,15 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
             return result;
         }
     }
+
+
+		/**
+		 * Lighweight bucket extract implementation.
+		 */
+		private void getIthSMAP(int i, ByteBuffer in, BucketObject${Type} b) {
+            setIth(i, in);
+            b.read(in, this.getPivots());
+    }
     
     /**
      * Instantiate an empty bucket ready to be filled with stuff.
@@ -465,6 +474,66 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         long res = 0;
         while (i < size) {
             BucketObject${Type} current = getIthSMAP(i, in);
+            if (!(current.compareTo(top) <= 0)) {
+                break;
+            }
+            ${type} max = current.lInf(b);
+            smapComputations.inc();
+            if (max <= query.getDistance() && query.isCandidate(max)) {
+                long id = current.getId();
+                O toCompare = index.getObject(id);
+								// Process query only if the filter is null.
+								if(filter == null || filter.accept(toCompare, object)){
+                ${type} realDistance = object.distance(toCompare);
+                res++;
+                if (realDistance <= range) {
+                    query.add(id, toCompare, realDistance);
+                }
+										}
+            }
+            i++;
+        }
+        return res;
+    }
+
+
+		/**
+     * Searches the data by using a binary search to reduce SMAP vector
+     * computations. Does not cache objects and creates less
+		 * objects during the search than searchSorted(...).
+     * @param query
+     * @param b
+     * @return
+     * @throws IllegalAccessException
+     * @throws DatabaseException
+     * @throws OBException
+     * @throws InstantiationException
+     * @throws IllegalIdException
+     */
+    public long searchSortedUnCached(OBQuery${Type} < O > query, BucketObject${Type} b,
+														 IntegerHolder smapComputations, Filter<O> filter) throws IllegalAccessException,
+            OBException, InstantiationException, IllegalIdException {
+        if (data == null) {
+            return 0;
+        }
+        O object = query.getObject();
+
+        ByteBuffer in = data;
+        assert pivots == b.getSmapVector().length;
+
+        // now we can start binary searching the bytes.
+
+        int low = binSearch(this.instantiateBucketObject(query.getLow(), -1), in);
+
+        int i = low;
+
+        ${type} range = query.getDistance();
+        BucketObject${Type} top = this.instantiateBucketObject(query.getHigh(), -1);
+				BucketObject${Type} current = instantiateBucketObject();
+        // for every item in this bucket.
+        long res = 0;
+        while (i < size) {
+            getIthSMAP(i, in, current);
             if (!(current.compareTo(top) <= 0)) {
                 break;
             }

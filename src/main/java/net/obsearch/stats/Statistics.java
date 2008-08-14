@@ -279,6 +279,8 @@ public class Statistics {
         dataRead = 0;
         this.bucketsRead = 0;
         extra = new HashMap<String, IntegerHolder>();
+				extraObjects = new HashMap();
+				extraStats = new HashMap<String, StaticBin1D>();
     }
     
     /**
