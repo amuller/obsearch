@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.log4j.Logger;
 
 import net.obsearch.exception.OBException;
+import net.obsearch.filter.Filter;
 import net.obsearch.ob.OBInt;
 import net.obsearch.query.OBQueryInt;
 
@@ -17,7 +18,6 @@ public final class OBDistanceCalculatorInt<O extends OBInt> {
 	private boolean[] available;
 	private Exception e = null;
 	private Exec<O>[] execs;
-	private Thread[] th;
 	private Semaphore sem;
 	private final int threadCount;
 
@@ -25,12 +25,12 @@ public final class OBDistanceCalculatorInt<O extends OBInt> {
 		available = new boolean[threads];
 
 		execs = new Exec[threads];
-		th = new Thread[threads];
+
 		int i = 0;
 		while (i < available.length) {
 			available[i] = true;
 			execs[i] = new Exec<O>(i);
-			th[i] = new Thread(execs[i]);
+			new Thread(execs[i], "Dist-" + i).start();
 			i++;
 		}
 		this.threadCount = threads;
@@ -45,8 +45,8 @@ public final class OBDistanceCalculatorInt<O extends OBInt> {
 	 * @param query
 	 * @throws Exception
 	 */
-	public void process(long idObj, O obj, O q, OBQueryInt<O> query)
-			throws OBException {
+	public void process(long idObj, O obj, O q, OBQueryInt<O> query,
+			Filter<O> filter) throws OBException {
 		if (e != null) {
 			throw new OBException(e);
 		}
@@ -62,46 +62,52 @@ public final class OBDistanceCalculatorInt<O extends OBInt> {
 		}
 		// thread i is ready to be used.
 		Exec<O> e = execs[i];
-		e.init(idObj, obj, q, query);
-		boolean interrupted = false;
-		do {
-			try {
-				th[i].join();
-			} catch (InterruptedException m) {
-				interrupted = true;
-			}
-		} while (interrupted);
-		th[i].start();
+		e.init(idObj, obj, q, query, filter);
+		e.go();
 
 	}
 
 	private final class Exec<OB extends OBInt> implements Runnable {
 		private OB obj;
 		private OB q;
-		private OBQueryInt<OB> query;
+		private OBQueryInt<OB> queryResult;
 		private long idObj;
 		private int threadId;
+		private Semaphore control;
+		private Filter<OB> filter;
 
 		public Exec(int threadId) {
 			this.threadId = threadId;
+			control = new Semaphore(0);
 		}
 
-		public void init(long idObj, OB obj, OB q, OBQueryInt<OB> query) {
+		private void go() {
+			control.release();
+		}
+
+		public void init(long idObj, OB obj, OB q, OBQueryInt<OB> query,
+				Filter<OB> filter) {
 			this.idObj = idObj;
 			this.obj = obj;
 			this.q = q;
-			this.query = query;
+			this.queryResult = query;
+			this.filter = filter;
 		}
 
 		@Override
 		public void run() {
 			try {
-				int realDistance = obj.distance(q);
-				if (realDistance <= query.getDistance()) {
-					query.add(idObj, obj, realDistance);
+				while (true) {
+					control.acquireUninterruptibly();
+					if (filter == null || filter.accept(obj, q)) {
+						int realDistance = obj.distance(q);
+						if (realDistance <= queryResult.getDistance()) {
+							queryResult.add(idObj, obj, realDistance);
+						}
+					}
+					available[threadId] = true;
+					sem.release();
 				}
-				available[threadId] = true;
-				sem.release();
 			} catch (Exception ex) {
 				logger.fatal(ex);
 				synchronized (available) {

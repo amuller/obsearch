@@ -90,7 +90,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
      * with this query.
      * @param rectangle The rectangle to search.
      */
-		public boolean collides(${type}[][] rectangle){
+		public synchronized boolean collides(${type}[][] rectangle){
 				${type}[] minOther = rectangle[0];
 				${type}[] maxOther = rectangle[1];
 				boolean res = true;
@@ -143,14 +143,14 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 		/**
 		 * Return low of the query rectangle.
      */ 
-		public ${type}[] getLow(){
+		public synchronized ${type}[] getLow(){
 				return min;
 		}
 
 		/**
 		 * Return low of the query rectangle.
      */ 
-		public ${type}[] getHigh(){
+		public synchronized ${type}[] getHigh(){
 				return max;
 		}
 
@@ -195,17 +195,20 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * @throws InstantiationException
     *             If there is a problem when instantiating objects O
     */
-    public void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+    public synchronized void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
 				result.add(id,obj,d);
 				${type} temp = result.updateRange(this.distance);
 				if(temp != this.distance){
-            //TODO: this cannot be -1 for float or double values.
-            // TODO: this change introduced errors in D'
+						<#if type=="int" || type =="short" || type=="long">
 						this.distance = (${type})(temp-(${type})1);
-						//this.distance = temp;
             if(this.distance < 0){
 								this.distance = (${type})0;
 						}
+
+						<#else>
+						this.distance = temp;
+						</#if>
+
 						updateRectangle();
         }
 		}
