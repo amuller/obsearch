@@ -90,7 +90,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
      * with this query.
      * @param rectangle The rectangle to search.
      */
-		public synchronized boolean collides(${type}[][] rectangle){
+		public boolean collides(${type}[][] rectangle){
 				${type}[] minOther = rectangle[0];
 				${type}[] maxOther = rectangle[1];
 				boolean res = true;
@@ -143,14 +143,14 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 		/**
 		 * Return low of the query rectangle.
      */ 
-		public synchronized ${type}[] getLow(){
+		public ${type}[] getLow(){
 				return min;
 		}
 
 		/**
 		 * Return low of the query rectangle.
      */ 
-		public synchronized ${type}[] getHigh(){
+		public ${type}[] getHigh(){
 				return max;
 		}
 
@@ -195,7 +195,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * @throws InstantiationException
     *             If there is a problem when instantiating objects O
     */
-    public synchronized void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+    public void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
 				result.add(id,obj,d);
 				${type} temp = result.updateRange(this.distance);
 				if(temp != this.distance){
