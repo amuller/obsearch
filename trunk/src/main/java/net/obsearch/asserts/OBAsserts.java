@@ -92,6 +92,16 @@ public final class OBAsserts {
     	chkFileExists(new File(file));
      }
     
+    public static void chkFileNotExists(String file) throws IOException{
+    	chkFileNotExists(new File(file));
+     }
+    
+    public static void chkFileNotExists(File file) throws IOException{
+    	if(file.exists()){
+    		throw new IOException("File:" + file + "exists and it should not.");
+    	}
+    }
+    
     /**
      * Fail with the given message.
      * @param msg The message to be thrown.
