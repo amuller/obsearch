@@ -12,10 +12,9 @@ import net.obsearch.Index;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
-import net.obsearch.cache.OBCache;
-import net.obsearch.cache.OBCacheLoaderInt;
-import net.obsearch.cache.OBCacheLoaderLong;
+import net.obsearch.cache.OBCacheHandlerLong;
 import net.obsearch.cache.OBCacheLong;
+import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
@@ -507,10 +506,10 @@ public class PPTreeShort < O extends OBShort >
     OBException, NotFrozenException, IllegalAccessException,
     InstantiationException, OBException {
         super.init(fact);
-        bCache = new OBCacheLong < double[] >(new BLoader());
+        bCache = new OBCacheLong < double[] >(new BLoader(), OBSearchProperties.getBCacheSize());
     }
 
-    private class BLoader implements OBCacheLoaderLong < double[] > {
+    private class BLoader implements OBCacheHandlerLong < double[] > {
 
         public long getDBSize() throws OBStorageException {
             return B.size();
@@ -527,6 +526,13 @@ public class PPTreeShort < O extends OBShort >
             }
             return tempTuple;
         }
+
+		@Override
+		public void store(long key, double[] object) throws OBException {
+			// TODO Auto-generated method stub			
+		}
+        
+        
 
     }
 

@@ -195,7 +195,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
             assertTrue(ex.getStatus() == Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);
-            assertTrue("Status is: " + ex.getStatus() , ex.getStatus() == Status.OK);
+            assertTrue("Status is: " + ex.getStatus() + " i: " + i , ex.getStatus() == Status.OK);
             assertEquals(i, ex.getId());
             ex = index.exists(x);            
             assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);

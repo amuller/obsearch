@@ -14,7 +14,8 @@ import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.cache.OBCacheByteArray;
-import net.obsearch.cache.OBCacheLoaderByteArray;
+import net.obsearch.cache.OBCacheHandlerByteArray;
+import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
@@ -103,7 +104,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		this.Buckets = fact.createOBStore("Buckets_byte_array", false, false);
 		if (this.bucketContainerCache == null) {
 			this.bucketContainerCache = new OBCacheByteArray<BC>(
-					new BucketLoader());
+					new BucketLoader(), OBSearchProperties.getBucketsCacheSize());
 		}
 	}
 
@@ -128,10 +129,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = this.bucketContainerCache.get(bucketId);
+				//this.instantiateBucketContainer(this.Buckets.getValue(bucketId), bucketId);
+				//;
 		if (bc == null) { // it was just created for the first
 			// time.
 			bc = instantiateBucketContainer(null, bucketId);
 			bc.setPivots(getPivotCount());
+			
 		}
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
@@ -191,7 +195,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			res.setStatus(Status.NOT_EXISTS);
 		} else {
 			res = bc.delete(b, object);
-			putBucket(bucketId, bc);
+			// remove bucket from DB if it reaches 0.
+			if(bc.size() == 0){
+				Buckets.delete(bucketId);
+				this.bucketContainerCache.remove(bucketId);
+			}else{
+				putBucket(bucketId, bc);
+			}
 		}
 
 		return res;
@@ -248,7 +258,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	/**
 	 * Class in charge of loading a Bucket Container from an stream of bytes.
 	 */
-	public class BucketLoader implements OBCacheLoaderByteArray<BC> {
+	public class BucketLoader implements OBCacheHandlerByteArray<BC> {
 
 		public long getDBSize() throws OBStorageException {
 			return (int) A.size();
@@ -264,6 +274,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			}
 
 		}
+
+		@Override
+		public void store(byte[] key, BC object) throws OBException {			
+			Buckets.put(key, object.getBytes());			
+		}
+		
+		
 
 	}
 

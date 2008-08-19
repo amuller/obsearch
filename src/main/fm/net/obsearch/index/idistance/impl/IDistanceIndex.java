@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
-import net.obsearch.cache.OBCache;
 import net.obsearch.dimension.Dimension${Type};
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
@@ -84,12 +83,6 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	.getLogger(IDistanceIndex${Type}.class);
 
 
-	/**
-	 * min max values per pivot.
-	 */
-	private OBStoreInt minMax;
-
-	private OBCache minMaxCache;
 
 	/**
 	 * Creates a new iDistance index.

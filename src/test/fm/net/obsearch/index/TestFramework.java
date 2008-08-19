@@ -108,7 +108,7 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
             assertTrue(ex.getStatus() == Status.EXISTS);
             assertTrue(ex.getId() == i);
             ex = index.delete(x);
-            assertTrue("Status is: " + ex.getStatus() , ex.getStatus() == Status.OK);
+            assertTrue("Status is: " + ex.getStatus() + " i: " + i , ex.getStatus() == Status.OK);
             assertEquals((long)i, ex.getId());
             ex = index.exists(x);            
             assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);
