@@ -6,8 +6,7 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 import net.obsearch.OB;
-import net.obsearch.cache.OBCacheLoaderInt;
-import net.obsearch.cache.OBCacheLoaderByteArray;
+import net.obsearch.cache.OBCacheHandlerByteArray;
 import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
@@ -72,6 +71,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 			O o = getObjectFreeze(t.getKey(), null);
 			if(i % 10000 == 0){
 				logger.info("Insert after freeze: " + i);
+				logger.info(getStats().toString());
 			}
 			insertAux(t.getKey(), o);
 			i++;

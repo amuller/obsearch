@@ -34,10 +34,9 @@ import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.asserts.OBAsserts;
-import net.obsearch.cache.OBCache;
-import net.obsearch.cache.OBCacheLoaderInt;
-import net.obsearch.cache.OBCacheLoaderLong;
+import net.obsearch.cache.OBCacheHandlerLong;
 import net.obsearch.cache.OBCacheLong;
+import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
@@ -192,7 +191,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 *             If something goes wrong with the DB.
 	 */
 	protected void initCache() throws OBException {
-		aCache = new OBCacheLong<O>(new ALoader());
+		aCache = new OBCacheLong<O>(new ALoader(), OBSearchProperties.getACacheSize());
 	}
 
 	/**
@@ -200,7 +199,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * 
 	 * @author amuller
 	 */
-	private class ALoader implements OBCacheLoaderLong<O> {
+	private class ALoader implements OBCacheHandlerLong<O> {
 
 		public long getDBSize() throws OBStorageException {
 			return A.size();
@@ -216,6 +215,12 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 
 			return bytesToObject(data.array());
 		}
+
+		@Override
+		public void store(long key, O object) throws OBException {			
+			// nothing to do, we already store A when we should.
+		}
+				
 
 	}
 

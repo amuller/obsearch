@@ -39,10 +39,9 @@ import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
-import net.obsearch.cache.OBCache;
-import net.obsearch.cache.OBCacheLoaderInt;
-import net.obsearch.cache.OBCacheLoaderLong;
+import net.obsearch.cache.OBCacheHandlerLong;
 import net.obsearch.cache.OBCacheLong;
+import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
@@ -150,7 +149,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		super.init(fact);
 		this.Buckets = fact.createOBStoreLong("Buckets", false, false);
 		if (this.bucketContainerCache == null) {
-			this.bucketContainerCache = new OBCacheLong<BC>(new BucketLoader());
+			this.bucketContainerCache = new OBCacheLong<BC>(new BucketLoader(),OBSearchProperties.getBucketsCacheSize() );
 		}
 		
 		// initialize the masks;
@@ -469,7 +468,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 	
 
-	private class BucketLoader implements OBCacheLoaderLong<BC> {
+	private class BucketLoader implements OBCacheHandlerLong<BC> {
 
 		public long getDBSize() throws OBStorageException {
 			return (int) A.size();
@@ -485,6 +484,14 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			}
 
 		}
+
+		@Override
+		public void store(long key, BC object) throws OBException {
+			// nothing to do for now.
+			
+		}
+		
+		
 
 	}
 

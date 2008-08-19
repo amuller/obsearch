@@ -4,6 +4,7 @@ import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
 
 import java.lang.ref.SoftReference;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,15 +50,10 @@ import cern.colt.map.OpenLongObjectHashMap;
  * @since 0.7
  */
 
-public final class OBCacheLong < O > {
+public final class OBCacheLong < O > extends AbstractOBCache<Long, O>{
 
-    /**
-     * The map that stores the cache.
-     */
-    // private ConcurrentHashMap< Integer,O > map;
-    //private OpenLongObjectHashMap map;
-	private TLongObjectHashMap<SoftReference<O>> map;
-    private OBCacheLoaderLong < O > loader;
+    
+    private OBCacheHandlerLong < O > handler;
 
     /**
      * Initialize the cache with the given amount of elements.
@@ -65,27 +61,11 @@ public final class OBCacheLong < O > {
      *                Number of elements that the internal hash table will be
      *                initialized with.
      */
-    public OBCacheLong(OBCacheLoaderLong < O > loader) throws  OBException{
-        // using open addressing because it is cheaper
-        try{
-        // map = new OpenLongObjectHashMap(2 * (int)loader.getDBSize(), 0, 0.5);
-        	map = new TLongObjectHashMap<SoftReference<O>>(2 * (int)loader.getDBSize(), 0.5f);
-        }catch(Exception e){
-            throw new OBException(e);
-        }
-        // map = new ConcurrentHashMap< Integer, O >();
-        // map = new TIntObjectHashMap < SoftReference<O> >(size);
-        this.loader = loader;
+    public OBCacheLong(OBCacheHandlerLong < O > handler, int cacheSize) throws  OBException{
+       super(cacheSize);
+       this.handler = handler;
     }
 
-    /**
-     * Removes from the cache the given id to recover some memory.
-     * @param id
-     *                the id to be removed
-     */
-    public void remove(long id) {
-        map.remove(id);
-    }
 
     /**
      * Gets the given object, returns null if the object is not found.
@@ -94,23 +74,41 @@ public final class OBCacheLong < O > {
      * @return null if no object is found
      */
     public O get(final long id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
-        // return map.get(id);
-        // SoftReference<O>
-        SoftReference < O > ref = (SoftReference < O >) map.get(id);
-        if (ref == null || ref.get() == null) {
-            // we load the object.
-           // synchronized (loader) {
-                // we have to check if the obj is there again in
-                // case someone else added it already
-        	
-          //      ref = (SoftReference < O >) map.get(id);
-           //     if (ref == null || ref.get() == null) {
-                    ref = new SoftReference < O >(loader.loadObject(id));
-                    map.put(id, ref);
-            //    }
-           // }
-                    
+        O obj = super.get(id);
+        if (obj == null) {
+        	obj = handler.loadObject(id); 
+        	if(obj != null){
+        		super.put(id, obj);
+        	}                    
         }
-        return ref.get();
+        return obj;
     }
+
+
+	@Override
+	protected boolean removeEldestEntry(java.util.Map.Entry<Long, O> eldest){
+		if(this.size() > cacheSize){
+			// write the contents of the object.
+			try{
+				handler.store(eldest.getKey(), eldest.getValue());
+			}catch(OBException e){
+				throw new UnsupportedOperationException(e);
+			}
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+
+	@Override
+	public void clearAll() throws OBException {
+		for(Map.Entry<Long, O> e : super.entrySet()){
+			handler.store(e.getKey(), e.getValue());
+			super.remove(e.getKey());
+		}
+		
+	}
+    
+    
 }

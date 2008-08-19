@@ -84,14 +84,14 @@ public class BDBFactory implements OBStoreFactory {
         envConfig.setTransactional(false);
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
 				envConfig.setTxnNoSync(true);
-        envConfig.setTxnWriteNoSync(true);
+        //envConfig.setTxnWriteNoSync(true);
 				//envConfig.setCachePercent(90);
 				// 100 k gave the best performance in one thread and for 30 pivots of
         // shorts
-				envConfig.setConfigParam("je.log.faultReadSize", "140000");
-        // envConfig.setConfigParam("je.log.faultReadSize", "10240");																															 
-				envConfig.setConfigParam("je.evictor.lruOnly", "false");
-        envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
+				
+				//		envConfig.setConfigParam("je.log.faultReadSize", "140000");	 
+				//    envConfig.setConfigParam("je.evictor.lruOnly", "false");
+        //    envConfig.setConfigParam("je.evictor.nodesPerScan", "100");
         return envConfig;
     }
 
@@ -112,6 +112,7 @@ public class BDBFactory implements OBStoreFactory {
 				
 					dbConfig.setSortedDuplicates(duplicates);								
 					dbConfig.setTemporary(temp);
+					dbConfig.setTransactional(false);
         try{
             res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){

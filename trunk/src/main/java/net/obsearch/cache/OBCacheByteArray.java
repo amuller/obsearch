@@ -5,6 +5,7 @@ import gnu.trove.TIntObjectHashMap;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,94 +50,78 @@ import cern.colt.map.OpenIntObjectHashMap;
  * @since 0.7
  */
 
-public final class OBCacheByteArray < O > {
+public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, O>{
 
-    /**
-     * The map that stores the cache.
-     */
-    // private ConcurrentHashMap< Integer,O > map;
-    private HashMap<ByteArrayKey, SoftReference<O>> map;
+	  private OBCacheHandlerByteArray < O > handler;
 
-    private OBCacheLoaderByteArray < O > loader;
+	    /**
+	     * Initialize the cache with the given amount of elements.
+	     * @param size
+	     *                Number of elements that the internal hash table will be
+	     *                initialized with.
+	     */
+	    public OBCacheByteArray(OBCacheHandlerByteArray < O > handler, int cacheSize) throws  OBException{
+	       super(cacheSize);
+	       this.handler = handler;
+	    }
 
-    /**
-     * Initialize the cache with the given amount of elements.
-     * @param size
-     *                Number of elements that the internal hash table will be
-     *                initialized with.
-     */
-    public OBCacheByteArray(OBCacheLoaderByteArray < O > loader) throws  OBException{
-        // using open addressing because it is cheaper
-        try{
-            map = new HashMap<ByteArrayKey,  SoftReference<O>>((int)Math.min(Integer.MAX_VALUE,(2 * loader.getDBSize())));
-        }catch(Exception e){
-            throw new OBException(e);
-        }
-        // map = new ConcurrentHashMap< Integer, O >();
-        // map = new TIntObjectHashMap < SoftReference<O> >(size);
-        this.loader = loader;
-    }
 
-    /**
-     * Removes from the cache the given id to recover some memory.
-     * @param id
-     *                the id to be removed
-     */
-    public void remove(byte[] id) {
-        map.remove(new ByteArrayKey(id));
-    }
+	    /**
+	     * Gets the given object, returns null if the object is not found.
+	     * @param id
+	     *                internal id.
+	     * @return null if no object is found
+	     */
+	    
+	    public O get(byte[] id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+	    	ByteArrayKey realId = new ByteArrayKey(id);
+	        O obj = super.get(realId);
+	        if (obj == null) {
+	        	obj = handler.loadObject(id);   
+	        	if(obj != null){
+	        		super.put(realId, obj);
+	        	}
+       
+	        }
+	        return obj;
+	    }
 
-    /**
-     * Gets the given object, returns null if the object is not found.
-     * @param id
-     *                internal id.
-     * @return null if no object is found
-     */
-    public O get(byte[] id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
-        // return map.get(id);
-        // SoftReference<O>
-        ByteArrayKey k = new ByteArrayKey(id);
-        SoftReference < O > ref = (SoftReference < O >) map.get(k);
-        if (ref == null || ref.get() == null) {
-            // we load the object.
-        //    synchronized (loader) {
-                // we have to check if the obj is there again in
-                // case someone else added it already
-                ref = (SoftReference < O >) map.get(id);
-      //          if (ref == null || ref.get() == null) {
-                    ref = new SoftReference < O >(loader.loadObject(id));
-                    map.put(k, ref);
-       //         }
-      //      }
-        }
-        return ref.get();
-    }
+
+		@Override
+		protected boolean removeEldestEntry(java.util.Map.Entry<ByteArrayKey, O> eldest){
+			if(this.size() > cacheSize){
+				// write the contents of the object.
+				try{
+					handler.store(eldest.getKey().getKey(), eldest.getValue());
+				}catch(OBException e){
+					throw new UnsupportedOperationException(e);
+				}
+				return true;
+			}else{
+				return false;
+			}
+		}
+
+
+		@Override
+		public void clearAll() throws OBException {
+			for(Map.Entry<ByteArrayKey, O> e : super.entrySet()){
+				handler.store(e.getKey().getKey(), e.getValue());
+				super.remove(e.getKey());
+			}
+			
+		}
+	
+	
+		/**
+		 * Remove the given key from the table.
+		 * @param key
+		 */
+		public void remove(byte[] key){
+			super.remove(new ByteArrayKey(key));
+		}
+
     
-    private class ByteArrayKey{
-        private byte[] key;
-        private int hashCode;
-        
-        public ByteArrayKey(byte[] key){
-            this.key = key;
-            this.hashCode = Arrays.hashCode(key);
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(Object obj) {
-            return Arrays.equals(key, ((ByteArrayKey)obj).key);
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-        
-        
-    }
+    
+    
 }
