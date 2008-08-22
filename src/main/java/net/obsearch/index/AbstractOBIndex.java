@@ -191,7 +191,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 *             If something goes wrong with the DB.
 	 */
 	protected void initCache() throws OBException {
-		aCache = new OBCacheLong<O>(new ALoader(), OBSearchProperties.getACacheSize());
+		aCache = new OBCacheLong<O>(new ALoader(), OBSearchProperties
+				.getACacheSize());
 	}
 
 	/**
@@ -217,10 +218,9 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}
 
 		@Override
-		public void store(long key, O object) throws OBException {			
+		public void store(long key, O object) throws OBException {
 			// nothing to do, we already store A when we should.
 		}
-				
 
 	}
 
@@ -304,6 +304,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			OperationStatus res = deleteAux(object);
 			if (res.getStatus() == Status.OK) {
 				this.A.delete(res.getId());
+				assert A.getValue(res.getId()) == null;
 			}
 			return res;
 		} else {
@@ -392,14 +393,15 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @see net.obsearch.result.Index#getStats()
 	 */
 	@Override
-	public Statistics getStats() throws OBStorageException{
+	public Statistics getStats() throws OBStorageException {
 		stats.putStats("Read Stats A", A.getReadStats());
 		stats.putObjects("Env", fact.stats());
 		return stats;
 	}
-	
-	public void setIdAutoGeneration(boolean auto)throws OBException{
-		OBAsserts.chkAssert(A.size() == 0, "Cannot change id generation if the index is not empty");
+
+	public void setIdAutoGeneration(boolean auto) throws OBException {
+		OBAsserts.chkAssert(A.size() == 0,
+				"Cannot change id generation if the index is not empty");
 		autoGenerateId = auto;
 	}
 
@@ -411,51 +413,40 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	@Override
 	public OperationStatus insert(O object) throws OBStorageException,
 			OBException, IllegalAccessException, InstantiationException {
-		if (this.firstInsert) {
-			firstInsert = false;
-			this.autoGenerateId = true;
-		} else {
-			OBAsserts.chkAssert(autoGenerateId,
-					"id auto generation is not enabled, you cannot call this method. Use insert(O,long)");
-		}
+		return insert(object, -1);
+
+	}
+
+	public OperationStatus insertBulk(O object) throws OBStorageException,
+			OBException, IllegalAccessException, InstantiationException {
+		return insertBulk(object, A.nextId());
+	}
+
+	public OperationStatus insertBulk(O object, long id)
+			throws OBStorageException, OBException, IllegalAccessException,
+			InstantiationException {
+
 		OperationStatus res = new OperationStatus();
 		res.setStatus(Status.OK);
+
+		// validate if the id is not in the DB.
+		res.setId(id);
 		if (this.isFrozen()) {
-			res = exists(object);
-			if (res.getStatus() == Status.NOT_EXISTS) {
-				// must insert object into A before the index is updated
-				long id = A.nextId();
-				this.A.put(id, objectToByteBuffer(object));
-				// update the index:
-				res = insertAux(id, object);
-				res.setId(id);
-			}
+
+			// must insert object into A before the index is updated
+			OBAsserts.chkAssert(A.getValue(id) == null,
+					"id already used, fatal error");
+			this.A.put(id, objectToByteBuffer(object));
+			// update the index:
+			
+			res = insertAux(id, object);
+			
 
 		} else { // before freeze
-			// we keep track of objects that have been inserted
-			// based on their binary signature.
-			// TODO: maybe change this to a hash to avoid the problem
-			// with objects that have multiplicity.
-			if (isPreFreeze) {
-				byte[] key = objectToBytes(object);
-				ByteBuffer value = this.preFreeze.getValue(key);
-				if (value == null) {
-					long id = A.nextId();
-					res.setId(id);
-					preFreeze.put(key, ByteConversion.longToByteBuffer(id));
-				} else {
-					res.setStatus(Status.EXISTS);
-					res.setId(ByteConversion.byteBufferToLong(value));
-				}
-			} else {
-				long id = A.nextId();
-				res.setId(id);
-			}
-
-			// insert the object in A if everything is OK.
-			if (res.getStatus() == Status.OK) {
-				this.A.put(res.getId(), objectToByteBuffer(object));
-			}
+					
+			OBAsserts.chkAssert(A.getValue(id) == null,
+					"id already used, fatal error");
+			this.A.put(id, objectToByteBuffer(object));
 
 		}
 		return res;
@@ -463,27 +454,23 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 
 	public OperationStatus insert(O object, long id) throws OBStorageException,
 			OBException, IllegalAccessException, InstantiationException {
-		if (this.firstInsert) {
-			firstInsert = false;
-			this.autoGenerateId = false;
-		} else {
-			OBAsserts.chkAssert(! autoGenerateId,
-					"id auto generation is enabled, use insert(O) instead");
-		}
+
 		OperationStatus res = new OperationStatus();
 		res.setStatus(Status.OK);
-		
+
 		// validate if the id is not in the DB.
-		
-		
-		
+
 		if (this.isFrozen()) {
 			res = exists(object);
 			if (res.getStatus() == Status.NOT_EXISTS) {
 				// must insert object into A before the index is updated
-				OBAsserts.chkAssert(A.getValue(id) == null, "id already used, fatal error");
+				OBAsserts.chkAssert(A.getValue(id) == null,
+						"id already used, fatal error");
 				this.A.put(id, objectToByteBuffer(object));
 				// update the index:
+				if (id == -1) {
+					id = A.nextId();
+				}
 				res = insertAux(id, object);
 				res.setId(id);
 			}
@@ -497,6 +484,9 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 				byte[] key = objectToBytes(object);
 				ByteBuffer value = this.preFreeze.getValue(key);
 				if (value == null) {
+					if (id == -1) {
+						id = A.nextId();
+					}
 					res.setId(id);
 					preFreeze.put(key, ByteConversion.longToByteBuffer(id));
 				} else {
@@ -509,7 +499,12 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 
 			// insert the object in A if everything is OK.
 			if (res.getStatus() == Status.OK) {
-				OBAsserts.chkAssert(A.getValue(id) == null, "id already used, fatal error");
+				if (id == -1) {
+					id = A.nextId();
+					res.setId(id);
+				}
+				OBAsserts.chkAssert(A.getValue(id) == null,
+						"id already used, fatal error");
 				this.A.put(res.getId(), objectToByteBuffer(object));
 			}
 
@@ -520,7 +515,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	/**
 	 * Inserts the given object into the particular index. The caller inserts
 	 * the actual object so the implementing class only has to worry about
-	 * adding the id in the aproppiate place inside the index.
+	 * adding the id inside the index.
 	 * 
 	 * @param id
 	 *            The id that will be used to insert the object.
@@ -540,6 +535,25 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			InstantiationException;
 
 	/**
+	 * Inserts the given object into the particular index. No checks regarding
+	 * existence are performed. We assume the user already checked uniqueness.
+	 * 
+	 * @param id
+	 *            The id that will be used to insert the object.
+	 * @param object
+	 *            The object that will be inserted.
+	 * @return {@link net.obsearch.Status#OK}
+	 * 
+	 * @throws OBStorageException
+	 * @throws OBException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 */
+	protected abstract OperationStatus insertAuxBulk(long id, O object)
+			throws OBStorageException, OBException, IllegalAccessException,
+			InstantiationException;
+
+	/**
 	 * @see net.obsearch.Index#freeze()
 	 */
 	@Override
@@ -552,7 +566,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}
 		this.isFrozen = true;
 		preFreeze.close(); // only during freeze.
-		//fact.removeOBStore(preFreeze);
+		// fact.removeOBStore(preFreeze);
 	}
 
 	/*

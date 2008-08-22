@@ -83,6 +83,8 @@ public final class OBCacheLong < O > extends AbstractOBCache<Long, O>{
         }
         return obj;
     }
+    
+    
 
 
 	@Override
@@ -105,9 +107,8 @@ public final class OBCacheLong < O > extends AbstractOBCache<Long, O>{
 	public void clearAll() throws OBException {
 		for(Map.Entry<Long, O> e : super.entrySet()){
 			handler.store(e.getKey(), e.getValue());
-			super.remove(e.getKey());
 		}
-		
+		clear();
 	}
     
     

@@ -441,7 +441,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 				}
 				stats.incDataRead(bc.getBytes().array().length);
 				IntegerHolder h = new IntegerHolder(0);
-				stats.incDistanceCount(bc.searchSorted(q, b, h));
+				stats.incDistanceCount(bc.search(q, b, h, null));
 				//stats.incDistanceCount(bc.search(q, b));
 				stats.incSmapCount(h.getValue());
 			}

@@ -135,25 +135,72 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			// time.
 			bc = instantiateBucketContainer(null, bucketId);
 			bc.setPivots(getPivotCount());
-			
+			this.bucketContainerCache.put(bucketId, bc);
 		}
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
-			res = bc.exists(b, object);
-			if (res.getStatus() != Status.EXISTS) {
-
-				assert bc.getPivots() == b.getPivotSize() : "BC: "
-						+ bc.getPivots() + " b: " + b.getPivotSize();
-				bc.insert(b);
-				putBucket(bucketId, bc);
-				res.setStatus(Status.OK);
-			}
+			res = bc.insert(b, object);			
 		}
 		return res;
+	}
+	
+	/**
+	 * Stores the given bucket b into the {@link #Buckets} storage device. The
+	 * given bucket b should have been returned by {@link #getBucket(OB, int)}
+	 * No checks are performed, we simply add the objects believing they
+	 * are unique.
+	 * @param b
+	 *            The bucket in which we will insert the object.
+	 * @param object
+	 *            The object to insert.
+	 * @return A OperationStatus object with the new id of the object if the
+	 *         object was inserted successfully.
+	 * @throws OBStorageException
+	 */
+	protected OperationStatus insertBucketBulk(B b, O object)
+			throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+		// get the bucket id.
+		byte[] bucketId = getAddress(b);
+		// if the bucket is the exclusion bucket
+		// get the bucket container from the cache.
+		BC bc = this.bucketContainerCache.get(bucketId);
+				//this.instantiateBucketContainer(this.Buckets.getValue(bucketId), bucketId);
+				//;
+		if (bc == null) { // it was just created for the first
+			// time.
+			bc = instantiateBucketContainer(null, bucketId);
+			bc.setPivots(getPivotCount());
+			this.bucketContainerCache.put(bucketId, bc);
+		}
+		OperationStatus res = new OperationStatus();
+		synchronized (bc) {
+			res = bc.insertBulk(b, object);			
+		}
+		return res;
+	}
+	
+
+	public OperationStatus exists(O object) throws OBException,
+			IllegalAccessException, InstantiationException {
+			OperationStatus res = new OperationStatus();
+			res.setStatus(Status.NOT_EXISTS);
+			B b = getBucket(object);
+			byte[] bucketId = getAddress(b);
+			BC bc = this.bucketContainerCache.get(bucketId);
+			if(bc != null){
+				res = bc.exists(b, object);
+			}
+			return res;
 	}
 
 	@Override
 	public void close() throws OBException {
+		// save remaining updates in the cache.
+		if(bucketContainerCache != null){
+			this.bucketContainerCache.clearAll();
+		}
 		if (Buckets != null) {
 			Buckets.close();
 		}
@@ -209,6 +256,19 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 
 	@Override
 	public OperationStatus insertAux(long id, O object) throws OBException,
+			IllegalAccessException, InstantiationException {
+
+		OperationStatus res = new OperationStatus();
+		res.setStatus(Status.OK);
+		B b = getBucket(object);
+		b.setId(id);
+		res = this.insertBucket(b, object);
+		res.setId(id);
+		return res;
+	}
+	
+	@Override
+	public OperationStatus insertAuxBulk(long id, O object) throws OBException,
 			IllegalAccessException, InstantiationException {
 
 		OperationStatus res = new OperationStatus();

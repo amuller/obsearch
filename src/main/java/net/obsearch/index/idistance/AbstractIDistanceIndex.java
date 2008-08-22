@@ -63,6 +63,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		super.freeze();
+		
 		int i = 0;
 		CloseIterator<TupleLong> it = A.processAll();
 		
@@ -71,12 +72,13 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 			O o = getObjectFreeze(t.getKey(), null);
 			if(i % 10000 == 0){
 				logger.info("Insert after freeze: " + i);
-				logger.info(getStats().toString());
+				//logger.info(getStats().toString());
 			}
 			insertAux(t.getKey(), o);
 			i++;
 		}
 		it.closeCursor();
+		this.bucketContainerCache.clearAll();
 		bucketStats();
 	}
 

@@ -8,7 +8,8 @@ import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
-
+import net.obsearch.filter.Filter;
+import net.obsearch.index.utils.IntegerHolder;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -34,113 +35,151 @@ import com.sleepycat.je.DatabaseException;
 /**
  * A BucketContainer stores SMAP vectors of objects. It is possible to search,
  * add and remove objects stored here.
+ * 
  * @param <O>
- *                OB object.
+ *            OB object.
  * @param <B>
- *                The bucket that will be employed.
+ *            The bucket that will be employed.
  * @author Arnoldo Jose Muller Molina
  */
-public interface BucketContainer < O extends OB, B extends BucketObject, Q > {
+public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 
-    /**
-     * Deletes the given object from this {@link BucketContainer}.
-     * @param bucket
-     *                This will should match this bucket's id. Used to pass
-     *                additional information such as the SMAP vector
-     * @param object
-     *                The object that will be deleted.
-     * @return {@link net.obsearch.Status#OK} and the deleted
-     *         object's id if the object was found and successfully deleted.
-     *         {@link net.obsearch.Status#NOT_EXISTS} if the object
-     *         is not in the database.
-     */
-    OperationStatus delete(B bucket, O object) throws OBException,
-            IllegalIdException, IllegalAccessException, InstantiationException;
+	/**
+	 * Deletes the given object from this {@link BucketContainer}.
+	 * 
+	 * @param bucket
+	 *            This will should match this bucket's id. Used to pass
+	 *            additional information such as the SMAP vector
+	 * @param object
+	 *            The object that will be deleted.
+	 * @return {@link net.obsearch.Status#OK} and the deleted object's id if the
+	 *         object was found and successfully deleted.
+	 *         {@link net.obsearch.Status#NOT_EXISTS} if the object is not in
+	 *         the database.
+	 */
+	OperationStatus delete(B bucket, O object) throws OBException,
+			IllegalIdException, IllegalAccessException, InstantiationException;
 
-    /**
-     * Inserts the given object with the given bucket details to this bucket.
-     * Warning: This method assumes that object does not exist in the DB. In
-     * bucket, an id will be provided by the caller.
-     * @param bucket
-     *                This will should match this bucket's id. Used to pass
-     *                additional information such as the SMAP vector.
-     * @return If {@link net.obsearch.Status#OK} or
-     *         {@link net.obsearch.Status#EXISTS} then the result
-     *         will hold the id of the inserted object and the operation is
-     *         successful.
-     */
-    OperationStatus insert(B bucket) throws OBException,
-            IllegalIdException, IllegalAccessException, InstantiationException;
-    
-    /**
-     * Inserts the given list of buckets into this bucket.
-     * @param bucket
-     * @throws OBException
-     * @throws DatabaseException
-     * @throws IllegalIdException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    void bulkInsert(List<B> bucket) throws OBException,
-    IllegalIdException, IllegalAccessException, InstantiationException;
+	/**
+	 * Inserts the given object with the given bucket details to this bucket.
+	 * Warning: This method assumes that object does not exist in the DB. In
+	 * bucket, an id will be provided by the caller.
+	 * 
+	 * @param bucket
+	 *            This will should match this bucket's id. Used to pass
+	 *            additional information such as the SMAP vector.
+	 * @return If {@link net.obsearch.Status#OK} or
+	 *         {@link net.obsearch.Status#EXISTS} then the result will hold the
+	 *         id of the inserted object and the operation is successful.
+	 */
+	OperationStatus insert(B bucket, O object
+			) throws OBException, IllegalIdException,
+			IllegalAccessException, InstantiationException;
+	
+	/**
+	 * Inserts the given object with the given bucket details to this bucket.
+	 * No existence checks are performed, we believe the caller
+	 * each object is unique or the caller does not care about
+	 * uniqueness.
+	 * 
+	 * @param bucket
+	 *            This will should match this bucket's id. Used to pass
+	 *            additional information such as the SMAP vector.
+	 * @return {@link net.obsearch.Status#OK}
+	 *         
+	 */
+	OperationStatus insertBulk(B bucket, O object
+			) throws OBException, IllegalIdException,
+			IllegalAccessException, InstantiationException;
 
-    /**
-     * Returns true if the object and its bucket definition exist in this
-     * container
-     * @param bucket
-     *                The bucket associated to object
-     * @param object
-     *                The object that will be inserted
-     * @return true if object exists in this container.
-     * @throws OBException
-     * @throws DatabaseException
-     * @throws IllegalIdException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @return {@link net.obsearch.Status#EXISTS} and the object's
-     *         id if the object exists in the database, otherwise
-     *         {@link net.obsearch.Status#NOT_EXISTS} is returned.
-     */
-    OperationStatus exists(B bucket, O object) throws OBException, 
-            IllegalIdException, IllegalAccessException, InstantiationException;
+	/**
+	 * Inserts the given list of buckets into this bucket.
+	 * 
+	 * @param bucket
+	 * @throws OBException
+	 * @throws DatabaseException
+	 * @throws IllegalIdException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 */
+	void bulkInsert(List<B> bucket) throws OBException, IllegalIdException,
+			IllegalAccessException, InstantiationException;
 
-    /**
-     * Get the byte representation of this bucket.
-     * @return
-     */
-    ByteBuffer getBytes();
+	/**
+	 * Returns true if the object and its bucket definition exist in this
+	 * container
+	 * 
+	 * @param bucket
+	 *            The bucket associated to object
+	 * @param object
+	 *            The object that will be inserted
+	 * @return true if object exists in this container.
+	 * @throws OBException
+	 * @throws DatabaseException
+	 * @throws IllegalIdException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @return {@link net.obsearch.Status#EXISTS} and the object's id if the
+	 *         object exists in the database, otherwise
+	 *         {@link net.obsearch.Status#NOT_EXISTS} is returned.
+	 */
+	OperationStatus exists(B bucket, O object) throws OBException,
+			IllegalIdException, IllegalAccessException, InstantiationException;
 
-    /**
-     * Searches the given object with the given searchContainer parameters. The
-     * searchContainer will be updated as necessary.
-     * @param query
-     *                The search parameters (range, priority queue with the
-     *                closest elements)
-     * @param bucket
-     *                The object of the given object.
-     * @param object
-     *                The object that will be searched.
-     * @return # of distance computations executed.
-     */
-    long search(Q query, B bucket) throws IllegalAccessException,
-            DatabaseException, OBException, InstantiationException,
-            IllegalIdException;
-    
-    /**
-     * # of objects in this container.
-     * @return The # of objects in this container.
-     */
-    int size();
-    
-    /**
-     * # of pivots for this container.
-     * @return
-     */
-    int getPivots();
-    
-    /**
-     * Sets the # of pivots for this container.
-     */
-    void setPivots(int pivots);
+	/**
+	 * Get the byte representation of this bucket.
+	 * 
+	 * @return
+	 */
+	ByteBuffer getBytes();
+	
+	
+	
 
+	/**
+	 * Searches the given object with the given searchContainer parameters. The
+	 * searchContainer will be updated as necessary.
+	 * 
+	 * @param query
+	 *            The search parameters (range, priority queue with the closest
+	 *            elements)
+	 * @param bucket
+	 *            The object of the given object.
+	 * @param object
+	 *            The object that will be searched.
+	 * @param filter Filter to be employed.
+	 * @return # of distance computations executed.
+	 */
+	long search(Q query, B bucket, IntegerHolder smapCount, Filter<O> filter) throws IllegalAccessException,
+			DatabaseException, OBException, InstantiationException,
+			IllegalIdException;
+
+	/**
+	 * # of objects in this container.
+	 * 
+	 * @return The # of objects in this container.
+	 */
+	int size();
+
+	/**
+	 * # of pivots for this container.
+	 * 
+	 * @return
+	 */
+	int getPivots();
+
+	/**
+	 * Sets the # of pivots for this container.
+	 */
+	void setPivots(int pivots);
+
+	/**
+	 * Returns true if an {@link #insert(BucketObject)} or
+	 * {@link #delete(BucketObject, OB)} occurred after the last
+	 * {@link #getBytes()} call.
+	 * @return true if an {@link #insert(BucketObject)} or
+	 * {@link #delete(BucketObject, OB)} occurred after the last
+	 * {@link #getBytes()} call.
+	 */
+	boolean isModified();
 }

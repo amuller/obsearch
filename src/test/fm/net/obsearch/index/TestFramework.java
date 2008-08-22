@@ -90,6 +90,9 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
 		init2();
 		search();
 		deletes();
+		init3();
+		search();
+		deletes();
 		close();
 	}
 
@@ -297,7 +300,7 @@ private String debug( OBPriorityQueue${Type} < O > q, Index${Type}<O> index) thr
 			OutOfRangeException, IOException, IllegalAccessException,
 			InstantiationException, OBException {
 
-		index.setIdAutoGeneration(false);
+			//index.setIdAutoGeneration(false);
 
 		// insert data into the index.
 		logger.info("Inserting data...");
@@ -340,6 +343,50 @@ private String debug( OBPriorityQueue${Type} < O > q, Index${Type}<O> index) thr
 				logger.info("Exists/insert : " + i);
 			}
 
+		}
+		assertEquals((long)i, index.databaseSize());
+
+	}
+
+
+	private void init3() throws AlreadyFrozenException, IllegalIdException,
+			OutOfRangeException, IOException, IllegalAccessException,
+			InstantiationException, OBException {
+
+			//index.setIdAutoGeneration(false);
+
+		// insert data into the index.
+		logger.info("Inserting data (bulk)...");
+		int i = 0;
+		while (i < data.length) {
+			O s = data[i];
+			if(i % 1000 == 0){
+				logger.info("Inserting: " + i);
+			}
+			OperationStatus res = index.insertBulk(s, i);
+			assertTrue("Returned status: " + res.getStatus().toString(), res
+					.getStatus() == Status.OK);
+			assertEquals((long)i, res.getId());
+		
+			i++;
+
+		}
+
+
+		logger.info("Checking exists and insert");
+		i = 0;
+		while (i < data.length) {
+
+			O s = data[i];
+			OperationStatus res = index.exists(s);
+			assertTrue("Str: " + s.toString() + " line: " + i,
+					res.getStatus() == Status.EXISTS);
+			assertEquals((long)i, res.getId());			
+
+			if (i % 10000 == 0) {
+				logger.info("Exists/insert : " + i);
+			}
+			i++;
 		}
 		assertEquals((long)i, index.databaseSize());
 

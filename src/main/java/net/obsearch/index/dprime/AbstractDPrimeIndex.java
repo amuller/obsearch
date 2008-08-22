@@ -351,7 +351,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 				assert bc.getPivots() == b.getPivotSize() : "BC: "
 						+ bc.getPivots() + " b: " + b.getPivotSize();
-				bc.insert(b);
+				bc.insert(b, object);
 				putBucket(bucketId, bc);
 				res.setStatus(Status.OK);
 			}
