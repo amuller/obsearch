@@ -69,8 +69,16 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * The data in this bucket, it is updated every time we insert or delete an
      * object. <int item count><smap vector1><obj id1>,<smap vector2><obj
      * id2>...
+     * When data is employed, updateList is null.
      */
     private ByteBuffer data; // all the data of this bucket.
+
+		/**
+		 * List used to cache inserts and deletes.
+		 * This makes inserts and deletes *much* cheaper.
+		 * When this list is used, data is null.
+		 */
+		private List<B> updateList;
 
     /**
      * We need the index to perform some extra operations.
@@ -86,16 +94,14 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
 
 		
 
-    /**
-     * Cache used to avoid byte readings.
-     */
-    private BucketObject${Type}[] cache;
+    
 
     public AbstractBucketContainer${Type}(Index < O > index, ByteBuffer data, int pivots) {
         assert index != null;
         this.index = index;
         this.data = data;
         this.pivots = pivots;
+				this.updateList = null;
         updateTupleSize(pivots);
         if (data != null) {
             int pivotsX = data.getInt();
@@ -106,9 +112,6 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         }
     }
 
-    private void cleanCache() {
-        cache = null;
-    }
 
     private void updateTupleSize(int pivots) {
         TUPLE_SIZE = (pivots * net.obsearch.constants.ByteConstants.${Type}
@@ -123,7 +126,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      */
     public void bulkInsert(List < B > data) {
         Collections.sort(data);
-        updateData(data);
+        updateData();
     }
 
     @Override
@@ -132,89 +135,114 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
 
     }
 
+		/**
+		 * Fills updateList with the data from data.
+		 * Sets data to null.
+		 */
+		private void loadUpdateList(){
+				if(updateList == null){
+						assert updateList == null;
+						updateList = new LinkedList<B>();
+						int i = 0;
+						while(i < size()){
+								B tuple = instantiateBucketObject();
+								this.getIthSMAP(i, data, tuple);
+								updateList.add(tuple);									
+								i++;
+						}						
+						
+				}			
+				data = null;
+				// post-conditions:
+				assert data == null;
+		}
+
     // need to update this thing.
     @Override
     public OperationStatus delete(B bucket, O object)
             throws OBException, IllegalIdException, IllegalAccessException,
             InstantiationException {
 
-        OperationStatus res = new OperationStatus();
+				loadUpdateList();
+				OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
-
-        if (exists(bucket, object).getStatus() == Status.EXISTS) {
-            ByteBuffer newByteBuffer = ByteConversion
-                    .createByteBuffer(calculateBufferSize(size - 1));
-            boolean found = false;
-            this.updateHeader(size - 1, pivots, newByteBuffer);
-            int i = 0;
-            while (i < size) {
-                BucketObject${Type} j = getIthSMAP(i, this.data);
-                if (!found && j.compareTo(bucket) == 0
-                        && index.getObject(j.getId()).distance(object) == 0) {
-                    // delete this guy
-                    res.setStatus(Status.OK);
-                    res.setId(j.getId());
-                    found = true;
-                } else {
-                    j.write(newByteBuffer);
-                }
-                i++;
-            }
-            data = newByteBuffer;
-        }
-        size--;
-        cleanCache();
+				ListIterator<B> it = updateList.listIterator();
+				while(it.hasNext()){
+						B cmp = it.next();
+						if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){
+								it.remove();
+								res.setStatus(Status.OK);
+				res.setId(cmp.getId());
+								size--;
+								break;
+						}
+				}
+				assert size == updateList.size();
         return res;
     }
 
     /**
-     * Insert the given bucket into the container. We assume the bucket to be
-     * inserted does not exist.
+     * Insert the given bucket into the container.
+		 * @param bucket Bucket to insert.
+		 * @param object the bucket has an object.
+		 * @return The result of the operation.
      */
-    public OperationStatus insert(BucketObject${Type} bucket) throws OBException,
+    public OperationStatus insert(B bucket, O object) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException {
+       
 
-        OperationStatus res = new OperationStatus();
-        res.setStatus(Status.NOT_EXISTS);
+        loadUpdateList();
+				OperationStatus res = new OperationStatus();
+		res.setStatus(Status.OK);
+				ListIterator<B> it = updateList.listIterator();
+				while(it.hasNext()){
+						B cmp = it.next();
+						int c = cmp.compareTo(bucket);
+										 if(c == 0 && index.getObject(cmp.getId()).distance(object) == 0){							
+				res.setStatus(Status.EXISTS);
+				res.setId(cmp.getId());
+								break;
+						}else if(c < 0){
+				break;
+			}
+		}
+		
+		if(res.getStatus() == Status.OK){
+								// the cmp object is greater, we do not need
+								// to search more.
+												 if(it.hasPrevious()){
+										it.previous();										
+								}
+								it.add(bucket); // ordered insert
+			assert bucket.getId() != -1;
+			res.setId(bucket.getId());
+								size++;
 
-        ByteBuffer newByteBuffer = ByteConversion
-                .createByteBuffer(calculateBufferSize(size + 1));
-        boolean found = false;
-        this.updateHeader(size + 1, pivots, newByteBuffer);
-        int i = 0;
-        int written = 0;
-        // search the position for the given bucket.
-        int low = binSearch(bucket, data);
-        while (i < size) {
-            BucketObject${Type} j = getIthSMAP(i, this.data);
-            if (i == low) {
-                // insert my object.
-                res.setStatus(Status.OK);
-                res.setId(bucket.getId());
-                bucket.write(newByteBuffer);
-                found = true;
-                written++;
-            }
-            // write the current object.
-            j.write(newByteBuffer);
-            written++;
 
-            i++;
-            assert j.getId() != bucket.getId();
-        }
-        if(size == 0 || low == size){
-        	res.setStatus(Status.OK);
-            res.setId(bucket.getId());
-            bucket.write(newByteBuffer);
-            found = true;
-            written++;
-        }
-        assert written == size + 1;
-        data = newByteBuffer;
-        size++;
-        cleanCache();
+				}
+  			assert size == updateList.size();
         return res;
     }
+
+		    /**
+     * Insert the given bucket into the container.
+		 * @param bucket Bucket to insert.
+		 * @param object the bucket has an object.
+		 * @return The result of the operation.
+     */
+    public OperationStatus insertBulk(B bucket, O object) throws OBException,
+            IllegalIdException, IllegalAccessException, InstantiationException {
+       
+
+        loadUpdateList();
+				OperationStatus res = new OperationStatus();
+		res.setStatus(Status.OK);
+		size++;
+		updateList.add(bucket);
+  			assert size == updateList.size();
+        return res;
+    }
+
 
     /**
      * Calculate buffer size for n items.
@@ -227,21 +255,27 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         return (TUPLE_SIZE * i) + BASE;
     }
 
+		private void updateData() {
+				if(updateList != null && data == null){
+						updateData(updateList);
+				}
+		}
+
     /**
      * Read dataView and update data[]
      */
     private void updateData(List < B > v) {
         if (v.size() > 0) {
-            // Collections.sort(v);
-            ByteBuffer out = ByteConversion.createByteBuffer((TUPLE_SIZE * v
-                    .size())
-                    + BASE);
+            Collections.sort(v);
+            ByteBuffer out = ByteConversion.createByteBuffer(
+																														 calculateBufferSize(v.size()));
+                    
             size = v.size();
             if (pivots != 0) {
                 assert pivots == v.get(0).getSmapVector().length;
             }
             this.updateHeader(v.size(), pivots, out);
-            for (BucketObject${Type} b : v) {
+            for (B b : v) {
                 assert pivots == b.getSmapVector().length : " pivots: "
                         + pivots + " item: " + b.getSmapVector().length;
                 b.write(out);
@@ -252,6 +286,9 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
 
     @Override
     public ByteBuffer getBytes() {
+				if( updateList != null && data == null){
+						updateData(updateList);						
+				}
         return data;
     }
 
@@ -259,18 +296,31 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
     public OperationStatus exists(B bucket, O object)
             throws OBException, IllegalIdException, IllegalAccessException,
             InstantiationException {
-
-        OperationStatus res = new OperationStatus();
+				 OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
-        if (data != null) {
+			
+        if(updateList != null){
+						assert updateList != null;
+							Iterator<B> it = updateList.iterator();
+							while(it.hasNext()){
+						B cmp = it.next();
+						if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){						
+								res.setStatus(Status.EXISTS);							
+					res.setId(cmp.getId());
+								break;
+						}
+				}
+				}
+        else  {
+						assert data != null;
             ByteBuffer in = data;
             int low = binSearch(bucket, in);
 
             if (low < size()) {
                 // if it was found.
-
+								B tuple = instantiateBucketObject();
                 while (low < size()) {
-                    BucketObject${Type} tuple = this.getIthSMAP(low, in);
+										this.getIthSMAP(low, in, tuple);
                     if (tuple.getSmapVector()[0] != bucket.getSmapVector()[0]) {
                         break;
                     }
@@ -286,7 +336,10 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
                     low++;
                 }
             }
-        }
+ 
+				
+						
+				}
         return res;
     }
 
@@ -306,48 +359,6 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         buf.putInt(size);
         
     }
-
-    /*
-     * (non-Javadoc)
-     * @see net.obsearch.index.bucket.BucketContainer#search(java.lang.Object,
-     *      net.obsearch.result.OB) returns the # of distance computations.
-     */
-		<@gen_warning filename="AbstractBucketContainer.java "/>
-    @Override
-    public long search(OBQuery${Type} < O > query, B b)
-            throws IllegalAccessException, OBException, InstantiationException,
-            IllegalIdException {
-        if (data == null) {
-            return 0;
-        }
-        O object = query.getObject();
-
-        assert pivots == b.getSmapVector().length;
-
-        int i = 0;
-        ${type} range = query.getDistance();
-        // for every item in this bucket.
-        long res = 0;
-        while (i < size) {
-            // calculate L-inf
-            BucketObject${Type} other = this.getIthSMAP(i, data);
-            ${type} max = b.lInf(other);
-
-            if (max <= query.getDistance() && query.isCandidate(max)) {
-                long id = other.getId();
-                O toCompare = index.getObject(id);
-                ${type} realDistance = object.distance(toCompare);
-                res++;
-                if (realDistance <= range) {
-                    query.add(id, toCompare, realDistance);
-                }
-            }
-            i++;
-        }
-        // assert in.available() == 0 : "Avail: " + in.available();
-        return res;
-    }
-
     private void setIth(int i, ByteBuffer in) {
         in.position(getByteArrayIndex(i));
     }
@@ -362,35 +373,15 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         return AbstractBucketContainer${Type}.BASE + (i * TUPLE_SIZE);
     }
 
-    /**
-     * Gets the ith BucketObject${Type} from this bucket.
-     * @param i
-     *                I-th vector.
-     * @param in
-     *                the bucket to modify
-     * @return
-     */
-    private BucketObject${Type} getIthSMAP(int i, ByteBuffer in) {
-        if (cache == null) {
-            cache = new BucketObject${Type}[size];
-        }
-        if (cache[i] != null ) {
-            return cache[i];
-        } else {
-            setIth(i, in);
-            
-            BucketObject${Type} result = instantiateBucketObject();
-            result.read(in, this.getPivots());
-            cache[i] = result;
-            return result;
-        }
-    }
+    
+
+		protected abstract B[] instantiateArray(int size);
 
 
 		/**
 		 * Lighweight bucket extract implementation.
 		 */
-		private void getIthSMAP(int i, ByteBuffer in, BucketObject${Type} b) {
+		private void getIthSMAP(int i, ByteBuffer in, B b) {
             setIth(i, in);
             b.read(in, this.getPivots());
     }
@@ -399,10 +390,10 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * Instantiate an empty bucket ready to be filled with stuff.
      * @return empty BucketObject${Type};
      */
-    protected abstract BucketObject${Type} instantiateBucketObject();
+    protected abstract B instantiateBucketObject();
     
-    protected BucketObject${Type} instantiateBucketObject(${type}[] smap, long id){
-    	BucketObject${Type} res = instantiateBucketObject();
+    protected B instantiateBucketObject(${type}[] smap, long id){
+    	B res = instantiateBucketObject();
     	res.setId(id);
     	res.setSmapVector(smap);
     	return res;
@@ -417,84 +408,25 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * @param in
      * @return the position in which b should be inserted.
      */
-    private int binSearch(BucketObject${Type} b, ByteBuffer in) {
+    private int binSearch(B b, ByteBuffer in) {
         int low = 0;
         int high = size();
-
+				B other =  instantiateBucketObject();
         while (low < high) {
             int mid = (low + high) / 2;
-            if (b.compareTo(getIthSMAP(mid, in)) > 0) {
+						getIthSMAP(mid, in,other);
+            if (b.compareTo(other) > 0) {
                 low = mid + 1;
             } else {
                 high = mid;
             }
         }
         return low;
-
     }
 
-		public long searchSorted(OBQuery${Type} < O > query, BucketObject${Type} b,
-														 IntegerHolder smapComputations) throws IllegalAccessException,
-            OBException, InstantiationException, IllegalIdException {
-				return searchSorted(query,b,smapComputations, null);
-		}
+		
 
-    /**
-     * Searches the data by using a binary search to reduce SMAP vector
-     * computations.
-     * @param query
-     * @param b
-     * @return
-     * @throws IllegalAccessException
-     * @throws DatabaseException
-     * @throws OBException
-     * @throws InstantiationException
-     * @throws IllegalIdException
-     */
-    public long searchSorted(OBQuery${Type} < O > query, BucketObject${Type} b,
-														 IntegerHolder smapComputations, Filter<O> filter) throws IllegalAccessException,
-            OBException, InstantiationException, IllegalIdException {
-        if (data == null) {
-            return 0;
-        }
-        O object = query.getObject();
-
-        ByteBuffer in = data;
-        assert pivots == b.getSmapVector().length;
-
-        // now we can start binary searching the bytes.
-
-        int low = binSearch(this.instantiateBucketObject(query.getLow(), -1), in);
-
-        int i = low;
-
-        ${type} range = query.getDistance();
-        BucketObject${Type} top = this.instantiateBucketObject(query.getHigh(), -1);
-        // for every item in this bucket.
-        long res = 0;
-        while (i < size) {
-            BucketObject${Type} current = getIthSMAP(i, in);
-            if (!(current.compareTo(top) <= 0)) {
-                break;
-            }
-            ${type} max = current.lInf(b);
-            smapComputations.inc();
-            if (max <= query.getDistance() && query.isCandidate(max)) {
-                long id = current.getId();
-                O toCompare = index.getObject(id);
-								// Process query only if the filter is null.
-								if(filter == null || filter.accept(toCompare, object)){
-                ${type} realDistance = object.distance(toCompare);
-                res++;
-                if (realDistance <= range) {
-                    query.add(id, toCompare, realDistance);
-                }
-										}
-            }
-            i++;
-        }
-        return res;
-    }
+    
 
 
 		/**
@@ -510,9 +442,10 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      * @throws InstantiationException
      * @throws IllegalIdException
      */
-    public long searchSortedUnCached(OBQuery${Type} < O > query, BucketObject${Type} b,
+    public long search(OBQuery${Type} < O > query, B b,
 														 IntegerHolder smapComputations, Filter<O> filter) throws IllegalAccessException,
             OBException, InstantiationException, IllegalIdException {
+				updateData();
         if (data == null) {
             return 0;
         }
@@ -528,8 +461,8 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
         int i = low;
 
         ${type} range = query.getDistance();
-        BucketObject${Type} top = this.instantiateBucketObject(query.getHigh(), -1);
-				BucketObject${Type} current = instantiateBucketObject();
+        B top = this.instantiateBucketObject(query.getHigh(), -1);
+				B current = instantiateBucketObject();
         // for every item in this bucket.
         long res = 0;
         while (i < size) {
@@ -565,6 +498,10 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
     public int getPivots() {
         return this.pivots;
     }
+
+		public boolean isModified(){
+				return data == null;
+		}
 
 }
 </#list>

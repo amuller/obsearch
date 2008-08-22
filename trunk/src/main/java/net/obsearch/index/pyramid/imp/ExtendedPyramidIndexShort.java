@@ -382,6 +382,12 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         result.setId(id);
         return result;
     }
+    
+    protected net.obsearch.OperationStatus insertAuxBulk(long id, O object)
+    throws OBStorageException, OBException, IllegalAccessException,
+    InstantiationException {
+    	return insertAux(id, object);
+    }
 
     public long getBox(final O object) throws OBException {
         short[] t = new short[getPivotCount()];

@@ -480,6 +480,12 @@ public class PPTreeShort < O extends OBShort >
         result.setId(id);
         return result;
     }
+    
+    protected net.obsearch.OperationStatus insertAuxBulk(long id, O object)
+    throws OBStorageException, OBException, IllegalAccessException,
+    InstantiationException {
+    	return insertAux(id, object);
+    }
 
     /**
      * Normalizes the given t. The idea is to convert each of the values in t in

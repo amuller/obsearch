@@ -85,6 +85,10 @@ public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, 
 	        }
 	        return obj;
 	    }
+	    
+	    public void put(byte[] id, O object){
+	    	super.put(new ByteArrayKey(id), object);
+	    }
 
 
 		@Override
@@ -107,9 +111,9 @@ public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, 
 		public void clearAll() throws OBException {
 			for(Map.Entry<ByteArrayKey, O> e : super.entrySet()){
 				handler.store(e.getKey().getKey(), e.getValue());
-				super.remove(e.getKey());
+				
 			}
-			
+			this.clear();
 		}
 	
 	

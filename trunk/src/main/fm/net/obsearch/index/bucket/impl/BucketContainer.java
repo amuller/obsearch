@@ -27,6 +27,7 @@ package net.obsearch.index.bucket.impl;
 import java.nio.ByteBuffer;
 import net.obsearch.Index;
 import net.obsearch.ob.OB${Type};
+import java.lang.reflect.Array;
 /** 
 	*  BucketContainer is a dummy class that is used to directly
   *  inherit the functionality from AbstractBucketContainer${Type}.
@@ -45,6 +46,10 @@ public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketC
 	protected BucketObject${Type} instantiateBucketObject(){
     	return new BucketObject${Type}();
     }
+
+	protected BucketObject${Type}[] instantiateArray(int size){
+			return new BucketObject${Type}[size];							
+	}
     
 	<@gen_warning filename="BucketContainer.java "/>
 }

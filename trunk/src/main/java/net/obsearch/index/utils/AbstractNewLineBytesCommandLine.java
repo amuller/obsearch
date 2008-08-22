@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import org.apache.log4j.Logger;
+import org.kohsuke.args4j.Option;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -23,19 +24,28 @@ public abstract class AbstractNewLineBytesCommandLine<O extends OB, I extends In
 
 	private static Logger logger = Logger.getLogger(AbstractNewLineBytesCommandLine.class);
 	
+	
+	
 	private InputStreamReader createReader(File toOpen) throws FileNotFoundException{
 		
 		return new InputStreamReader(new FileInputStream(toOpen),  Charset.forName("US-ASCII"));
 	}
 	
 	protected void addObjects(I index, File load) throws IOException, OBStorageException, OBException, IllegalAccessException, InstantiationException{
+		if(bulkMode){
+			logger.info("Using  bulk mode");
+		}
 		InputStreamReader r = createReader(load);
 		byte[] line = new byte[arraySize()];
 		int i = 0;
 		int res = read(line, r);
 		while(res != -1){
 			O o = instantiate(line);
-			index.insert(o);
+			if(bulkMode){
+				index.insertBulk(o);
+			}else{
+				index.insert(o);
+			}
 			res = read(line, r);
 			if(i % 10000 == 0){
 				logger.info("Loading: " + i);

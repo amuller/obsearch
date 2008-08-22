@@ -62,6 +62,9 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 
 	@Option(name = "-q", usage = "Query Filename. (Search mode only)", aliases = { "--query" })
 	private File query;
+	
+	@Option(name = "-b", usage = "If bulk mode is to be employed", aliases= {"--bulk"})
+	protected boolean bulkMode;
 
 	public void initProperties() throws IOException {
 

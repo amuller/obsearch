@@ -102,9 +102,6 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		super(type, pivotSelector, pivotCount);
 	}
 	
-  <#-- default implementations of some methods -->
-
-	<@existsDefault/>
 
 	<@intersectingBoxesUnsupported/>
 
@@ -169,6 +166,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
+			// empty the cache if we are going to start search.
+			this.bucketContainerCache.clearAll();
 		BucketObject${Type} b = getBucket(object);
 		OBQuery${Type}<O> q = new OBQuery${Type}<O>(object, r, result, b
 				.getSmapVector());
@@ -285,7 +284,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
-								.incDistanceCount(bt.searchSortedUnCached(q, b,
+								.incDistanceCount(bt.search(q, b,
 																									smapCount, filter));
 						stats.incBucketsRead();
 						stats.incDataRead(bt.getBytes().array().length);
@@ -306,7 +305,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
 								t.getValue(), null);
 						stats
-								.incDistanceCount(bt.searchSortedUnCached(q, b,
+								.incDistanceCount(bt.search(q, b,
 																									smapCount, filter));
 						stats.incDataRead(bt.getBytes().array().length);
 						stats.incBucketsRead();
