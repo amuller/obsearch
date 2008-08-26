@@ -85,7 +85,7 @@ public class BDBFactory implements OBStoreFactory {
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
 				envConfig.setTxnNoSync(true);
         //envConfig.setTxnWriteNoSync(true);
-				//envConfig.setCachePercent(90);
+				envConfig.setCachePercent(20);
 				// 100 k gave the best performance in one thread and for 30 pivots of
         // shorts
 				
