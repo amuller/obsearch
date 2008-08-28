@@ -1,5 +1,5 @@
 header {
-    package net.obsearch.example;
+    package org.ajmm.obsearch.example;
 }
 
 class SliceParser extends Parser;

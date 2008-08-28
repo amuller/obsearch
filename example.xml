@@ -27,7 +27,7 @@
 	
 	<!-- System related properties -->
 	
-	<property name="memory" value="3000"/>
+	<property name="memory" value="3700"/>
 
 	<!-- p2p related properties -->
 	<property name="name" value="seeder"/>
@@ -319,6 +319,7 @@
 
 
 		<!--<jvmarg value="-ea"/>-->
+				<jvmarg value="-XX:+UseParallelGC"/>
 				<jvmarg value="-XX:+UseParallelOldGC"/>
         <jvmarg value="-XX:+UseMembar"/>
 <!--				<jvmarg value="-XX:+UseAdaptiveGCBoundary"/>-->
