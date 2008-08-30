@@ -271,20 +271,10 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	public OperationStatus insertAuxBulk(long id, O object) throws OBException,
 			IllegalAccessException, InstantiationException {
 
-		OperationStatus res = new OperationStatus();
-		res.setStatus(Status.OK);
-		B b = getBucket(object);
-		b.setId(id);
-		res = this.insertBucket(b, object);
-		res.setId(id);
-		return res;
+		return insertAux(id, object);
 	}
 	
-	public Statistics getStats() throws OBStorageException{
-		Statistics s = super.getStats();
-			s.putStats("Read Stats Buckets:", this.Buckets.getReadStats());
-		return s;
-	}
+	
 
 	/**
 	 * @param bucket

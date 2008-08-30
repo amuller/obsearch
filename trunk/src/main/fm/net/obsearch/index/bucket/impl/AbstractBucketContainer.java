@@ -125,6 +125,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
      *                The data that will be inserted.
      */
     public void bulkInsert(List < B > data) {
+				this.updateList = data;
         Collections.sort(data);
         updateData();
     }

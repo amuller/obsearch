@@ -1,7 +1,10 @@
 package net.obsearch;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.PriorityQueue;
 
 /*
@@ -113,6 +116,19 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
         Arrays.sort(b);
         return Arrays.equals(a, b);
 
+    }
+    
+    @SuppressWarnings("unchecked")
+	public List<O> getSortedElements(){
+    	ArrayList<O> result = new ArrayList<O>(queue.size());
+    	Iterator<O> it = iterator();
+    	while(it.hasNext()){
+    		O r = it.next();
+    		result.add(r);
+    	}
+    	Collections.sort(result);
+    	Collections.reverse(result);
+    	return result;
     }
 
     /**

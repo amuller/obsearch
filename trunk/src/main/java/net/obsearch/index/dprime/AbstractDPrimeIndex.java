@@ -256,12 +256,14 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		for (java.util.List<B> l : buckets.values()) {
 			insertBuckets(l);
 		}
+		
+		this.bucketContainerCache.clearAll();
 		bucketStats();
 
 		logger.debug("Max bucket size: " + maxBucketSize);
 		logger.debug("Bucket count: " + A.size());
 
-		bucketStats();
+		
 
 	}
 
