@@ -16,6 +16,7 @@ import net.obsearch.index.dprime.impl.TestDPrimeIndex;
 import net.obsearch.index.rosa.RosaFilterShort;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
+import net.obsearch.index.utils.IndexSmokeTUtilApprox;
 import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
@@ -67,15 +68,15 @@ public class TestRosaFilter
        //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
         
         
-        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)4);
+        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)7);
         BDBFactory fact = Utils.getFactory();
         
         RosaFilterShort<OBSlice> index = new  RosaFilterShort<OBSlice>(OBSlice.class,
-    			sel, 20,
-    			50, (short)2) ;
+    			sel, 32,
+    			 (short)2) ;
         
         index.init(fact);
-        IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
+        IndexSmokeTUtilApprox<OBSlice> t = new IndexSmokeTUtilApprox<OBSlice>(new OBSliceFactory());
         t.tIndex(index);
         logger.info(index.stats.toString());
        

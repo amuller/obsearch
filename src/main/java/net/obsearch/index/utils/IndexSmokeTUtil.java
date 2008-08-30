@@ -55,7 +55,7 @@ import org.apache.log4j.Logger;
 
 public class IndexSmokeTUtil<O extends OBShort> {
 
-    private OBFactory<O> factory;
+    protected OBFactory<O> factory;
     
     /**
      * Properties for the test.
@@ -219,7 +219,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         // index.stats();
         index.resetStats();
         // it is time to Search
-        int querySize = 1642; // amount of elements to read from the query
+        int querySize = 1000; // amount of elements to read from the query
         String re = null;
         logger.info("Matching begins...");
         File query = new File(testProperties.getProperty("test.query.input"));
@@ -309,7 +309,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
      * @throws OBException 
      * @throws IllegalIdException 
      */
-    private String debug( OBPriorityQueueShort < O > q, Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
+    protected String debug( OBPriorityQueueShort < O > q, Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
     	StringBuilder res = new StringBuilder();
     	Iterator<OBResultShort<O>> it = q.iterator();
     	while(it.hasNext()){
