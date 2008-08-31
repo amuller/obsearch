@@ -249,9 +249,13 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         short max = Short.MIN_VALUE;
         short realDistance = Short.MIN_VALUE;
         while (it.hasNext()) {
+        	stats.incDiskAccessCount();
+        	stats.incSmapCount();
+        	stats.incBucketsRead();
+        	
             TupleDouble tup = it.next();
             ByteBuffer in = tup.getValue();
-
+            stats.incDataRead(in.array().length);
             int i = 0;
             short t;
             max = Short.MIN_VALUE;
@@ -272,6 +276,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
                 long id = in.getLong();
                 O toCompare = getObject(id);
                 realDistance = object.distance(toCompare);
+                stats.incDistanceCount();
                 if (realDistance <= r) {
                     result.add(id, toCompare, realDistance);
                 }
