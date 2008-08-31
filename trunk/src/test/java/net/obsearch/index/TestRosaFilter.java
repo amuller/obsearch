@@ -68,11 +68,11 @@ public class TestRosaFilter
        //IncrementalDummyPivotSelector<OBSlice> sel = new IncrementalDummyPivotSelector<OBSlice> ();
         
         
-        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)7);
+        IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)0);
         BDBFactory fact = Utils.getFactory();
         
         RosaFilterShort<OBSlice> index = new  RosaFilterShort<OBSlice>(OBSlice.class,
-    			sel, 32,
+    			sel, 64,
     			 (short)2) ;
         
         index.init(fact);
@@ -80,6 +80,22 @@ public class TestRosaFilter
         t.tIndex(index);
         logger.info(index.stats.toString());
        
+    }
+    
+    public void testRosaFilterVectors() throws Exception{
+    	
+    	  IncrementalMullerShort<OBVectorShort> sel = new IncrementalMullerShort<OBVectorShort>(new AcceptAll(), 100, 100, (short)0);
+    	     
+    	  IndexShort<OBVectorShort> index = new  RosaFilterShort<OBVectorShort>(OBVectorShort.class,
+      			sel, 64,
+      			 (short)2) ;
+    	
+    	BDBFactory fact = Utils.getFactory();
+        
+        index.init(fact);
+        VectorTestFrameworkApproxShort t = new VectorTestFrameworkApproxShort(200
+, 10000, 1000, index);
+        t.test();
     }
 
 }

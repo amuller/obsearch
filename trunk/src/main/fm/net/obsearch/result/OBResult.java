@@ -114,7 +114,7 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
      * the same distance from the query.
      * @return true if both distances are the same.
      */
-    public boolean equals(Object obj){        
+    /*public boolean equals(Object obj){        
         if(obj == null){
             return false;
         }
@@ -125,7 +125,7 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
         // a result object is the same if the distance is the same
         // we do not care about the id.
         return distance == comp.distance;
-    }
+				}*/
 
     /**
      * Return a human readable representation of the object.

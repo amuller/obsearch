@@ -110,11 +110,20 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
         if (this.getSize() != o.getSize()) {
             return false;
         }
-        final Object[] a = queue.toArray();
-        final Object[] b = o.queue.toArray();
-        Arrays.sort(a);
-        Arrays.sort(b);
-        return Arrays.equals(a, b);
+        
+        List<O> a = getSortedElements();
+        List<O> b = o.getSortedElements();
+        if(a.size() != b.size()){
+        	return false;
+        }
+        Iterator<O> it = b.iterator();
+        for(O aobj : a){
+        	O bobj = it.next();
+        	if(aobj.compareTo(bobj) != 0){
+        		return false;
+        	}
+        }
+        return true;
 
     }
     

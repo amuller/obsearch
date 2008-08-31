@@ -57,8 +57,8 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
 	private static transient final Logger logger = Logger
 			.getLogger(TestFramework${Type}.class);
 
-	private O[] queries;
-	private O[] data;
+	protected O[] queries;
+	protected O[] data;
 
 	protected Index${Type}<O> index;
 	

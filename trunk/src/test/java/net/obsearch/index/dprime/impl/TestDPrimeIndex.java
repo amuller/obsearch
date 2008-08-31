@@ -14,6 +14,7 @@ import net.obsearch.example.ted.OBTedFactory;
 import net.obsearch.index.dprime.impl.DPrimeIndexShort;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
+import net.obsearch.index.utils.IndexSmokeTUtilApprox;
 import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;

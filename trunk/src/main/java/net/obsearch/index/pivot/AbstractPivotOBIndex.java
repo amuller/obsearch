@@ -81,7 +81,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * The pivots for this Tree. When we instantiate or de-serialize this object
      * we load them from {@link #pivotsBytes}.
      */
-    protected transient O[] pivots;
+    protected  O[] pivots;
    
     /**
      * Bytes of the pivots. From this array we can load the pivots into
@@ -110,7 +110,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
-        selectPivots(getPivotCount());      
+        pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());      
     }
     
    
@@ -118,7 +118,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     /**
      * Override this method if selection must be changed
      */
-    protected PivotResult  selectPivots(int pivotCount) throws IOException, AlreadyFrozenException,
+    protected PivotResult  selectPivots(int pivotCount, IncrementalPivotSelector < O > pivotSelector) throws IOException, AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
@@ -131,10 +131,10 @@ public abstract class AbstractPivotOBIndex < O extends OB >
         }
         it.closeCursor();
         try{
-        PivotResult pivots = this.pivotSelector.generatePivots(pivotCount,
+        PivotResult pivots = pivotSelector.generatePivots(pivotCount,
                 elementsSource, this);       
         // store the pivots selected for serialization.
-        this.storePivots(pivots.getPivotIds());
+        //this.storePivots(pivots.getPivotIds());
         return pivots;
         }catch(PivotsUnavailableException e){
             throw new OBException(e);
@@ -179,26 +179,27 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * @throws InstantiationException
      *                 If there is a problem when instantiating objects O
      */
-    protected void storePivots(final long[] ids) throws IllegalIdException,
+    protected O[] getObjects(final long[] ids) throws IllegalIdException,
             IllegalAccessException, InstantiationException,
             OBException {
         if (logger.isDebugEnabled()) {
             logger.debug("Pivots selected " + Arrays.toString(ids));
 
         }
-        createPivotsArray(ids.length);
-        //assert ids.length == pivots.length && pivots.length == this.getPivotCount();
-        this.pivotsBytes = serializePivots(ids);
+        O[] p  = emptyPivotsArray(ids.length);
         int i = 0;
         for(long id : ids){
             O obj = getObject(id);
-            this.pivots[i] = obj;
+            p[i] = obj;
             i++;
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Detail: " + Arrays.toString(pivots));
+            logger.debug("Detail: " + Arrays.toString(p));
         }
+        return p;
+        
     }
+    
     
     
     /**
@@ -225,8 +226,8 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBException, NotFrozenException, 
     IllegalAccessException, InstantiationException, OBException{
         super.init(fact);
-        if(isFrozen()){
-            this.loadPivots();
-        }
+//        if(isFrozen()){
+//            this.loadPivots();
+//       }
     }
 }
