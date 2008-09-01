@@ -457,7 +457,9 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			res.setStatus(Status.NOT_EXISTS);
 		}else{
 			res = bc.delete(b, object);
-			putBucket(bucketId, bc);
+			if(bc.size() > 0){
+				putBucket(bucketId, bc);
+			}
 		}
 		return res;
 	}

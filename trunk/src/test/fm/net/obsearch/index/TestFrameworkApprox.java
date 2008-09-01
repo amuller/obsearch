@@ -123,6 +123,7 @@ public abstract class TestFrameworkApprox${Type}<O extends OB${Type}>  extends T
         Iterator < OBPriorityQueue${Type} < O >> it = result.iterator();
 				StaticBin1D stats = new StaticBin1D();
         i = 0;
+				int emptyResults = 0;
         while (i < queries.length) {
         	if (i % 300 == 0) {
                     logger.info("Validating " + i + " of " + maxQuery);
@@ -135,6 +136,9 @@ public abstract class TestFrameworkApprox${Type}<O extends OB${Type}>  extends T
                     
                     
 										stats.add(ep(x1,x2,index));
+										if(x1.getSize() == 0 && x2.getSize() != 0){
+						emptyResults++;
+					}
                     i++;
                 
                 
@@ -145,6 +149,8 @@ public abstract class TestFrameworkApprox${Type}<O extends OB${Type}>  extends T
                    
         logger.info("Finished  matching validation.");
         assertFalse(it.hasNext());
+
+				logger.info("Zero queries: " + emptyResults);
     }
 
 
