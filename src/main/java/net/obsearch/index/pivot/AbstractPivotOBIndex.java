@@ -83,11 +83,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      */
     protected  O[] pivots;
    
-    /**
-     * Bytes of the pivots. From this array we can load the pivots into
-     * {@link #pivots}.
-     */
-    protected byte[][] pivotsBytes;
+   
 
     /**
      * Creates an index that uses pivots as its major data partitioning strategy.
@@ -142,26 +138,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
         
     }
     
-    /**
-     * Loads the pivots from the pivots array {@link #pivotsBytes} and puts them
-     * in {@link #pivots}.
-     * @throws NotFrozenException
-     *                 if the freeze method has not been invoqued.
-     * @throws OBException
-     *                 User generated exception
-     * @throws IllegalAccessException
-     *                 If there is a problem when instantiating objects O
-     * @throws InstantiationException
-     *                 If there is a problem when instantiating objects O
-     */
-    protected void loadPivots() throws NotFrozenException,
-            IllegalAccessException, InstantiationException, OBException {
-        
-        if (!isFrozen()) {
-            throw new NotFrozenException();
-        }       
-       this.pivots = loadPivots(this.pivotsBytes);
-    }
+    
     
     /**
      * Stores the given pivots in a local array. Takes the pivots from the

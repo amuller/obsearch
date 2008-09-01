@@ -301,6 +301,9 @@ public class IndexSmokeTUtil<O extends OBShort> {
         assertFalse(it.hasNext());
     }
     
+    protected String debug(OBPriorityQueueShort < O > q , Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
+    	return debug(q.iterator(), index);
+    }
     /**
      * Prints debug info for the given priority queue.	
      * @return
@@ -309,9 +312,9 @@ public class IndexSmokeTUtil<O extends OBShort> {
      * @throws OBException 
      * @throws IllegalIdException 
      */
-    protected String debug( OBPriorityQueueShort < O > q, Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
+    protected String debug(Iterator<OBResultShort<O>>it , Index<O> index) throws IllegalIdException, OBException, InstantiationException, IllegalAccessException{
     	StringBuilder res = new StringBuilder();
-    	Iterator<OBResultShort<O>> it = q.iterator();
+    	
     	while(it.hasNext()){
     		OBResultShort<O> r = it.next();
     		res.append(r.getId());

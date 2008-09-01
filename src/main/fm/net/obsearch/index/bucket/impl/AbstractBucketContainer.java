@@ -323,7 +323,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
                 while (low < size()) {
 										this.getIthSMAP(low, in, tuple);
                     if (tuple.getSmapVector()[0] != bucket.getSmapVector()[0]) {
-                        break;
+                        break; // HERE if
                     }
                     if (Arrays.equals(tuple.getSmapVector(), bucket
                             .getSmapVector())) {
@@ -333,7 +333,7 @@ public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B ex
                             res.setId(tuple.getId());
                             break;
                         }
-                    }
+                    }// TODO: quit in this else and erase the "HERE"if.
                     low++;
                 }
             }

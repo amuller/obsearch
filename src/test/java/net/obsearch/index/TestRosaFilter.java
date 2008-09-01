@@ -71,9 +71,12 @@ public class TestRosaFilter
         IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)0);
         BDBFactory fact = Utils.getFactory();
         
+        IncrementalBustosNavarroChavezShort<OBSlice> sel2 = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                100, 100);   
+        
         RosaFilterShort<OBSlice> index = new  RosaFilterShort<OBSlice>(OBSlice.class,
-    			sel, 64,
-    			 (short)2) ;
+    			  sel2, 64,
+    			 (short)2, sel, 64) ;
         
         index.init(fact);
         IndexSmokeTUtilApprox<OBSlice> t = new IndexSmokeTUtilApprox<OBSlice>(new OBSliceFactory());
@@ -85,10 +88,11 @@ public class TestRosaFilter
     public void testRosaFilterVectors() throws Exception{
     	
     	  IncrementalMullerShort<OBVectorShort> sel = new IncrementalMullerShort<OBVectorShort>(new AcceptAll(), 100, 100, (short)0);
-    	     
+    	  IncrementalBustosNavarroChavezShort<OBVectorShort> sel2 = new IncrementalBustosNavarroChavezShort<OBVectorShort>(new AcceptAll(),
+                  100, 100);   
     	  IndexShort<OBVectorShort> index = new  RosaFilterShort<OBVectorShort>(OBVectorShort.class,
-      			sel, 64,
-      			 (short)2) ;
+      			  sel2, 64,
+      			 (short)2, sel, 64) ;
     	
     	BDBFactory fact = Utils.getFactory();
         
