@@ -77,8 +77,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 			insertAux(t.getKey(), o);
 			i++;
 		}
-		it.closeCursor();
-		this.bucketContainerCache.clearAll();
+		it.closeCursor();		
 		bucketStats();
 	}
 

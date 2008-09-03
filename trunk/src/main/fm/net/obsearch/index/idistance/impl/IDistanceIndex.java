@@ -147,7 +147,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	@Override
 	protected BucketContainer${Type}<O> instantiateBucketContainer(
 			ByteBuffer data, byte[] address) {
-		return new BucketContainer${Type}<O>(this, data, getPivotCount());
+			return new BucketContainer${Type}<O>(this, getPivotCount(), Buckets, address);
 	}
 
   
@@ -166,8 +166,6 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			throws NotFrozenException, InstantiationException,
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
-			// empty the cache if we are going to start search.
-			this.bucketContainerCache.clearAll();
 		BucketObject${Type} b = getBucket(object);
 		OBQuery${Type}<O> q = new OBQuery${Type}<O>(object, r, result, b
 				.getSmapVector());
@@ -274,6 +272,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		 */
 		public void doIt(IntegerHolder smapCount) throws IllegalIdException,
 				IllegalAccessException, OBException, InstantiationException {
+				IntegerHolder data = new IntegerHolder(0);
 				//			if (iteration) {
 				if (itRight.hasNext() && continueRight) {
 					TupleBytes t = itRight.next();
@@ -285,9 +284,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.search(q, b,
-																									smapCount, filter));
+																						smapCount, data , filter, t.getValue()));
 						stats.incBucketsRead();
-						stats.incDataRead(bt.getBytes().array().length);
 						// update ranges
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();
@@ -306,8 +304,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 								t.getValue(), null);
 						stats
 								.incDistanceCount(bt.search(q, b,
-																									smapCount, filter));
-						stats.incDataRead(bt.getBytes().array().length);
+																						smapCount, data, filter, t.getValue()));
 						stats.incBucketsRead();
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();
@@ -316,8 +313,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 				}
 				iteration = true;
 				//}
+				stats.incDataRead(data.getValue());
 		}
-
+			
+			
 	}
 
 }

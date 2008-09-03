@@ -41,10 +41,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected transient OBStore<TupleBytes> Buckets;
 
-	/**
-	 * Cache used for storing recently accessed Buckets.
-	 */
-	protected transient OBCacheByteArray<BC> bucketContainerCache;
+	
 
 	public AbstractBucketIndex(Class<O> type,
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount)
@@ -101,11 +98,8 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @throws OBException
 	 */
 	protected void initByteArrayBuckets() throws OBException {
-		this.Buckets = fact.createOBStore("Buckets_byte_array", false, false);
-		if (this.bucketContainerCache == null) {
-			this.bucketContainerCache = new OBCacheByteArray<BC>(
-					new BucketLoader(), OBSearchProperties.getBucketsCacheSize());
-		}
+		this.Buckets = fact.createOBStore("Buckets_byte_array", false, true);
+		
 	}
 
 	/**
@@ -128,20 +122,18 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		byte[] bucketId = getAddress(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-		BC bc = this.bucketContainerCache.get(bucketId);
-				//this.instantiateBucketContainer(this.Buckets.getValue(bucketId), bucketId);
-				//;
-		if (bc == null) { // it was just created for the first
-			// time.
-			bc = instantiateBucketContainer(null, bucketId);
-			bc.setPivots(getPivotCount());
-			this.bucketContainerCache.put(bucketId, bc);
-		}
+		
+		BC bc = getBucketContainer(bucketId);
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
 			res = bc.insert(b, object);			
 		}
 		return res;
+	}
+	
+	private BC getBucketContainer(byte[] id){
+		BC bc = instantiateBucketContainer(null, id);
+		return bc;
 	}
 	
 	/**
@@ -165,15 +157,8 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		byte[] bucketId = getAddress(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-		BC bc = this.bucketContainerCache.get(bucketId);
-				//this.instantiateBucketContainer(this.Buckets.getValue(bucketId), bucketId);
-				//;
-		if (bc == null) { // it was just created for the first
-			// time.
-			bc = instantiateBucketContainer(null, bucketId);
-			bc.setPivots(getPivotCount());
-			this.bucketContainerCache.put(bucketId, bc);
-		}
+		BC bc = getBucketContainer(bucketId);
+		
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
 			res = bc.insertBulk(b, object);			
@@ -188,19 +173,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			res.setStatus(Status.NOT_EXISTS);
 			B b = getBucket(object);
 			byte[] bucketId = getAddress(b);
-			BC bc = this.bucketContainerCache.get(bucketId);
-			if(bc != null){
-				res = bc.exists(b, object);
-			}
+			BC bc = getBucketContainer(bucketId);
+			res = bc.exists(b, object);
 			return res;
 	}
 
 	@Override
-	public void close() throws OBException {
-		// save remaining updates in the cache.
-		if(bucketContainerCache != null){
-			this.bucketContainerCache.clearAll();
-		}
+	public void close() throws OBException {		
 		if (Buckets != null) {
 			Buckets.close();
 		}
@@ -223,7 +202,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		StaticBin1D s = new StaticBin1D();
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
-			BC bc = this.bucketContainerCache.get(t.getKey());
+			BC bc = getBucketContainer(t.getKey());
 			s.add(bc.size());
 		} // add exlucion
 		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
@@ -237,18 +216,12 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		res.setStatus(Status.OK);
 		B b = getBucket(object);
 		byte[] bucketId = getAddress(b);
-		BC bc = this.bucketContainerCache.get(bucketId);
+		BC bc = getBucketContainer(bucketId);
 		if (bc == null) {
 			res.setStatus(Status.NOT_EXISTS);
 		} else {
 			res = bc.delete(b, object);
-			// remove bucket from DB if it reaches 0.
-			if(bc.size() == 0){
-				Buckets.delete(bucketId);
-				this.bucketContainerCache.remove(bucketId);
-			}else{
-				putBucket(bucketId, bc);
-			}
+			
 		}
 
 		return res;
@@ -276,14 +249,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	
 	
 
-	/**
-	 * @param bucket
-	 */
-	protected void putBucket(byte[] bucketId, BC bc) throws OBStorageException,
-			IllegalIdException, IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
-		Buckets.put(bucketId, bc.getBytes());
-	}
+	
 
 	/**
 	 * Get a bucket container from the given data.
@@ -305,33 +271,6 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 				+ "\n";
 	}
 
-	/**
-	 * Class in charge of loading a Bucket Container from an stream of bytes.
-	 */
-	public class BucketLoader implements OBCacheHandlerByteArray<BC> {
-
-		public long getDBSize() throws OBStorageException {
-			return (int) A.size();
-		}
-
-		public BC loadObject(byte[] i) throws OutOfRangeException, OBException,
-				InstantiationException, IllegalAccessException {
-			ByteBuffer data = Buckets.getValue(i);
-			if (data == null) {
-				return null;
-			} else {
-				return instantiateBucketContainer(data, i);
-			}
-
-		}
-
-		@Override
-		public void store(byte[] key, BC object) throws OBException {			
-			Buckets.put(key, object.getBytes());			
-		}
-		
-		
-
-	}
+	
 
 }

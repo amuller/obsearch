@@ -28,6 +28,9 @@ import java.nio.ByteBuffer;
 import net.obsearch.Index;
 import net.obsearch.ob.OB${Type};
 import java.lang.reflect.Array;
+import net.obsearch.storage.OBStore${Type};
+import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.OBStore;
 /** 
 	*  BucketContainer is a dummy class that is used to directly
   *  inherit the functionality from AbstractBucketContainer${Type}.
@@ -38,8 +41,8 @@ import java.lang.reflect.Array;
 
 public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketContainer${Type}<O, BucketObject${Type}>{
 
-	public BucketContainer${Type}(Index<O> index, ByteBuffer data, int pivots) {
-		super(index, data, pivots);
+	public BucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key) {
+			super(index, pivots, storage, key);
 		
 	}
 	
