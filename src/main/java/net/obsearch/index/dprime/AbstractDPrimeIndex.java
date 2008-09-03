@@ -99,20 +99,11 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	// protected ArrayList< SimpleBloomFilter<Long>> filter;
 	protected ArrayList<HashSet<Long>> filter;
 
-	/**
-	 * We store the buckets in this storage device.
-	 */
-	protected transient OBStoreLong Buckets;
+	
 
-	/**
-	 * Cache used for storing recently accessed Buckets.
-	 */
-	protected transient OBCacheLong<BC> bucketContainerCache;
+	
 
-	/**
-	 * Masks used to speedup the generation of hash table codes.
-	 */
-	protected long[] masks;
+	
 
 	/**
 	 * Accumulated pivots per level (2 ^ pivots per level) so that we can
@@ -147,21 +138,9 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 	public void init(OBStoreFactory fact) throws OBStorageException, OBException, InstantiationException, IllegalAccessException {
 		super.init(fact);
-		this.Buckets = fact.createOBStoreLong("Buckets", false, false);
-		if (this.bucketContainerCache == null) {
-			this.bucketContainerCache = new OBCacheLong<BC>(new BucketLoader(),OBSearchProperties.getBucketsCacheSize() );
-		}
 		
-		// initialize the masks;
-		int i = 0;
-		long mask = 1;
-		this.masks = new long[64];
-		while (i < 64) {
-			logger.debug(Long.toBinaryString(mask));
-			masks[i] = mask;
-			mask = mask << 1;
-			i++;
-		}
+		
+		
 
 	}
 
@@ -227,35 +206,13 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			B b = getBucket(o);
 			updateProbabilities(b);
 			b.setId(idMap(i, elementsSource));
-			// insertBucket(b, o);
-			long bucketId = getBucketId(b);
-			java.util.List<B> l = buckets.get(bucketId);
-			if (l == null) {
-				l = new LinkedList<B>();
-				buckets.put(bucketId, l);
-			}
-			l.add(b);
-			if (logger.isDebugEnabled() && (i % 10000 == 0)) {
-				logger.debug("Inserted: " + i);
-				bucketStats();
-			}
-			insertedObjects++;
-			// BC bc = this.bucketContainerCache.get(getBucketStorageId(b));
-			// assert bc.exists(b, o).getStatus() ==
-			// OperationStatus.Status.EXISTS;
-			if (maxBucketSize < l.size()) {
-				maxBucketSize = l.size();
-			}
-
+			this.insertBucket(b, o);			
 			i++;
 		}
 
 		normalizeProbs();
 
-		// insert the buckets.
-		for (java.util.List<B> l : buckets.values()) {
-			insertBuckets(l);
-		}
+		
 		
 		this.bucketContainerCache.clearAll();
 		bucketStats();
@@ -273,21 +230,9 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 * @param b The bucket that will be processed.
 	 * @return The bucket id of b.
 	 */
-	protected abstract long getBucketId(B b);
+	protected abstract BigInteger getBucketId(B b);
 	
-	protected void bucketStats() throws OBStorageException, IllegalIdException,
-			IllegalAccessException, InstantiationException, OBException {
-
-		CloseIterator<TupleLong> it = Buckets.processAll();
-		StaticBin1D s = new StaticBin1D();
-		while (it.hasNext()) {
-			TupleLong t = it.next();
-			BC bc = this.bucketContainerCache.get(t.getKey());
-			s.add(bc.size());
-		} // add exlucion
-		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
-		it.closeCursor();
-	}
+	
 
 	/**
 	 * Updates probability information.
@@ -333,10 +278,10 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		// get the bucket id.
-		long bucketId = getBucketId(b);
+		BigInteger bucketId = getBucketId(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-		BC bc = this.bucketContainerCache.get(bucketId);
+		BC bc = this.bucketContainerCache.get(bucketId.toByteArray());
 		if (bc == null) { // it was just created for the first
 			// time.
 			bc = instantiateBucketContainer(null);
@@ -354,8 +299,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 				assert bc.getPivots() == b.getPivotSize() : "BC: "
 						+ bc.getPivots() + " b: " + b.getPivotSize();
 				bc.insert(b, object);
-				putBucket(bucketId, bc);
-				res.setStatus(Status.OK);
 			}
 		}
 		return res;
@@ -370,48 +313,12 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected abstract BC instantiateBucketContainer(ByteBuffer data);
 
-	private OperationStatus insertBuckets(java.util.List<B> b)
-			throws OBStorageException, IllegalIdException,
-			IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
+	
 
-		// get the bucket id.
-		long bucketId = getBucketId(b.get(0));
-		// if the bucket is the exclusion bucket
-		// get the bucket container from the cache.
-		BC bc = this.bucketContainerCache.get(bucketId);
-		if (bc == null) { // it was just created for the first
-			// time.
-			bc = instantiateBucketContainer(null);
-			bc.bulkInsert(b);
-			bc.setPivots(super.getPivotCount());
-			updateFilters(bucketId);
-		} else {
-			assert bc.getPivots() == b.get(0).getPivotSize() : " Pivot size: "
-					+ bc.getPivots() + " b pivot size: "
-					+ b.get(0).getPivotSize();
-		}
-		OperationStatus res = new OperationStatus();
-
-		bc.bulkInsert(b);
-		putBucket(bucketId, bc);
-		res.setStatus(Status.OK);
-
-		return res;
-	}
-
-	/**
-	 * @param bucket
-	 */
-	private void putBucket(long bucketId, BC bc) throws OBStorageException,
-			IllegalIdException, IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
-
-		Buckets.put(bucketId, bc.getBytes());
-	}
+	
 
 	/** updates the bucket identification filters */
-	private void updateFilters(long x) {
+	private void updateFilters(BigInteger x) {
 		String s = Long.toBinaryString(x);
 		int max = s.length();
 		int i = s.length() - 1;
@@ -445,25 +352,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		return res;
 	}
 
-	public OperationStatus deleteAux(O object) throws OBException,
-			IllegalAccessException, InstantiationException {
-		
-		OperationStatus res = new OperationStatus();
-		res.setStatus(Status.OK);
-		B b = getBucket(object);
-		long bucketId = getBucketId(b);
-		BC bc = this.bucketContainerCache.get(bucketId);
-		if (bc == null) { 
-			res.setStatus(Status.NOT_EXISTS);
-		}else{
-			res = bc.delete(b, object);
-			if(bc.size() > 0){
-				putBucket(bucketId, bc);
-			}
-		}
-		return res;
-	}
-
+	
 	
 
 	public Statistics getStats() throws OBStorageException{
@@ -472,31 +361,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 	
 
-	private class BucketLoader implements OBCacheHandlerLong<BC> {
-
-		public long getDBSize() throws OBStorageException {
-			return (int) A.size();
-		}
-
-		public BC loadObject(long i) throws OutOfRangeException, OBException,
-				InstantiationException, IllegalAccessException {
-			ByteBuffer data = Buckets.getValue(i);
-			if (data == null) {
-				return null;
-			} else {
-				return instantiateBucketContainer(data);
-			}
-
-		}
-
-		@Override
-		public void store(long key, BC object) throws OBException {
-			// nothing to do for now.
-			
-		}
-		
-		
-
-	}
+	
 
 }

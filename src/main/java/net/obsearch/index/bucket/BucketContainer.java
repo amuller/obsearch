@@ -92,18 +92,7 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 			) throws OBException, IllegalIdException,
 			IllegalAccessException, InstantiationException;
 
-	/**
-	 * Inserts the given list of buckets into this bucket.
-	 * 
-	 * @param bucket
-	 * @throws OBException
-	 * @throws DatabaseException
-	 * @throws IllegalIdException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 */
-	void bulkInsert(List<B> bucket) throws OBException, IllegalIdException,
-			IllegalAccessException, InstantiationException;
+	
 
 	/**
 	 * Returns true if the object and its bucket definition exist in this
@@ -126,13 +115,23 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	OperationStatus exists(B bucket, O object) throws OBException,
 			IllegalIdException, IllegalAccessException, InstantiationException;
 
-	/**
-	 * Get the byte representation of this bucket.
-	 * 
-	 * @return
-	 */
-	ByteBuffer getBytes();
 	
+	/**
+	 * Match the given query and bucket but only for one record found in b.		
+	 * 
+	 * @param query
+	 *            The search parameters (range, priority queue with the closest
+	 *            elements)
+	 * @param bucket
+	 *            The object of the given object.
+	 * @param object
+	 *            The object that will be searched.
+	 * @param filter Filter to be employed.
+	 * @return # of distance computations executed.
+	 */
+	long search(Q query, B bucket, IntegerHolder smapCount, IntegerHolder dataRead, Filter<O> filter, ByteBuffer b) throws IllegalAccessException,
+	DatabaseException, OBException, InstantiationException,
+	IllegalIdException;
 	
 	
 
@@ -150,7 +149,7 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 * @param filter Filter to be employed.
 	 * @return # of distance computations executed.
 	 */
-	long search(Q query, B bucket, IntegerHolder smapCount, Filter<O> filter) throws IllegalAccessException,
+	long search(Q query, B bucket, IntegerHolder smapCount, IntegerHolder dataRead, Filter<O> filter) throws IllegalAccessException,
 			DatabaseException, OBException, InstantiationException,
 			IllegalIdException;
 
@@ -159,7 +158,7 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 * 
 	 * @return The # of objects in this container.
 	 */
-	int size();
+	int size() throws OBException;
 
 	/**
 	 * # of pivots for this container.
@@ -173,13 +172,5 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 */
 	void setPivots(int pivots);
 
-	/**
-	 * Returns true if an {@link #insert(BucketObject)} or
-	 * {@link #delete(BucketObject, OB)} occurred after the last
-	 * {@link #getBytes()} call.
-	 * @return true if an {@link #insert(BucketObject)} or
-	 * {@link #delete(BucketObject, OB)} occurred after the last
-	 * {@link #getBytes()} call.
-	 */
-	boolean isModified();
+	
 }

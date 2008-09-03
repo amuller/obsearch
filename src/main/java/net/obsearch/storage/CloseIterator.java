@@ -15,4 +15,5 @@ public interface CloseIterator<O> extends Iterator<O> {
     
    void closeCursor() throws OBException;
     
+      
 }
