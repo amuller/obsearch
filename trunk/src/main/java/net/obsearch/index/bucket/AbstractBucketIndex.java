@@ -28,6 +28,7 @@ import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.stats.Statistics;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStore;
+import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
 
 public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
@@ -40,8 +41,6 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * We store the buckets in this storage device.
 	 */
 	protected transient OBStore<TupleBytes> Buckets;
-
-	
 
 	public AbstractBucketIndex(Class<O> type,
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount)
@@ -65,8 +64,6 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			return elementSource.get((int) id);
 		}
 	}
-
-	
 
 	/**
 	 * Auxiliary function used in freeze to get objects directly from the DB, or
@@ -99,7 +96,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected void initByteArrayBuckets() throws OBException {
 		this.Buckets = fact.createOBStore("Buckets_byte_array", false, true);
-		
+
+	}
+
+	public void init(OBStoreFactory fact) throws OBStorageException,
+			OBException, InstantiationException, IllegalAccessException {
+		super.init(fact);
+		initByteArrayBuckets();
 	}
 
 	/**
@@ -122,25 +125,28 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		byte[] bucketId = getAddress(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-		
+
 		BC bc = getBucketContainer(bucketId);
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
-			res = bc.insert(b, object);			
+			res = bc.insert(b, object);
 		}
 		return res;
 	}
 	
-	private BC getBucketContainer(byte[] id){
+	
+
+	private BC getBucketContainer(byte[] id) {
 		BC bc = instantiateBucketContainer(null, id);
 		return bc;
 	}
-	
+
 	/**
 	 * Stores the given bucket b into the {@link #Buckets} storage device. The
 	 * given bucket b should have been returned by {@link #getBucket(OB, int)}
-	 * No checks are performed, we simply add the objects believing they
-	 * are unique.
+	 * No checks are performed, we simply add the objects believing they are
+	 * unique.
+	 * 
 	 * @param b
 	 *            The bucket in which we will insert the object.
 	 * @param object
@@ -158,28 +164,27 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = getBucketContainer(bucketId);
-		
+
 		OperationStatus res = new OperationStatus();
 		synchronized (bc) {
-			res = bc.insertBulk(b, object);			
+			res = bc.insertBulk(b, object);
 		}
 		return res;
 	}
-	
 
 	public OperationStatus exists(O object) throws OBException,
 			IllegalAccessException, InstantiationException {
-			OperationStatus res = new OperationStatus();
-			res.setStatus(Status.NOT_EXISTS);
-			B b = getBucket(object);
-			byte[] bucketId = getAddress(b);
-			BC bc = getBucketContainer(bucketId);
-			res = bc.exists(b, object);
-			return res;
+		OperationStatus res = new OperationStatus();
+		res.setStatus(Status.NOT_EXISTS);
+		B b = getBucket(object);
+		byte[] bucketId = getAddress(b);
+		BC bc = getBucketContainer(bucketId);
+		res = bc.exists(b, object);
+		return res;
 	}
 
 	@Override
-	public void close() throws OBException {		
+	public void close() throws OBException {
 		if (Buckets != null) {
 			Buckets.close();
 		}
@@ -221,7 +226,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			res.setStatus(Status.NOT_EXISTS);
 		} else {
 			res = bc.delete(b, object);
-			
+
 		}
 
 		return res;
@@ -239,17 +244,20 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		res.setId(id);
 		return res;
 	}
-	
+
 	@Override
 	public OperationStatus insertAuxBulk(long id, O object) throws OBException,
 			IllegalAccessException, InstantiationException {
 
-		return insertAux(id, object);
+		OperationStatus res = new OperationStatus();
+		res.setStatus(Status.OK);
+		B b = getBucket(object);
+		b.setId(id);
+		res = this.insertBucketBulk(b, object);
+		res.setId(id);
+		return res;
+		
 	}
-	
-	
-
-	
 
 	/**
 	 * Get a bucket container from the given data.
@@ -270,7 +278,5 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		return b.toString() + "\naddr:\n " + Arrays.toString(getAddress(b))
 				+ "\n";
 	}
-
-	
 
 }

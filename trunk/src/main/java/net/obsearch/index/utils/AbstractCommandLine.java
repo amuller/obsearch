@@ -155,7 +155,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected void create() throws IOException, OBStorageException,
 			OBException, DatabaseException, InstantiationException,
 			IllegalAccessException {
-		OBAsserts.chkFileNotExists(databaseFolder);
+		//OBAsserts.chkFileNotExists(databaseFolder);
 		OBAsserts.chkFileExists(load);
 
 		A ambiente = instantiateNewAmbient(databaseFolder);
