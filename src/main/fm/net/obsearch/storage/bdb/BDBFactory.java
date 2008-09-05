@@ -45,6 +45,7 @@ import com.sleepycat.bind.tuple.*;
 import com.sleepycat.je.DatabaseEntry;
 
 import java.io.File;
+import org.apache.log4j.Logger;
 
 /**
  * BDBFactory generates an environment in the given directory, and creates
@@ -53,6 +54,12 @@ import java.io.File;
  */
 
 public class BDBFactory implements OBStoreFactory {
+
+		/**
+		 * Logger.
+		 */
+		private static final transient Logger logger = Logger
+			.getLogger(BDBFactory.class);
 
     /**
      * The environment.
@@ -71,6 +78,12 @@ public class BDBFactory implements OBStoreFactory {
         OBAsserts.chkFileExists(directory);
         EnvironmentConfig envConfig = createEnvConfig();
         env = new Environment(directory, envConfig);
+				if(logger.isDebugEnabled()){
+								logger.debug("Environment config: \n" + env.getConfig().toString());
+								logger.debug("Buffer size " + env.getConfig().getConfigParam("je.log.bufferSize"));
+								logger.debug("Cache % " + env.getConfig().getConfigParam("je.maxMemoryPercent"));
+								
+				}
     }
     
     /**

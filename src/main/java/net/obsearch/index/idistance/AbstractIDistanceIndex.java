@@ -53,11 +53,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 		super(type, pivotSelector, pivotCount);
 	}
 
-	public void init(OBStoreFactory fact) throws OBStorageException,
-			OBException, InstantiationException, IllegalAccessException {
-		super.init(fact);
-		super.initByteArrayBuckets();
-	}
+	
 
 	public void freeze() throws IOException, AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
@@ -70,9 +66,9 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 		while (it.hasNext()) {
 			TupleLong t = it.next();
 			O o = getObjectFreeze(t.getKey(), null);
-			if(i % 10000 == 0){
+			if(i % 100000 == 0){
 				logger.info("Insert after freeze: " + i);
-				//logger.info(getStats().toString());
+				logger.info(getStats().toString());
 			}
 			insertAux(t.getKey(), o);
 			i++;
