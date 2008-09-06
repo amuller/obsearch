@@ -70,7 +70,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 				logger.info("Insert after freeze: " + i);
 				logger.info(getStats().toString());
 			}
-			insertAux(t.getKey(), o);
+			insertAuxBulk(t.getKey(), o);
 			i++;
 		}
 		it.closeCursor();		
