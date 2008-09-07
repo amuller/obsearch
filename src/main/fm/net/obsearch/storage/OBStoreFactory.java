@@ -40,10 +40,11 @@ public interface OBStoreFactory {
      *                database.
      * @param name The name of the database.
 		 * @param duplicates If duplicates are to be allowed.
+		 * @param bulkMode If we want the storage to be faster for lots of insertions.
      * @return An OBStore ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException;
+    OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException;
     
 		/**
      * Removes all indexes and structures related to the given storage device.
@@ -62,10 +63,11 @@ public interface OBStoreFactory {
      *                If true, the database will be configured to be a temporal
      *                database.
      * @param duplicates If duplicates are to be allowed.
+		 * @param bulkMode If we want the storage to be faster for lots of insertions.
      * @return An OBStore${Type} ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException;	
+				OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException;	
 
 
 		

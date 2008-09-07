@@ -47,8 +47,9 @@ public abstract class AbstractNewLineBytesCommandLine<O extends OB, I extends In
 				index.insert(o);
 			}
 			res = read(line, r);
-			if(i % 10000 == 0){
+			if(i % 100000 == 0){
 				logger.info("Loading: " + i);
+				logger.info(index.getStats().toString());
 			}
 			i++;
 		}

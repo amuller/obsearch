@@ -133,9 +133,9 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             OBException, NotFrozenException, IllegalAccessException,
             InstantiationException, OBException {
         super.init(fact);
-        this.C = fact.createOBStoreDouble("C", false, true);
+        this.C = fact.createOBStoreDouble("C", false, true, ! isFrozen());
         if (!this.isFrozen()) {
-            this.B = fact.createOBStoreLong("B", true, false);
+            this.B = fact.createOBStoreLong("B", true, false,false);
         }
 
     }

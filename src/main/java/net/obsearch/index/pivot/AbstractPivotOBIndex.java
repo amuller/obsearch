@@ -62,6 +62,8 @@ import net.obsearch.pivots.PivotResult;
  */
 public abstract class AbstractPivotOBIndex < O extends OB >
         extends AbstractOBIndex < O > {
+	
+	private static int MAX_PIVOT_SAMPLE = 500000;
     
     /**
      * Logger.
@@ -119,11 +121,13 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
     	OBAsserts.chkAssert(A.size() <= Integer.MAX_VALUE, "Cannot accept more than " + Integer.MAX_VALUE + " on freeze");
-        LongArrayList elementsSource = new LongArrayList((int)A.size());
+        LongArrayList elementsSource = new LongArrayList(Math.min( (int)A.size(), MAX_PIVOT_SAMPLE));
         CloseIterator<TupleLong> it = A.processAll();
-        while(it.hasNext()){
+        int i = 0;
+        while(it.hasNext() && i < MAX_PIVOT_SAMPLE){
         	TupleLong t = it.next();
         	elementsSource.add(t.getKey());
+        	i++;
         }
         it.closeCursor();
         try{
