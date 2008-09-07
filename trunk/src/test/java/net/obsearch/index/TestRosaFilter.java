@@ -56,7 +56,7 @@ public class TestRosaFilter
      * Logger.
      */
     private static transient final Logger logger = Logger
-            .getLogger(TestDPrimeIndex.class);
+            .getLogger(TestRosaFilter.class);
 
     /**
      * Tests on the P+Tree.

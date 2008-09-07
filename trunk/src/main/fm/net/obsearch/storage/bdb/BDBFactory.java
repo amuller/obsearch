@@ -119,13 +119,17 @@ public class BDBFactory implements OBStoreFactory {
         }
     }
 
-    public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates) throws OBStorageException{       
+    public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException{       
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-				
+				  dbConfig.setKeyPrefixing(true);
 					dbConfig.setSortedDuplicates(duplicates);								
-					dbConfig.setTemporary(temp);
 					dbConfig.setTransactional(false);
+						if(bulkMode){
+										dbConfig.setDeferredWrite(bulkMode);
+								}else{
+										dbConfig.setTemporary(temp);
+								}
         try{
             res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
         }catch(DatabaseException e){
@@ -173,14 +177,19 @@ public class BDBFactory implements OBStoreFactory {
 				
 				
 
-				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates) throws OBStorageException{
+				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException{
         
         OBStore${Type} res = null;
         try{
             DatabaseConfig dbConfig = createDefaultDatabaseConfig();
 						
 								dbConfig.setSortedDuplicates(duplicates);
-								dbConfig.setTemporary(temp);
+								// bulk mode has priority over deferred write.
+								if(bulkMode){
+										dbConfig.setDeferredWrite(bulkMode);
+								}else{
+										dbConfig.setTemporary(temp);
+								}
             res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name), dbConfig));
         }catch(DatabaseException e){
             throw new OBStorageException(e);

@@ -178,9 +178,9 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 *             If the storage device could not be created.
 	 */
 	protected void initStorageDevices() throws OBStorageException {
-		this.A = fact.createOBStoreLong("A", false, false);
+		this.A = fact.createOBStoreLong("A", false, false, ! isFrozen());
 		if (!this.isFrozen()) {
-			this.preFreeze = fact.createOBStore("pre", true, false);
+			this.preFreeze = fact.createOBStore("pre", true, false, false);
 		}
 	}
 
@@ -276,9 +276,9 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	@Override
 	public void close() throws OBException {
 		A.close();
-		// if (this.preFreeze != null) {
-		// preFreeze.close();
-		// }
+		 if (this.preFreeze != null) {
+			 preFreeze.close();
+		 }
 		fact.close();
 	}
 

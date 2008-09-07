@@ -95,7 +95,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @throws OBException
 	 */
 	protected void initByteArrayBuckets() throws OBException {
-		this.Buckets = fact.createOBStore("Buckets_byte_array", false, true);
+		this.Buckets = fact.createOBStore("Buckets_byte_array", false, true, ! isFrozen());
 
 	}
 

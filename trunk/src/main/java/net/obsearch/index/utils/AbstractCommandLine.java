@@ -69,7 +69,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	public void initProperties() throws IOException {
 
 		InputStream is = this.getClass().getResourceAsStream(
-				File.separator + "application.properties");
+				File.separator + "obsearch.properties");
 		props = new Properties();
 		props.load(is);
 		// configure log4j only once too
@@ -163,10 +163,14 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 
 		logger.info("Loading Data...");
 		addObjects(index, load);
-
+		/*logger.info("Closing...");
+		ambiente.close();
+		logger.info("Re-opening...");
+		ambiente = instantiateNewAmbient(databaseFolder);*/
+		logger.info("Freezing...");
 		ambiente.freeze();
 
-		logger.info(index.getStats());
+		logger.info(ambiente.getIndex().getStats());
 		ambiente.close();
 	}
 
