@@ -182,7 +182,7 @@ public class BDBFactory implements OBStoreFactory {
         OBStore${Type} res = null;
         try{
             DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-						
+						dbConfig.setNodeMaxDupTreeEntries(50000);
 								dbConfig.setSortedDuplicates(duplicates);
 								// bulk mode has priority over deferred write.
 								if(bulkMode){
