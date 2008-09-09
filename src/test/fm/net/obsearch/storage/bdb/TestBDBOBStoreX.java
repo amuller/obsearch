@@ -1,8 +1,11 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#include "/@inc/bdb.ftl">
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<@pp.changeOutputFile name="TestBDBOBStore"+Type+".java" />
+<#list bdbs as b>
+<@type_info_bdb b=b/>
+<@type_info t=t/>
+<@pp.changeOutputFile name="TestBDBOBStore${Bdb}${Type}.java" />
 package net.obsearch.storage.bdb;
 
 import java.io.File;
@@ -38,7 +41,7 @@ import org.junit.Test;
 	*  
   *  @author      Arnoldo Jose Muller Molina    
   */
-public class TestBDBOBStore${Type} extends TestCase{
+public class TestBDBOBStore${Bdb}${Type} extends TestCase{
 
     @Before
     public void setUp() throws Exception {
@@ -47,12 +50,12 @@ public class TestBDBOBStore${Type} extends TestCase{
     @Test
     public void testAll() throws Exception{
         
-        BDBFactory fact = Utils.getFactory();
-        StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}", false,false, false));
-				StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}", false,false, true));
-
-				StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}", true,false, false));
+        BDBFactory${Bdb} fact = Utils.getFactory${Bdb}();
+        StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}1", false,false, false));
+				StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}2", false,false, true));
+				StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}3", true,false, false));
     }
 
 }
+</#list>
 </#list>

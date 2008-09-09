@@ -1,3 +1,8 @@
+<@pp.dropOutputFile />
+<#include "/@inc/bdb.ftl">
+<#list bdbs as b>
+<@type_info_bdb b=b/>
+<@pp.changeOutputFile name="AbstractBDBOBStore${Bdb}.java" />
 package net.obsearch.storage.bdb;
 
 import hep.aida.bin.StaticBin1D;
@@ -15,17 +20,22 @@ import net.obsearch.storage.OBStore;
 import net.obsearch.storage.Tuple;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteConversion;
+import net.obsearch.storage.OBStoreFactory;
 
-import com.sleepycat.bind.tuple.SortedDoubleBinding;
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Sequence;
-import com.sleepycat.je.SequenceConfig;
+import com.sleepycat.${bdb}.Cursor;
+import com.sleepycat.${bdb}.CursorConfig;
+import com.sleepycat.${bdb}.Database;
+import com.sleepycat.${bdb}.DatabaseEntry;
+import com.sleepycat.${bdb}.DatabaseException;
+import com.sleepycat.${bdb}.LockMode;
+import com.sleepycat.${bdb}.OperationStatus;
+import com.sleepycat.${bdb}.Sequence;
+import com.sleepycat.${bdb}.SequenceConfig;
+<#if bdb = "db">
+import com.sleepycat.db.BtreeStats;
+import com.sleepycat.db.HashStats;
+import com.sleepycat.db.StatsConfig;
+</#if>
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -53,7 +63,7 @@ import com.sleepycat.je.SequenceConfig;
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> {
+public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBStore<T> {
 
 	private static ByteArrayComparator comp = new ByteArrayComparator();
 
@@ -85,6 +95,11 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 	private boolean duplicates;
 
 	/**
+	 * Factory of this storage device.
+	 */
+	private OBStoreFactory fact;
+
+	/**
 	 * Builds a new Storage system by receiving a Berkeley DB database.
 	 * 
 	 * @param db
@@ -96,12 +111,13 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 	 * @throws DatabaseException
 	 *             if something goes wrong with the database.
 	 */
-	public AbstractBDBOBStore(String name, Database db, Database sequences)
+	public AbstractBDBOBStore${Bdb}(String name, Database db, Database sequences, OBStoreFactory fact, boolean duplicates)
 			throws DatabaseException {
 		this.db = db;
 		this.name = name;
-		this.duplicates = db.getConfig().getSortedDuplicates();
+		this.duplicates = duplicates;
 		this.sequence = sequences;
+		this.fact =fact;
 		// initialize sequences
 		SequenceConfig config = new SequenceConfig();
 		config.setAllowCreate(true);
@@ -111,8 +127,15 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 		}
 	}
 
+	public OBStoreFactory getFactory(){
+			return fact;
+	}
+
 	public void close() throws OBStorageException {
-		try {
+			try {
+						<#if bdb = "bdb">
+  					 db.compact(null,null,null,null);
+						</#if>
 			db.close();
 			sequence.close();
 		} catch (DatabaseException d) {
@@ -142,8 +165,12 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 
 	public void deleteAll() throws OBStorageException {
 		try {
+				<#if bdb = "je">
 			db.getEnvironment().truncateDatabase(null, name,
 					false);
+				<#else>
+						 db.truncate(null, false);
+				</#if>
 		} catch (DatabaseException d) {
 			throw new OBStorageException(d);
 		}
@@ -161,7 +188,10 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 		DatabaseEntry search = new DatabaseEntry(key);
 		DatabaseEntry value = new DatabaseEntry();
 		try {
-			OperationStatus res = db.get(null, search, value, LockMode.READ_UNCOMMITTED);
+      
+
+			OperationStatus res = db.get(null, search, value, <@lock/>);
+
 			if (res == OperationStatus.SUCCESS) {
 				if (this.stats != null) {
 					stats.add(value.getData().length);
@@ -179,9 +209,10 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 			throws OBStorageException {
 
 		DatabaseEntry k = new DatabaseEntry(key);
-		DatabaseEntry v = new DatabaseEntry(value.array());
+		
 		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
 		try {
+				DatabaseEntry v = new DatabaseEntry(value.array());
 			OperationStatus r = db.put(null, k, v);
 			if (r == OperationStatus.SUCCESS) {
 				res.setStatus(Status.OK);
@@ -277,19 +308,20 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				this.current = min;
 			}
 			try {
-				CursorConfig config = new CursorConfig();
-				config.setReadUncommitted(true);
-				this.cursor = db.openCursor(null, config);
+				this.cursor = db.openCursor(null, CursorConfig.READ_UNCOMMITTED);
+
+				
 				keyEntry.setData(current);
 				if (!full) {
 					retVal = cursor
-							.getSearchKeyRange(keyEntry, dataEntry, null);
+							.getSearchKeyRange(keyEntry, dataEntry,<@lock/> );
 				} else {
 					if (backwardsMode) {
-						retVal = cursor.getLast(keyEntry, dataEntry, null);
+						retVal = cursor.getLast(keyEntry, dataEntry, <@lock/>);
 					} else {
-						retVal = cursor.getFirst(keyEntry, dataEntry, null);
+						retVal = cursor.getFirst(keyEntry, dataEntry, <@lock/>);
 					}
+
 				}
 
 			} catch (DatabaseException e) {
@@ -312,6 +344,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				current = keyEntry.getData();
 
 				int c = -1; // full mode
+				
 				if (!full) {
 					if (this.backwardsMode) {
 						c = comp.compare(current, min);
@@ -322,7 +355,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				if (backwardsMode) {
 					if (c >= 0) {
 						next = createTuple(current, ByteConversion
-								.createByteBuffer(dataEntry.getData()));
+															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
 						next = null;
@@ -333,7 +366,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				} else {
 					if (c <= 0) {
 						next = createTuple(current, ByteConversion
-								.createByteBuffer(dataEntry.getData()));
+															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
 						next = null;
@@ -370,10 +403,11 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				try {
 					prevKeyEntry = keyEntry;
 					prevDataEntry = dataEntry;
+					dataEntry = new DatabaseEntry();
 					if(backwardsMode){
-						retVal = cursor.getPrev(keyEntry, dataEntry, null);
+						retVal = cursor.getPrev(keyEntry, dataEntry, <@lock/>);
 					}else{
-						retVal = cursor.getNext(keyEntry, dataEntry, null);
+						retVal = cursor.getNext(keyEntry, dataEntry, <@lock/> );
 					}
 					
 				} catch (DatabaseException e) {
@@ -400,9 +434,6 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 			}
 		}
 
-		/**
-		 * Currently not supported. To be supported in the future.
-		 */
 		public void remove() {
 			try {
 				if(backwardsMode){
@@ -413,8 +444,13 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 				// dataEntry, null);
 				// double x = SortedDoubleBinding.entryToDouble(keyEntry);
 				if (this.retVal != OperationStatus.SUCCESS) {
-					Cursor c = db.openCursor(null, null);
-					ret = c.getLast(keyEntry, dataEntry, null);
+						try{
+					closeCursor();
+						}catch(OBException e){
+								throw new IllegalArgumentException(e);
+						}
+					Cursor c = db.openCursor(null, CursorConfig.READ_UNCOMMITTED );
+					ret = c.getLast(keyEntry, dataEntry, <@lock/>);
 					if (ret != OperationStatus.SUCCESS) {
 						throw new NoSuchElementException();
 					}
@@ -422,7 +458,7 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 					c.close();
 				} else {
 
-					ret = cursor.getPrev(keyEntry, dataEntry, null);
+					ret = cursor.getPrev(keyEntry, dataEntry, <@lock/>);
 					if (ret != OperationStatus.SUCCESS) {
 						throw new NoSuchElementException();
 					}
@@ -447,13 +483,22 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 
 	public long size() throws OBStorageException {
 		long res;
-
+		
 		try {
-			res = db.count();
+				 <#if bdb = "je">
+				 res = db.count();
+				 <#else>
+				 	StatsConfig conf = new StatsConfig();
+		conf.setFast(false);
+		//res = ((BtreeStats)db.getStats(null, conf)).getNumData();
+		res = ((HashStats)db.getStats(null, conf)).getNumData();
+		</#if>
 		} catch (DatabaseException e) {
 			throw new OBStorageException(e);
 		}
 		return res;
+		
+	
 	}
 
 	/**
@@ -513,3 +558,5 @@ public abstract class AbstractBDBOBStore<T extends Tuple> implements OBStore<T> 
 	}
 
 }
+
+</#list>

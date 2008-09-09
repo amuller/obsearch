@@ -14,9 +14,9 @@ import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
+import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 
-import net.obsearch.storage.bdb.BDBFactory;
 import org.apache.log4j.Logger;
 import junit.framework.TestCase;
 
@@ -64,7 +64,7 @@ public class TestExtentedPyramidIndex
                 100, 100);
     	
     	//IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)12);
-        BDBFactory fact = Utils.getFactory();
+        BDBFactoryJe fact = Utils.getFactoryJe();
         
         ExtendedPyramidIndexShort<OBSlice> d = new ExtendedPyramidIndexShort<OBSlice>(OBSlice.class, sel, 64, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2) );
         d.init(fact);

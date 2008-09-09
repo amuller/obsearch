@@ -113,8 +113,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	protected byte[] getAddress(BucketObject${Type} bucket) {
 
 		${type}[] smap = bucket.getSmapVector();
-		int i = 0;
-		int iMin = -1;
+		assert smap.length <= Short.MAX_VALUE;
+	  short i = 0;
+		short iMin = -1;
 		${type} minValue = ${ClassType}.MAX_VALUE;
 		while (i < smap.length) {
 			if (smap[i] < minValue) {
@@ -127,8 +128,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		return buildKey(iMin, minValue);
 	}
 
-	private byte[] buildKey(int i, ${type} value) {
-			byte[] pivotId = fact.serializeInt(i);
+	private byte[] buildKey(short i, ${type} value) {
+			byte[] pivotId = fact.serializeShort(i);
       byte[] v = fact.serialize${Type}(value);
 		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(pivotId.length + v.length);
 		buf.put(pivotId);
@@ -243,9 +244,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			${type} center = s.getValue();
 			${type} low = q.getLow()[s.getOrder()];
 			${type} high = q.getHigh()[s.getOrder()];
-			centerKey = buildKey(s.getOrder(), center);
-			lowKey = buildKey(s.getOrder(), low);
-			highKey = buildKey(s.getOrder(), high);
+			centerKey = buildKey((short)s.getOrder(), center);
+			lowKey = buildKey((short)s.getOrder(), low);
+			highKey = buildKey((short)s.getOrder(), high);
 			this.lastRange = q.getDistance();
 		}
 

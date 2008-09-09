@@ -19,7 +19,7 @@ import net.obsearch.index.pyramid.AbstractExtendedPyramidIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.TupleBytes;
-import net.obsearch.storage.bdb.AbstractBDBOBStore;
+
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 
 import net.obsearch.index.IndexShort;

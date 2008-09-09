@@ -205,10 +205,15 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 
 		CloseIterator<TupleBytes> it = Buckets.processAll();
 		StaticBin1D s = new StaticBin1D();
+		byte[] key = null;
+		int counter = 0;
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
-			BC bc = getBucketContainer(t.getKey());
-			s.add(bc.size());
+			if(key != null && ! Arrays.equals(t.getKey(), key)){
+				s.add(counter);
+			}else{
+				counter++;
+			}
 		} // add exlucion
 		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();

@@ -1,3 +1,9 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#include "/@inc/bdb.ftl">
+<#list bdbs as b>
+<@type_info_bdb b=b/>
+<@pp.changeOutputFile name="BDBOBStore${Bdb}ByteArray.java" />
 package net.obsearch.storage.bdb;
 
 import java.util.Iterator;
@@ -5,12 +11,12 @@ import java.util.Iterator;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.TupleBytes;
-import net.obsearch.storage.bdb.AbstractBDBOBStore.ByteArrayIterator;
-import net.obsearch.storage.bdb.AbstractBDBOBStore.CursorIterator;
+import net.obsearch.storage.bdb.AbstractBDBOBStore${Bdb}.ByteArrayIterator;
+import net.obsearch.storage.bdb.AbstractBDBOBStore${Bdb}.CursorIterator;
+import net.obsearch.storage.OBStoreFactory;
 
-
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseException;
+import com.sleepycat.${bdb}.Database;
+import com.sleepycat.${bdb}.DatabaseException;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -37,8 +43,8 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class BDBOBStoreByteArray
-        extends AbstractBDBOBStore < TupleBytes > {
+public class BDBOBStore${Bdb}ByteArray
+																 extends AbstractBDBOBStore${Bdb} < TupleBytes > {
     /**
      * Builds a new Storage system by receiving a Berkeley DB database.
      * @param db
@@ -50,9 +56,9 @@ public class BDBOBStoreByteArray
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStoreByteArray(String name, Database db, Database sequences)
+																		 public BDBOBStore${Bdb}ByteArray(String name, Database db, Database sequences, OBStoreFactory fact )
             throws DatabaseException {
-        super(name, db, sequences);
+																				 super(name, db, sequences,fact);
     }
     
     
@@ -65,3 +71,5 @@ public class BDBOBStoreByteArray
     
 
 }
+
+</#list>

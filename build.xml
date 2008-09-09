@@ -38,8 +38,9 @@
 			<echo>Out: ${out}</echo>
 			<fmpp
               sourceRoot="${in}" outputRoot="${out}"
-              data="types: csv(${defs}/Types.csv)"
-				      excludes="Types.csv"				
+              data="types:csv(${defs}/Types.csv), bdbs:csv(${defs}/BDB.csv)
+"
+				      excludes="Types.csv, BDB.csv"				
               freemarkerlinks="inc: ${defs}/include/"> <!-- Add the library includes -->
      </fmpp>
 		 

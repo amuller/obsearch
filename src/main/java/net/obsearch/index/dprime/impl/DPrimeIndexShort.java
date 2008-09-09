@@ -474,6 +474,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 
 	protected BucketContainerShort<O> instantiateBucketContainer(long id) {
+		
 		return new BucketContainerShort<O>(this, getPivotCount(), Buckets,
 				longToBytes(id));
 	}

@@ -1,3 +1,9 @@
+<@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#include "/@inc/bdb.ftl">
+<#list bdbs as b>
+<@type_info_bdb b=b/>
+<@pp.changeOutputFile name="AmbientBDB${Bdb}.java" />
 package net.obsearch.ambient.bdb;
 
 import java.io.File;
@@ -14,7 +20,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.storage.OBStoreFactory;
-import net.obsearch.storage.bdb.BDBFactory;
+import net.obsearch.storage.bdb.BDBFactory${Bdb};
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -40,12 +46,12 @@ import net.obsearch.storage.bdb.BDBFactory;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbient<O, I>{
+public class AmbientBDB${Bdb}<O extends OB,  I extends Index<O>> extends AbstractAmbient<O, I>{
 
     /**
      * @see net.obsearch.result.ambient.AbstractAmbient#AbstractAmbient(I index, File directory)
      */
-    public AmbientBDB(I index, File directory) throws FileNotFoundException, OBStorageException,
+    public AmbientBDB${Bdb}(I index, File directory) throws FileNotFoundException, OBStorageException,
     NotFrozenException, IllegalAccessException, InstantiationException,
     OBException, IOException{
         super(index,directory);
@@ -54,7 +60,7 @@ public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbie
     /**
      * @see net.obsearch.result.ambient.AbstractAmbient#AbstractAmbient(File directory)
      */
-    public AmbientBDB(File directory) throws FileNotFoundException, OBStorageException,
+    public AmbientBDB${Bdb}(File directory) throws FileNotFoundException, OBStorageException,
     NotFrozenException, IllegalAccessException, InstantiationException,
     OBException, IOException{
         super(directory);
@@ -63,10 +69,10 @@ public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbie
      * @see net.obsearch.ambient.AbstractAmbient#createFactory(java.io.File)
      */
     @Override
-    protected BDBFactory createFactory(File factoryDirectory) throws OBStorageException{        
-        BDBFactory fact = null;
+    protected BDBFactory${Bdb} createFactory(File factoryDirectory) throws OBStorageException{        
+        BDBFactory${Bdb} fact = null;
         try{
-            fact = new BDBFactory(factoryDirectory);
+            fact = new BDBFactory${Bdb}(factoryDirectory);
         }catch(Exception e){
             throw new OBStorageException(e);
         }
@@ -74,3 +80,6 @@ public class AmbientBDB<O extends OB,  I extends Index<O>> extends AbstractAmbie
     }
 
 }
+
+
+</#list>

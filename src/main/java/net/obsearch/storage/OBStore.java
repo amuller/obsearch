@@ -195,4 +195,8 @@ public interface OBStore<T extends Tuple> {
 	// the user to expand the size of the buffer by some %.
 	// We don't need this right now but the current architecture will support
 	// this.
+	/**
+	 * Return the factory associated to this storage device.
+	 */
+	OBStoreFactory getFactory();
 }
