@@ -14,7 +14,7 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.storage.bdb.Utils;
 
-import net.obsearch.storage.bdb.BDBFactory;
+import net.obsearch.storage.bdb.BDBFactoryJe;
 import org.apache.log4j.Logger;
 
 /*
@@ -60,7 +60,7 @@ public class TestPPTree
         
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 30, 30);
-        BDBFactory fact = Utils.getFactory();
+        BDBFactoryJe fact = Utils.getFactoryJe();
         
         PPTreeShort<OBSlice> d = new PPTreeShort<OBSlice>(OBSlice.class, sel, 20, 6, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2));
         d.init(fact);

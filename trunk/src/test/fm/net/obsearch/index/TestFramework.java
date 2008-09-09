@@ -115,6 +115,9 @@ public abstract class TestFramework${Type}<O extends OB${Type}> {
             assertEquals((long)i, ex.getId());
             ex = index.exists(x);            
             assertTrue( "Exists after delete" + ex.getStatus() + " i " + i, ex.getStatus() == Status.NOT_EXISTS);
+						if(i % 300 == 0){
+								logger.info("Deleting... " + i );
+						}
             i++;
         }
         

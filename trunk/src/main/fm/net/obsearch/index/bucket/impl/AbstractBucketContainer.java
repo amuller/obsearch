@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import net.obsearch.constants.ByteConstants;
 
 import net.obsearch.Index;
 import net.obsearch.OperationStatus;
@@ -78,19 +79,28 @@ import net.obsearch.storage.TupleBytes;
 	
 
 						private int TUPLE_SIZE;
+
+						/**
+						 * Additional pivot used to sort objects within the bucket.
+						 */
+						private int secondaryIndexPivot;
 		
 						/**
 						 * Iterate only through this key.
 						 */
 						protected byte[] key;
-		
 						public AbstractBucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key) {
+								this(index,pivots,storage,key, Math.abs(Arrays.hashCode(key)) % pivots);
+						}
+		
+						public AbstractBucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key, int secondaryIndexPivot) {
 								assert index != null;
 								updateTupleSize(pivots);
 								this.index = index;
 								this.pivots = pivots;
 								this.storage = storage;
 								this.key = key;
+								this.secondaryIndexPivot = secondaryIndexPivot;
 						}
 
 
@@ -105,6 +115,16 @@ import net.obsearch.storage.TupleBytes;
 
 						}
 
+						/**
+						 * Appends value to the end of the given key.
+						 */
+						private byte[] buildKey(byte[] key, ${type} value){
+								ByteBuffer temp = ByteConversion.createByteBuffer(key.length +ByteConstants.${Type}.getSize());
+								temp.put(key);
+								temp.put(storage.getFactory().serialize${Type}(value));
+								return temp.array();
+						}
+
 		
 
 						// need to update this thing.
@@ -112,7 +132,9 @@ import net.obsearch.storage.TupleBytes;
 						public OperationStatus delete(B bucket, O object)
 								throws OBException, IllegalIdException, IllegalAccessException,
 								InstantiationException {
-								CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+								
+								byte[] key2 = buildKey(key, bucket.getSmapVector()[this.secondaryIndexPivot]);
+								CloseIterator<TupleBytes> pr = storage.processRange(key2,key2);
 								OperationStatus res = new OperationStatus();
 								res.setStatus(Status.NOT_EXISTS);
 								try{
@@ -172,7 +194,7 @@ import net.obsearch.storage.TupleBytes;
      */
     public OperationStatus insertBulk(B bucket, O object) throws OBException,
             IllegalIdException, IllegalAccessException, InstantiationException {
-       
+				    byte[] key2 = buildKey(key, bucket.getSmapVector()[this.secondaryIndexPivot]);
 				    ByteBuffer out = ByteConversion
 								.createByteBuffer(calculateBufferSize(getPivots()));
 						OperationStatus res = new OperationStatus();
@@ -180,7 +202,7 @@ import net.obsearch.storage.TupleBytes;
 						assert bucket.getId() != -1;
 						res.setId(bucket.getId());
 						bucket.write(out);
-						storage.put(key, out);
+						storage.put(key2, out);
 						return res;
     }
 
@@ -203,8 +225,8 @@ import net.obsearch.storage.TupleBytes;
 				InstantiationException {
 				OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
-				
-				CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+				byte[] key2 = buildKey(key, bucket.getSmapVector()[this.secondaryIndexPivot]);
+				CloseIterator<TupleBytes> pr = storage.processRange(key2,key2);
 				try{
 						B cmp = instantiateBucketObject();
 						while(pr.hasNext()){
@@ -264,8 +286,9 @@ import net.obsearch.storage.TupleBytes;
     public long search(OBQuery${Type} < O > query, B b,
 											 IntegerHolder smapComputations,  IntegerHolder dataRead, Filter<O> filter) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
-			 
-				CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+			  byte[] key1 = buildKey(key, query.getLow()[this.secondaryIndexPivot]);
+				byte[] key2 = buildKey(key, query.getHigh()[this.secondaryIndexPivot]);
+				CloseIterator<TupleBytes> pr = storage.processRange(key1,key2);
 				long res = 0;
 				try{
 						B current = instantiateBucketObject();

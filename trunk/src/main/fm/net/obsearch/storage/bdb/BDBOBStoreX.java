@@ -1,9 +1,12 @@
 <@pp.dropOutputFile />
 <#include "/@inc/ob.ftl">
+<#include "/@inc/bdb.ftl">
 <#list types as t>
+<#list bdbs as b>
 <@type_info t=t/>
+<@type_info_bdb b=b/>
 <@binding_info t=t/>
-<@pp.changeOutputFile name="BDBOBStore"+Type+".java" />
+<@pp.changeOutputFile name="BDBOBStore${Bdb}${Type}.java" />
 package net.obsearch.storage.bdb;
 
 /*
@@ -32,14 +35,17 @@ import net.obsearch.storage.OBStore${Type};
 import net.obsearch.storage.Tuple${Type};
 
 import com.sleepycat.bind.tuple.${binding}Binding;
+
+import com.sleepycat.db.DatabaseEntry;
+
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.bind.tuple.TupleInput;
 
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.OperationStatus;
+import com.sleepycat.${bdb}.Database;
+import com.sleepycat.${bdb}.DatabaseException;
+import com.sleepycat.${bdb}.OperationStatus;
 import java.nio.ByteBuffer;
+import net.obsearch.storage.OBStoreFactory;
 
 /** 
 	*  BDBOBStore${Type} is a wrapper for Berkeley indexes that assumes
@@ -48,8 +54,8 @@ import java.nio.ByteBuffer;
   *  @author      Arnoldo Jose Muller Molina    
   */
 
-public final class BDBOBStore${Type}
-        extends AbstractBDBOBStore<Tuple${Type}> implements OBStore${Type} {
+public final class BDBOBStore${Bdb}${Type}
+        extends AbstractBDBOBStore${Bdb}<Tuple${Type}> implements OBStore${Type} {
 
     /**
      * Builds a new Storage system by receiving a Berkeley DB database that uses
@@ -62,8 +68,8 @@ public final class BDBOBStore${Type}
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-    public BDBOBStore${Type}(String name, Database db, Database seq) throws DatabaseException {
-        super(name, db, seq);
+						public BDBOBStore${Bdb}${Type}(String name, Database db, Database seq, OBStoreFactory fact, boolean duplicates) throws DatabaseException {
+								super(name, db, seq, fact, duplicates);
     }
 
     public net.obsearch.OperationStatus delete(${type} key) throws OBStorageException {
@@ -77,7 +83,7 @@ public final class BDBOBStore${Type}
      * @return An array of bytes with the given value encoded.
      */
     private byte[] getBytes(${type} value) {
-        return BDBFactory.${type}ToBytes(value);
+        return BDBFactory${Bdb}.${type}ToBytes(value);
     }
 
 
@@ -87,8 +93,10 @@ public final class BDBOBStore${Type}
      *                The place where we will put the entry.
      */
     private ${type} bytesToValue(byte[] entry) {
-        TupleInput in = new TupleInput(entry);
-        return in.read${binding2}();
+        //TupleInput in = new TupleInput(entry);
+				//return in.read${binding2}();
+				DatabaseEntry e = new DatabaseEntry(entry);
+        return ${binding}Binding.entryTo${Type}(e);        
     }
 
     public ByteBuffer getValue(${type} key) throws IllegalArgumentException,
@@ -152,3 +160,5 @@ public final class BDBOBStore${Type}
 
 
 </#list>
+</#list>
+

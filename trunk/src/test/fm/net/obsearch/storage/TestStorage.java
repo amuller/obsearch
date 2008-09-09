@@ -18,10 +18,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import org.apache.log4j.Logger;
 
 import junit.framework.TestCase;
 
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OBException;
 import net.obsearch.storage.Tuple${Type};
 /*
 OBSearch: a distributed similarity search engine
@@ -42,12 +44,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 public class StorageValidation${Type} extends TestCase {
+		
+		private static final transient Logger logger = Logger
+			.getLogger(StorageValidation${Type}.class);
     
     /**
      * Create a vector of pairs of size {@link #NUM_OF_ITEMS} so that
      * we can test the storage sub-system. 
      */
-    public static final int NUM_OF_ITEMS = 2000;
+    public static final int NUM_OF_ITEMS = 10000;
           
     /**
      * Validates a Storage for shorts. Makes sure that insertions and deletions and
@@ -55,7 +60,7 @@ public class StorageValidation${Type} extends TestCase {
      * @param storage
      * @throws OBStorageException
      */
-    public static void validate(OBStore${Type} storage) throws OBStorageException{
+    public static void validate(OBStore${Type} storage) throws OBStorageException, OBException{
         HashMap<${Type2}, byte[]> testData = new HashMap<${Type2}, byte[]>();
         Random x = new Random();
         int i = 0;
@@ -79,8 +84,12 @@ public class StorageValidation${Type} extends TestCase {
             i++;
         }
 
+				
+
         for(${type} j : testData.keySet()){
+						//						logger.info(j +  ": " + Arrays.toString(testData.get(j)));
             storage.put(j, ByteConversion.createByteBuffer(testData.get(j)));
+						//logger.info(Arrays.toString(testData.get(j)));
         }               
         // test that all the data is there:
         for(${type} j : testData.keySet()){               
@@ -88,13 +97,15 @@ public class StorageValidation${Type} extends TestCase {
         }         
         
         // do a range search       
-        Iterator<Tuple${Type}> it = storage.processRange(min, max);
+        CloseIterator<Tuple${Type}> it = storage.processRange(min, max);
         i = 0;
         boolean first = true;
         ${type} prev = ${Type2}.MIN_VALUE;
         while(it.hasNext()){
             Tuple${Type} t = it.next();
-            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
+						assertTrue(testData.get(t.getKey()) != null);
+						assertTrue("A:" + Arrays.toString(testData.get(t.getKey())) +  "B:" + Arrays.toString(t.getValue().array()) + " i: " + i + "A-key: " + t.getKey() , Arrays.equals(testData.get(t.getKey()), t.getValue().array()) );
+            //assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
             if(first){
                 prev = t.getKey();
                 first = false;
@@ -106,7 +117,7 @@ public class StorageValidation${Type} extends TestCase {
             i++;
         }
         assertEquals(testData.size(), i);
-
+				it.closeCursor();
 				// do a range search       
         it = storage.processRangeReverse(min, max);
         i = 0;
@@ -125,6 +136,7 @@ public class StorageValidation${Type} extends TestCase {
             }
             i++;
         }
+				it.closeCursor();
         assertEquals(testData.size(), i);
 
 

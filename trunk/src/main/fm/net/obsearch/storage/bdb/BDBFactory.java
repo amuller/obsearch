@@ -1,4 +1,9 @@
+<@pp.dropOutputFile />
 <#include "/@inc/ob.ftl">
+<#include "/@inc/bdb.ftl">
+<#list bdbs as b>
+<@type_info_bdb b=b/>
+<@pp.changeOutputFile name="BDBFactory${Bdb}.java" />
 package net.obsearch.storage.bdb;
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -20,11 +25,16 @@ package net.obsearch.storage.bdb;
  */
 import java.io.File;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
 
 import net.obsearch.storage.OBStore;
+
+<#if bdb = "db">
+	import	com.sleepycat.db.DatabaseType;
+</#if>
 
 <#list types as t>
 <@type_info t=t/>
@@ -37,12 +47,12 @@ import net.obsearch.storage.OBStore${Type};
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStoreFactory;
 
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.${bdb}.DatabaseConfig;
+import com.sleepycat.${bdb}.DatabaseException;
+import com.sleepycat.${bdb}.Environment;
+import com.sleepycat.${bdb}.EnvironmentConfig;
 import com.sleepycat.bind.tuple.*;
-import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.db.DatabaseEntry;
 
 import java.io.File;
 import org.apache.log4j.Logger;
@@ -53,13 +63,17 @@ import org.apache.log4j.Logger;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class BDBFactory implements OBStoreFactory {
-
+public class BDBFactory${Bdb} implements OBStoreFactory {
+		/*
+			<#list bdbs as b>
+			  ${b.name}
+			</#list>
+     */
 		/**
 		 * Logger.
 		 */
 		private static final transient Logger logger = Logger
-			.getLogger(BDBFactory.class);
+			.getLogger(BDBFactory${Bdb}.class);
 
     /**
      * The environment.
@@ -73,15 +87,17 @@ public class BDBFactory implements OBStoreFactory {
      * @throws IOException
      *                 If the given directory does not exist.
      */
-    public BDBFactory(File directory) throws IOException, DatabaseException {
+    public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException {
         directory.mkdirs();
         OBAsserts.chkFileExists(directory);
         EnvironmentConfig envConfig = createEnvConfig();
         env = new Environment(directory, envConfig);
 				if(logger.isDebugEnabled()){
 								logger.debug("Environment config: \n" + env.getConfig().toString());
+								<#if bdb = "je">
 								logger.debug("Buffer size " + env.getConfig().getConfigParam("je.log.bufferSize"));
 								logger.debug("Cache % " + env.getConfig().getConfigParam("je.maxMemoryPercent"));
+								</#if>
 								
 				}
     }
@@ -95,7 +111,15 @@ public class BDBFactory implements OBStoreFactory {
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
+				<#if bdb = "je">
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
+				<#else>
+						 envConfig.setInitializeCache(true);
+				envConfig.setInitializeLocking(true);
+				envConfig.setCacheSize(6000 * 1024 * 1024);
+				envConfig.setCacheCount(2);
+				
+				</#if>
 				envConfig.setTxnNoSync(true);
         //envConfig.setTxnWriteNoSync(true);
 				// envConfig.setCachePercent(20);
@@ -110,9 +134,12 @@ public class BDBFactory implements OBStoreFactory {
 
     public void close() throws OBStorageException {
         try {
+						<#if bdb = "je">
             env.cleanLog();
             env.compress();
             env.checkpoint(null);
+						</#if>
+ 
             env.close();
         } catch (DatabaseException e) {
             throw new OBStorageException(e);
@@ -122,19 +149,36 @@ public class BDBFactory implements OBStoreFactory {
     public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException{       
         OBStore res = null;
         DatabaseConfig dbConfig = createDefaultDatabaseConfig();
+				<#if bdb = "je">
 				  dbConfig.setKeyPrefixing(true);
-					dbConfig.setSortedDuplicates(duplicates);								
-					dbConfig.setTransactional(false);
-						if(bulkMode){
+				  dbConfig.setSortedDuplicates(duplicates);
+					if(bulkMode){
 										dbConfig.setDeferredWrite(bulkMode);
 								}else{
 										dbConfig.setTemporary(temp);
 								}
+				<#else>
+					dbConfig.setUnsortedDuplicates(duplicates);	
+				</#if>
+												
+					dbConfig.setTransactional(false);
+						<#if bdb = "je">
+						
+					</#if>
         try{
-            res = new BDBOBStoreByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig));
+						<#if bdb = "je">
+													 res = new BDBOBStore${Bdb}ByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig), this);
+						<#else>
+								 res = new BDBOBStore${Bdb}ByteArray(name, env.openDatabase(null, name,name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name) , sequentialDatabaseName(name),  dbConfig), this);
+						</#if>
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
+				<#if bdb = "db">
+				catch(FileNotFoundException e){
+            throw new OBStorageException(e);
+        }
+				</#if>
        return res;
     }
 
@@ -157,18 +201,36 @@ public class BDBFactory implements OBStoreFactory {
         dbConfig = new DatabaseConfig();
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
-        dbConfig.setSortedDuplicates(false);
+        
+				<#if bdb = "db">
+				dbConfig.setType(DatabaseType.HASH);
+				dbConfig.setUnsortedDuplicates(false);
+				dbConfig.setHashNumElements(20000000);
+
+				<#else>
+						 dbConfig.setSortedDuplicates(false);
+				</#if>
         return dbConfig;
     }
 
 		public void removeOBStore(OBStore storage) throws OBStorageException{
 						storage.close();
 						try{
+						<#if bdb = "je">
 						env.removeDatabase(null, storage.getName());
 						env.removeDatabase(null, sequentialDatabaseName(storage.getName()));
+						<#else>
+								 env.removeDatabase(null, storage.getName(), storage.getName());
+								env.removeDatabase(null, sequentialDatabaseName(storage.getName()), sequentialDatabaseName(storage.getName()));
+						</#if>
 						}catch(DatabaseException e){
 								throw new OBStorageException(e);
 						}
+							<#if bdb = "db">
+				catch(FileNotFoundException e){
+            throw new OBStorageException(e);
+        }
+				</#if>
 				}
 
 <#list types as t>
@@ -181,25 +243,25 @@ public class BDBFactory implements OBStoreFactory {
         
         OBStore${Type} res = null;
         try{
-            DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-						dbConfig.setNodeMaxDupTreeEntries(50000);
-								dbConfig.setSortedDuplicates(duplicates);
-								// bulk mode has priority over deferred write.
-								if(bulkMode){
-										dbConfig.setDeferredWrite(bulkMode);
-								}else{
-										dbConfig.setTemporary(temp);
-								}
-            res = new BDBOBStore${Type}(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name), dbConfig));
+            
+						<@prepareStorageDevice/>
+        
+						res = new BDBOBStore${Bdb}${Type}(name, <@openDB/> , seq, this, duplicates);
+								
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
+					<#if bdb = "db">
+				catch(FileNotFoundException e){
+            throw new OBStorageException(e);
+        }
+				</#if>
        return res;
     }
 
 		
 		public  byte[] serialize${Type}(${type} value){
-				return BDBFactory.${type}ToBytes(value);
+				return BDBFactory${Bdb}.${type}ToBytes(value);
 		}
 
 		public static byte[] ${type}ToBytes(${type} value){
@@ -213,9 +275,15 @@ public class BDBFactory implements OBStoreFactory {
 		
 		public Object stats() throws OBStorageException{
 		try{
+				<#if bdb = "je">
 				return	env.getStats(null);
+				<#else>
+						 return env.getLockStats(null);
+				</#if>
 		}catch(DatabaseException d){
 				throw new OBStorageException(d);    
     }
 }
 }
+
+</#list>

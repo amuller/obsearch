@@ -565,7 +565,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			throw new AlreadyFrozenException();
 		}
 		this.isFrozen = true;
-		preFreeze.close(); // only during freeze.
+		
 		// fact.removeOBStore(preFreeze);
 	}
 
