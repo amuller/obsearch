@@ -7,7 +7,9 @@ import java.util.Iterator;
 
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
+import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -88,7 +90,8 @@ public interface OBStore<T extends Tuple> {
 
 	/**
 	 * Deletes the given key and its corresponding value from the database.
-	 * 
+	 * If the storage contains duplicates, then all the elements related
+	 * to the key are removed.
 	 * @param key
 	 *            The key that will be deleted.
 	 * @throws OBStorageException
@@ -97,6 +100,10 @@ public interface OBStore<T extends Tuple> {
 	 *             nature of the error.
 	 * @return {@link net.obsearch.Status#OK} if the key was found, otherwise,
 	 *         {@link net.obsearch.Status#NOT_EXISTS}.
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws OBException 
+	 * @throws OutOfRangeException 
 	 */
 	OperationStatus delete(byte[] key) throws OBStorageException;
 
@@ -107,6 +114,7 @@ public interface OBStore<T extends Tuple> {
 	 *             If an exception occurs at the underlying storage system. You
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
+	 * @throws OBException 
 	 */
 	void close() throws OBStorageException;
 
@@ -117,6 +125,10 @@ public interface OBStore<T extends Tuple> {
 	 *             If an exception occurs at the underlying storage system. You
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws OBException 
+	 * @throws OutOfRangeException 
 	 */
 	void deleteAll() throws OBStorageException;
 
@@ -128,6 +140,7 @@ public interface OBStore<T extends Tuple> {
 	 *             If an exception occurs at the underlying storage system. You
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
+	 * @throws OBException 
 	 */
 	long size() throws OBStorageException;
 

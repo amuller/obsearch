@@ -31,6 +31,7 @@ import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
 
 import net.obsearch.storage.OBStore;
+import net.obsearch.storage.OBStorageConfig;
 
 <#if bdb = "db">
 	import	com.sleepycat.db.DatabaseType;
@@ -47,12 +48,14 @@ import net.obsearch.storage.OBStore${Type};
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStoreFactory;
 
+import com.sleepycat.${bdb}.Database;
 import com.sleepycat.${bdb}.DatabaseConfig;
 import com.sleepycat.${bdb}.DatabaseException;
 import com.sleepycat.${bdb}.Environment;
 import com.sleepycat.${bdb}.EnvironmentConfig;
 import com.sleepycat.bind.tuple.*;
 import com.sleepycat.db.DatabaseEntry;
+
 
 import java.io.File;
 import org.apache.log4j.Logger;
@@ -116,9 +119,9 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
 				<#else>
 						 envConfig.setInitializeCache(true);
 				envConfig.setInitializeLocking(true);
-				envConfig.setCacheSize(6000 * 1024 * 1024);
+				envConfig.setCacheSize(4000 * 1024 * 1024);
 				envConfig.setCacheCount(2);
-				
+				envConfig.setInitializeLogging(false);
 				</#if>
 				envConfig.setTxnNoSync(true);
         //envConfig.setTxnWriteNoSync(true);
@@ -146,31 +149,17 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
         }
     }
 
-    public OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException{       
+    public OBStore<TupleBytes> createOBStore(String name, OBStorageConfig config) throws OBStorageException{       
+
         OBStore res = null;
-        DatabaseConfig dbConfig = createDefaultDatabaseConfig();
-				<#if bdb = "je">
-				  dbConfig.setKeyPrefixing(true);
-				  dbConfig.setSortedDuplicates(duplicates);
-					if(bulkMode){
-										dbConfig.setDeferredWrite(bulkMode);
-								}else{
-										dbConfig.setTemporary(temp);
-								}
-				<#else>
-					dbConfig.setUnsortedDuplicates(duplicates);	
-				</#if>
-												
-					dbConfig.setTransactional(false);
-						<#if bdb = "je">
-						
-					</#if>
+				
+       
         try{
-						<#if bdb = "je">
-													 res = new BDBOBStore${Bdb}ByteArray(name, env.openDatabase(null, name, dbConfig), env.openDatabase(null, name + "seq", dbConfig), this);
-						<#else>
-								 res = new BDBOBStore${Bdb}ByteArray(name, env.openDatabase(null, name,name, dbConfig), env.openDatabase(null, sequentialDatabaseName(name) , sequentialDatabaseName(name),  dbConfig), this);
-						</#if>
+
+						<@prepareStorageDevice/>
+        
+						res = new BDBOBStore${Bdb}ByteArray(name, <@openDB/> , seq, this, duplicates);
+					
         }catch(DatabaseException e){
             throw new OBStorageException(e);
         }
@@ -201,14 +190,11 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
         dbConfig = new DatabaseConfig();
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
-        
 				<#if bdb = "db">
-				dbConfig.setType(DatabaseType.HASH);
-				dbConfig.setUnsortedDuplicates(false);
-				dbConfig.setHashNumElements(20000000);
-
+				dbConfig.setType(DatabaseType.BTREE);
+				
 				<#else>
-						 dbConfig.setSortedDuplicates(false);
+						 
 				</#if>
         return dbConfig;
     }
@@ -239,7 +225,7 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
 				
 				
 
-				public OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException{
+				public OBStore${Type} createOBStore${Type}(String name, OBStorageConfig config) throws OBStorageException{
         
         OBStore${Type} res = null;
         try{

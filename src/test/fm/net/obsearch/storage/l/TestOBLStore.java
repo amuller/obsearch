@@ -1,18 +1,15 @@
 <@pp.dropOutputFile />
 <#include "/@inc/ob.ftl">
-<#include "/@inc/bdb.ftl">
 <#list types as t>
-<#list bdbs as b>
-<@type_info_bdb b=b/>
 <@type_info t=t/>
-<@pp.changeOutputFile name="TestBDBOBStore${Bdb}${Type}.java" />
-package net.obsearch.storage.bdb;
+<@pp.changeOutputFile name="TestOBLStore${Type}.java" />
+package net.obsearch.storage.l;
 
 import java.io.File;
 
 import junit.framework.TestCase;
 
-
+import net.obsearch.storage.bdb.Utils;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.storage.StorageValidation${Type};
 import net.obsearch.storage.OBStorageConfig;
@@ -42,7 +39,7 @@ import org.junit.Test;
 	*  
   *  @author      Arnoldo Jose Muller Molina    
   */
-public class TestBDBOBStore${Bdb}${Type} extends TestCase{
+public class TestOBLStore${Type} extends TestCase{
 
     @Before
     public void setUp() throws Exception {
@@ -51,24 +48,27 @@ public class TestBDBOBStore${Bdb}${Type} extends TestCase{
     @Test
     public void testAll() throws Exception{
         
-        BDBFactory${Bdb} fact = Utils.getFactory${Bdb}();
+         OBLFactory fact = Utils.getFactoryL();
 				 OBStorageConfig conf = new OBStorageConfig();
 				 conf.setTemp(false);
-				 conf.setDuplicates(false);
+				 conf.setDuplicates(true);
 				 conf.setBulkMode(false);
-				 StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}1", conf));
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}1", conf));
 				    conf = new OBStorageConfig();
 				 conf.setTemp(false);
-				 conf.setDuplicates(false);
+				 conf.setDuplicates(true);
 				 conf.setBulkMode(true);
-				 StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}2", conf));
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}2", conf));
 				   conf = new OBStorageConfig();
 				 conf.setTemp(true);
-				 conf.setDuplicates(false);
+				 conf.setDuplicates(true);
 				 conf.setBulkMode(false);
-				 StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}3", conf));
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}3", conf));
     }
 
 }
-</#list>
+
 </#list>

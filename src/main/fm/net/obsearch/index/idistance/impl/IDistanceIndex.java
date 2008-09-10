@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import net.obsearch.Index;
 
 import org.apache.log4j.Logger;
 
@@ -24,6 +25,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.Index${Type};
+import net.obsearch.constants.ByteConstants;
 
 import net.obsearch.index.bucket.impl.BucketContainer${Type};
 import net.obsearch.index.bucket.impl.BucketObject${Type};
@@ -128,8 +130,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		return buildKey(iMin, minValue);
 	}
 
-	private byte[] buildKey(short i, ${type} value) {
-			byte[] pivotId = fact.serializeShort(i);
+	private byte[] buildKey(int i, ${type} value) {
+			byte[] pivotId = fact.serializeInt(i);
       byte[] v = fact.serialize${Type}(value);
 		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(pivotId.length + v.length);
 		buf.put(pivotId);
@@ -151,6 +153,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			return new BucketContainer${Type}<O>(this, getPivotCount(), Buckets, address);
 	}
 
+	@Override
+	protected int primitiveDataTypeSize(){
+			return (ByteConstants.${Type}.getSize() * this.getPivotCount()) + Index.ID_SIZE;
+			}
   
 
 	
@@ -244,9 +250,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			${type} center = s.getValue();
 			${type} low = q.getLow()[s.getOrder()];
 			${type} high = q.getHigh()[s.getOrder()];
-			centerKey = buildKey((short)s.getOrder(), center);
-			lowKey = buildKey((short)s.getOrder(), low);
-			highKey = buildKey((short)s.getOrder(), high);
+			centerKey = buildKey(s.getOrder(), center);
+			lowKey = buildKey(s.getOrder(), low);
+			highKey = buildKey(s.getOrder(), high);
 			this.lastRange = q.getDistance();
 		}
 
@@ -259,6 +265,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			return (itRight.hasNext() && continueRight)
 					|| (itLeft.hasNext() && continueLeft);
 		}
+
+			
 
 		/**
 		 * Perform one matching iteration.

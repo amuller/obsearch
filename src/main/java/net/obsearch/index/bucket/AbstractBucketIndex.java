@@ -9,6 +9,7 @@ import java.util.Arrays;
 import org.apache.log4j.Logger;
 
 import cern.colt.list.LongArrayList;
+import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
@@ -27,6 +28,7 @@ import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.stats.Statistics;
 import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
@@ -95,9 +97,20 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @throws OBException
 	 */
 	protected void initByteArrayBuckets() throws OBException {
-		this.Buckets = fact.createOBStore("Buckets_byte_array", false, true, ! isFrozen());
+		OBStorageConfig conf = new OBStorageConfig();
+		conf.setTemp(false);
+		conf.setDuplicates(true);
+		conf.setBulkMode(! isFrozen());
+		conf.setRecordSize( primitiveDataTypeSize() );
+		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
+	
+	/**
+	 * Return the size in bytes of the underlying primitive datatype.
+	 * @return
+	 */
+	protected abstract int primitiveDataTypeSize();
 
 	public void init(OBStoreFactory fact) throws OBStorageException,
 			OBException, InstantiationException, IllegalAccessException {

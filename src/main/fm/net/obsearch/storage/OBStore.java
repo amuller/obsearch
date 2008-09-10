@@ -11,6 +11,7 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.OperationStatus;
 import java.nio.ByteBuffer;
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -111,6 +112,12 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *         otherwise, {@link net.obsearch.OperationStatus.Status#NOT_EXISTS}.
      */
     OperationStatus delete(${type} key)throws OBStorageException;
+
+
+		/**
+		 * Convert a byte entry into a ${type}.
+		 */
+		public ${type} bytesToValue(byte[] entry);
     
 }
 

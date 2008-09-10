@@ -38,6 +38,10 @@ public class OBSearchProperties {
 		return getIntProperty("cache.a.size");	
 	}
 	
+	public static int getHandlesCacheSize() throws OBException {
+		return getIntProperty("cache.handles.size");	
+	}
+	
 	public static int getBucketsCacheSize() throws OBException {
 		return getIntProperty("cache.Buckets.size");	
 	}
@@ -45,6 +49,8 @@ public class OBSearchProperties {
 	public static int getBCacheSize() throws OBException {
 		return getIntProperty("cache.B.size");	
 	}
+	
+	
 
 	public static int getIntProperty(String prop) throws OBException{
 		try{
