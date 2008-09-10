@@ -1,13 +1,9 @@
 <@pp.dropOutputFile />
 <#include "/@inc/ob.ftl">
-<#include "/@inc/bdb.ftl">
 <#list types as t>
-<#list bdbs as b>
 <@type_info t=t/>
-<@type_info_bdb b=b/>
-<@binding_info t=t/>
-<@pp.changeOutputFile name="BDBOBStore${Bdb}${Type}.java" />
-package net.obsearch.storage.bdb;
+<@pp.changeOutputFile name="OBLStore${Type}.java" />
+package net.obsearch.storage.l;
 
 /*
 		OBSearch: a distributed similarity search engine This project is to
@@ -33,17 +29,9 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.storage.OBStore${Type};
 import net.obsearch.storage.Tuple${Type};
-
-import com.sleepycat.bind.tuple.${binding}Binding;
-
-import com.sleepycat.db.DatabaseEntry;
-
-import com.sleepycat.bind.tuple.TupleOutput;
-import com.sleepycat.bind.tuple.TupleInput;
-
-import com.sleepycat.${bdb}.Database;
-import com.sleepycat.${bdb}.DatabaseException;
-import com.sleepycat.${bdb}.OperationStatus;
+import java.io.File;
+import net.obsearch.exception.OBException;
+import net.obsearch.storage.OBStore;
 import java.nio.ByteBuffer;
 import net.obsearch.storage.OBStoreFactory;
 
@@ -54,22 +42,29 @@ import net.obsearch.storage.OBStoreFactory;
   *  @author      Arnoldo Jose Muller Molina    
   */
 
-public final class BDBOBStore${Bdb}${Type}
-        extends AbstractBDBOBStore${Bdb}<Tuple${Type}> implements OBStore${Type} {
+public final class OBLStore${Type}
+        extends AbstractOBLStore<Tuple${Type}> implements OBStore${Type} {
+
+		 private OBStore${Type} localStorage;
 
     /**
-     * Builds a new Storage system by receiving a Berkeley DB database that uses
-     * ${type}s as a primary indexing method.
-     * @param db
-     *                The database to be stored.
-		 * @param seq     Sequences database.
-     * @param name
-     *                Name of the database.
-     * @throws DatabaseException
+     * Builds a new L Storage system by receiving a storage system.
+		 * @param name Name of the storage device.
+     * @param storage Storage system used for indexing buckets.
+		 * @param fact Factory of this storage device
+		 * @param duplicates If duplicates are allowed.
+		 * @param recordSize The record size of each item.
+     * @param baseFolder Folder used to store all the files.
+     * @throws OBException
      *                 if something goes wrong with the database.
      */
-						public BDBOBStore${Bdb}${Type}(String name, Database db, Database seq, OBStoreFactory fact, boolean duplicates) throws DatabaseException {
-								super(name, db, seq, fact, duplicates);
+
+						
+						public OBLStore${Type}(String name, OBStore${Type} storage,
+			OBStoreFactory fact, boolean duplicates, int recordSize,
+			File baseFolder) throws OBException {
+								super(name, (OBStore)storage,fact,duplicates, recordSize, baseFolder);
+								this.localStorage = storage;
     }
 
     public net.obsearch.OperationStatus delete(${type} key) throws OBStorageException {
@@ -83,7 +78,7 @@ public final class BDBOBStore${Bdb}${Type}
      * @return An array of bytes with the given value encoded.
      */
     private byte[] getBytes(${type} value) {
-        return BDBFactory${Bdb}.${type}ToBytes(value);
+        return fact.serialize${Type}(value);
     }
 
 
@@ -93,10 +88,7 @@ public final class BDBOBStore${Bdb}${Type}
      *                The place where we will put the entry.
      */
     public ${type} bytesToValue(byte[] entry) {
-        //TupleInput in = new TupleInput(entry);
-				//return in.read${binding2}();
-				DatabaseEntry e = new DatabaseEntry(entry);
-        return ${binding}Binding.entryTo${Type}(e);        
+        return localStorage.bytesToValue(entry);
     }
 
     public ByteBuffer getValue(${type} key) throws IllegalArgumentException,
@@ -137,7 +129,7 @@ public final class BDBOBStore${Bdb}${Type}
         
        
         private ${Type}Iterator(${type} min, ${type} max) throws OBStorageException {
-						super(getBytes(min), getBytes(max));
+						super(getBytes(min), getBytes(max),false,false);
         }
 
 				/**
@@ -158,7 +150,5 @@ public final class BDBOBStore${Bdb}${Type}
     }
 }
 
-
-</#list>
 </#list>
 

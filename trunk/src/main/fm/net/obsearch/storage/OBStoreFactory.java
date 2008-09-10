@@ -1,6 +1,8 @@
 <#include "/@inc/ob.ftl">
 package net.obsearch.storage;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OBException;
+import net.obsearch.storage.OBStorageConfig;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -44,7 +46,7 @@ public interface OBStoreFactory {
      * @return An OBStore ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-    OBStore<TupleBytes> createOBStore(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException;
+    OBStore<TupleBytes> createOBStore(String name, OBStorageConfig config) throws OBStorageException, OBException;
     
 		/**
      * Removes all indexes and structures related to the given storage device.
@@ -67,7 +69,7 @@ public interface OBStoreFactory {
      * @return An OBStore${Type} ready to be used.
      * @throws OBStorageException If the DB cannot be created.
      */
-				OBStore${Type} createOBStore${Type}(String name, boolean temp, boolean duplicates, boolean bulkMode) throws OBStorageException;	
+				OBStore${Type} createOBStore${Type}(String name, OBStorageConfig config) throws OBStorageException, OBException;	
 
 
 		

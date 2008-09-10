@@ -214,7 +214,7 @@ import net.obsearch.storage.TupleBytes;
      */
 		<@gen_warning filename="AbstractBucketContainer.java "/>
     private int calculateBufferSize(int i) {
-        return (TUPLE_SIZE * i);
+        return (TUPLE_SIZE);
     }
 
 

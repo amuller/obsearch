@@ -114,8 +114,15 @@ public final class DPrimeIndexShort<O extends OBShort>
 		}
 		return smapVector;
 	}
+	
+	
 
 	
+	@Override
+	protected int primitiveDataTypeSize() {
+		return ByteConstants.Short.getSize();
+	}
+
 	/**
 	 * Calculate the bucket id of the given bucket.
 	 * @param b The bucket we will process.

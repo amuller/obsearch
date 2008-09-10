@@ -23,7 +23,8 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavez${Type};
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelector${Type};
-import net.obsearch.storage.bdb.BDBFactoryDb;
+import net.obsearch.storage.bdb.BDBFactoryJe;
+import net.obsearch.storage.l.OBLFactory;
 import net.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
 
@@ -70,10 +71,11 @@ public class TestIDistanceIndexVector${Type}
        IncrementalBustosNavarroChavez${Type}<OBVector${Type}> sel = new IncrementalBustosNavarroChavez${Type}<OBVector${Type}>(new AcceptAll(),
                 100, 100);    	
     	
-    	BDBFactoryDb fact = Utils.getFactoryDb();
+    	 //BDBFactoryJe fact = Utils.getFactoryJe();
+			 OBLFactory fact = Utils.getFactoryL();
         IDistanceIndex${Type}<OBVector${Type}> i = new IDistanceIndex${Type}<OBVector${Type}>(OBVector${Type}.class, sel, 15);
         i.init(fact);
-        VectorTestFramework${Type} t = new VectorTestFramework${Type}(<@vectorSize/>, 10000, 1000,
+        VectorTestFramework${Type} t = new VectorTestFramework${Type}(<@vectorSize/>, 2000, 1000,
     			 i);
         t.test();
 

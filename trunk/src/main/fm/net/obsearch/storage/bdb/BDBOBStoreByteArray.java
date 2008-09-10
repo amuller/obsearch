@@ -56,9 +56,9 @@ public class BDBOBStore${Bdb}ByteArray
      * @throws DatabaseException
      *                 if something goes wrong with the database.
      */
-																		 public BDBOBStore${Bdb}ByteArray(String name, Database db, Database sequences, OBStoreFactory fact )
+																		 public BDBOBStore${Bdb}ByteArray(String name, Database db, Database sequences, OBStoreFactory fact, boolean duplicates )
             throws DatabaseException {
-																				 super(name, db, sequences,fact);
+																				 super(name, db, sequences,fact, duplicates);
     }
     
     

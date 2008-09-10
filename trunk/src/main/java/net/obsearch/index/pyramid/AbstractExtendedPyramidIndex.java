@@ -23,6 +23,7 @@ import net.obsearch.storage.OBStore;
 import net.obsearch.storage.TupleBytes;
 
 
+import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreDouble;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreLong;
@@ -133,9 +134,17 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
             OBException, NotFrozenException, IllegalAccessException,
             InstantiationException, OBException {
         super.init(fact);
-        this.C = fact.createOBStoreDouble("C", false, true, ! isFrozen());
+        OBStorageConfig conf = new OBStorageConfig();
+		conf.setTemp(false);
+		conf.setDuplicates(true);
+		conf.setBulkMode(! isFrozen());
+        this.C = fact.createOBStoreDouble("C", conf);
         if (!this.isFrozen()) {
-            this.B = fact.createOBStoreLong("B", true, false,false);
+        	conf = new OBStorageConfig();
+    		conf.setTemp(true);
+    		conf.setDuplicates(false);
+    		conf.setBulkMode(false);
+            this.B = fact.createOBStoreLong("B", conf);
         }
 
     }

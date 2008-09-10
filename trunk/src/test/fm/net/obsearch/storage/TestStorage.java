@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 
 import junit.framework.TestCase;
 
+import java.nio.ByteBuffer;
+
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OBException;
 import net.obsearch.storage.Tuple${Type};
@@ -52,7 +54,9 @@ public class StorageValidation${Type} extends TestCase {
      * Create a vector of pairs of size {@link #NUM_OF_ITEMS} so that
      * we can test the storage sub-system. 
      */
-    public static final int NUM_OF_ITEMS = 10000;
+    public static final int NUM_OF_ITEMS = 1000;
+
+		public static final int STORAGE_SIZE = 8;
           
     /**
      * Validates a Storage for shorts. Makes sure that insertions and deletions and
@@ -69,7 +73,7 @@ public class StorageValidation${Type} extends TestCase {
         while(i < NUM_OF_ITEMS){
 						<#if type == "double" || type == "float" || type == "long" || 
                  type == "int">
-            ${type} ran = x.next${Type}();
+														 ${type} ran = Math.abs(x.next${Type}());
             <#else>
             ${type} ran = (${type}) (x.nextInt() % ${Type}.MAX_VALUE);
 						</#if>
@@ -79,8 +83,9 @@ public class StorageValidation${Type} extends TestCase {
             if(ran > max){
                 max = ran;
             }
-            String d = x.nextDouble() + "";
-            testData.put(ran, d.getBytes());
+						ByteBuffer buf = ByteConversion.createByteBuffer(8);
+						buf.putDouble(x.nextDouble());
+            testData.put(ran, buf.array());
             i++;
         }
 
@@ -95,6 +100,7 @@ public class StorageValidation${Type} extends TestCase {
         for(${type} j : testData.keySet()){               
 						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
         }         
+
         
         // do a range search       
         CloseIterator<Tuple${Type}> it = storage.processRange(min, max);
@@ -111,7 +117,7 @@ public class StorageValidation${Type} extends TestCase {
                 first = false;
             }else{
            
-                assertTrue( "Prev: " + prev + " t: " + t.getKey(), prev < t.getKey());
+                assertTrue( "Prev: " + prev + " t: " + t.getKey() + " i: " + i, prev < t.getKey());
                 prev = t.getKey();
             }
             i++;
@@ -131,7 +137,7 @@ public class StorageValidation${Type} extends TestCase {
                 first = false;
             }else{
            
-                assertTrue( "Prev: " + prev + " t: " + t.getKey(), prev > t.getKey());
+                assertTrue( "Prev: " + prev + " t: " + t.getKey()+ " i: " + i, prev > t.getKey());
                 prev = t.getKey();
             }
             i++;
@@ -142,7 +148,6 @@ public class StorageValidation${Type} extends TestCase {
 
 				
         // TODO: add more tests for the iterator
-        
         // Test updates:
         for(${type} j : testData.keySet()){
             String d = x.nextDouble() + "";
@@ -152,14 +157,116 @@ public class StorageValidation${Type} extends TestCase {
         // test that all the new  data is there:
         for(${type} j : testData.keySet()){               
 						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
-        }    
-        
-        // Test deletes:
+        }   
+
+				// Test deletes:
         for(${type} j : testData.keySet()){
             assertTrue( storage.getValue(j) != null);
             storage.delete(j);
             assertTrue(storage.getValue(j) == null);
         }
+        
+        
+    }
+
+
+		/**
+     * Validates a Storage for shorts. Makes sure that insertions and deletions and
+     * the iterators are working well.      
+     * @param storage
+     * @throws OBStorageException
+     */
+    public static void validateDuplicates(OBStore${Type} storage) throws OBStorageException, OBException{
+        HashMap<${Type2}, byte[][]> testData = new HashMap<${Type2}, byte[][]>();
+        Random x = new Random();
+        int i = 0;
+        ${type} min = ${Type2}.MAX_VALUE;
+        ${type} max = ${Type2}.MIN_VALUE;
+        while(i < NUM_OF_ITEMS){
+						<#if type == "double" || type == "float" || type == "long" || 
+                 type == "int">
+														 ${type} ran = Math.abs(x.next${Type}());
+            <#else>
+            ${type} ran = (${type}) (x.nextInt() % ${Type}.MAX_VALUE);
+						</#if>
+            if(ran < min){
+                min = ran;
+            }
+            if(ran > max){
+                max = ran;
+            }
+						byte[][] data = new byte[5][];
+						int cx = 0;
+						while(cx < data.length){
+								ByteBuffer buf = ByteConversion.createByteBuffer(8);
+								buf.putDouble(x.nextDouble());
+								data[cx] = buf.array();
+								cx++;
+						}
+						
+            testData.put(ran, data);
+            i++;
+        }
+
+				
+
+        for(${type} j : testData.keySet()){
+						//						logger.info(j +  ": " + Arrays.toString(testData.get(j)));
+						byte[][] data = testData.get(j);
+						for(byte[] d : data){
+								storage.put(j, ByteConversion.createByteBuffer(d));
+						}           
+						//logger.info(Arrays.toString(testData.get(j)));
+        }               
+        // test that all the data is there:
+				
+        for(${type} j : testData.keySet()){   
+						for(byte[] d : testData.get(j)){
+								CloseIterator<Tuple${Type}> it = storage.processRange(j,j);
+								boolean found = false;
+								while(it.hasNext()){
+										Tuple${Type} t = it.next();
+										found = Arrays.equals(d, t.getValue().array());
+										if(found){
+												break;
+										}
+								}
+								it.closeCursor();
+								assertTrue(found);
+						}
+        }         
+
+				// test a delete:
+
+				for(${type} j : testData.keySet()){   
+						for(byte[] d : testData.get(j)){
+								CloseIterator<Tuple${Type}> it = storage.processRange(j,j);
+								
+								while(it.hasNext()){
+										Tuple${Type} t = it.next();
+										// delete this guy.
+										it.remove();
+										boolean found = false;
+										CloseIterator<Tuple${Type}> it2 = storage.processRange(j,j);
+										while(it.hasNext()){
+												Tuple${Type} t2 = it2.next();
+												found = Arrays.equals(t.getValue().array(), t2.getValue().array());
+												if(found){
+														// it should have been removed
+														break;
+												}
+										}
+										assertTrue(! found);
+										it2.closeCursor();
+								}
+								it.closeCursor();
+								
+						}
+        }
+        
+        
+        
+        
     }
     
    

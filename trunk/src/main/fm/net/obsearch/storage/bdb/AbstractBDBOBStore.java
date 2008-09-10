@@ -137,7 +137,9 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
   					 db.compact(null,null,null,null);
 						</#if>
 			db.close();
-			sequence.close();
+					if(sequence != null){
+							sequence.close();
+					}
 		} catch (DatabaseException d) {
 			throw new OBStorageException(d);
 		}
@@ -490,8 +492,8 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				 <#else>
 				 	StatsConfig conf = new StatsConfig();
 		conf.setFast(false);
-		//res = ((BtreeStats)db.getStats(null, conf)).getNumData();
-		res = ((HashStats)db.getStats(null, conf)).getNumData();
+		res = ((BtreeStats)db.getStats(null, conf)).getNumData();
+		//		res = ((HashStats)db.getStats(null, conf)).getNumData();
 		</#if>
 		} catch (DatabaseException e) {
 			throw new OBStorageException(e);

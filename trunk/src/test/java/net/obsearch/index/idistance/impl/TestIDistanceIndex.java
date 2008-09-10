@@ -26,6 +26,8 @@ import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
 import net.obsearch.storage.bdb.BDBFactoryDb;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
+import net.obsearch.storage.l.OBLFactory;
+
 import org.apache.log4j.Logger;
 
 /*
@@ -74,8 +76,9 @@ public class TestIDistanceIndex
     	//IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)7);
     	IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
     	
-    	BDBFactoryDb fact = Utils.getFactoryDb();
-        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 20);
+    	OBLFactory fact = Utils.getFactoryL();
+    	//BDBFactoryDb fact = Utils.getFactoryDb();
+        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 5);
         i.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(i);

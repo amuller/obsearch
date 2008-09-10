@@ -66,7 +66,7 @@ public class TestExtentedPyramidIndex
     	//IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)12);
         BDBFactoryJe fact = Utils.getFactoryJe();
         
-        ExtendedPyramidIndexShort<OBSlice> d = new ExtendedPyramidIndexShort<OBSlice>(OBSlice.class, sel, 64, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2) );
+        ExtendedPyramidIndexShort<OBSlice> d = new ExtendedPyramidIndexShort<OBSlice>(OBSlice.class, sel, 12, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2) );
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);

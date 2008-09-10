@@ -31,4 +31,8 @@ public class OBStorageException
         super(e);
     }
 
+	public OBStorageException(String msg) {
+		super(msg);
+	}
+
 }

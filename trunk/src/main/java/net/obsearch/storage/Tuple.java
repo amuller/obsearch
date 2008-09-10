@@ -42,5 +42,9 @@ public class Tuple {
     public ByteBuffer getValue() {
         return value;
     }
+    
+    public void setValue(ByteBuffer newValue){
+    	this.value = newValue;
+    }
 
 }

@@ -47,6 +47,7 @@ import net.obsearch.stats.Statistics;
 import net.obsearch.storage.OBStore;
 import net.obsearch.utils.bytes.ByteConversion;
 
+import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreLong;
 
@@ -177,10 +178,19 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @throws OBStorageException
 	 *             If the storage device could not be created.
 	 */
-	protected void initStorageDevices() throws OBStorageException {
-		this.A = fact.createOBStoreLong("A", false, false, ! isFrozen());
+	protected void initStorageDevices() throws OBStorageException, OBException {
+		OBStorageConfig conf = new OBStorageConfig();
+		conf.setTemp(false);
+		conf.setDuplicates(false);
+		conf.setBulkMode(! isFrozen());
+		
+		this.A = fact.createOBStoreLong("A", conf );
 		if (!this.isFrozen()) {
-			this.preFreeze = fact.createOBStore("pre", true, false, false);
+			conf = new OBStorageConfig();
+			conf.setTemp(false);
+			conf.setDuplicates(false);
+			conf.setBulkMode(false);
+			this.preFreeze = fact.createOBStore("pre", conf);
 		}
 	}
 
