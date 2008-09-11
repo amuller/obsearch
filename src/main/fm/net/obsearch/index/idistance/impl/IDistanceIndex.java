@@ -130,6 +130,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		return buildKey(iMin, minValue);
 	}
 
+	/**
+   * Build a key based on a pivot and value
+	 */ 
 	private byte[] buildKey(int i, ${type} value) {
 			byte[] pivotId = fact.serializeInt(i);
       byte[] v = fact.serialize${Type}(value);
@@ -228,6 +231,12 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		${type} lastRange;
 		Filter<O> filter;
 
+			/**
+			 * utility class used to match one smap tuple at a time.
+			 */ 
+			private BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
+								null, null);
+
 		public DimensionProcessor(BucketObject${Type} b, OBQuery${Type}<O> q,
 															Dimension${Type} s, Filter<O> filter) throws OBStorageException {
 			super();
@@ -239,6 +248,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			itLeft = Buckets.processRangeReverse(lowKey, centerKey);
 			if(itLeft.hasNext()){
 				itLeft.next();
+			}else{
+					continueLeft = false; // do not repeat this iteration.
 			}
 			this.filter = filter;
 		}
@@ -289,11 +300,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					if (comp.compare(t.getKey(), highKey) > 0) {
 						continueRight = false;
 					} else {
-						BucketContainer${Type}<O> bt = instantiateBucketContainer(
-								null, t.getKey());
 						stats
-								.incDistanceCount(bt.search(q, b,
-																						smapCount, data , filter));
+								.incDistanceCount(bmatch.search(q, b,
+																						smapCount, data , filter, t.getValue()));
 						stats.incBucketsRead();
 						// update ranges
 						if (q.updatedRange(lastRange)) {
@@ -309,11 +318,9 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					if (comp.compare(t.getKey(), lowKey) < 0) {
 						continueLeft = false;
 					} else {
-						BucketContainer${Type}<O> bt = instantiateBucketContainer(
-																												null, t.getKey());
 						stats
-								.incDistanceCount(bt.search(q, b,
-																						smapCount, data, filter));
+								.incDistanceCount(bmatch.search(q, b,
+																								smapCount, data, filter, t.getValue()));
 						stats.incBucketsRead();
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();
