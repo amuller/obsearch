@@ -247,7 +247,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			itRight = Buckets.processRange(centerKey, highKey);
 			itLeft = Buckets.processRangeReverse(lowKey, centerKey);
 			if(itLeft.hasNext()){
-				itLeft.next();
+					// TODO: add this if we are going to use BDB
+					//itLeft.next();
 			}else{
 					continueLeft = false; // do not repeat this iteration.
 			}

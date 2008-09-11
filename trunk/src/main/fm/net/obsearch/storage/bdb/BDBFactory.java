@@ -54,7 +54,7 @@ import com.sleepycat.${bdb}.DatabaseException;
 import com.sleepycat.${bdb}.Environment;
 import com.sleepycat.${bdb}.EnvironmentConfig;
 import com.sleepycat.bind.tuple.*;
-import com.sleepycat.db.DatabaseEntry;
+import com.sleepycat.je.DatabaseEntry;
 
 
 import java.io.File;
