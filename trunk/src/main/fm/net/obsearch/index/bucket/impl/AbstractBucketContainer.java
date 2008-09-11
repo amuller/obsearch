@@ -90,6 +90,7 @@ import net.obsearch.storage.TupleBytes;
 						 */
 						protected byte[] key;
 						public AbstractBucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key) {
+								//this(index,pivots,storage,key, Math.abs(Arrays.hashCode(key)) % pivots);
 								this(index,pivots,storage,key, Math.abs(Arrays.hashCode(key)) % pivots);
 						}
 		

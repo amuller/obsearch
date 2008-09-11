@@ -236,19 +236,20 @@ public class StorageValidation${Type} extends TestCase {
 						}
         }         
 
-				// test a delete:
-
+				// test  deletes:
+				//logger.info("Testing Deletes");
 				for(${type} j : testData.keySet()){   
 						for(byte[] d : testData.get(j)){
 								CloseIterator<Tuple${Type}> it = storage.processRange(j,j);
-								
+								//	logger.info("Begin cycle1");
 								while(it.hasNext()){
 										Tuple${Type} t = it.next();
 										// delete this guy.
 										it.remove();
 										boolean found = false;
 										CloseIterator<Tuple${Type}> it2 = storage.processRange(j,j);
-										while(it.hasNext()){
+										//	logger.info("Begin cycle2");
+										while(it2.hasNext()){
 												Tuple${Type} t2 = it2.next();
 												found = Arrays.equals(t.getValue().array(), t2.getValue().array());
 												if(found){

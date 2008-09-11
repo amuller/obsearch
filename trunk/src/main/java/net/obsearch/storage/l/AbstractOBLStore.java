@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
+import org.apache.log4j.Logger;
+
 import com.sleepycat.je.DatabaseException;
 
 import net.obsearch.OperationStatus;
@@ -61,10 +63,12 @@ import net.obsearch.utils.bytes.ByteConversion;
 
 public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 
+	private static final transient Logger logger = Logger
+	.getLogger(AbstractOBLStore.class);
 	/**
 	 * Stores the handles of the files.
 	 */
-	private OBCacheLong<RandomAccessFile> handles;
+	private OBCacheLong<RandomAccessFileHolder> handles;
 
 	private OBStore<TupleBytes> storage;
 
@@ -92,7 +96,8 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		this.storage = storage;
 		this.recordSize = recordSize;
 		this.baseFolder = new File(baseFolder, name);
-		this.handles = new OBCacheLong<RandomAccessFile>(new HandlerLoader(),OBSearchProperties.getHandlesCacheSize());
+		this.handles = new OBCacheLong<RandomAccessFileHolder>(new HandlerLoader(),
+				OBSearchProperties.getHandlesCacheSize());
 	}
 
 	@Override
@@ -194,8 +199,6 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		return storage.nextId();
 	}
 
-	
-
 	@Override
 	public CloseIterator<TupleBytes> processRange(byte[] low, byte[] high)
 			throws OBStorageException {
@@ -215,24 +218,27 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			return storage.put(key, value);
 		}
 		try {
-			OBAsserts.chkAssertStorage(value.array().length == recordSize, "Invalid record size");
-			
+			OBAsserts.chkAssertStorage(value.array().length == recordSize,
+					"Invalid record size");
+
 			OperationStatus res = new OperationStatus();
 			res.setStatus(Status.OK);
 			// add the value at the end of the file.
 			int id = -1;
 			ByteBuffer data = storage.getValue(key);
-			if(data == null){
-				 long idl = storage.nextId();
-				 OBAsserts.chkAssert(idl <= Integer.MAX_VALUE, "Exceeded possible number of buckets, fatal error");
-				 id = (int) idl;
-				 ByteBuffer j = ByteConversion.createByteBuffer(ByteConstants.Int.getSize());
-				 j.putInt(id);
-				 storage.put(key, j);
-			}else{
+			if (data == null) {
+				long idl = storage.nextId();
+				OBAsserts.chkAssert(idl <= Integer.MAX_VALUE,
+						"Exceeded possible number of buckets, fatal error");
+				id = (int) idl;
+				ByteBuffer j = ByteConversion
+						.createByteBuffer(ByteConstants.Int.getSize());
+				j.putInt(id);
+				storage.put(key, j);
+			} else {
 				id = data.getInt();
 			}
-			RandomAccessFile bucket = handles.get(id);
+			RandomAccessFile bucket = handles.get(id).getFile();
 			// record last position
 			long lastPosition = bucket.length();
 			// extend the file
@@ -261,7 +267,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			while (it.hasNext()) {
 				TupleBytes t = it.next();
 				int id = t.getValue().getInt();
-				RandomAccessFile currentBucket = handles.get(id);
+				RandomAccessFile currentBucket = handles.get(id).getFile();
 				res += currentBucket.length() / recordSize;
 			}
 			it.closeCursor();
@@ -274,10 +280,10 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 
 	protected abstract class CursorIterator<T> implements CloseIterator<T> {
 		private CloseIterator<TupleBytes> it;
-		// TODO: If the cache closes the object, then 
-		// the iterator will become invalid. We have to 
+		// TODO: If the cache closes the object, then
+		// the iterator will become invalid. We have to
 		// check for such case.
-		private RandomAccessFile currentBucket;
+		private FileHolder currentBucket;
 		private byte[] currentData = new byte[recordSize];
 		private TupleBytes currentTuple;
 		private long previousIndex = 0;
@@ -285,6 +291,9 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		 * If this iterator goes backwards.
 		 */
 		private boolean backwardsMode;
+
+		byte[] min;
+		byte[] max;
 
 		protected CursorIterator(byte[] min, byte[] max, boolean full,
 				boolean backwards) throws OBStorageException {
@@ -295,20 +304,25 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			} else {
 				it = storage.processRange(min, max);
 			}
+			this.min = min;
+			this.max = max;
 		}
 
-		private boolean isCurrentFileFinished() {
+		private boolean isCurrentFileFinished(){
 			boolean res;
 			try {
 				long p = -1;
 				long l = -1;
 				// first time || after the first time
-				if(currentBucket != null){
+				if (currentBucket != null) {
 					p = currentBucket.getFilePointer();
 					l = currentBucket.length();
+					
 				}
-				res = currentBucket == null || p  == l;
-			} catch (IOException e) {
+				
+				res = currentBucket == null || p == l;
+				//logger.debug("p: " + p + " l: " + l + " finished: " + res + "it.hasnext " + it.hasNext() + " len: " );
+			} catch (Exception e) {
 				throw new NoSuchElementException(e.toString());
 			}
 			return res;
@@ -319,28 +333,37 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			if (isCurrentFileFinished()) {
 				if (it.hasNext()) {
 					TupleBytes tuple = it.next();
-					assert currentTuple == null || ! Arrays.equals(tuple.getKey(), currentTuple.getKey());
+					assert currentTuple == null
+							|| !Arrays.equals(tuple.getKey(), currentTuple
+									.getKey());
 					currentTuple = tuple;
 					int id = tuple.getValue().getInt();
-					this.currentBucket = handles.get(id);
+					
+					this.currentBucket = new FileHolder(handles.get(id), id);
+					
 					currentBucket.seek(0); // reset the file pointer.
 					
-					assert ! isCurrentFileFinished(): "Empty buckets are wrong"; 
+					assert !isCurrentFileFinished() : "Empty buckets are wrong";
 					previousIndex = 0;
 				} else {
 					it = null; // we are done.
+					
+					
 				}
 			}
 			// we now just have to read the bytes
 			// read the size of the bytes stored.
 			previousIndex = currentBucket.getFilePointer();
-			//currentData = new byte[recordSize];
+			// currentData = new byte[recordSize];
+			assert recordSize == currentData.length;
 			currentBucket.readFully(currentData);
 		}
 
 		@Override
 		public boolean hasNext() {
-			return it != null && (it.hasNext() || !isCurrentFileFinished());
+			boolean res = it != null && (it.hasNext() || !isCurrentFileFinished());
+			//logger.debug("last hasnext: " + res + " it.hasnext" + it.hasNext());
+			return res;
 		}
 
 		@Override
@@ -351,7 +374,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 						.createByteBuffer(currentData));
 			} catch (Exception e) {
 				e.printStackTrace();
-				throw new NoSuchElementException(e.toString());
+				throw new UnsupportedOperationException(e);
 			}
 
 		}
@@ -360,6 +383,11 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		public void remove() {
 			try {
 
+				if (!Arrays.equals(min, max)) {
+					throw new NoSuchElementException(
+							"Cannot remove if min != max. This is a bucket!");
+				}
+
 				// remove the item we just returned.
 				currentBucket.seek(previousIndex);
 
@@ -367,7 +395,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 				// where we removed the data.
 				// if the last item is not the record we are going to remove
 				// now.
-				long lastItem = currentBucket.length() - recordSize ;
+				long lastItem = currentBucket.length() - recordSize;
 				if (lastItem > previousIndex) {
 					byte[] lastItemData = new byte[recordSize];
 					currentBucket.seek(lastItem);
@@ -377,8 +405,9 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 					currentBucket.write(lastItemData);
 				}
 				// decrease the size of the file:
+				//logger.debug("Length before remove: " + currentBucket.length());
 				currentBucket.setLength(currentBucket.length() - recordSize);
-
+				//logger.debug("Length after remove: " + currentBucket.length());
 				// restore the pointer
 				currentBucket.seek(previousIndex);
 				if (currentBucket.length() == 0) {// erase the bucket.
@@ -392,6 +421,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		@Override
 		public void closeCursor() throws OBException {
 			it.closeCursor();
+			
 		}
 
 		/**
@@ -414,9 +444,10 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 
 	protected class ByteArrayIterator extends CursorIterator<TupleBytes> {
 
-		protected ByteArrayIterator()throws OBStorageException{
-			super(null,null, true,false);
+		protected ByteArrayIterator() throws OBStorageException {
+			super(null, null, true, false);
 		}
+
 		protected ByteArrayIterator(byte[] min, byte[] max)
 				throws OBStorageException {
 			super(min, max, false, false);
@@ -433,8 +464,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 	}
 
-	protected class HandlerLoader implements
-			OBCacheHandlerLong<RandomAccessFile> {
+	protected class HandlerLoader implements OBCacheHandlerLong<RandomAccessFileHolder> {
 
 		@Override
 		public long getDBSize() throws OBStorageException {
@@ -442,30 +472,164 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 
 		@Override
-		public RandomAccessFile loadObject(long key)
-				throws OutOfRangeException, OBException,
-				InstantiationException, IllegalAccessException,
+		public RandomAccessFileHolder loadObject(long key) throws OutOfRangeException,
+				OBException, InstantiationException, IllegalAccessException,
 				OBStorageException {
-			File f = generateBucketFile((int)key);
+			File f = generateBucketFile((int) key);
 			try {
-				if(! f.getParentFile().exists()){
-					OBAsserts.chkAssert(f.getParentFile().mkdirs(), "Could not create all dirs");
+				if (!f.getParentFile().exists()) {
+					OBAsserts.chkAssert(f.getParentFile().mkdirs(),
+							"Could not create all dirs");
 				}
-				return new RandomAccessFile(f, "rw");
+				assert key <= Integer.MAX_VALUE;
+				return new RandomAccessFileHolder(new RandomAccessFile(f, "rw"));
 			} catch (FileNotFoundException e) {
 				throw new OBStorageException(e);
 			}
 		}
 
 		@Override
-		public void store(long key, RandomAccessFile object)
-				throws OBException {
-			try {
+		public void store(long key, RandomAccessFileHolder object) throws OBException {
+			
 				object.close();
-			} catch (IOException e) {
+			
+
+		}
+
+	}
+	
+	/**
+	 * Monitors if the random access file has been closed.
+	 * @author amuller
+	 *
+	 */
+	protected final class RandomAccessFileHolder {
+		private boolean closed = false;
+		private RandomAccessFile f;
+		public RandomAccessFileHolder(RandomAccessFile f){
+			this.f = f;
+		}
+		
+		public void close() throws OBException{
+			closed =  true;
+			try{
+				f.close();
+			}catch(IOException e){
 				throw new OBException(e);
 			}
 		}
+
+		public boolean isClosed() {
+			return closed;
+		}
+
+		public RandomAccessFile getFile() {
+			return f;
+		}
+
+	}
+
+	/**
+	 * This class holds references to RandomAccessFile. It makes sure that we
+	 * 
+	 * @author amuller
+	 * 
+	 */
+	protected final class FileHolder {
+
+		private RandomAccessFile file;
+		private RandomAccessFileHolder holder;
+		private long offset;
+		private int bucketId;
+		
+
+		public FileHolder(RandomAccessFileHolder h, int bucketId) {
+			this.bucketId = bucketId;
+			update(h);
+			offset = 0;
+		}
+				
+		private void update(RandomAccessFileHolder h){
+			this.file = h.getFile();
+			this.holder = h;			
+		}
+		
+		/**
+		 * Reload the file if it is gone.
+		 * @throws IllegalAccessException 
+		 * @throws InstantiationException 
+		 * @throws OBException 
+		 * @throws IOException 
+		 * @throws OutOfRangeException 
+		 */
+		private void verifyFile() throws OBException, IOException{
+			try{
+			if(holder.isClosed()){
+				update(handles.get(bucketId));
+			}
+			}catch(Exception e){
+				throw new OBException(e);
+			}
+			assert offset <= file.length() : " offset "  + offset + " length " + file.length();
+		}
+		
+		/**
+		 * Restore the offset position in the file.
+		 * @throws IOException
+		 */
+		private void updatePrev() throws IOException{
+			if(offset != file.getFilePointer()){
+				file.seek(offset);
+			}
+		}
+		
+		/**
+		 * Restore the offset position in the file.
+		 * @throws IOException
+		 */
+		private void updatePos() throws IOException{
+			offset = file.getFilePointer();
+		}
+		public long length() throws IOException, OBException {
+			verifyFile();
+			return file.length();
+		}
+
+		
+
+		public final void readFully(byte[] b) throws IOException, OBException {
+			verifyFile();
+			updatePrev();
+			file.readFully(b);
+			updatePos();
+		}
+
+		public void seek(long pos) throws IOException, OBException {
+			verifyFile();			
+			file.seek(pos);
+			updatePos();
+		}
+
+		public void write(byte[] b) throws IOException, OBException {
+			verifyFile();
+			updatePrev();
+			file.write(b);
+			updatePos();
+		}
+
+		
+
+		public long getFilePointer() throws IOException, OBException {
+			verifyFile();
+			return offset;
+		}
+
+		public void setLength(long newLength) throws IOException, OBException {
+			verifyFile();
+			file.setLength(newLength);
+		}
+		
+		
 
 	}
 

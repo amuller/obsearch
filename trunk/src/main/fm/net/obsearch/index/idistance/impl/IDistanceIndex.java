@@ -290,10 +290,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						continueRight = false;
 					} else {
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
-								t.getValue(), null);
+								null, t.getKey());
 						stats
 								.incDistanceCount(bt.search(q, b,
-																						smapCount, data , filter, t.getValue()));
+																						smapCount, data , filter));
 						stats.incBucketsRead();
 						// update ranges
 						if (q.updatedRange(lastRange)) {
@@ -310,10 +310,10 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						continueLeft = false;
 					} else {
 						BucketContainer${Type}<O> bt = instantiateBucketContainer(
-								t.getValue(), null);
+																												null, t.getKey());
 						stats
 								.incDistanceCount(bt.search(q, b,
-																						smapCount, data, filter, t.getValue()));
+																						smapCount, data, filter));
 						stats.incBucketsRead();
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();

@@ -77,7 +77,7 @@ public class TestIDistanceIndex
     	IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
     	
     	OBLFactory fact = Utils.getFactoryL();
-    	//BDBFactoryDb fact = Utils.getFactoryDb();
+    	//BDBFactoryJe fact = Utils.getFactoryJe();
         IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 5);
         i.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
