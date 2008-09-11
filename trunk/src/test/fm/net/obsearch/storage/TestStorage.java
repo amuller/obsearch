@@ -1,14 +1,7 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
 <#list types as t>
-<#assign type = t.name>
-
-<#if type == "int">
-<#assign Type2 = "Integer">
-<#else>
-<#assign Type2 = t.name?cap_first>
-</#if>
-
-<#assign Type = t.name?cap_first>
+<@type_info t=t/>
 
 <@pp.changeOutputFile name="StorageValidation"+Type+".java" />
 package net.obsearch.storage;
@@ -65,11 +58,11 @@ public class StorageValidation${Type} extends TestCase {
      * @throws OBStorageException
      */
     public static void validate(OBStore${Type} storage) throws OBStorageException, OBException{
-        HashMap<${Type2}, byte[]> testData = new HashMap<${Type2}, byte[]>();
+        HashMap<${ClassType}, byte[]> testData = new HashMap<${ClassType}, byte[]>();
         Random x = new Random();
         int i = 0;
-        ${type} min = ${Type2}.MAX_VALUE;
-        ${type} max = ${Type2}.MIN_VALUE;
+        ${type} min = ${ClassType}.MAX_VALUE;
+        ${type} max = ${ClassType}.MIN_VALUE;
         while(i < NUM_OF_ITEMS){
 						<#if type == "double" || type == "float" || type == "long" || 
                  type == "int">
@@ -106,7 +99,7 @@ public class StorageValidation${Type} extends TestCase {
         CloseIterator<Tuple${Type}> it = storage.processRange(min, max);
         i = 0;
         boolean first = true;
-        ${type} prev = ${Type2}.MIN_VALUE;
+        ${type} prev = ${ClassType}.MIN_VALUE;
         while(it.hasNext()){
             Tuple${Type} t = it.next();
 						assertTrue(testData.get(t.getKey()) != null);
@@ -128,7 +121,7 @@ public class StorageValidation${Type} extends TestCase {
         it = storage.processRangeReverse(min, max);
         i = 0;
         first = true;
-        prev = ${Type2}.MIN_VALUE;
+        prev = ${ClassType}.MIN_VALUE;
         while(it.hasNext()){
             Tuple${Type} t = it.next();
             assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
@@ -177,11 +170,11 @@ public class StorageValidation${Type} extends TestCase {
      * @throws OBStorageException
      */
     public static void validateDuplicates(OBStore${Type} storage) throws OBStorageException, OBException{
-        HashMap<${Type2}, byte[][]> testData = new HashMap<${Type2}, byte[][]>();
+        HashMap<${ClassType}, byte[][]> testData = new HashMap<${ClassType}, byte[][]>();
         Random x = new Random();
         int i = 0;
-        ${type} min = ${Type2}.MAX_VALUE;
-        ${type} max = ${Type2}.MIN_VALUE;
+        ${type} min = ${ClassType}.MAX_VALUE;
+        ${type} max = ${ClassType}.MIN_VALUE;
         while(i < NUM_OF_ITEMS){
 						<#if type == "double" || type == "float" || type == "long" || 
                  type == "int">
@@ -223,24 +216,42 @@ public class StorageValidation${Type} extends TestCase {
         for(${type} j : testData.keySet()){   
 						for(byte[] d : testData.get(j)){
 								CloseIterator<Tuple${Type}> it = storage.processRange(j,j);
-								boolean found = false;
+								int found = 0;
 								while(it.hasNext()){
 										Tuple${Type} t = it.next();
-										found = Arrays.equals(d, t.getValue().array());
-										if(found){
-												break;
+										if(Arrays.equals(d, t.getValue().array())){
+												found++;
 										}
+										
 								}
 								it.closeCursor();
-								assertTrue(found);
+								assertTrue(found == 1);
 						}
-        }         
+        }      
+
+				// test that the iteration proceeds normally.
+				CloseIterator<Tuple${Type}> it = storage.processRange(${ClassType}.MIN_VALUE, ${ClassType}.MAX_VALUE);
+				int c = 0;
+				${type} key = -1;
+					while(it.hasNext()){
+							 Tuple${Type} t = it.next();
+							 if(t.getKey() != key){
+									 if(key != -1){
+											 assert c == 5;
+									 }
+									 key = t.getKey();
+									 c= 1;
+							 }else{
+									 c++;
+							 }
+					}
+					it.closeCursor();
 
 				// test  deletes:
 				//logger.info("Testing Deletes");
 				for(${type} j : testData.keySet()){   
 						for(byte[] d : testData.get(j)){
-								CloseIterator<Tuple${Type}> it = storage.processRange(j,j);
+								 it = storage.processRange(j,j);
 								//	logger.info("Begin cycle1");
 								while(it.hasNext()){
 										Tuple${Type} t = it.next();

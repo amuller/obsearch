@@ -7,6 +7,7 @@ package net.obsearch.result;
 
 import net.obsearch.AbstractOBPriorityQueue;
 import net.obsearch.ob.OB${Type};
+import java.util.Iterator;
 
 /*
     OBSearch: a distributed similarity search engine
@@ -66,6 +67,7 @@ import net.obsearch.ob.OB${Type};
                 c.setDistance(distance);
                 c.setObject(obj);
                 c.setId(id);
+								assert validateAddition(c);
                 queue.offer(c);
             }
         } else { // if we are smaller than k we just create the object
@@ -73,10 +75,25 @@ import net.obsearch.ob.OB${Type};
             c.setDistance(distance);
             c.setObject(obj);
             c.setId(id);
+						assert validateAddition(c);
             queue.offer(c);
         }
         assert queue.size() <= k;
     }
+
+		/**
+		 * Make sure no repeated elements are added
+		 */
+		private boolean validateAddition(OBResult${Type}<O> c){
+				Iterator<OBResult${Type}<O>> it = iterator();
+				while(it.hasNext()){
+						OBResult${Type}<O> t = it.next();
+						if(t.getId() == c.getId()){
+								return false;
+						}
+				}
+				return false;
+		}
 
     /**
      * If queue.size() == k, then if the user's range is greater than the

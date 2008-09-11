@@ -116,6 +116,8 @@ public final class OBLStore${Type}
         return new ${Type}Iterator();
     }
 
+		
+
     /**
      * Iterator used to process range results.
      */
@@ -131,6 +133,8 @@ public final class OBLStore${Type}
         private ${Type}Iterator(${type} min, ${type} max) throws OBStorageException {
 						super(getBytes(min), getBytes(max),false,false);
         }
+
+				
 
 				/**
 				 * Creates a new ${Type}Iterator given a min range, max range and

@@ -219,7 +219,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 		try {
 			OBAsserts.chkAssertStorage(value.array().length == recordSize,
-					"Invalid record size");
+					"Invalid record size: data: " + value.array().length + " system: " + recordSize);
 
 			OperationStatus res = new OperationStatus();
 			res.setStatus(Status.OK);
@@ -300,10 +300,11 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			if (full) {
 				it = storage.processAll();
 			} else if (backwards) {
-				it = storage.processRangeReverse(min, max);
+				it = storage.processRangeReverse(min, max);				
 			} else {
 				it = storage.processRange(min, max);
 			}
+			
 			this.min = min;
 			this.max = max;
 		}
