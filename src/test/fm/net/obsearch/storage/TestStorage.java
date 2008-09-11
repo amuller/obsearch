@@ -247,6 +247,26 @@ public class StorageValidation${Type} extends TestCase {
 					}
 					it.closeCursor();
 
+
+
+					// test that the iteration proceeds normally.
+			 it = storage.processRangeReverse(${ClassType}.MIN_VALUE, ${ClassType}.MAX_VALUE);
+				 c = 0;
+				 key = -1;
+					while(it.hasNext()){
+							 Tuple${Type} t = it.next();
+							 if(t.getKey() != key){
+									 if(key != -1){
+											 assert c == 5;
+									 }
+									 key = t.getKey();
+									 c= 1;
+							 }else{
+									 c++;
+							 }
+					}
+					it.closeCursor();
+
 				// test  deletes:
 				//logger.info("Testing Deletes");
 				for(${type} j : testData.keySet()){   

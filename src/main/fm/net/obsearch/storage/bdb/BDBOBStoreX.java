@@ -36,7 +36,7 @@ import net.obsearch.storage.Tuple${Type};
 
 import com.sleepycat.bind.tuple.${binding}Binding;
 
-import com.sleepycat.db.DatabaseEntry;
+import com.sleepycat.je.DatabaseEntry;
 
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.bind.tuple.TupleInput;

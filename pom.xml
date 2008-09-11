@@ -98,17 +98,18 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 	<version>2.0.9</version>
 	</dependency>
 
-			 <dependency>
-       <groupId>bdb-c</groupId>
-			 <artifactId>bdb-c</artifactId>
-			 <version>4.7</version>
-		 </dependency>
 
 
 		 <dependency>
        <groupId>com.sleepycat</groupId>
 			 <artifactId>je</artifactId>
 			 <version>3.3.62</version>
+		 </dependency>
+
+		 			 <dependency>
+       <groupId>bdb-c</groupId>
+			 <artifactId>bdb-c</artifactId>
+			 <version>4.7</version>
 		 </dependency>
 
 

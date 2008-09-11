@@ -300,11 +300,13 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			if (full) {
 				it = storage.processAll();
 			} else if (backwards) {
-				it = storage.processRangeReverse(min, max);				
+				it = storage.processRangeReverse(min, max);		
+				it.next();
+				
 			} else {
 				it = storage.processRange(min, max);
 			}
-			
+			this.backwardsMode = backwards;
 			this.min = min;
 			this.max = max;
 		}
@@ -320,8 +322,12 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 					l = currentBucket.length();
 					
 				}
+				if(backwardsMode){
+					res = currentBucket == null || p == 0;
+				}else{
+					res = currentBucket == null || p == l;
+				}
 				
-				res = currentBucket == null || p == l;
 				//logger.debug("p: " + p + " l: " + l + " finished: " + res + "it.hasnext " + it.hasNext() + " len: " );
 			} catch (Exception e) {
 				throw new NoSuchElementException(e.toString());
@@ -341,23 +347,39 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 					int id = tuple.getValue().getInt();
 					
 					this.currentBucket = new FileHolder(handles.get(id), id);
-					
-					currentBucket.seek(0); // reset the file pointer.
-					
+					if(backwardsMode){
+						
+							currentBucket.seek(currentBucket.length());
+							previousIndex = currentBucket.length();
+						
+					}else{
+						currentBucket.seek(0); // reset the file pointer.
+						previousIndex = 0;
+					}
 					assert !isCurrentFileFinished() : "Empty buckets are wrong";
-					previousIndex = 0;
+					
 				} else {
 					it = null; // we are done.
 					
 					
 				}
 			}
+			
+			
 			// we now just have to read the bytes
 			// read the size of the bytes stored.
 			previousIndex = currentBucket.getFilePointer();
+			
+			if(backwardsMode){
+				currentBucket.seek(currentBucket.getFilePointer() - recordSize);
+			}
 			// currentData = new byte[recordSize];
 			assert recordSize == currentData.length;
 			currentBucket.readFully(currentData);
+			
+			if(backwardsMode){
+				currentBucket.seek(currentBucket.getFilePointer() - recordSize);
+			}
 		}
 
 		@Override

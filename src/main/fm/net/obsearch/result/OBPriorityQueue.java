@@ -67,7 +67,7 @@ import java.util.Iterator;
                 c.setDistance(distance);
                 c.setObject(obj);
                 c.setId(id);
-								assert validateAddition(c);
+								//								assert validateAddition(c);
                 queue.offer(c);
             }
         } else { // if we are smaller than k we just create the object
@@ -75,7 +75,7 @@ import java.util.Iterator;
             c.setDistance(distance);
             c.setObject(obj);
             c.setId(id);
-						assert validateAddition(c);
+						// assert validateAddition(c);
             queue.offer(c);
         }
         assert queue.size() <= k;
