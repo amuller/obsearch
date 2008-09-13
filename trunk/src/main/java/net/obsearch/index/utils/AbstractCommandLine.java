@@ -150,6 +150,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	 */
 	protected abstract void addObjects(I index, File load) throws FileNotFoundException, IOException, OBStorageException, OBException, IllegalAccessException, InstantiationException;
 	
+	
 	protected abstract void searchObjects(I index, File load) throws IOException, OBException, InstantiationException, IllegalAccessException;
 
 	protected void create() throws IOException, OBStorageException,

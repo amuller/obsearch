@@ -1,9 +1,12 @@
 package net.obsearch.index.dprime.impl;
 
+import hep.aida.bin.QuantileBin1D;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import net.obsearch.Index;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.constants.ByteConstants;
@@ -18,6 +21,7 @@ import net.obsearch.index.bucket.impl.BucketContainerShort;
 import net.obsearch.index.bucket.impl.BucketObjectShort;
 import net.obsearch.index.dprime.AbstractDPrimeIndex;
 import net.obsearch.index.utils.IntegerHolder;
+import net.obsearch.index.utils.medians.MedianCalculatorShort;
 import net.obsearch.ob.OBShort;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.query.OBQueryShort;
@@ -26,7 +30,6 @@ import net.obsearch.result.OBResultShort;
 import net.obsearch.utils.bytes.ByteConversion;
 
 import org.apache.log4j.Logger;
-
 
 import cern.colt.list.LongArrayList;
 import cern.colt.list.ShortArrayList;
@@ -37,7 +40,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 		extends
 		AbstractDPrimeIndex<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
 		implements IndexShort<O> {
-	
+
 	/**
 	 * Logger.
 	 */
@@ -63,10 +66,11 @@ public final class DPrimeIndexShort<O extends OBShort>
 	private int[][] distanceDistribution;
 
 	protected float[][] normalizedProbs;
-
 	
-
-	
+	/**
+	 * Hack used to calculate the medians.
+	 */
+	private short expectedMaxDistance = Short.MAX_VALUE;
 
 	/**
 	 * Creates a new DIndex for shorts
@@ -94,12 +98,14 @@ public final class DPrimeIndexShort<O extends OBShort>
 		super(type, pivotSelector, pivotCount);
 
 	}
+	
+	public void setExpectedMaxDistance(short maxDistance){
+		this.maxDistance = maxDistance;
+	}
 
-	protected BucketObjectShort getBucket(O object, short p)
-			throws OBException {
+	protected BucketObjectShort getBucket(O object, short p) throws OBException {
 
-		BucketObjectShort res = new BucketObjectShort(convertTuple(object),
-				-1L);		
+		BucketObjectShort res = new BucketObjectShort(convertTuple(object), -1L);
 		return res;
 	}
 
@@ -117,18 +123,20 @@ public final class DPrimeIndexShort<O extends OBShort>
 	
 	
 
-	
 	@Override
 	protected int primitiveDataTypeSize() {
-		return ByteConstants.Short.getSize();
+		return this.getPivotCount() * ByteConstants.Short.getSize()
+				+ Index.ID_SIZE;
 	}
 
 	/**
 	 * Calculate the bucket id of the given bucket.
-	 * @param b The bucket we will process.
+	 * 
+	 * @param b
+	 *            The bucket we will process.
 	 * @return the bucket id of b.
 	 */
-	protected long getBucketId(BucketObjectShort b){
+	protected long getBucketId(BucketObjectShort b) {
 		int i = 0;
 		O[] piv = super.pivots;
 		short[] medians = median;
@@ -210,26 +218,45 @@ public final class DPrimeIndexShort<O extends OBShort>
 		} else {
 			max = elementsSource.size();
 		}
+		
+		i = 0;
+		MedianCalculatorShort[]  medianHolders = new MedianCalculatorShort[getPivotCount()];  
+		//ShortArrayList[] shorts = new ShortArrayList[getPivotCount()];
+		while(i < getPivotCount()){
+			medianHolders[i] = new MedianCalculatorShort(this.expectedMaxDistance);
+			//shorts[i] = new ShortArrayList(max);
+			i++;
+		}
+
+		
+		// init median arrays.
 
 		logger.debug("Calculating medians. max: " + max);
-
-		median = new short[getPivotCount()];
-		while (i < getPivotCount()) {
-			O p = pivots[i];
-			int cx = 0;
-			ShortArrayList medianData = new ShortArrayList(max);
-			// calculate median for pivot p
-			while (cx < max) {
-				O o = getObjectFreeze(cx, elementsSource);
+		int cx = 0;
+		while (cx < max) {
+			O o = getObjectFreeze(cx, elementsSource);
+			if(cx % 100000 == 0){
+				logger.info("Calculating medians: " + cx);
+			}
+			median = new short[getPivotCount()];
+			i = 0;
+			while (i < getPivotCount()) {
+				O p = pivots[i];
 				short d = p.distance(o);
 				if (maxDistance < d) {
 					maxDistance = d;
 				}
-				medianData.add(d);
-				cx++;
+				medianHolders[i].add(d);
+				//shorts[i].add(d);
+				i++;
 			}
 
-			median[i] = median(medianData);
+			cx++;
+		}
+		i = 0;
+		for(MedianCalculatorShort q : medianHolders){
+			median[i] = (short)q.median();
+			//logger.info("Real: " + median(shorts[i]));
 			i++;
 		}
 		logger.info("max distance: " + maxDistance);
@@ -418,7 +445,8 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 *            The query
 	 * @param ignoreSameBlocks
 	 *            if true, if block == b.getBucket() nothing happens.
-	 * @throws NotFrozenEx`ception
+	 * @throws NotFrozenEx
+	 *             `ception
 	 * @throws DatabaseException
 	 * @throws InstantiationException
 	 * @throws IllegalIdException
@@ -427,28 +455,29 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 * @throws OBException
 	 */
 	private void s(long block, BucketObjectShort b, OBQueryShort<O> q,
-			boolean ignoreSameBlocks, long originalBucketId) throws NotFrozenException,
-			InstantiationException, IllegalIdException, IllegalAccessException,
-			OutOfRangeException, OBException {
+			boolean ignoreSameBlocks, long originalBucketId)
+			throws NotFrozenException, InstantiationException,
+			IllegalIdException, IllegalAccessException, OutOfRangeException,
+			OBException {
 
-
+		if (super.filter.get(getPivotCount() - 1).contains(block)) {
 			if (!ignoreSameBlocks || block != originalBucketId) {
 				// we have finished
 
 				BucketContainerShort<O> bc = instantiateBucketContainer(block);
 				stats.incBucketsRead();
-				
-				
+				// assert bc.size() != 0; // this should not happen.
+
 				IntegerHolder data = new IntegerHolder(0);
 				IntegerHolder h = new IntegerHolder(0);
 				stats.incDistanceCount(bc.search(q, b, h, data, null));
 				stats.incDataRead(data.getValue());
-				//stats.incDistanceCount(bc.search(q, b));
+				// stats.incDistanceCount(bc.search(q, b));
 				stats.incSmapCount(h.getValue());
 			}
-
 		}
 
+	}
 
 	@Override
 	public OperationStatus exists(O object) throws OBException,
@@ -481,7 +510,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 
 	protected BucketContainerShort<O> instantiateBucketContainer(long id) {
-		
+
 		return new BucketContainerShort<O>(this, getPivotCount(), Buckets,
 				longToBytes(id));
 	}
@@ -501,7 +530,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 		throw new UnsupportedOperationException();
 
 	}
-
+	
 	
 
 }

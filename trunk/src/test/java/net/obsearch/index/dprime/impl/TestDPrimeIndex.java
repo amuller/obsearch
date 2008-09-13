@@ -19,8 +19,11 @@ import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
+
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
+import net.obsearch.storage.l.OBLFactory;
+
 import org.apache.log4j.Logger;
 
 /*
@@ -68,7 +71,10 @@ public class TestDPrimeIndex
                 100, 100);
         //IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
         BDBFactoryJe fact = Utils.getFactoryJe();
-        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 32);
+        //BDBFactoryDb fact = Utils.getFactoryDb();
+        //OBLFactory fact = Utils.getFactoryL();
+        
+        DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 16);
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);

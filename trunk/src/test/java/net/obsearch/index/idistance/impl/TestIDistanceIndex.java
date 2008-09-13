@@ -11,8 +11,6 @@ import net.obsearch.example.OBSlice;
 import net.obsearch.example.OBSliceFactory;
 import net.obsearch.example.ted.OBTed;
 import net.obsearch.example.ted.OBTedFactory;
-import net.obsearch.index.dprime.impl.DPrimeIndexShort;
-import net.obsearch.index.dprime.impl.TestDPrimeIndex;
 import net.obsearch.index.idistance.impl.IDistanceIndexShort;
 import net.obsearch.index.rosa.RosaFilterShort;
 import net.obsearch.index.utils.Directory;
@@ -23,7 +21,7 @@ import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
 import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
-import net.obsearch.storage.bdb.BDBFactoryDb;
+
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 import net.obsearch.storage.l.OBLFactory;
@@ -61,7 +59,7 @@ public class TestIDistanceIndex
      * Logger.
      */
     private static transient final Logger logger = Logger
-            .getLogger(TestDPrimeIndex.class);
+            .getLogger(TestIDistanceIndex.class);
 
     /**
      * Tests on the P+Tree.
@@ -74,11 +72,13 @@ public class TestIDistanceIndex
         //        30, 30);
     	//IncrementalKMeansPPPivotSelectorShort<OBSlice> sel = new IncrementalKMeansPPPivotSelectorShort<OBSlice>(new AcceptAll());
     	//IncrementalMullerShort<OBSlice> sel = new IncrementalMullerShort<OBSlice>(new AcceptAll(), 100, 100, (short)7);
-    	IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
+    	//IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
     	
+    	 IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
+                 100, 100);
     	OBLFactory fact = Utils.getFactoryL();
     	//BDBFactoryDb fact = Utils.getFactoryDb();
-        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 5);
+        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 16);
         i.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(i);

@@ -147,6 +147,7 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
         index.freeze();
         // serialize the stream.
         XStream xstream = new XStream();
+        
         FileOutputStream fs = new FileOutputStream( metadataFile(directory) );
         BufferedOutputStream bf = new BufferedOutputStream(fs);
         xstream.toXML(index, bf);

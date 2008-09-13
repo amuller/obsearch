@@ -8,11 +8,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import org.apache.log4j.Logger;
 
+
+import com.imagero.uio.bio.IOController;
+import com.imagero.uio.bio.content.RandomAccessFileContent;
+import com.imagero.uio.bio.content.RandomAccessIOContent;
 import com.sleepycat.je.DatabaseException;
 
 import net.obsearch.OperationStatus;
@@ -68,7 +75,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 	/**
 	 * Stores the handles of the files.
 	 */
-	private OBCacheLong<RandomAccessFileHolder> handles;
+	private OBCacheLong<RAFileHolder> handles;
 
 	private OBStore<TupleBytes> storage;
 
@@ -96,8 +103,9 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		this.storage = storage;
 		this.recordSize = recordSize;
 		this.baseFolder = new File(baseFolder, name);
-		this.handles = new OBCacheLong<RandomAccessFileHolder>(new HandlerLoader(),
+		this.handles = new OBCacheLong<RAFileHolder>(new HandlerLoader(),
 				OBSearchProperties.getHandlesCacheSize());
+		logger.debug("Handle cache: "  + OBSearchProperties.getHandlesCacheSize());
 	}
 
 	@Override
@@ -238,7 +246,8 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			} else {
 				id = data.getInt();
 			}
-			RandomAccessFile bucket = handles.get(id).getFile();
+			RandomAccessFile
+			 bucket = handles.get(id).getFile();
 			// record last position
 			long lastPosition = bucket.length();
 			// extend the file
@@ -287,10 +296,12 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		private byte[] currentData = new byte[recordSize];
 		private TupleBytes currentTuple;
 		private long previousIndex = 0;
+		
+		//private ByteBuffer currentData = ByteBuffer.allocateDirect(recordSize);
 		/**
 		 * If this iterator goes backwards.
 		 */
-		private boolean backwardsMode;
+		//private boolean backwardsMode;
 
 		byte[] min;
 		byte[] max;
@@ -301,12 +312,14 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 				it = storage.processAll();
 			} else if (backwards) {
 				it = storage.processRangeReverse(min, max);		
-				it.next();
+				if(it.hasNext()){
+					it.next();
+				}
 				
 			} else {
 				it = storage.processRange(min, max);
 			}
-			this.backwardsMode = backwards;
+			//this.backwardsMode = backwards;
 			this.min = min;
 			this.max = max;
 		}
@@ -322,11 +335,9 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 					l = currentBucket.length();
 					
 				}
-				if(backwardsMode){
-					res = currentBucket == null || p == 0;
-				}else{
+				
 					res = currentBucket == null || p == l;
-				}
+				
 				
 				//logger.debug("p: " + p + " l: " + l + " finished: " + res + "it.hasnext " + it.hasNext() + " len: " );
 			} catch (Exception e) {
@@ -347,15 +358,10 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 					int id = tuple.getValue().getInt();
 					
 					this.currentBucket = new FileHolder(handles.get(id), id);
-					if(backwardsMode){
-						
-							currentBucket.seek(currentBucket.length());
-							previousIndex = currentBucket.length();
-						
-					}else{
+					
 						currentBucket.seek(0); // reset the file pointer.
 						previousIndex = 0;
-					}
+					
 					assert !isCurrentFileFinished() : "Empty buckets are wrong";
 					
 				} else {
@@ -370,16 +376,12 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			// read the size of the bytes stored.
 			previousIndex = currentBucket.getFilePointer();
 			
-			if(backwardsMode){
-				currentBucket.seek(currentBucket.getFilePointer() - recordSize);
-			}
+			
 			// currentData = new byte[recordSize];
 			assert recordSize == currentData.length;
 			currentBucket.readFully(currentData);
 			
-			if(backwardsMode){
-				currentBucket.seek(currentBucket.getFilePointer() - recordSize);
-			}
+			
 		}
 
 		@Override
@@ -393,8 +395,8 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		public T next() {
 			try {
 				loadNext();
-				return createTuple(currentTuple.getKey(), ByteConversion
-						.createByteBuffer(currentData));
+				return createTuple(currentTuple.getKey(), 
+						ByteConversion.createByteBuffer(currentData));
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new UnsupportedOperationException(e);
@@ -465,7 +467,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 	 * Iterator used to process range results.
 	 */
 
-	protected class ByteArrayIterator extends CursorIterator<TupleBytes> {
+	protected final class ByteArrayIterator extends CursorIterator<TupleBytes> {
 
 		protected ByteArrayIterator() throws OBStorageException {
 			super(null, null, true, false);
@@ -487,7 +489,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 	}
 
-	protected class HandlerLoader implements OBCacheHandlerLong<RandomAccessFileHolder> {
+	protected final class HandlerLoader implements OBCacheHandlerLong<RAFileHolder> {
 
 		@Override
 		public long getDBSize() throws OBStorageException {
@@ -495,7 +497,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 
 		@Override
-		public RandomAccessFileHolder loadObject(long key) throws OutOfRangeException,
+		public RAFileHolder loadObject(long key) throws OutOfRangeException,
 				OBException, InstantiationException, IllegalAccessException,
 				OBStorageException {
 			File f = generateBucketFile((int) key);
@@ -505,14 +507,15 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 							"Could not create all dirs");
 				}
 				assert key <= Integer.MAX_VALUE;
-				return new RandomAccessFileHolder(new RandomAccessFile(f, "rw"));
-			} catch (FileNotFoundException e) {
+				//return new RandomAccessFileHolder(new RandomAccessFile(new IOController(1024,new RandomAccessFileContent(f, "rw"))));
+				return new RAFileHolder (new RandomAccessFile(f, "rw"));
+			} catch (Exception e) {
 				throw new OBStorageException(e);
 			}
 		}
 
 		@Override
-		public void store(long key, RandomAccessFileHolder object) throws OBException {
+		public void store(long key, RAFileHolder object) throws OBException {
 			
 				object.close();
 			
@@ -526,17 +529,30 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 	 * @author amuller
 	 *
 	 */
-	protected final class RandomAccessFileHolder {
+	protected final class RAFileHolder {
 		private boolean closed = false;
 		private RandomAccessFile f;
-		public RandomAccessFileHolder(RandomAccessFile f){
+		private FileChannel fc;
+		private MappedByteBuffer map;
+		public RAFileHolder(RandomAccessFile f) throws OBStorageException{
 			this.f = f;
+			fc = f.getChannel();
+			try{
+			reloadMap();
+			}catch(IOException e){
+				throw new OBStorageException(e);
+			}
+		}
+		
+		public void reloadMap() throws IOException{
+			map = fc.map(MapMode.READ_WRITE, 0, fc.size());
 		}
 		
 		public void close() throws OBException{
 			closed =  true;
 			try{
 				f.close();
+				fc.close();
 			}catch(IOException e){
 				throw new OBException(e);
 			}
@@ -550,6 +566,20 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			return f;
 		}
 
+		public RandomAccessFile getF() {
+			return f;
+		}
+
+		public FileChannel getFc() {
+			return fc;
+		}
+
+		public MappedByteBuffer getMap() {
+			return map;
+		}
+		
+		
+
 	}
 
 	/**
@@ -561,20 +591,27 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 	protected final class FileHolder {
 
 		private RandomAccessFile file;
-		private RandomAccessFileHolder holder;
+		private MappedByteBuffer map;
+		private RAFileHolder holder;
 		private long offset;
 		private int bucketId;
 		
 
-		public FileHolder(RandomAccessFileHolder h, int bucketId) {
+		public FileHolder(RAFileHolder h, int bucketId) {
 			this.bucketId = bucketId;
 			update(h);
 			offset = 0;
 		}
 				
-		private void update(RandomAccessFileHolder h){
+		private void update(RAFileHolder h){
 			this.file = h.getFile();
-			this.holder = h;			
+			this.holder = h;	
+			this.map = h.getMap();
+		}
+		
+		
+		public ByteBuffer getMap(){
+			return map;
 		}
 		
 		/**
@@ -593,7 +630,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			}catch(Exception e){
 				throw new OBException(e);
 			}
-			assert offset <= file.length() : " offset "  + offset + " length " + file.length();
+			assert offset <= holder.getFile().length() : " offset "  + offset + " length " + holder.getFile().length();
 		}
 		
 		/**
@@ -601,21 +638,32 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		 * @throws IOException
 		 */
 		private void updatePrev() throws IOException{
+			/**/
+			if(offset != map.position()){
+				map.position((int)offset);
+			}
+		}
+		
+		private void updatePrevWrite() throws IOException{
 			if(offset != file.getFilePointer()){
 				file.seek(offset);
 			}
 		}
-		
+		private void updatePosWrite() throws IOException{
+			
+		}
 		/**
 		 * Restore the offset position in the file.
 		 * @throws IOException
 		 */
 		private void updatePos() throws IOException{
-			offset = file.getFilePointer();
+			//offset = file.getFilePointer();
+			offset = map.position();
 		}
 		public long length() throws IOException, OBException {
 			verifyFile();
-			return file.length();
+			//return file.length();
+			return map.capacity();
 		}
 
 		
@@ -623,21 +671,24 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		public final void readFully(byte[] b) throws IOException, OBException {
 			verifyFile();
 			updatePrev();
-			file.readFully(b);
+			//file.readFully(b);
+			map.get(b);
 			updatePos();
 		}
 
 		public void seek(long pos) throws IOException, OBException {
 			verifyFile();			
-			file.seek(pos);
+			//file.seek(pos);
+			map.position((int)pos);
 			updatePos();
 		}
 
 		public void write(byte[] b) throws IOException, OBException {
-			verifyFile();
-			updatePrev();
-			file.write(b);
-			updatePos();
+			verifyFile();			
+			holder.getFile().seek(offset);
+			holder.getFile().write(b);
+			holder.reloadMap();
+			offset = holder.getFile().getFilePointer();
 		}
 
 		
@@ -649,10 +700,15 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 
 		public void setLength(long newLength) throws IOException, OBException {
 			verifyFile();
-			file.setLength(newLength);
+			//file.setLength(newLength);
+			holder.getFile().setLength(newLength);
+			reloadMap();
 		}
 		
-		
+		private void reloadMap() throws IOException{
+			holder.reloadMap();
+			this.map = holder.getMap();
+		}
 
 	}
 

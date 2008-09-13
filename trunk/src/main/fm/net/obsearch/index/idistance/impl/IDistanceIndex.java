@@ -215,7 +215,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	 * @author Arnoldo Muller Molina
 	 * 
 	 */
-	private class DimensionProcessor {
+	private final class DimensionProcessor {
 
 		private CloseIterator<TupleBytes> itRight;
 		private CloseIterator<TupleBytes> itLeft;
@@ -228,6 +228,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		byte[] centerKey;
 		byte[] lowKey;
 		byte[] highKey;
+			byte[] currentKeyLeft = null; // keep track of the # of buckets accessed
+			byte[] currentKeyRight = null; // keep track of the # of buckets accessed
 		${type} lastRange;
 		Filter<O> filter;
 
@@ -274,8 +276,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 		}
 
 		public boolean hasNext() {
-			return (itRight.hasNext() && continueRight)
-					|| (itLeft.hasNext() && continueLeft);
+			return (continueRight && itRight.hasNext() )
+					|| (continueLeft && itLeft.hasNext() );
 		}
 
 			
@@ -297,6 +299,14 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 				//			if (iteration) {
 				if (itRight.hasNext() && continueRight) {
 					TupleBytes t = itRight.next();
+
+					if(currentKeyRight == null || ! Arrays.equals(currentKeyRight, t.getKey())){
+									if(currentKeyRight != null){
+											stats.incBucketsRead();
+									}
+							currentKeyRight = t.getKey();
+					}
+
 					// make sure we are within the key limits.
 					if (comp.compare(t.getKey(), highKey) > 0) {
 						continueRight = false;
@@ -304,7 +314,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 						stats
 								.incDistanceCount(bmatch.search(q, b,
 																						smapCount, data , filter, t.getValue()));
-						stats.incBucketsRead();
+						
 						// update ranges
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();
@@ -316,13 +326,22 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 
 				if (itLeft.hasNext() && continueLeft) {
 					TupleBytes t = itLeft.next();
+
+				
+					if(currentKeyLeft == null || ! Arrays.equals(currentKeyLeft, t.getKey())){
+									if(currentKeyLeft != null){
+							stats.incBucketsRead();
+									}
+							currentKeyLeft = t.getKey();
+					}
+
 					if (comp.compare(t.getKey(), lowKey) < 0) {
 						continueLeft = false;
 					} else {
 						stats
 								.incDistanceCount(bmatch.search(q, b,
 																								smapCount, data, filter, t.getValue()));
-						stats.incBucketsRead();
+					
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();
 						}

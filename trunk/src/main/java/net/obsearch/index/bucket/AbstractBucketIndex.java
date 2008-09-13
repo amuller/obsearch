@@ -217,17 +217,27 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			IllegalAccessException, InstantiationException, OBException {
 
 		CloseIterator<TupleBytes> it = Buckets.processAll();
+		assert Buckets.size() == A.size();
 		StaticBin1D s = new StaticBin1D();
 		byte[] key = null;
 		int counter = 0;
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
+			
 			if(key != null && ! Arrays.equals(t.getKey(), key)){
 				s.add(counter);
+				key = t.getKey();
+				counter = 1;
 			}else{
 				counter++;
+				if(key == null){
+					// first time 
+					key = t.getKey();
+				}
 			}
 		} // add exlucion
+		s.add(counter);
+		assert A.size() == ((long)s.sum()): "Size in stats: " + s.sum() +" size in A: " + A.size();
 		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();
 	}
