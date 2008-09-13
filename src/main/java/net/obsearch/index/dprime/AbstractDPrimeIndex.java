@@ -21,7 +21,9 @@ package net.obsearch.index.dprime;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -49,6 +51,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.IndexShort;
 import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
@@ -71,6 +74,7 @@ import cern.colt.list.LongArrayList;
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.DatabaseException;
+import com.thoughtworks.xstream.XStream;
 
 /**
  * AbstractDIndex contains functionality common to specializations of the
@@ -98,7 +102,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 * Filter used to avoid unnecessary block accesses.
 	 */
 	// protected ArrayList< SimpleBloomFilter<Long>> filter;
-	protected ArrayList<HashSet<Long>> filter;
+	protected ArrayList<HashSet<Long>> filter = new ArrayList<HashSet<Long>>();
 
 	
 
@@ -214,6 +218,12 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 		normalizeProbs();
 		
+		
+		XStream x = new XStream();
+		
+		FileOutputStream fs = new FileOutputStream( "xml.test" );
+        BufferedOutputStream bf = new BufferedOutputStream(fs);
+        x.toXML((IndexShort)this, bf);
 		bucketStats();
 
 		logger.debug("Max bucket size: " + maxBucketSize);
@@ -229,7 +239,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 */
 	protected abstract long getBucketId(B b);
 	
-	protected void bucketStats() throws OBStorageException, IllegalIdException,
+	/*protected void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {
 
 		CloseIterator<TupleBytes> it = Buckets.processAll();
@@ -241,7 +251,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		} // add exlucion
 		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();
-	}
+	}*/
 	
 	protected abstract BC instantiateBucketContainer(long id);
 	

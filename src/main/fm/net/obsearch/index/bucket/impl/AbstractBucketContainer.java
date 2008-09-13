@@ -59,7 +59,10 @@ import net.obsearch.storage.TupleBytes;
 		public abstract class AbstractBucketContainer${Type} < O extends OB${Type}, B extends BucketObject${Type} > implements
         BucketContainer < O, B, OBQuery${Type} < O >> {
 
-
+						/**
+						 * Utility class
+						 */
+						private B current = instantiateBucketObject();
 						/**
 						 * Storage device used to iterate through the bucket.
 						 */
@@ -226,9 +229,10 @@ import net.obsearch.storage.TupleBytes;
 		public long search(OBQuery${Type} < O > query, B b,
 											 IntegerHolder smapComputations,  IntegerHolder dataRead,  Filter<O> filter, ByteBuffer data) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
-				B current = instantiateBucketObject();
+				
+			
 				current.read(data, getPivots());
-				dataRead.add(data.array().length);
+				dataRead.add(TUPLE_SIZE);
 				smapComputations.inc();
 				${type} max = current.lInf(b);
 				long res = 0;

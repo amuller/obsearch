@@ -356,7 +356,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				}
 				if (backwardsMode) {
 					if (c >= 0) {
-						next = createTuple(current, ByteConversion
+						next = createT(current, ByteConversion
 															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
@@ -367,7 +367,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 
 				} else {
 					if (c <= 0) {
-						next = createTuple(current, ByteConversion
+						next = createT(current, ByteConversion
 															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
@@ -383,6 +383,17 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			}
 		}
 
+		protected  T createT(byte[] key, ByteBuffer value){
+				<#if bdb = "je">
+									return		 createTuple(key,value);
+				<#else>
+						 byte[] keybkp = new byte[key.length];
+				System.arraycopy(key,0,keybkp,0,key.length);
+				    return createTuple(keybkp,value);
+				</#if>
+		}
+
+
 		/**
 		 * Creates a tuple from the given key and value.
 		 * 
@@ -396,7 +407,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		protected abstract T createTuple(byte[] key, ByteBuffer value);
 
 		public T next() {
-			synchronized (keyEntry) {
+			
 				if (next == null) {
 					throw new NoSuchElementException(
 							"You tried to access an iterator with no next elements");
@@ -419,17 +430,17 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				// get the next elements.
 				loadNext();
 				return res;
-			}
+			
 		}
 
 		public void closeCursor() throws OBException {
 			try {
-				synchronized (cursor) {
+			
 					if (!cursorClosed) {
 						cursor.close();
 						cursorClosed = true;
 					}
-				}
+			
 			} catch (DatabaseException e) {
 				throw new NoSuchElementException(
 						"Could not close the internal cursor");

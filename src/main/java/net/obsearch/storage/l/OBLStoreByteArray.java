@@ -12,8 +12,7 @@ import net.obsearch.storage.TupleBytes;
 
 import net.obsearch.storage.OBStoreFactory;
 
-import com.sleepycat.db.Database;
-import com.sleepycat.db.DatabaseException;
+
 
 /*
  OBSearch: a distributed similarity search engine This project is to
