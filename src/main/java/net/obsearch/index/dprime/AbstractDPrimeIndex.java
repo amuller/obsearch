@@ -104,8 +104,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	// protected ArrayList< SimpleBloomFilter<Long>> filter;
 	protected ArrayList<HashSet<Long>> filter = new ArrayList<HashSet<Long>>();
 
-	
-
 	/**
 	 * Masks used to speedup the generation of hash table codes.
 	 */
@@ -139,13 +137,13 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	protected AbstractDPrimeIndex(Class<O> type,
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount)
 			throws OBStorageException, OBException {
-		super(type, pivotSelector, pivotCount);		
+		super(type, pivotSelector, pivotCount);
 	}
 
-	public void init(OBStoreFactory fact) throws OBStorageException, OBException, InstantiationException, IllegalAccessException {
+	public void init(OBStoreFactory fact) throws OBStorageException,
+			OBException, InstantiationException, IllegalAccessException {
 		super.init(fact);
-		
-		
+
 		// initialize the masks;
 		int i = 0;
 		long mask = 1;
@@ -158,9 +156,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 
 	}
-
-	
-	
 
 	public void freeze() throws IOException, AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
@@ -209,21 +204,22 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			O o = getObjectFreeze(i, elementsSource);
 			B b = getBucket(o);
 			updateProbabilities(b);
-			if(i % 1000 == 0){
+			if (i % 1000 == 0) {
 				logger.debug("Adding... " + i);
 			}
+			
 			b.setId(idMap(i, elementsSource));
-			this.insertBucket(b, o);			
+			// TODO: we have to use bulk mode here.
+			this.insertBucketBulk(b, o);
 			i++;
 		}
 		normalizeProbs();
-		
-		
+
 		XStream x = new XStream();
-		
-		FileOutputStream fs = new FileOutputStream( "xml.test" );
-        BufferedOutputStream bf = new BufferedOutputStream(fs);
-        x.toXML((IndexShort)this, bf);
+
+		FileOutputStream fs = new FileOutputStream("xml.test");
+		BufferedOutputStream bf = new BufferedOutputStream(fs);
+		x.toXML((IndexShort) this, bf);
 		bucketStats();
 
 		logger.debug("Max bucket size: " + maxBucketSize);
@@ -231,30 +227,28 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 
 	}
 
-	
 	/**
 	 * Return the bucket id of the given bucket
-	 * @param b The bucket that will be processed.
+	 * 
+	 * @param b
+	 *            The bucket that will be processed.
 	 * @return The bucket id of b.
 	 */
 	protected abstract long getBucketId(B b);
-	
-	/*protected void bucketStats() throws OBStorageException, IllegalIdException,
-			IllegalAccessException, InstantiationException, OBException {
 
-		CloseIterator<TupleBytes> it = Buckets.processAll();
-		StaticBin1D s = new StaticBin1D();
-		while (it.hasNext()) {
-			TupleBytes t = it.next();
-			BC bc = instantiateBucketContainer(null,t.getKey());
-			s.add(bc.size());
-		} // add exlucion
-		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
-		it.closeCursor();
-	}*/
-	
+	/*
+	 * protected void bucketStats() throws OBStorageException,
+	 * IllegalIdException, IllegalAccessException, InstantiationException,
+	 * OBException {
+	 * 
+	 * CloseIterator<TupleBytes> it = Buckets.processAll(); StaticBin1D s = new
+	 * StaticBin1D(); while (it.hasNext()) { TupleBytes t = it.next(); BC bc =
+	 * instantiateBucketContainer(null,t.getKey()); s.add(bc.size()); } // add
+	 * exlucion logger.info(StatsUtil.prettyPrintStats("Bucket distribution",
+	 * s)); it.closeCursor(); }
+	 */
+
 	protected abstract BC instantiateBucketContainer(long id);
-	
 
 	/**
 	 * Updates probability information.
@@ -303,27 +297,23 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		long bucketId = getBucketId(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-		BC bc = instantiateBucketContainer(bucketId);
+
 		updateFilters(bucketId);
-		OperationStatus res = new OperationStatus();
-		synchronized (bc) {
-			res = bc.exists(b, object);
-			if (res.getStatus() != Status.EXISTS) {
-
-				assert bc.getPivots() == b.getPivotSize() : "BC: "
-						+ bc.getPivots() + " b: " + b.getPivotSize();
-				bc.insert(b, object);
-				res.setStatus(Status.OK);
-			}
-		}
-		return res;
+		return super.insertBucket(b, object);
 	}
-	
-	
 
-	
+	protected OperationStatus insertBucketBulk(B b, O object)
+			throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+		// get the bucket id.
+		long bucketId = getBucketId(b);
+		// if the bucket is the exclusion bucket
+		// get the bucket container from the cache.
 
-	
+		updateFilters(bucketId);
+		return super.insertBucketBulk(b, object);
+	}
 
 	/** updates the bucket identification filters */
 	private void updateFilters(long x) {
@@ -346,16 +336,8 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 	}
 
-	
-
-	
-
-	public Statistics getStats() throws OBStorageException{
+	public Statistics getStats() throws OBStorageException {
 		return super.stats;
 	}
-
-	
-
-	
 
 }

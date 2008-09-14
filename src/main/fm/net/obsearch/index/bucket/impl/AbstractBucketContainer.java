@@ -273,9 +273,10 @@ import net.obsearch.storage.TupleBytes;
 				long res = 0;
 				try{
 						B current = instantiateBucketObject();
-						
+
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
+								assert Arrays.equals(t.getKey(), key): Arrays.toString(t.getKey())+ " another: " +Arrays.toString(key);
 								current.read(t.getValue(), getPivots());
 								dataRead.add(t.getValue().array().length);
 								${type} max = current.lInf(b);

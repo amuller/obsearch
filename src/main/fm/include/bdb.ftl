@@ -12,7 +12,8 @@ null
 </#if>
 </#macro> 
 
-
+<!-- Hash table mode for BDB -->
+<#global bdb_mode = "HASH">
 
 <#macro openDB>
 <#if bdb = "db">
@@ -21,6 +22,14 @@ env.openDatabase(null, name, name, dbConfig)
 env.openDatabase(null, name, dbConfig)
 </#if>
 </#macro> 
+
+<#macro bdbStats>
+			<#if bdb_mode = "HASH">
+			HashStats
+			<#else>
+			BtreeStats
+			</#if>
+</#macro>
 
 <#macro openDBSeq>
 <#if bdb = "db">

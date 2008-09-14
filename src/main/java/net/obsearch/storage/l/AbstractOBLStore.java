@@ -65,6 +65,10 @@ import net.obsearch.utils.bytes.ByteConversion;
  * deletion. Search is performed sequentially over each record. This is a
  * meta-storage. It works on top of another storage.
  * 
+ * This class has a bug:
+ * If we perform iterations on empty buckets there will be an error.
+ * This happens when we use the exists operation.
+ * 
  * @author Arnoldo Jose Muller Molina
  */
 
@@ -381,7 +385,6 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			assert recordSize == currentData.length;
 			currentBucket.readFully(currentData);
 			
-			
 		}
 
 		@Override
@@ -545,7 +548,7 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 		
 		public void reloadMap() throws IOException{
-			map = fc.map(MapMode.READ_WRITE, 0, fc.size());
+			map = fc.map(MapMode.READ_WRITE, 0, f.length());
 		}
 		
 		public void close() throws OBException{
@@ -650,7 +653,9 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 			}
 		}
 		private void updatePosWrite() throws IOException{
-			
+			offset = file.getFilePointer();
+			holder.reloadMap();
+			map = holder.getMap();
 		}
 		/**
 		 * Restore the offset position in the file.
@@ -677,18 +682,16 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		}
 
 		public void seek(long pos) throws IOException, OBException {
-			verifyFile();			
-			//file.seek(pos);
+			verifyFile();						
 			map.position((int)pos);
 			updatePos();
 		}
 
 		public void write(byte[] b) throws IOException, OBException {
-			verifyFile();			
-			holder.getFile().seek(offset);
+			verifyFile();		
+			updatePrevWrite();		
 			holder.getFile().write(b);
-			holder.reloadMap();
-			offset = holder.getFile().getFilePointer();
+			updatePosWrite();
 		}
 
 		
@@ -700,15 +703,11 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 
 		public void setLength(long newLength) throws IOException, OBException {
 			verifyFile();
-			//file.setLength(newLength);
-			holder.getFile().setLength(newLength);
-			reloadMap();
+			holder.getFile().setLength(newLength);			
+			updatePosWrite();
 		}
 		
-		private void reloadMap() throws IOException{
-			holder.reloadMap();
-			this.map = holder.getMap();
-		}
+		
 
 	}
 

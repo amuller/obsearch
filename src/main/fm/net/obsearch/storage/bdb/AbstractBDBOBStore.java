@@ -317,19 +317,35 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				if (!full) {
 					retVal = cursor
 							.getSearchKeyRange(keyEntry, dataEntry,<@lock/> );
+					// we must comopare if the returned key is within range.
+					
+
+					if(withinRange()){
+								loadNext();
+						}
+			
 				} else {
 					if (backwardsMode) {
 						retVal = cursor.getLast(keyEntry, dataEntry, <@lock/>);
 					} else {
 						retVal = cursor.getFirst(keyEntry, dataEntry, <@lock/>);
 					}
-
+					loadNext();
 				}
 
 			} catch (DatabaseException e) {
 				throw new OBStorageException(e);
 			}
-			loadNext();
+			
+		}
+
+		/**
+		 * Verifies if the current key is within range.
+		 */
+		private  boolean  withinRange(){
+				int c0 = comp.compare(keyEntry.getData(), min);				
+				int c1 = comp.compare(keyEntry.getData(), max);
+				return c0 >= 0 && c1 <= 0;
 		}
 
 		public boolean hasNext() {
@@ -345,17 +361,9 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			if (retVal == OperationStatus.SUCCESS) {
 				current = keyEntry.getData();
 
-				int c = -1; // full mode
-				
-				if (!full) {
-					if (this.backwardsMode) {
-						c = comp.compare(current, min);
-					} else {
-						c = comp.compare(current, max);
-					}
-				}
+			
 				if (backwardsMode) {
-					if (c >= 0) {
+						if (full || withinRange()) {
 						next = createT(current, ByteConversion
 															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
@@ -366,7 +374,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 					}
 
 				} else {
-					if (c <= 0) {
+						if (full || withinRange()) {
 						next = createT(current, ByteConversion
 															 .createByteBuffer(dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
@@ -416,7 +424,11 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				try {
 					prevKeyEntry = keyEntry;
 					prevDataEntry = dataEntry;
+					<#if bdb="db">
+					// This is necessary for BDB
+					keyEntry = new DatabaseEntry();
 					dataEntry = new DatabaseEntry();
+					</#if>
 					if(backwardsMode){
 						retVal = cursor.getPrev(keyEntry, dataEntry, <@lock/>);
 					}else{
@@ -503,8 +515,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				 <#else>
 				 	StatsConfig conf = new StatsConfig();
 		conf.setFast(false);
-		res = ((BtreeStats)db.getStats(null, conf)).getNumData();
-		//		res = ((HashStats)db.getStats(null, conf)).getNumData();
+		res = ((<@bdbStats/>)db.getStats(null, conf)).getNumData();
 		</#if>
 		} catch (DatabaseException e) {
 			throw new OBStorageException(e);

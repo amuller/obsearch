@@ -479,7 +479,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 	}
 
-	@Override
+	/*@Override
 	public OperationStatus exists(O object) throws OBException,
 			IllegalAccessException, InstantiationException {
 		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>((byte) 1);
@@ -495,7 +495,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 			}
 		}
 		return res;
-	}
+	}*/
 
 	@Override
 	protected byte[] getAddress(BucketObjectShort bucket) {

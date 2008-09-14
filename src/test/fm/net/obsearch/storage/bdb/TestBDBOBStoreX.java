@@ -48,6 +48,7 @@ public class TestBDBOBStore${Bdb}${Type} extends TestCase{
     public void setUp() throws Exception {
     }
 
+
     @Test
     public void testAll() throws Exception{
         
@@ -68,6 +69,31 @@ public class TestBDBOBStore${Bdb}${Type} extends TestCase{
 				 conf.setBulkMode(false);
 				 StorageValidation${Type}.validate(fact.createOBStore${Type}("test${Type}3", conf));
     }
+
+
+		public void testDuplicates() throws Exception{
+                 
+				 BDBFactory${Bdb} fact = Utils.getFactory${Bdb}();
+				 OBStorageConfig conf = new OBStorageConfig();
+				 conf.setTemp(false);
+				 conf.setDuplicates(true);
+				 conf.setBulkMode(false);
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}1D", conf));
+				    conf = new OBStorageConfig();
+				 conf.setTemp(false);
+				 conf.setDuplicates(true);
+				 conf.setBulkMode(true);
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}2D", conf));
+				   conf = new OBStorageConfig();
+				 conf.setTemp(true);
+				 conf.setDuplicates(true);
+				 conf.setBulkMode(false);
+				 conf.setRecordSize(StorageValidation${Type}.STORAGE_SIZE);
+				 StorageValidation${Type}.validateDuplicates(fact.createOBStore${Type}("test${Type}3D", conf));
+    }
+
 
 }
 </#list>
