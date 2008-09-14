@@ -20,7 +20,7 @@ public class Utils extends TestCase{
         BDBFactoryJe fact = new BDBFactoryJe(dbFolder);
         return fact;
     }
-    /*
+    
     public static BDBFactoryDb getFactoryDb() throws Exception{
         File dbFolder = new File(TUtils.getTestProperties().getProperty(
                 "test.db.path"));
@@ -29,7 +29,7 @@ public class Utils extends TestCase{
         assertTrue(dbFolder.mkdirs());
         BDBFactoryDb fact = new BDBFactoryDb(dbFolder);
         return fact;
-    }*/
+    }
     
     public static OBLFactory getFactoryL() throws Exception{
         File dbFolder = new File(TUtils.getTestProperties().getProperty(

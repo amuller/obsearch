@@ -116,12 +116,14 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
         envConfig.setTransactional(false);
 				<#if bdb = "je">
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
+				envConfig.setLocking(true);
 				<#else>
-						 envConfig.setInitializeCache(true);
+			  envConfig.setInitializeCache(true);
 				envConfig.setInitializeLocking(true);
 				envConfig.setCacheSize(4000 * 1024 * 1024);
 				envConfig.setCacheCount(2);
 				envConfig.setInitializeLogging(false);
+				
 				</#if>
 				envConfig.setTxnNoSync(true);
         //envConfig.setTxnWriteNoSync(true);
@@ -191,7 +193,8 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
 				<#if bdb = "db">
-				dbConfig.setType(DatabaseType.BTREE);
+	  		 // Using database mode: ${bdb_mode}
+											 dbConfig.setType(DatabaseType.${bdb_mode});
 				
 				<#else>
 						 

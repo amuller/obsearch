@@ -20,6 +20,7 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 
+import net.obsearch.storage.bdb.BDBFactoryDb;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 import net.obsearch.storage.l.OBLFactory;
@@ -46,7 +47,8 @@ import org.apache.log4j.Logger;
  */
 
 /**
- * Tests on the P+Tree.
+ * Tests on the D'Tree
+ * TODO: this index is broken with StoreL. 
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
@@ -70,8 +72,8 @@ public class TestDPrimeIndex
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 100, 100);
         //IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
-        BDBFactoryJe fact = Utils.getFactoryJe();
-        //BDBFactoryDb fact = Utils.getFactoryDb();
+       //BDBFactoryJe fact = Utils.getFactoryJe();
+        BDBFactoryDb fact = Utils.getFactoryDb();
         //OBLFactory fact = Utils.getFactoryL();
         
         DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 16);
