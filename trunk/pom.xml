@@ -99,19 +99,14 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 	</dependency>
 
 
-			 <dependency>
-       <groupId>uio</groupId>
-			 <artifactId>uio</artifactId>
-			 <version>4.4</version>
-		 </dependency>
 
 
-
-		 <dependency>
+	 <dependency>
        <groupId>com.sleepycat</groupId>
 			 <artifactId>je</artifactId>
 			 <version>3.3.62</version>
 		 </dependency>
+
 
 
 		 <dependency>
@@ -120,6 +115,8 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			 <version>4.7</version>
 		 </dependency>
 
+
+		
 
 
 		<dependency>

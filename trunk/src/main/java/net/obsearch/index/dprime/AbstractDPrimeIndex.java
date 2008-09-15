@@ -204,7 +204,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			O o = getObjectFreeze(i, elementsSource);
 			B b = getBucket(o);
 			updateProbabilities(b);
-			if (i % 1000 == 0) {
+			if (i % 100000 == 0) {
 				logger.debug("Adding... " + i);
 			}
 			

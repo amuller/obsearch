@@ -46,16 +46,21 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 	protected void searchObjects(I index, File load) throws IOException, OBException, InstantiationException, IllegalAccessException{
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
+		index.resetStats();
 		int i = 0;
-		while(line != null){
+		logger.info("Searching with r: " + r + " k: " + k);
+		while(line != null && i < super.maxQueries){
 			O o = instantiate(line);
+			queries++;
 			searchObject(index, o);
-			if(i % 10000 == 0){
-				logger.info("Loading: " + i);
+			if(i % 100 == 0){
+				logger.info("Searching: " + i);
 			}
+			
 			i++;
 			line = r.readLine();
 		}
+		
 	}
 	
 	/**
