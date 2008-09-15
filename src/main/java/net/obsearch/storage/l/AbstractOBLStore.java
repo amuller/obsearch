@@ -17,10 +17,7 @@ import java.util.NoSuchElementException;
 import org.apache.log4j.Logger;
 
 
-import com.imagero.uio.bio.IOController;
-import com.imagero.uio.bio.content.RandomAccessFileContent;
-import com.imagero.uio.bio.content.RandomAccessIOContent;
-import com.sleepycat.je.DatabaseException;
+
 
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;

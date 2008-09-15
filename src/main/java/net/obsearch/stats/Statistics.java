@@ -310,7 +310,13 @@ public class Statistics {
     " Buckets Read: " + this.bucketsRead + " extra: " + extra;
     }
     
-    public String toString(){
+    
+    
+    public long getBucketsRead() {
+		return bucketsRead;
+	}
+
+	public String toString(){
         StringBuilder res = new StringBuilder( toStringSummary() );
         for(Entry<String, StaticBin1D> e : extraStats.entrySet()){
         	res.append(StatsUtil.prettyPrintStats(e.getKey(), e.getValue()));

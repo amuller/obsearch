@@ -60,11 +60,12 @@ public abstract class AbstractNewLineBytesCommandLine<O extends OB, I extends In
 		byte[] line = new byte[arraySize()];
 		int i = 0;
 		int res = read(line, r);
-		while(res != -1){
+		while(res != -1 && i < super.maxQueries){
 			O o = instantiate(line);
+			queries++;
 			searchObject(index, o);
-			if(i % 10000 == 0){
-				logger.info("Loading: " + i);
+			if(i % 100 == 0){
+				logger.info("Searching: " + i);
 			}
 			res = read(line, r);
 			i++;			
