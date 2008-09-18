@@ -215,13 +215,13 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		}
 		normalizeProbs();
 
-		XStream x = new XStream();
+		/*		XStream x = new XStream();
 
 		FileOutputStream fs = new FileOutputStream("xml.test");
 		BufferedOutputStream bf = new BufferedOutputStream(fs);
 		x.toXML((IndexShort) this, bf);
 		bucketStats();
-
+		*/
 		logger.debug("Max bucket size: " + maxBucketSize);
 		logger.debug("Bucket count: " + A.size());
 
