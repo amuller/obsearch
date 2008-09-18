@@ -13,7 +13,7 @@ null
 </#macro> 
 
 <!-- Hash table mode for BDB -->
-<#global bdb_mode = "BTREE">
+<#global bdb_mode = "HASH">
 
 <#macro openDB>
 <#if bdb = "db">
