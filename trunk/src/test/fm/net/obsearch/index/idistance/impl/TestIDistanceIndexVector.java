@@ -71,8 +71,8 @@ public class TestIDistanceIndexVector${Type}
        IncrementalBustosNavarroChavez${Type}<OBVector${Type}> sel = new IncrementalBustosNavarroChavez${Type}<OBVector${Type}>(new AcceptAll(),
                 100, 100);    	
     	
-    	 //BDBFactoryJe fact = Utils.getFactoryJe();
-			 OBLFactory fact = Utils.getFactoryL();
+    	 BDBFactoryJe fact = Utils.getFactoryJe();
+			 //OBLFactory fact = Utils.getFactoryL();
         IDistanceIndex${Type}<OBVector${Type}> i = new IDistanceIndex${Type}<OBVector${Type}>(OBVector${Type}.class, sel, 15);
         i.init(fact);
         VectorTestFramework${Type} t = new VectorTestFramework${Type}(<@vectorSize/>, 2000, 1000,

@@ -216,11 +216,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	protected void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {
 
+		logger.debug("Bucket stats");
 		CloseIterator<TupleBytes> it = Buckets.processAll();
-		assert Buckets.size() == A.size();
+		//assert Buckets.size() == A.size();
 		StaticBin1D s = new StaticBin1D();
 		byte[] key = null;
 		int counter = 0;
+		int i = 0;
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
 			
@@ -235,6 +237,10 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 					key = t.getKey();
 				}
 			}
+			if(i % 10000 == 0){
+				logger.debug("Stats: " + i);
+			}
+			i++;
 		} // add exlucion
 		s.add(counter);
 		assert A.size() == ((long)s.sum()): "Size in stats: " + s.sum() +" size in A: " + A.size();

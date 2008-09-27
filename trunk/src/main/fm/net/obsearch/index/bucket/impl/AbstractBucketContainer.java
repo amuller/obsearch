@@ -48,6 +48,7 @@ import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStore${Type};
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.constants.ByteConstants;
 /** 
  *  AbstractBucketContainer${Type} Holds the functionality of a
  *  bucket that sorts its smap-vectors lexicographically. Binary
@@ -86,15 +87,74 @@ import net.obsearch.storage.TupleBytes;
 						 * Iterate only through this key.
 						 */
 						protected byte[] key;
-		
+
+
+
+						/**
+						 * Additional pivot used to sort objects within the bucket.
+						 */
+						private int secondaryIndexPivot;
+
+						/**
+						 * Build a new container for ${type}s over the given index, with the given pivot number
+						 * and a certain storage device where all the smap vectors are stored.
+						 * Key is used as the base key for this bucket.
+						 * @param index Underlying index.
+						 * @param pivots Number of pivots employed
+						 * @param storage Storage device where the smap vectors are stored.
+						 * @param key Base key of this container
+						 */
 						public AbstractBucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key) {
+								this(index,pivots, storage,key,-1);
+						}
+
+						/**
+						 * Build a new container for ${type}s over the given index, with the given pivot number
+						 * and a certain storage device where all the smap vectors are stored.
+						 * Key is used as the base key for this bucket. The parameter secondaryIndexPivot chooses
+						 * a dimension of the s-map vector to sort the vectors by this value. This helps
+						 * in prunning a bit the buckets.
+						 * @param index Underlying index.
+						 * @param pivots Number of pivots employed
+						 * @param storage Storage device where the smap vectors are stored.
+						 * @param key Base key of this container
+						 * @param secondaryIndexPivot Sort records by this dimension.
+						 */
+						public AbstractBucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key, int secondaryIndexPivot) {
 								assert index != null;
 								updateTupleSize(pivots);
 								this.index = index;
 								this.pivots = pivots;
 								this.storage = storage;
 								this.key = key;
+								this.secondaryIndexPivot = secondaryIndexPivot;
 						}
+
+						/**
+						 * Appends value to the end of the given key.
+						 */
+						private byte[] buildKey(byte[] key, B bucket){
+									if(secondaryIndexPivot == -1){
+										return key;
+									}else{
+								
+								return buildKey(key, bucket.getSmapVector()[this.secondaryIndexPivot]);
+									}
+						}
+
+						private byte[] buildKey(byte[] key, ${type} value){
+								if(secondaryIndexPivot == -1){
+										return key;
+								}else{
+										ByteBuffer temp = ByteConversion.createByteBuffer(key.length + ByteConstants.${Type}.getSize());
+										temp.put(key);										
+										temp.put(storage.getFactory().serialize${Type}(value));
+										return temp.array();
+								}
+						}
+
+
+						
 
 
 						/**
@@ -115,7 +175,8 @@ import net.obsearch.storage.TupleBytes;
 						public OperationStatus delete(B bucket, O object)
 								throws OBException, IllegalIdException, IllegalAccessException,
 								InstantiationException {
-								CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+								byte[] key2 = buildKey(key, bucket);
+								CloseIterator<TupleBytes> pr = storage.processRange(key2,key2);
 								OperationStatus res = new OperationStatus();
 								res.setStatus(Status.NOT_EXISTS);
 								try{
@@ -183,7 +244,8 @@ import net.obsearch.storage.TupleBytes;
 						assert bucket.getId() != -1;
 						res.setId(bucket.getId());
 						bucket.write(out);
-						storage.put(key, out);
+						byte[] key2 = buildKey(key, bucket);
+						storage.put(key2, out);
 						return res;
     }
 
@@ -206,8 +268,8 @@ import net.obsearch.storage.TupleBytes;
 				InstantiationException {
 				OperationStatus res = new OperationStatus();
         res.setStatus(Status.NOT_EXISTS);
-				
-				CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+				byte[] key2 = buildKey(key, bucket);
+				CloseIterator<TupleBytes> pr = storage.processRange(key2,key2);
 				try{
 						B cmp = instantiateBucketObject();
 						while(pr.hasNext()){
@@ -230,7 +292,7 @@ import net.obsearch.storage.TupleBytes;
 											 IntegerHolder smapComputations,  IntegerHolder dataRead,  Filter<O> filter, ByteBuffer data) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
 				
-			
+			  
 				current.read(data, getPivots());
 				dataRead.add(TUPLE_SIZE);
 				smapComputations.inc();
@@ -269,14 +331,23 @@ import net.obsearch.storage.TupleBytes;
 											 IntegerHolder smapComputations,  IntegerHolder dataRead, Filter<O> filter) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
 			 
-				CloseIterator<TupleBytes> pr = storage.processRange(key,key);
+				byte[] key1;
+				byte[] key2;
+				if(secondaryIndexPivot != -1){
+						key1 = buildKey(key, query.getLow()[this.secondaryIndexPivot]);
+						key2 = buildKey(key, query.getHigh()[this.secondaryIndexPivot]);
+				}else{
+						key1 = key;
+						key2 = key;
+				}
+				CloseIterator<TupleBytes> pr = storage.processRange(key1,key2);
 				long res = 0;
 				try{
 						B current = instantiateBucketObject();
 
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
-								assert Arrays.equals(t.getKey(), key): Arrays.toString(t.getKey())+ " another: " +Arrays.toString(key);
+								//								assert Arrays.equals(t.getKey(), key): Arrays.toString(t.getKey())+ " another: " +Arrays.toString(key);
 								current.read(t.getValue(), getPivots());
 								dataRead.add(t.getValue().array().length);
 								${type} max = current.lInf(b);

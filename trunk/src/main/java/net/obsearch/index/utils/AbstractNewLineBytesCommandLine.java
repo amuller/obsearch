@@ -63,10 +63,11 @@ public abstract class AbstractNewLineBytesCommandLine<O extends OB, I extends In
 		while(res != -1 && i < super.maxQueries){
 			O o = instantiate(line);
 			queries++;
-			searchObject(index, o);
 			if(i % 100 == 0){
 				logger.info("Searching: " + i);
 			}
+			searchObject(index, o);
+			
 			res = read(line, r);
 			i++;			
 		}

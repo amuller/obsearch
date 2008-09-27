@@ -5,6 +5,7 @@ public class OBStorageConfig {
 	private boolean temp = false;
 	private boolean duplicates = false; 
 	private boolean bulkMode = false;
+	
 	/**
 	 * Size of the records that will be stored
 	 * Some storage devices require this information or

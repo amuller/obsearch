@@ -22,6 +22,7 @@ import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
 import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
 
+import net.obsearch.storage.bdb.BDBFactoryDb;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 import net.obsearch.storage.l.OBLFactory;
@@ -76,8 +77,8 @@ public class TestIDistanceIndex
     	
     	 IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                  100, 100);
-    	OBLFactory fact = Utils.getFactoryL();
-    	//BDBFactoryDb fact = Utils.getFactoryDb();
+    	//OBLFactory fact = Utils.getFactoryL();
+    	BDBFactoryDb fact = Utils.getFactoryDb();
         IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 16);
         i.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());

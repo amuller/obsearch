@@ -180,6 +180,22 @@ public interface OBStore<T extends Tuple> {
 	 */
 	CloseIterator<TupleBytes> processRange(byte[] low, byte[] high)
 			throws OBStorageException;
+	
+	
+	/**
+	 * Process the given range of items (from low to high), including low and
+	 * high. The TupleProcessor's process method will be called for each value
+	 * found within the range. No duplicate values will be returned.
+	 * 
+	 * @param low lowest key value to return.
+	 * @param high highest key value to return.
+	 * @throws OBStorageException
+	 *             If an exception occurs at the underlying storage system. You
+	 *             can query the exception to see more details regarding the
+	 *             nature of the error.
+	 */
+	CloseIterator<TupleBytes> processRangeNoDup(byte[] low, byte[] high)
+			throws OBStorageException;
 
 	/**
 	 * Process the given range of items (from high to low), including low and
@@ -194,6 +210,21 @@ public interface OBStore<T extends Tuple> {
 	 *             nature of the error.
 	 */
 	CloseIterator<TupleBytes> processRangeReverse(byte[] low, byte[] high)
+			throws OBStorageException;
+	
+	/**
+	 * Process the given range of items (from high to low), including low and
+	 * high. The TupleProcessor's process method will be called for each value
+	 * found within the range. No duplicate values will be returned.
+	 * 
+	 * @param low lowest key value to return.
+	 * @param high highest key value to return.
+	 * @throws OBStorageException
+	 *             If an exception occurs at the underlying storage system. You
+	 *             can query the exception to see more details regarding the
+	 *             nature of the error.
+	 */
+	CloseIterator<TupleBytes> processRangeReverseNoDup(byte[] low, byte[] high)
 			throws OBStorageException;
 
 	/**

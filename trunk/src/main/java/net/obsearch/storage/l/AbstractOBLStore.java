@@ -105,8 +105,8 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 		this.recordSize = recordSize;
 		this.baseFolder = new File(baseFolder, name);
 		this.handles = new OBCacheLong<RAFileHolder>(new HandlerLoader(),
-				OBSearchProperties.getHandlesCacheSize());
-		logger.debug("Handle cache: "  + OBSearchProperties.getHandlesCacheSize());
+				OBSearchProperties.getLHandlesCacheSize());
+		logger.debug("Handle cache: "  + OBSearchProperties.getLHandlesCacheSize());
 	}
 
 	@Override
@@ -218,6 +218,20 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 	public CloseIterator<TupleBytes> processRangeReverse(byte[] low, byte[] high)
 			throws OBStorageException {
 		return new ByteArrayIterator(low, high, false, true);
+	}
+	
+	@Override
+	public CloseIterator<TupleBytes> processRangeNoDup(byte[] low, byte[] high)
+			throws OBStorageException {
+		assert false;
+		return null;
+	}
+
+	@Override
+	public CloseIterator<TupleBytes> processRangeReverseNoDup(byte[] low,
+			byte[] high) throws OBStorageException {
+		assert false;
+		return null;
 	}
 
 	@Override
