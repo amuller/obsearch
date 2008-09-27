@@ -67,6 +67,7 @@ import net.obsearch.storage.OBStoreInt;
 import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.TupleLong;
+import net.obsearch.utils.BloomFilter64bit;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.list.LongArrayList;
@@ -102,8 +103,8 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 * Filter used to avoid unnecessary block accesses.
 	 */
 	// protected ArrayList< SimpleBloomFilter<Long>> filter;
-	protected ArrayList<HashSet<Long>> filter = new ArrayList<HashSet<Long>>();
-
+	// protected ArrayList<BloomFilter64bit> filter = new
+	// ArrayList<BloomFilter64bit>();
 	/**
 	 * Masks used to speedup the generation of hash table codes.
 	 */
@@ -114,6 +115,8 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 * quickly compute the correct storage device
 	 */
 	private long[] accum;
+
+	protected BinaryTrie filter;
 
 	/**
 	 * Initializes this abstract class.
@@ -149,12 +152,19 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		long mask = 1;
 		this.masks = new long[64];
 		while (i < 64) {
-			logger.debug(Long.toBinaryString(mask));
+			logger.debug("i: " + i + " " + Long.toBinaryString(mask));
 			masks[i] = mask;
 			mask = mask << 1;
 			i++;
 		}
 
+	}
+
+	public String debug(O object) throws OBException, InstantiationException,
+			IllegalAccessException {
+		B b = this.getBucket(object);
+		return b.toString() + "\naddr:\n " + Long.toBinaryString(this.getBucketId(b))
+				+ "\n" + "Is in filter: " + filter.containsInv(getBucketId(b));
 	}
 
 	public void freeze() throws IOException, AlreadyFrozenException,
@@ -170,14 +180,16 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		// initialize bloom filter
 		int i = 0;
 		// this.filter = new ArrayList<SimpleBloomFilter<Long>>();
-		this.filter = new ArrayList<HashSet<Long>>();
 
-		while (i < getPivotCount()) {
-			// filter.add(new SimpleBloomFilter<Long>(i * 1000,
-			// (int)Math.pow(2, i)));
-			filter.add(new HashSet<Long>());
-			i++;
-		}
+		/*
+		 * this.filter = new ArrayList<BloomFilter64bit>(); long size =
+		 * A.size(); while (i < getPivotCount()) { // filter.add(new
+		 * SimpleBloomFilter<Long>(i 1000, // (int)Math.pow(2, i)));
+		 * filter.add(new BloomFilter64bit(Math.min((int) Math.pow(2, i + 1),
+		 * (int) (size) / 10), i + 1)); i++; }
+		 */
+
+		filter = new BinaryTrie();
 
 		// the initial list of object from which we will generate the pivots
 		LongArrayList elementsSource = null;
@@ -199,29 +211,29 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		} else {
 			max = elementsSource.size();
 		}
-
-		while (i < max) {
-			O o = getObjectFreeze(i, elementsSource);
+		CloseIterator<TupleLong> it = A.processAll();
+		while (it.hasNext()) {
+			TupleLong t = it.next();
+			long id = t.getKey();
+			O o = super.bytesToObject(t.getValue());
 			B b = getBucket(o);
 			updateProbabilities(b);
 			if (i % 100000 == 0) {
-				logger.debug("Adding... " + i);
+				logger.debug("Adding... " + i + " trie: " + BinaryTrie.objectCount);
+				// logger.debug(getStats());
 			}
-			
+
 			b.setId(idMap(i, elementsSource));
 			// TODO: we have to use bulk mode here.
 			this.insertBucketBulk(b, o);
 			i++;
 		}
+		logger.debug("Trie size: " + BinaryTrie.objectCount);
+		it.closeCursor();
 		normalizeProbs();
 
-		/*		XStream x = new XStream();
+		//bucketStats();
 
-		FileOutputStream fs = new FileOutputStream("xml.test");
-		BufferedOutputStream bf = new BufferedOutputStream(fs);
-		x.toXML((IndexShort) this, bf);
-		bucketStats();
-		*/
 		logger.debug("Max bucket size: " + maxBucketSize);
 		logger.debug("Bucket count: " + A.size());
 
@@ -247,8 +259,6 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 * exlucion logger.info(StatsUtil.prettyPrintStats("Bucket distribution",
 	 * s)); it.closeCursor(); }
 	 */
-
-	protected abstract BC instantiateBucketContainer(long id);
 
 	/**
 	 * Updates probability information.
@@ -318,22 +328,14 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	/** updates the bucket identification filters */
 	private void updateFilters(long x) {
 		String s = Long.toBinaryString(x);
-		int max = s.length();
-		int i = s.length() - 1;
-		int cx = 0;
-		while (i >= 0) {
-			long j = Long.parseLong(s.substring(i, max), 2);
-			// if(! filter.get(cx).contains(j)){
-			filter.get(cx).add(j);
-			// }
-			i--;
-			cx++;
-		}
-		// add the long to the rest of the layers.
-		while (max < getPivotCount()) {
-			filter.get(max).add(x);
-			max++;
-		}
+		filter.add(getPivotCount(), s);
+		/*
+		 * int max = s.length(); int i = s.length() - 1; int cx = 0; while (i >=
+		 * 0) { long j = Long.parseLong(s.substring(i, max), 2); // if(!
+		 * filter.get(cx).contains(j)){ filter.get(cx).add(j); // } i--; cx++; }
+		 * // add the long to the rest of the layers. while (max <
+		 * getPivotCount()) { filter.get(max).add(x); max++; }
+		 */
 	}
 
 	public Statistics getStats() throws OBStorageException {

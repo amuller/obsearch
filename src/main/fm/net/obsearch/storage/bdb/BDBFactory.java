@@ -29,9 +29,11 @@ import java.io.FileNotFoundException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OBException;
 
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStorageConfig;
+import net.obsearch.constants.OBSearchProperties;
 
 <#if bdb = "db">
 	import	com.sleepycat.db.DatabaseType;
@@ -66,7 +68,7 @@ import org.apache.log4j.Logger;
  * @author Arnoldo Jose Muller Molina
  */
 
-public class BDBFactory${Bdb} implements OBStoreFactory {
+public final class BDBFactory${Bdb} implements OBStoreFactory {
 		/*
 			<#list bdbs as b>
 			  ${b.name}
@@ -90,7 +92,7 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
      * @throws IOException
      *                 If the given directory does not exist.
      */
-    public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException {
+    public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException 	<#if bdb = "db">, OBException </#if> {
         directory.mkdirs();
         OBAsserts.chkFileExists(directory);
         EnvironmentConfig envConfig = createEnvConfig();
@@ -109,7 +111,7 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
      * Creates the default environment configuration.
      * @return Default environment configuration.
      */
-    private EnvironmentConfig createEnvConfig() {
+    private EnvironmentConfig createEnvConfig() 	<#if bdb = "db"> throws OBException </#if>{
         /* Open a transactional Oracle Berkeley DB Environment. */
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
@@ -120,7 +122,7 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
 				<#else>
 			  envConfig.setInitializeCache(true);
 				envConfig.setInitializeLocking(true);
-				envConfig.setCacheSize(4000 * 1024 * 1024);
+				envConfig.setCacheSize(OBSearchProperties.getBDBCacheSize());
 				envConfig.setCacheCount(2);
 				envConfig.setInitializeLogging(false);
 				
@@ -251,6 +253,12 @@ public class BDBFactory${Bdb} implements OBStoreFactory {
 		
 		public  byte[] serialize${Type}(${type} value){
 				return BDBFactory${Bdb}.${type}ToBytes(value);
+		}
+
+
+		public ${type} deSerialize${Type}(byte[] value){
+				DatabaseEntry entry = new DatabaseEntry(value);
+				return ${binding}Binding.entryTo${Type}(entry);
 		}
 
 		public static byte[] ${type}ToBytes(${type} value){

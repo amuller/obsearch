@@ -65,7 +65,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 		
 		while (it.hasNext()) {
 			TupleLong t = it.next();
-			O o = getObjectFreeze(t.getKey(), null);
+			O o = super.bytesToObject(t.getValue());
 			if(i % 100000 == 0){
 				logger.info("Insert after freeze: " + i);
 				logger.info(getStats().toString());

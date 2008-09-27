@@ -100,12 +100,7 @@ public class Statistics {
      * @param key
      */
     public void incExtra(String key){
-    	IntegerHolder i = extra.get(key);
-    	if(i == null){
-    		i = new IntegerHolder(0);
-    		extra.put(key, i);
-    	}
-    	i.inc();
+    	incExtra(key, 1);
     }
     
     /**

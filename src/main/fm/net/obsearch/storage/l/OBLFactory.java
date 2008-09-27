@@ -152,6 +152,10 @@ public class OBLFactory implements OBStoreFactory {
 				return baseFactory.${type}ToBytes(value);
 		}
 
+		public ${type}  deSerialize${Type}(byte[] value){
+				return baseFactory.deSerialize${Type}(value);
+		}
+
 	
 
 </#list>

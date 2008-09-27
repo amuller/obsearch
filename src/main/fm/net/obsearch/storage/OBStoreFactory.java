@@ -82,6 +82,13 @@ public interface OBStoreFactory {
 		 */
 		byte[] serialize${Type}(${type} value);
 
+
+		/**
+     * Creates a ${type} of the given value.
+		 * Only the required bytes are taken from the input.
+		 */
+		 ${type} deSerialize${Type}(byte[] value);
+
 </#list>
     
     /** 

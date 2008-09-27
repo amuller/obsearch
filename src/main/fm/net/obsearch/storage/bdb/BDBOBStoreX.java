@@ -114,9 +114,19 @@ public final class BDBOBStore${Bdb}${Type}
         return new ${Type}Iterator(low, high);
     }
 
+		public CloseIterator < Tuple${Type} > processRangeNoDup(${type} low, ${type} high)
+            throws OBStorageException {
+        return new ${Type}Iterator(low, high, false,false);
+    }
+
 		public CloseIterator < Tuple${Type} > processRangeReverse(${type} low, ${type} high)
             throws OBStorageException {
-        return new ${Type}Iterator(low, high,true);
+        return new ${Type}Iterator(low, high,true,true);
+    }
+
+		public CloseIterator < Tuple${Type} > processRangeReverseNoDup(${type} low, ${type} high)
+            throws OBStorageException {
+        return new ${Type}Iterator(low, high,true,false);
     }
 
 		public CloseIterator < Tuple${Type} > processAll()
@@ -144,12 +154,12 @@ public final class BDBOBStore${Bdb}${Type}
 				 * Creates a new ${Type}Iterator given a min range, max range and
 				 * a flag saying if this iterator will go "forward" or "backwards"
 				 */
-				private ${Type}Iterator(${type} min, ${type} max, boolean reverseMode) throws OBStorageException {
-						super(getBytes(min), getBytes(max), false, reverseMode);
+				private ${Type}Iterator(${type} min, ${type} max, boolean reverseMode, boolean dups) throws OBStorageException {
+						super(getBytes(min), getBytes(max), false, reverseMode, dups);
         }
 
 				private ${Type}Iterator() throws OBStorageException {
-						super(null, null,true, false);
+						super(null, null,true, false,true);
         }
 
 				protected Tuple${Type} createTuple(byte[] key, ByteBuffer value) {

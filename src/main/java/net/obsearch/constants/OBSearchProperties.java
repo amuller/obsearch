@@ -8,7 +8,11 @@ import java.util.Properties;
 import net.obsearch.exception.OBException;
 
 import org.apache.log4j.PropertyConfigurator;
-
+/**
+ * See the file obsearch.properties for comments
+ * on each value. 
+ *
+ */
 public class OBSearchProperties {
 
 	/**
@@ -38,8 +42,8 @@ public class OBSearchProperties {
 		return getIntProperty("cache.a.size");	
 	}
 	
-	public static int getHandlesCacheSize() throws OBException {
-		return getIntProperty("cache.handles.size");	
+	public static int getLHandlesCacheSize() throws OBException {
+		return getIntProperty("l.cache.handles.size");	
 	}
 	
 	public static int getBucketsCacheSize() throws OBException {
@@ -48,6 +52,10 @@ public class OBSearchProperties {
 	
 	public static int getBCacheSize() throws OBException {
 		return getIntProperty("cache.B.size");	
+	}
+	
+	public static int getBDBCacheSize() throws OBException{
+		return getIntProperty("bdb.cache.size");	
 	}
 	
 	

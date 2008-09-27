@@ -102,6 +102,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount)
 			throws OBStorageException, OBException {
 		super(type, pivotSelector, pivotCount);
+		OBAsserts.chkAssert(pivotCount < Byte.MAX_VALUE, "Pivot count must be smaller than: " +  Byte.MAX_VALUE);
 	}
 	
 
@@ -134,7 +135,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
    * Build a key based on a pivot and value
 	 */ 
 	private byte[] buildKey(int i, ${type} value) {
-			byte[] pivotId = fact.serializeInt(i);
+			byte[] pivotId = fact.serializeByte((byte)i);
       byte[] v = fact.serialize${Type}(value);
 		ByteBuffer buf = ByteBufferFactoryConversion.createByteBuffer(pivotId.length + v.length);
 		buf.put(pivotId);
@@ -153,6 +154,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	@Override
 	protected BucketContainer${Type}<O> instantiateBucketContainer(
 			ByteBuffer data, byte[] address) {
+			//byte pivot = fact.deSerializeByte(address);
 			return new BucketContainer${Type}<O>(this, getPivotCount(), Buckets, address);
 	}
 
@@ -236,8 +238,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			/**
 			 * utility class used to match one smap tuple at a time.
 			 */ 
-			private BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
-								null, null);
+			//			private BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
+			//								null, null);
 
 		public DimensionProcessor(BucketObject${Type} b, OBQuery${Type}<O> q,
 															Dimension${Type} s, Filter<O> filter) throws OBStorageException {
@@ -246,11 +248,11 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			this.q = q;
 			this.s = s;
 			updateHighLow();
-			itRight = Buckets.processRange(centerKey, highKey);
-			itLeft = Buckets.processRangeReverse(lowKey, centerKey);
+			itRight = Buckets.processRangeNoDup(centerKey, highKey);
+			itLeft = Buckets.processRangeReverseNoDup(lowKey, centerKey);
 			if(itLeft.hasNext()){
 					// TODO: add this if we are going to use BDB
-					//itLeft.next();
+					itLeft.next();
 			}else{
 					continueLeft = false; // do not repeat this iteration.
 			}
@@ -311,9 +313,12 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					if (comp.compare(t.getKey(), highKey) > 0) {
 						continueRight = false;
 					} else {
+
+							BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
+																																						null, t.getKey());
 						stats
 								.incDistanceCount(bmatch.search(q, b,
-																						smapCount, data , filter, t.getValue()));
+																						smapCount, data , filter));
 						
 						// update ranges
 						if (q.updatedRange(lastRange)) {
@@ -338,9 +343,13 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 					if (comp.compare(t.getKey(), lowKey) < 0) {
 						continueLeft = false;
 					} else {
+
+							BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
+																																						null, t.getKey());
+							
 						stats
 								.incDistanceCount(bmatch.search(q, b,
-																								smapCount, data, filter, t.getValue()));
+																								smapCount, data, filter));
 					
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();

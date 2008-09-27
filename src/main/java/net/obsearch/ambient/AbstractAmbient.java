@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.exception.AlreadyFrozenException;
@@ -59,6 +61,9 @@ import com.thoughtworks.xstream.XStream;
 
 public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> implements Ambient < O, I> {
 
+	private static Logger logger = Logger.getLogger(AbstractAmbient.class);
+	
+	
     /**
      * Index that will be used.
      */
@@ -103,7 +108,9 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
         XStream xstream = new XStream();
         FileInputStream fs = new FileInputStream(metadataFile(directory));
         BufferedInputStream bf = new BufferedInputStream(fs);
+        logger.debug("Reading seed");
         index =  (I) xstream.fromXML(bf);
+        logger.debug("Seed read!");
         this.directory = directory;
         initIndex();
     }

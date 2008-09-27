@@ -45,6 +45,10 @@ public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketC
 			super(index, pivots, storage, key);
 		
 	}
+
+	public BucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key, int secondaryIndexPivot) {
+			super(index, pivots, storage, key, secondaryIndexPivot);		
+	}
 	
 	protected BucketObject${Type} instantiateBucketObject(){
     	return new BucketObject${Type}();

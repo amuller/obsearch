@@ -18,6 +18,7 @@ import net.obsearch.index.utils.IndexSmokeTUtilApprox;
 import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.dummy.IncrementalDummyPivotSelector;
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 
 import net.obsearch.storage.bdb.BDBFactoryDb;

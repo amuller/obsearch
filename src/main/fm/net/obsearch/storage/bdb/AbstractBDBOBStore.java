@@ -232,12 +232,22 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 	
 	public CloseIterator<TupleBytes> processRange(byte[] low, byte[] high)
 	throws OBStorageException{
-    	return new ByteArrayIterator(low,high,false, false);
+    	return new ByteArrayIterator(low,high,false, false,true);
+    }
+
+	public CloseIterator<TupleBytes> processRangeNoDup(byte[] low, byte[] high)
+	throws OBStorageException{
+    	return new ByteArrayIterator(low,high,false, false,false);
     }
 	
 	public CloseIterator<TupleBytes> processRangeReverse(byte[] low, byte[] high)
 	throws OBStorageException{
-    	return new ByteArrayIterator(low,high,false, true);
+    	return new ByteArrayIterator(low,high,false, true, true);
+    }
+	
+		public CloseIterator<TupleBytes> processRangeReverseNoDup(byte[] low, byte[] high)
+	throws OBStorageException{
+				return new ByteArrayIterator(low,high,false, true,false);
     }
 
 	/**
@@ -278,6 +288,8 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 
 		private boolean full;
 
+		private boolean dups;
+
 		/**
 		 * If this iterator goes backwards.
 		 */
@@ -289,17 +301,18 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		 * @throws OBStorageException
 		 */
 		protected CursorIterator() throws OBStorageException {
-			this(null, null, true, false);
+				this(null, null, true, false,true);
 		}
 
 		public CursorIterator(byte[] min, byte[] max) throws OBStorageException {
-			this(min, max, false, false);
+				this(min, max, false, false, true);
 		}
 
 		protected CursorIterator(byte[] min, byte[] max, boolean full,
-				boolean backwards) throws OBStorageException {
+														 boolean backwards, boolean dups) throws OBStorageException {
 			this.max = max;
 			this.min = min;
+			this.dups = dups;
 
 			this.full = full;
 			this.backwardsMode = backwards;
@@ -430,9 +443,17 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 					dataEntry = new DatabaseEntry();
 					</#if>
 					if(backwardsMode){
+							if(dups){
 						retVal = cursor.getPrev(keyEntry, dataEntry, <@lock/>);
+							}else{
+						retVal = cursor.getPrevNoDup(keyEntry, dataEntry, <@lock/>);
+							}
 					}else{
+							if(dups){
 						retVal = cursor.getNext(keyEntry, dataEntry, <@lock/> );
+							}else{
+						retVal = cursor.getNextNoDup(keyEntry, dataEntry, <@lock/> );			
+							}
 					}
 					
 				} catch (DatabaseException e) {
@@ -570,9 +591,9 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			super(min, max);
 		}
 
-		protected ByteArrayIterator(byte[] min, byte[] max, boolean full, boolean backwardsMode)
+		protected ByteArrayIterator(byte[] min, byte[] max, boolean full, boolean backwardsMode, boolean dups)
 				throws OBStorageException {
-			super(min, max, full, backwardsMode);
+				super(min, max, full, backwardsMode, dups);
 		}
 
 		@Override

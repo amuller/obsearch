@@ -20,6 +20,7 @@ import net.obsearch.index.IndexShort;
 import net.obsearch.index.bucket.impl.BucketContainerShort;
 import net.obsearch.index.bucket.impl.BucketObjectShort;
 import net.obsearch.index.dprime.AbstractDPrimeIndex;
+import net.obsearch.index.dprime.BinaryTrie;
 import net.obsearch.index.utils.IntegerHolder;
 import net.obsearch.index.utils.medians.MedianCalculatorShort;
 import net.obsearch.ob.OBShort;
@@ -318,6 +319,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 			}
 			i++;
 		}
+		logger.debug("Probs normalized");
 	}
 
 	private short median(ShortArrayList medianData) {
@@ -347,7 +349,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 		long originalBucketId = this.getBucketId(b);
 		this.s(originalBucketId, b, q, false, originalBucketId);
 
-		doIt1(b, q, 0, 0, originalBucketId); // heu 1 + heu 2
+		doIt1(b, q, 0, 0, originalBucketId, filter); // heu 1 + heu 2
 
 		/*
 		 * while (i < pivots.size()) {// search through all the levels. b =
@@ -382,7 +384,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	 * @param pivotIndex
 	 */
 	private void doIt1(BucketObjectShort b, OBQueryShort<O> q, int pivotIndex,
-			long block, long originalBucketId) throws NotFrozenException,
+			long block, long originalBucketId, BinaryTrie f) throws NotFrozenException,
 			InstantiationException, IllegalIdException, IllegalAccessException,
 			OutOfRangeException, OBException {
 		if (pivotIndex < getPivotCount()) {
@@ -393,38 +395,39 @@ public final class DPrimeIndexShort<O extends OBShort>
 						pivotIndex)) {
 					// do 1 first
 					long newBlock = block | super.masks[pivotIndex];
-					if (super.filter.get(pivotIndex).contains(newBlock)) {
-						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
+					if (f.isOne()) {
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId, f.getOne());
 					}
 					r = bpsRange(median[pivotIndex],
 							b.getSmapVector()[pivotIndex], q.getDistance());
 					if ((r == 2 || r == 0)
-							&& super.filter.get(pivotIndex).contains(block)) {
-						doIt1(b, q, pivotIndex + 1, block, originalBucketId);
+							&& f.isZero()) {
+						doIt1(b, q, pivotIndex + 1, block, originalBucketId, f.getZero());
 					}
 
 				} else {
 					// 0 first
-					if (super.filter.get(pivotIndex).contains(block)) {
-						doIt1(b, q, pivotIndex + 1, block, originalBucketId);
+					if (f.isZero()) {
+						doIt1(b, q, pivotIndex + 1, block, originalBucketId, f.getZero());
 					}
 					r = bpsRange(median[pivotIndex],
 							b.getSmapVector()[pivotIndex], q.getDistance());
 					long newBlock = block | super.masks[pivotIndex];
 					if ((r == 2 || r == 1)
-							&& super.filter.get(pivotIndex).contains(newBlock)) {
+							&& f.isOne()) {
 
-						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId, f.getOne());
 					}
 				}
 
 			} else { // only one of the sides is selected
-				if (r == 0 && super.filter.get(pivotIndex).contains(block)) {
-					doIt1(b, q, pivotIndex + 1, block, originalBucketId);
-				} else {
+				// zero first
+				if (r == 0 && f.isZero()) {
+					doIt1(b, q, pivotIndex + 1, block, originalBucketId, f.getZero());
+				} else { // mask 1
 					long newBlock = block | super.masks[pivotIndex];
-					if (super.filter.get(pivotIndex).contains(newBlock)) {
-						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId);
+					if (f.isOne()) {
+						doIt1(b, q, pivotIndex + 1, newBlock, originalBucketId, f.getOne());
 					}
 				}
 			}
@@ -460,7 +463,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 			IllegalIdException, IllegalAccessException, OutOfRangeException,
 			OBException {
 
-		if (super.filter.get(getPivotCount() - 1).contains(block)) {
+		if (super.filter.containsInv(block)) {
 			if (!ignoreSameBlocks || block != originalBucketId) {
 				// we have finished
 
@@ -474,6 +477,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 				stats.incDataRead(data.getValue());
 				// stats.incDistanceCount(bc.search(q, b));
 				stats.incSmapCount(h.getValue());
+				
 			}
 		}
 
@@ -502,17 +506,16 @@ public final class DPrimeIndexShort<O extends OBShort>
 		return longToBytes(this.getBucketId(bucket));
 	}
 
+	
 	@Override
 	protected BucketContainerShort<O> instantiateBucketContainer(
 			ByteBuffer data, byte[] address) {
 		return new BucketContainerShort<O>(this, getPivotCount(), Buckets,
-				address);
+				address, Math.abs(Arrays.hashCode(address)) % this.getPivotCount());
 	}
 
 	protected BucketContainerShort<O> instantiateBucketContainer(long id) {
-
-		return new BucketContainerShort<O>(this, getPivotCount(), Buckets,
-				longToBytes(id));
+		return instantiateBucketContainer(null, longToBytes(id));
 	}
 
 	private byte[] longToBytes(long id) {
