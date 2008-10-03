@@ -106,4 +106,10 @@ public interface OBStoreFactory {
      * underlying storage system.
      */
 		Object stats() throws OBStorageException;
+
+
+		/**
+		 * Return the url where this factory is located.
+		 */
+		String getFactoryLocation();
 }

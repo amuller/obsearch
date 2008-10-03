@@ -101,7 +101,8 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 	
 	public void setExpectedMaxDistance(short maxDistance){
-		this.maxDistance = maxDistance;
+		logger.info("Max distance");
+		this.expectedMaxDistance = maxDistance;
 	}
 
 	protected BucketObjectShort getBucket(O object, short p) throws OBException {
@@ -257,6 +258,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 		i = 0;
 		for(MedianCalculatorShort q : medianHolders){
 			median[i] = (short)q.median();
+			logger.info("Median" + q.toString());
 			//logger.info("Real: " + median(shorts[i]));
 			i++;
 		}

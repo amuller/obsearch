@@ -57,6 +57,7 @@ DatabaseConfig dbConfig = createDefaultDatabaseConfig();
 								<#else>
 //										 dbConfig.setUnsortedDuplicates(duplicates);	
 										 dbConfig.setSortedDuplicates(duplicates);									 
+//										 dbConfig.setNoMMap(false);
 								</#if>
 											Database seq = null;
 						if(!duplicates){

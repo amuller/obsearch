@@ -73,11 +73,12 @@ public class TestDPrimeIndex
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
                 100, 100);
         //IncrementalFixedPivotSelector sel = new IncrementalFixedPivotSelector();
-       //BDBFactoryJe fact = Utils.getFactoryJe();
-        BDBFactoryDb fact = Utils.getFactoryDb();
+       BDBFactoryJe fact = Utils.getFactoryJe();
+        //BDBFactoryDb fact = Utils.getFactoryDb();
         //OBLFactory fact = Utils.getFactoryL();
         
         DPrimeIndexShort<OBSlice> d = new DPrimeIndexShort<OBSlice>(OBSlice.class, sel, 16);
+        d.setExpectedMaxDistance((short)5000);
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);

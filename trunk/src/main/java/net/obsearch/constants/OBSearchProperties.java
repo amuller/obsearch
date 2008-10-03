@@ -54,8 +54,8 @@ public class OBSearchProperties {
 		return getIntProperty("cache.B.size");	
 	}
 	
-	public static int getBDBCacheSize() throws OBException{
-		return getIntProperty("bdb.cache.size");	
+	public static long getBDBCacheSize() throws OBException{
+		return getLongProperty("bdb.cache.size");	
 	}
 	
 	
@@ -63,6 +63,15 @@ public class OBSearchProperties {
 	public static int getIntProperty(String prop) throws OBException{
 		try{
 			return Integer.parseInt(getProperties().getProperty(prop));
+		}catch(Exception e){
+			throw new OBException(e);
+		}
+    	
+    }
+	
+	public static long getLongProperty(String prop) throws OBException{
+		try{
+			return Long.parseLong(getProperties().getProperty(prop));
 		}catch(Exception e){
 			throw new OBException(e);
 		}

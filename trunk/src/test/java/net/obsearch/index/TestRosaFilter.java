@@ -21,6 +21,7 @@ import net.obsearch.index.utils.TUtils;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.muller2.impl.IncrementalMullerShort;
+import net.obsearch.storage.bdb.BDBFactoryDb;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
@@ -75,8 +76,8 @@ public class TestRosaFilter
                 100, 100);   
         
         RosaFilterShort<OBSlice> index = new  RosaFilterShort<OBSlice>(OBSlice.class,
-    			  sel2, 64,
-    			 (short)2, sel, 64) ;
+    			  sel2, 4,
+    			 (short)2, sel, 32) ;
         
         index.init(fact);
         IndexSmokeTUtilApprox<OBSlice> t = new IndexSmokeTUtilApprox<OBSlice>(new OBSliceFactory());
@@ -91,10 +92,10 @@ public class TestRosaFilter
     	  IncrementalBustosNavarroChavezShort<OBVectorShort> sel2 = new IncrementalBustosNavarroChavezShort<OBVectorShort>(new AcceptAll(),
                   100, 100);   
     	  IndexShort<OBVectorShort> index = new  RosaFilterShort<OBVectorShort>(OBVectorShort.class,
-      			  sel2, 64,
-      			 (short)2, sel, 64) ;
+      			  sel2, 16,
+      			 (short)2, sel, 16) ;
     	
-    	BDBFactoryJe fact = Utils.getFactoryJe();
+    	BDBFactoryDb fact = Utils.getFactoryDb();
         
         index.init(fact);
         VectorTestFrameworkApproxShort t = new VectorTestFrameworkApproxShort(200

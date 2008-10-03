@@ -8,6 +8,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import net.obsearch.Index;
@@ -46,19 +49,25 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 	protected void searchObjects(I index, File load) throws IOException, OBException, InstantiationException, IllegalAccessException{
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
-		index.resetStats();
 		int i = 0;
-		logger.info("Searching with r: " + r + " k: " + k);
+		List<O> queries = new LinkedList<O>();
 		while(line != null && i < super.maxQueries){
 			O o = instantiate(line);
-			queries++;
+			queries.add(o);
+			i++;
+			line = r.readLine();
+		}
+		
+		index.resetStats();
+		r.close();
+		logger.info("Searching with r: " + r + " k: " + k);
+		i = 0;
+		for(O o : queries){			
 			searchObject(index, o);
 			if(i % 100 == 0){
 				logger.info("Searching: " + i);
 			}
-			
-			i++;
-			line = r.readLine();
+			i++;			
 		}
 		
 	}

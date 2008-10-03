@@ -1,6 +1,8 @@
 package net.obsearch.index.dprime;
 
-public final class BinaryTrie {
+import java.io.Serializable;
+
+public final class BinaryTrie implements Serializable{
 
 	private BinaryTrie zero;
 	private BinaryTrie one;
@@ -41,6 +43,9 @@ public final class BinaryTrie {
 		return res;
 	}
 	
+	public void add(String binary){
+		add(binary.length(), binary);
+	}
 	
 	/**
 	 * Add a binary string to the trie.
