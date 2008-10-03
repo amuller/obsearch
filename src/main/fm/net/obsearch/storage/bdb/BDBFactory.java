@@ -80,6 +80,8 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
 		private static final transient Logger logger = Logger
 			.getLogger(BDBFactory${Bdb}.class);
 
+		private String directory;
+
     /**
      * The environment.
      */
@@ -93,6 +95,8 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
      *                 If the given directory does not exist.
      */
     public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException 	<#if bdb = "db">, OBException </#if> {
+				this.directory = directory.getAbsolutePath();
+				logger.debug("Factory created on dir: " + directory);
         directory.mkdirs();
         OBAsserts.chkFileExists(directory);
         EnvironmentConfig envConfig = createEnvConfig();
@@ -106,6 +110,10 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
 								
 				}
     }
+
+		public String getFactoryLocation(){
+				return directory;
+		}
     
     /**
      * Creates the default environment configuration.

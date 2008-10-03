@@ -23,8 +23,12 @@ import hep.aida.bin.StaticBin1D;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -116,7 +120,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 	 */
 	private long[] accum;
 
-	protected BinaryTrie filter;
+	protected transient BinaryTrie filter;
 
 	/**
 	 * Initializes this abstract class.
@@ -157,14 +161,15 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			mask = mask << 1;
 			i++;
 		}
-
+		loadFilter();
 	}
 
 	public String debug(O object) throws OBException, InstantiationException,
 			IllegalAccessException {
 		B b = this.getBucket(object);
-		return b.toString() + "\naddr:\n " + Long.toBinaryString(this.getBucketId(b))
-				+ "\n" + "Is in filter: " + filter.containsInv(getBucketId(b));
+		return b.toString() + "\naddr:\n "
+				+ Long.toBinaryString(this.getBucketId(b)) + "\n"
+				+ "Is in filter: " + filter.containsInv(getBucketId(b));
 	}
 
 	public void freeze() throws IOException, AlreadyFrozenException,
@@ -219,7 +224,8 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 			B b = getBucket(o);
 			updateProbabilities(b);
 			if (i % 100000 == 0) {
-				logger.debug("Adding... " + i + " trie: " + BinaryTrie.objectCount);
+				logger.debug("Adding... " + i + " trie: "
+						+ BinaryTrie.objectCount);
 				// logger.debug(getStats());
 			}
 
@@ -232,11 +238,55 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		it.closeCursor();
 		normalizeProbs();
 
-		//bucketStats();
+		// bucketStats();
 
 		logger.debug("Max bucket size: " + maxBucketSize);
 		logger.debug("Bucket count: " + A.size());
 
+		storeFilter();
+	}
+
+	/**
+	 * Serialize the filter and store it in the root of the factory's directory.
+	 * 
+	 * @throws IOException
+	 */
+	private void storeFilter() throws OBException {
+		logger.debug("Storing filter");
+		String base = fact.getFactoryLocation();
+		try {
+			FileOutputStream fos = new FileOutputStream(
+					new File(base, "filter"));
+			ObjectOutputStream out = new ObjectOutputStream(fos);
+			out.writeObject(filter);
+		} catch (IOException e) {
+			throw new OBException(e);
+		}
+		logger.debug("Filter was stored");
+	}
+
+	/**
+	 * Serialize the filter and store it in the root of the factory's directory.
+	 * 
+	 * @throws IOException
+	 */
+	private void loadFilter() throws OBException {
+		if(this.isFrozen()){
+		logger.debug("Loading filter");
+		String base = fact.getFactoryLocation();
+		try {
+			File inFile = new File(base, "filter");
+			logger.debug("Loading filter from base: " + base);
+			FileInputStream fos = new FileInputStream(inFile);
+			ObjectInputStream in = new ObjectInputStream(fos);
+			filter = (BinaryTrie) in.readObject();
+		} catch (IOException e) {
+			throw new OBStorageException(e);
+		} catch (ClassNotFoundException e) {
+			throw new OBException(e);
+		}
+		logger.debug("Filter was read");
+		}
 	}
 
 	/**

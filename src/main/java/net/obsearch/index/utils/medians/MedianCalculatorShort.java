@@ -1,5 +1,7 @@
 package net.obsearch.index.utils.medians;
 
+import cern.colt.Arrays;
+
 public class MedianCalculatorShort {
 	
 	
@@ -30,6 +32,10 @@ public class MedianCalculatorShort {
 				i++;
 			}
 			return i;
+		}
+		
+		public String toString(){
+			return Arrays.toString(values);
 		}
 	
 

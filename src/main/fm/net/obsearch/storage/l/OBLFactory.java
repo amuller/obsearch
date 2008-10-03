@@ -156,9 +156,15 @@ public class OBLFactory implements OBStoreFactory {
 				return baseFactory.deSerialize${Type}(value);
 		}
 
+		
+
 	
 
 </#list>
+
+		public	String getFactoryLocation(){
+				return baseFactory.getFactoryLocation();
+		}
 		
 		public Object stats() throws OBStorageException{
 		return new Object(); // TODO: add stats.
