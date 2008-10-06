@@ -189,6 +189,13 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			<scope>compile</scope>
 		</dependency>
 		
+							<dependency>
+         <groupId>org.neo4j</groupId>
+         <artifactId>neo</artifactId>
+         <version>1.0-b7</version>
+				 <scope>compile</scope>
+      </dependency>
+
 
   </dependencies>
 
@@ -494,6 +501,8 @@ Would be cool to use this.
 						<artifactId>oro</artifactId>
 						<version>2.0.8</version>
 					</dependency>
+
+
 				</dependencies>				
 
 			</plugin>
@@ -669,6 +678,13 @@ Would be cool to use this.
         <enabled>false</enabled>
       </snapshots>
     </repository>
+
+
+      <repository>
+         <id>neo4j-public-repository</id>
+         <url>http://m2.neo4j.org</url>
+      </repository>
+
 
 		 
    </repositories>
