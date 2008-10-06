@@ -239,6 +239,7 @@ public abstract class AbstractDPrimeIndex<O extends OB, B extends BucketObject, 
 		normalizeProbs();
 
 		// bucketStats();
+		
 
 		logger.debug("Max bucket size: " + maxBucketSize);
 		logger.debug("Bucket count: " + A.size());
