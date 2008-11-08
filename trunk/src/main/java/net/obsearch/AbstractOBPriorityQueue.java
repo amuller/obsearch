@@ -35,7 +35,7 @@ import java.util.PriorityQueue;
  * @since 0.7
  */
 
-public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
+public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > {
 
     /**
      * The internal queue used to store results.
@@ -60,7 +60,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      * Creates a priority queue of k = 3.
      */
     public AbstractOBPriorityQueue() {
-        queue = new PriorityQueue < O >(3);
+        queue = new PriorityQueue < O >();
     }
 
     /**
@@ -86,6 +86,10 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult > {
      */
     public final int getK() {
         return k;
+    }
+    
+    public O poll(){
+    	return queue.poll();
     }
 
     /**

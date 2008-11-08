@@ -66,8 +66,7 @@ public abstract class AbstractNewLineBytesCommandLine<O extends OB, I extends In
 			if(i % 100 == 0){
 				logger.info("Searching: " + i);
 			}
-			searchObject(index, o);
-			index.resetStats();
+			searchObject(index, o);			
 			res = read(line, r);
 			i++;			
 		}

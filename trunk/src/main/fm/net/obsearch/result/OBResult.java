@@ -1,8 +1,9 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list results as r>
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<@pp.changeOutputFile name="OBResult"+Type+".java" />
+<@type_info t=t/>
+<@pp.changeOutputFile name="OBResult${r}${Type}.java" />
 package net.obsearch.result;
 import net.obsearch.AbstractOBResult;
 import net.obsearch.ob.OB${Type};
@@ -29,12 +30,14 @@ import net.obsearch.ob.OB${Type};
  * This class is used to store a single match result. A single result consists
  * of the object found, the distance of this object with the query and an
  * internal id.
+ * <#if r == "Inverted">Inverted results will put first smaller values in the
+ *      priority queue. </#if>
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
 
 
-public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
+public  class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
 
 
     /**
@@ -46,7 +49,7 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
      * Default constructor. Used mostly to minimize the amount of object
      * creations.
      */
-    public OBResult${Type}(){
+    public OBResult${r}${Type}(){
     }
 
     /**
@@ -58,7 +61,7 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
      * @param distance
      *            Distance of the result and the original query.
      */
-    public OBResult${Type}(O object, long id, ${type} distance){
+    public OBResult${r}${Type}(O object, long id, ${type} distance){
 
         super(object,id);
         this.distance = distance;
@@ -91,14 +94,24 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
      *         than o -1 if this object is greater than o
      */
     public int compareTo(Object o) {
-        assert o instanceof OBResult${Type};
-        int res = 0;
-        OBResult${Type}<O> comp = (OBResult${Type}<O>) o;
+        assert o instanceof OBResult${r}${Type};
+				OBResult${r}${Type}<O> comp = (OBResult${r}${Type}<O>) o;
+				int res = 0;
+				<#if r == "Inverted">
+				if (distance < comp.distance) {
+            res = -1;
+        } else if (distance > comp.distance) {
+            res = 1;
+        }
+				<#else>
+        
+        
         if (distance < comp.distance) {
             res = 1;
         } else if (distance > comp.distance) {
             res = -1;
         }
+				</#if>
         return res;
     }
 
@@ -136,4 +149,5 @@ public  class OBResult${Type}<O extends OB${Type}> extends AbstractOBResult<O> {
     }
 }
 
+</#list>
 </#list>

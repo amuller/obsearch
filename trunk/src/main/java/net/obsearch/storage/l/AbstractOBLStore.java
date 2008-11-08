@@ -108,6 +108,10 @@ public abstract class AbstractOBLStore<T extends Tuple> implements OBStore<T> {
 				OBSearchProperties.getLHandlesCacheSize());
 		logger.debug("Handle cache: "  + OBSearchProperties.getLHandlesCacheSize());
 	}
+	
+	public byte[] prepareBytes(byte[] in){
+		return storage.prepareBytes(in);
+	}
 
 	@Override
 	public void close() throws OBStorageException {

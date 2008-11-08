@@ -10,6 +10,7 @@ import hep.aida.bin.StaticBin1D;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Arrays;
 
 import net.obsearch.Status;
 import net.obsearch.exception.OBException;
@@ -22,6 +23,8 @@ import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteConversion;
 import net.obsearch.storage.OBStoreFactory;
 
+
+
 import com.sleepycat.${bdb}.Cursor;
 import com.sleepycat.${bdb}.CursorConfig;
 import com.sleepycat.${bdb}.Database;
@@ -31,6 +34,7 @@ import com.sleepycat.${bdb}.LockMode;
 import com.sleepycat.${bdb}.OperationStatus;
 import com.sleepycat.${bdb}.Sequence;
 import com.sleepycat.${bdb}.SequenceConfig;
+import net.obsearch.asserts.OBAsserts;
 <#if bdb = "db">
 import com.sleepycat.db.BtreeStats;
 import com.sleepycat.db.HashStats;
@@ -228,7 +232,16 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 	public boolean allowsDuplicatedData() {
 		return duplicates;
 	}
-	
+  
+  public byte[] prepareBytes(byte[] in){
+			byte[] res = new byte[in.length];
+			int i = 0;
+			while(i < res.length){
+					res[i] = (byte) (in[i] ^ 0x80);
+					i++;
+			}
+			return res;
+	}
 	
 	public CloseIterator<TupleBytes> processRange(byte[] low, byte[] high)
 	throws OBStorageException{
@@ -310,6 +323,8 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 
 		protected CursorIterator(byte[] min, byte[] max, boolean full,
 														 boolean backwards, boolean dups) throws OBStorageException {
+
+			
 			this.max = max;
 			this.min = min;
 			this.dups = dups;
@@ -323,11 +338,13 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				this.current = min;
 			}
 			try {
-				this.cursor = db.openCursor(null, CursorConfig.READ_UNCOMMITTED);
+				this.cursor = db.openCursor(null, null);
 
 				
 				keyEntry.setData(current);
 				if (!full) {
+						//          OBAsserts.chkAssertStorage(comp.compare(min, max) <= 0, "min must be smaller or equal than max: " + 
+						//																		 Arrays.toString(min) + " " + Arrays.toString(max));
 					retVal = cursor
 							.getSearchKeyRange(keyEntry, dataEntry,<@lock/> );
 					// we must comopare if the returned key is within range.

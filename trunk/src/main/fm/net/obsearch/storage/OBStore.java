@@ -44,7 +44,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
     
 
     /**
-     * Returns the associated value for the given key. If the underlying storage system can hold multiple keys, then
+     * Returns the associated value for the given key. If the underlying storage system can hold repeated keys, then
      * an IllegalArgumentException is thrown.
      * @param key the key that will be searched.
      * @return the associated value for the given key.

@@ -3,6 +3,7 @@ package net.obsearch.storage;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OBException;
 import net.obsearch.storage.OBStorageConfig;
+import java.math.BigInteger;
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -91,6 +92,19 @@ public interface OBStoreFactory {
 
 </#list>
     
+		/**
+     * Creates a binary representation of the given value.
+     * The value must be returned in such a way that it can be sorted
+     * with bytes.
+		 */
+		byte[] serializeBigInteger(BigInteger value);
+
+		/**
+     * Creates a BigInteger of the given value.
+		 * Only the required bytes are taken from the input.
+		 */
+		BigInteger deSerializeBigInteger(byte[] value);
+		
     /** 
      * Close the factory. All opened OBStores must be closed before this
      * method is called.

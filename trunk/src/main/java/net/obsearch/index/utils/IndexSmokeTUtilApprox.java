@@ -91,6 +91,8 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		i = 0;
 		StaticBin1D stats = new StaticBin1D();
 		int emptyResults = 0;
+		int badResults = 0;
+		IntegerHolder badCount = new IntegerHolder(0);
 		while (re != null) {
 			String line = parseLine(re);
 			if (line != null) {
@@ -109,9 +111,11 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 	                            + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
 						emptyResults++;
 					}
-						
+					
 					stats.add(ep(x1,x2,index));
-
+					if(!ok(x1,x2)){
+						badResults++;
+					}
 					i++;
 				}
 
@@ -120,16 +124,34 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 				logger.warn("Finishing test at i : " + i);
 				break;
 			}
+			
 			re = r.readLine();
 		}
+		
 		r.close();
 		logger.info("Finished  EP calculation: ");
 		logger.info(StatsUtil.prettyPrintStats("EP", stats));
 		assertFalse(it.hasNext());
 		logger.info("Zero queries: " + emptyResults);
+		logger.info("Bad results: " + badResults);
 	}
 	
-	
+	private boolean ok(OBPriorityQueueShort<O> x1, OBPriorityQueueShort<O> x2){
+		List<OBResultShort<O>> query = x1.getSortedElements();
+		List<OBResultShort<O>> db = x2.getSortedElements();
+		if(query.size() == 0 && db.size() != 0){
+			return false;
+		}
+		assert query.size() <= db.size() : "Query: " + query + " db: " + db;
+		Iterator<OBResultShort<O>> it = db.iterator();
+		for(OBResultShort<O> r : query){
+			assert it.hasNext();
+			if(r.compareTo(it.next()) != 0){
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	private double ep(OBPriorityQueueShort<O> x1, OBPriorityQueueShort<O> x2, IndexShort < O > index) throws OBStorageException{
 		List<OBResultShort<O>> query = x1.getSortedElements();

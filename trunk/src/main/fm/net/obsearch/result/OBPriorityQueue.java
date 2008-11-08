@@ -1,8 +1,9 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
+<#list results as r>
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<@pp.changeOutputFile name="OBPriorityQueue"+Type+".java" />
+<@type_info t=t/>
+<@pp.changeOutputFile name="OBPriorityQueue${r}${Type}.java" />
 package net.obsearch.result;
 
 import net.obsearch.AbstractOBPriorityQueue;
@@ -29,23 +30,25 @@ import java.util.Iterator;
  */
 /**
  * This is a class used to efficiently perform k-nn searches. This queue is
- * meant to be used with objects OB${Type}.
+ * meant to be used with objects OB${Type}. <#if r == "Inverted">Inverted results will 
+ * put first smaller values in the priority queue. </#if>
  * @author Arnoldo Jose Muller Molina
  * @since 0.7
  */
 
-    public final class OBPriorityQueue${Type}<O extends OB${Type}> extends AbstractOBPriorityQueue<OBResult${Type}<O>> {
+public final class OBPriorityQueue${r}${Type}<O> extends AbstractOBPriorityQueue<OBResult${r}${Type}<O>> {
 
     /**
      * Create the priority queue with k elements. This is how you set the k
-     * for a query.
+     * for a query. Use a negative value for a boundless queue.
      */
-    public OBPriorityQueue${Type}(int k){
+    public OBPriorityQueue${r}${Type}(int k){
         super(k);
     }
     /**
      * Add the given object, object id and distance of type ${type} to the
-     * queue.
+     * queue. This method tries to minimize the sizes of distances
+     * of the priority queue.
      * @param id
      *            The id of the object to be used
      * @param obj
@@ -60,10 +63,11 @@ import java.util.Iterator;
     public void add(long id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
             // recycle objects.
-            if (queue.peek().getDistance() >= distance) {// biggest object in
+						
+            if (queue.peek().getDistance() > distance) {// biggest object in
                 // the heap is
                 // bigger than d
-                OBResult${Type}<O> c = queue.poll();
+                OBResult${r}${Type}<O> c = queue.poll();
                 c.setDistance(distance);
                 c.setObject(obj);
                 c.setId(id);
@@ -71,23 +75,64 @@ import java.util.Iterator;
                 queue.offer(c);
             }
         } else { // if we are smaller than k we just create the object
-            OBResult${Type}<O> c = new OBResult${Type}<O>();
+            OBResult${r}${Type}<O> c = new OBResult${r}${Type}<O>();
             c.setDistance(distance);
             c.setObject(obj);
             c.setId(id);
 						// assert validateAddition(c);
             queue.offer(c);
         }
-        assert queue.size() <= k;
+        //assert queue.size() <= k;
+    }
+
+
+		/**
+     * Add the given object, object id and distance of type ${type} to the
+     * queue. This method tries to <b>maximize</b> the sizes of distances
+     * of the priority queue.
+     * @param id
+     *            The id of the object to be used
+     * @param obj
+     *            The object to be added
+     * @param distance
+     *            The distance to be added
+     * @throws IllegalAccessException
+     *             If there is a problem when instantiating objects O
+     * @throws InstantiationException
+     *             If there is a problem when instantiating objects O
+     */
+    public void addMax(long id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
+        if (queue.size() == k) {
+            // recycle objects.
+						
+            if (queue.peek().getDistance() < distance) {// biggest object in
+                // the heap is
+                // bigger than d
+                OBResult${r}${Type}<O> c = queue.poll();
+                c.setDistance(distance);
+                c.setObject(obj);
+                c.setId(id);
+								//								assert validateAddition(c);
+                queue.offer(c);
+            }
+        } else { // if we are smaller than k we just create the object
+            OBResult${r}${Type}<O> c = new OBResult${r}${Type}<O>();
+            c.setDistance(distance);
+            c.setObject(obj);
+            c.setId(id);
+						// assert validateAddition(c);
+            queue.offer(c);
+        }
+        //assert queue.size() <= k;
     }
 
 		/**
 		 * Make sure no repeated elements are added
 		 */
-		private boolean validateAddition(OBResult${Type}<O> c){
-				Iterator<OBResult${Type}<O>> it = iterator();
+		private boolean validateAddition(OBResult${r}${Type}<O> c){
+				Iterator<OBResult${r}${Type}<O>> it = iterator();
 				while(it.hasNext()){
-						OBResult${Type}<O> t = it.next();
+						OBResult${r}${Type}<O> t = it.next();
 						if(t.getId() == c.getId()){
 								return false;
 						}
@@ -143,7 +188,9 @@ import java.util.Iterator;
         return true; 
     }
 
+
+
 }
 
-
+</#list>
 </#list>

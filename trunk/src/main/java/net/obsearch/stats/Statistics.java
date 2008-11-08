@@ -288,6 +288,23 @@ public class Statistics {
     }
     
     /**
+     * Add values to a stats bin, each value
+     * added will be considered as a unit and 
+     * median, std. dev will be calculated on the set
+     * of values added
+     * @param name Name of  the stat
+     * @param value Value to add
+     */
+    public void addExtraStats(String name, double value){
+    	StaticBin1D s = extraStats.get(name);
+    	if(s == null){
+    		s = new StaticBin1D();
+    		extraStats.put(name, s);
+    	}
+    	s.add(value);
+    }
+    
+    /**
      * Add arbitrary info.
      * @param name Name of the statistics
      * @param stats The stats.

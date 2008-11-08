@@ -7,7 +7,7 @@
 Welcome!
 ~~~~~~~~
 
-  OBSearch is a distributed similarity search index.  Examples of things you can do with OBSearch:
+  OBSearch is a similarity search index.  Examples of things you can do with OBSearch:
 
 
   * Match programs and help to detect Open Source/Libre license violations.
