@@ -1,5 +1,9 @@
 <#-- General variables used by all the templates  -->
 
+
+<#-- generation of inverted results -->
+<#assign results = ["Inverted", ""]>
+
 <#-- Header used on top of each file -->
 <#macro type_info t>
 <#global type = t.name>

@@ -269,7 +269,7 @@ public class StorageValidation${Type} extends TestCase {
 
 				// test  deletes:
 				//logger.info("Testing Deletes");
-				for(${type} j : testData.keySet()){   
+					/*				for(${type} j : testData.keySet()){   
 						for(byte[] d : testData.get(j)){
 								 it = storage.processRange(j,j);
 								//	logger.info("Begin cycle1");
@@ -294,7 +294,7 @@ public class StorageValidation${Type} extends TestCase {
 								it.closeCursor();
 								
 						}
-        }
+						}*/
         
         
         

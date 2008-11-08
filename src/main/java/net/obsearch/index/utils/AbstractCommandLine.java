@@ -37,7 +37,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	 */
 	protected Properties props;
 
-	enum Mode {
+	protected enum Mode {
 		search, create, add, x
 	};
 	/**
@@ -64,7 +64,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected int k = 1;
 
 	@Option(name = "-m", usage = "Set the mode in search, create(start a new DB), add (add data to an existing database)", aliases = { "--mode" })
-	private Mode mode;
+	protected Mode mode;
 
 	@Option(name = "-q", usage = "Query Filename. (Search mode only)", aliases = { "--query" })
 	private File query;

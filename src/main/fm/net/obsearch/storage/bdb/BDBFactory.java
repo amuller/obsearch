@@ -26,6 +26,7 @@ package net.obsearch.storage.bdb;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
@@ -57,6 +58,7 @@ import com.sleepycat.${bdb}.Environment;
 import com.sleepycat.${bdb}.EnvironmentConfig;
 import com.sleepycat.bind.tuple.*;
 import com.sleepycat.je.DatabaseEntry;
+
 
 
 import java.io.File;
@@ -277,6 +279,17 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
 		}
 
 </#list>
+
+		public byte[] serializeBigInteger(BigInteger value){
+				DatabaseEntry entry = new DatabaseEntry();
+				BigIntegerBinding.bigIntegerToEntry(value, entry);
+				return entry.getData();
+		}
+
+		public BigInteger deSerializeBigInteger(byte[] value){
+				DatabaseEntry entry = new DatabaseEntry(value);
+				return BigIntegerBinding.entryToBigInteger(entry);
+		}
 		
 		public Object stats() throws OBStorageException{
 		try{

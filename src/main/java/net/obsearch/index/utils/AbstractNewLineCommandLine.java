@@ -56,9 +56,7 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 			queries.add(o);
 			i++;
 			line = r.readLine();
-		}
-		
-		index.resetStats();
+		}		
 		r.close();
 		logger.info("Searching with r: " + r + " k: " + k);
 		i = 0;

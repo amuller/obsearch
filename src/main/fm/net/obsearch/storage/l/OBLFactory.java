@@ -21,6 +21,7 @@ package net.obsearch.storage.l;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
@@ -161,6 +162,15 @@ public class OBLFactory implements OBStoreFactory {
 	
 
 </#list>
+
+		public byte[] serializeBigInteger(BigInteger value){
+				return baseFactory.serializeBigInteger(value);
+}
+
+		public BigInteger deSerializeBigInteger(byte[] value){
+			return baseFactory.deSerializeBigInteger(value);
+			
+		}
 
 		public	String getFactoryLocation(){
 				return baseFactory.getFactoryLocation();

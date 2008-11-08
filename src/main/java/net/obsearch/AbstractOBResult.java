@@ -28,7 +28,7 @@ package net.obsearch;
  * @since 0.7
  */
 
-public abstract class AbstractOBResult < O extends OB > implements Comparable {
+public abstract class AbstractOBResult < O  > implements Comparable {
 
     /**
      * The object to be stored.

@@ -243,4 +243,15 @@ public interface OBStore<T extends Tuple> {
 	 * Return the factory associated to this storage device.
 	 */
 	OBStoreFactory getFactory();
+	
+	
+	/**
+	 * Transform Bytes in a format that can be used by the 
+	 * underlying index.
+	 * @param in Input byte array
+	 * @return transformed bytes ready to be sorted.`
+	 */
+	byte[] prepareBytes(byte[] in);
+	
+	
 }

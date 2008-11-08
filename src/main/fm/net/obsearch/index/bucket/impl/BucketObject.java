@@ -8,6 +8,8 @@ package net.obsearch.index.bucket.impl;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import net.obsearch.index.bucket.BucketObject;
+import net.obsearch.exception.OBException;
+import net.obsearch.ob.OB${Type};
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -73,10 +75,14 @@ public class BucketObject${Type}
      * @return l-inf
      */
     public ${type} lInf(BucketObject${Type} b){
+        return lInf(smapVector, b.getSmapVector());
+    }
+
+
+		public static ${type} lInf(${type}[] smapVector, ${type}[] other){
         int cx = 0;
         ${type} max = <@min_value/>;
         ${type} t;
-        ${type}[] other = b.getSmapVector();
         assert smapVector.length == other.length;
         while (cx < smapVector.length) {
             t = (${type}) Math.abs(smapVector[cx] - other[cx]);
@@ -88,6 +94,17 @@ public class BucketObject${Type}
         return max;
     }
     
+
+		public static ${type}[] convertTuple(OB${Type} object, OB${Type}[] pivots) throws OBException{
+				int i = 0;
+				${type}[] smapVector = new ${type}[pivots.length];
+				while (i < pivots.length) {
+						${type} distance = pivots[i].distance(object);
+						smapVector[i] = distance;
+						i++;
+				}
+				return smapVector;
+		}
    
 
     /**

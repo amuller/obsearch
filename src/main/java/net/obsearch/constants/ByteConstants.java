@@ -35,14 +35,24 @@ public enum ByteConstants {
      * Size in bytes of each data type.;
      */
     private final int size;
+    private final int bits;
     ByteConstants(int size){
         this.size = size;
+        this.bits = size * 8;
     }
     /**
      * @return the size
      */
     public int getSize() {
         return size;
+    }
+    
+    /**
+     * 
+     * @return The # of bits required to store each datatype
+     */
+    public int getBits(){
+    	return bits;
     }
         
 }
