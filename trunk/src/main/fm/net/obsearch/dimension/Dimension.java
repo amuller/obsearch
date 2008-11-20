@@ -72,6 +72,27 @@ import net.obsearch.Index;
     }
 
 				 /**
+					* Creates a ${type} array from the given pivots and the given object.
+					* @param pivots The pivots used for the embedding.
+					* @param object The object to be projected.
+					* @return A new ${type} array.
+					*/
+				  public static ${type}[] getBasicTuple(OB${Type}[] pivots, OB${Type} object
+           ) throws 
+            IllegalIdException, IllegalAccessException, InstantiationException,
+            OBException
+
+    {
+        ${type}[]  res = new ${type} [pivots.length];
+        int i = 0;
+        for (OB${Type} p : pivots) {
+            res[i] =  p.distance(object);
+            i++;
+        }
+        return res;
+    }
+
+				 /**
 					* Creates a dimension array from the given pivots and the given
 					* object id. Loads the objects from the DB.
 					*/
@@ -88,6 +109,8 @@ import net.obsearch.Index;
 							}
 							return res;
 					}
+
+					
 
 					/**
 					 * Compares this object with other. 

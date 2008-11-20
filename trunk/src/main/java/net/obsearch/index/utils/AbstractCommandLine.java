@@ -267,7 +267,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 			String[] rk = set.split(",");
 			OBAsserts.chkAssert(rk.length == 2, "Wrong experiment set format");
 			r = Double.parseDouble(rk[0]);
-			k = Short.parseShort(rk[0]);
+			k = Short.parseShort(rk[1]);
 			writeAll(all, "\t");
 			Statistics stats = searchAux();
 			distance.write(p(stats.getDistanceCount()));

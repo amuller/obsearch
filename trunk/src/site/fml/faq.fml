@@ -6,34 +6,11 @@
       <answer>
         <p>
        	When you need to approximately match objects and you have a distance
-				function that satisfies the triangular inequality.
+				function that satisfies the triangle inequality.
         </p>
       </answer>			
     </faq>  
 		
-    <faq id="reason">
-      <question>Why should I use OBSearch?</question>
-      <answer>
-        <p>
-        Because it is the only distributed similarity search index available
-				in the open source market right now. Also, because OBSearch uses SMAP, a simple but effective technique for indexing any type of object. Other programs you could use are:
-				</p>
-				<p>
-				<a href="http://www-db.deis.unibo.it/Mtree/">M-Tree</a>
-				</p>
-				<p>
-				<a href="http://dbs.mathematik.uni-marburg.de/?search=Research_Projects_XXL">XXL</a>				
-				</p>
-				<p>
-				<a href="http://gbdi.icmc.usp.br/arboretum/">Arboretum</a>
-        </p>
-				
-				<p>
-				<a href="http://sisap.org/">SISAP</a>
-        </p>
-      </answer>			
-    </faq>   
-
 
   </part>
 </faqs>

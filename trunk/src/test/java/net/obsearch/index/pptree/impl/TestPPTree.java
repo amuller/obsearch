@@ -59,10 +59,10 @@ public class TestPPTree
         
         
         IncrementalBustosNavarroChavezShort<OBSlice> sel = new IncrementalBustosNavarroChavezShort<OBSlice>(new AcceptAll(),
-                30, 30);
+                100, 100);
         BDBFactoryJe fact = Utils.getFactoryJe();
         
-        PPTreeShort<OBSlice> d = new PPTreeShort<OBSlice>(OBSlice.class, sel, 20, 6, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2));
+        PPTreeShort<OBSlice> d = new PPTreeShort<OBSlice>(OBSlice.class, sel, 32, 6, (short) 0, (short) (OBSliceFactory.maxSliceSize * 2));
         d.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(d);
