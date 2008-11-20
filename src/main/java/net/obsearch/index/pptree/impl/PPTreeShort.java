@@ -351,6 +351,7 @@ public class PPTreeShort < O extends OBShort >
                 if (intersect(q, i, minArray, lowHighResult)) {
                     int ri = (space.getSNo() * 2 * getPivotCount()) + i; // real
                     // index
+                    stats.incBucketsRead();
                     searchBTreeAndUpdate(object, t, myr, ri
                             + lowHighResult[HLOW], ri + lowHighResult[HHIGH],
                             result);
@@ -425,6 +426,7 @@ public class PPTreeShort < O extends OBShort >
             short max = Short.MIN_VALUE;
             short realDistance = Short.MIN_VALUE;
             while (it.hasNext()) {
+            	stats.incSmapCount();
                 TupleDouble tup = it.next();
                 ByteBuffer in = tup.getValue();
 
@@ -448,6 +450,7 @@ public class PPTreeShort < O extends OBShort >
                     long id = in.getLong();
                     O toCompare = getObject(id);
                     realDistance = object.distance(toCompare);
+                    stats.incDistanceCount();
                     if (realDistance <= r) {
                         result.add(id, toCompare, realDistance);
                     }

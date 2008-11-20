@@ -1,5 +1,30 @@
 package net.obsearch.index.bucket;
 
+/*
+ OBSearch: a distributed similarity search engine This project is to
+ similarity search what 'bit-torrent' is to downloads. 
+ Copyright (C) 2008 Arnoldo Jose Muller Molina
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** 
+ *  AbstractBucketIndex 
+ *  
+ *  @author      Arnoldo Jose Muller Molina    
+ */
+
 import hep.aida.bin.StaticBin1D;
 
 import java.io.IOException;
@@ -23,7 +48,6 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.pivot.AbstractPivotOBIndex;
-import net.obsearch.index.rosa.AbstractRosaFilter;
 import net.obsearch.index.utils.StatsUtil;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.stats.Statistics;
@@ -32,6 +56,7 @@ import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.TupleLong;
 
 public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
 		extends AbstractPivotOBIndex<O> {
@@ -100,14 +125,15 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		OBStorageConfig conf = new OBStorageConfig();
 		conf.setTemp(false);
 		conf.setDuplicates(true);
-		conf.setBulkMode(! isFrozen());
-		conf.setRecordSize( primitiveDataTypeSize() );
+		conf.setBulkMode(!isFrozen());
+		conf.setRecordSize(primitiveDataTypeSize());
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
-	
+
 	/**
 	 * Return the size in bytes of the underlying primitive datatype.
+	 * 
 	 * @return
 	 */
 	protected abstract int primitiveDataTypeSize();
@@ -146,8 +172,6 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		}
 		return res;
 	}
-	
-	
 
 	private BC getBucketContainer(byte[] id) {
 		BC bc = instantiateBucketContainer(null, id);
@@ -196,6 +220,45 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		return res;
 	}
 
+	protected void freezeDefault() throws IOException, AlreadyFrozenException,
+			IllegalIdException, IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+		// get n pivots.
+		// ask the bucket for each object and insert those who are not excluded.
+		// repeat iteratively with the objects that could not be inserted until
+		// the remaining
+		// objects are small enough.
+		
+
+		
+		CloseIterator<TupleLong> it = A.processAll();
+		while (it.hasNext()) {
+			TupleLong t = it.next();
+			long id = t.getKey();
+			O o = super.bytesToObject(t.getValue());
+			B b = getBucket(o);
+			b.setId(id);
+			this.insertBucketBulk(b, o);
+
+		}
+		it.closeCursor();
+		// now we can count the # of buckets!
+		CloseIterator<TupleBytes> it2 = Buckets.processAll();
+		byte[] prev = null;
+		int count = 0;
+		while(it2.hasNext()){
+			TupleBytes t = it2.next();
+			if(prev != null && ! Arrays.equals(prev, t.getKey())){
+				prev = t.getKey();
+				count++;
+			}if(prev == null){
+				prev = t.getKey();
+			}
+		}
+		logger.info("# of buckets: " + count);
+		
+	}
+
 	@Override
 	public void close() throws OBException {
 		if (Buckets != null) {
@@ -218,32 +281,33 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 
 		logger.debug("Bucket stats");
 		CloseIterator<TupleBytes> it = Buckets.processAll();
-		//assert Buckets.size() == A.size();
+		// assert Buckets.size() == A.size();
 		StaticBin1D s = new StaticBin1D();
 		byte[] key = null;
 		int counter = 0;
 		int i = 0;
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
-			
-			if(key != null && ! Arrays.equals(t.getKey(), key)){
+
+			if (key != null && !Arrays.equals(t.getKey(), key)) {
 				s.add(counter);
 				key = t.getKey();
 				counter = 1;
-			}else{
+			} else {
 				counter++;
-				if(key == null){
-					// first time 
+				if (key == null) {
+					// first time
 					key = t.getKey();
 				}
 			}
-			if(i % 10000 == 0){
+			if (i % 10000 == 0) {
 				logger.debug("Stats: " + i);
 			}
 			i++;
 		} // add exlucion
 		s.add(counter);
-		assert A.size() == ((long)s.sum()): "Size in stats: " + s.sum() +" size in A: " + A.size();
+		assert A.size() == ((long) s.sum()) : "Size in stats: " + s.sum()
+				+ " size in A: " + A.size();
 		logger.info(StatsUtil.prettyPrintStats("Bucket distribution", s));
 		it.closeCursor();
 	}
@@ -290,7 +354,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		res = this.insertBucketBulk(b, object);
 		res.setId(id);
 		return res;
-		
+
 	}
 
 	/**

@@ -4,7 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9.1b</version>
+  <version>0.9.1c-alpha</version>
 <!-- TODO:
 		 * spore
 		 * Cache
@@ -30,7 +30,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 	<properties>
 		<!-- additional unit test files to be downloaded -->
 
-		<my.test.data.db>slices-small</my.test.data.db>
+		<my.test.data.db>slices</my.test.data.db>
 		<my.test.data.query>slices-query</my.test.data.query>
 		<my.test.data.dir>${user.home}/temp/</my.test.data.dir>
   </properties>
@@ -188,6 +188,29 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			<version>2.0.1</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>google</groupId>
+			<artifactId>uzaygezen</artifactId>
+			<version>0.1</version>
+			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>google</groupId>
+			<artifactId>google-collect</artifactId>
+			<version>20080820</version>
+			<scope>compile</scope>
+		</dependency>
+
+
+				<dependency>
+			<groupId>apache</groupId>
+			<artifactId>commons</artifactId>
+			<version>2.4</version>
+			<scope>compile</scope>
+		</dependency>
+
 		
 							<dependency>
          <groupId>org.neo4j</groupId>

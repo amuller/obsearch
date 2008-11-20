@@ -107,8 +107,8 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 					// assertEquals("Error in query line: " + i + " slice: "
 					// + line, x2, x1);
 					if(x1.getSize() == 0 && x2.getSize() != 0){
-						logger.info("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
-	                            + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
+						//logger.info("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
+	                    //        + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
 						emptyResults++;
 					}
 					

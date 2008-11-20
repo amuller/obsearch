@@ -588,7 +588,7 @@ public class KnnGraphShort<O extends OBShort>
 			while (searchQueue.getSize() > 0) {
 				// take the top of the queue
 				OBResultInvertedShort<Node> front = searchQueue.poll();
-				stats.incSmapCount();
+				
 
 				// d(front, q)
 				short frontAndQ = front.getDistance();
@@ -639,6 +639,7 @@ public class KnnGraphShort<O extends OBShort>
 					short estimation = (short) Math.abs(frontAndQ - piAndFront);
 					if (tCloser(estimation, frontAndQ)) {
 						if (visited.add(pi)) {
+							stats.incSmapCount();
 							short piAndQ = lInf(b.getSmapVector(), pi);
 							assert estimation <= piAndQ : "Est: " + estimation
 									+ " piQ " + piAndQ;

@@ -177,7 +177,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * 
     */
     public boolean isCandidate(${type} smapDistance){
-        return result.isCandidate(smapDistance);
+        return smapDistance <= getDistance() && result.isCandidate(smapDistance);
     }
 
    /**

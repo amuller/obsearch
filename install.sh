@@ -52,3 +52,33 @@ rm trove-2.0.1.jar
 
 mvn install:install-file -Dfile=db.jar -DgroupId=bdb-c -DartifactId=bdb-c -Dversion=4.7 -Dpackaging=jar -DgeneratePom=true
 
+
+mkdir hilbert
+cd hilbert
+
+wget http://uzaygezen.googlecode.com/files/uzaygezen-0.1.zip
+unzip uzaygezen-0.1.zip
+
+
+mvn install:install-file -Dfile=core-0.1.jar -DgroupId=google -DartifactId=uzaygezen -Dversion=0.1 -Dpackaging=jar -DgeneratePom=true
+
+wget http://google-collections.googlecode.com/files/google-collect-snapshot-20080820.zip
+unzip google-collect-snapshot-20080820.zip
+
+cd google-collect-snapshot-20080820
+
+mvn install:install-file -Dfile=google-collect-snapshot-20080820.jar -DgroupId=google -DartifactId=google-collect -Dversion=20080820 -Dpackaging=jar -DgeneratePom=true
+
+cd ..
+
+
+wget http://www.meisei-u.ac.jp/mirror/apache/dist/commons/lang/binaries/commons-lang-2.4-bin.tar.gz
+tar -xzf commons-lang-2.4-bin.tar.gz
+
+ cd commons-lang-2.4/
+
+mvn install:install-file -Dfile=commons-lang-2.4.jar -DgroupId=apache -DartifactId=commons -Dversion=2.4 -Dpackaging=jar -DgeneratePom=true
+
+cd ..
+cd ..
+rm -fdr hilbert

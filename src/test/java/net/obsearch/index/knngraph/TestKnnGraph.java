@@ -1,5 +1,7 @@
 package net.obsearch.index.knngraph;
 
+import java.util.ArrayList;
+
 import net.obsearch.example.OBSlice;
 import net.obsearch.example.OBSliceFactory;
 import net.obsearch.index.knngraph.impl.KnnGraphShort;
@@ -35,7 +37,7 @@ public class TestKnnGraph {
 	        // k = 25, 10 seeds. Increasing k improves things a lot!
 	        // 2.4 for range 3 (1 / 1000)
 	        // 4 for  range 20
-	        knn.setT(3.0f);
+	        knn.setT(5.0f);
 	        knn.init(fact);
 	        knn.setSeeds(30);
 	        IndexSmokeTUtilApprox<OBSlice> t = new IndexSmokeTUtilApprox<OBSlice>(new OBSliceFactory());
@@ -48,6 +50,10 @@ public class TestKnnGraph {
 	        //logger.info("Distance computations: " + d.distanceComputations);
 	        
 	        // best 15 1.4 20 seeds
+	        
+	        
+	        
+	        
 	    }
 
 }
