@@ -637,7 +637,7 @@ public class KnnGraphShort<O extends OBShort>
 					// estimate piAndQ in order to avoid some computations.
 					// |d(front,q) - d(front,pi)| <= d(pi,q)
 					short estimation = (short) Math.abs(frontAndQ - piAndFront);
-					if (tCloser(estimation, frontAndQ)) {
+					//if (tCloser(estimation, frontAndQ)) {
 						if (visited.add(pi)) {
 							stats.incSmapCount();
 							short piAndQ = lInf(b.getSmapVector(), pi);
@@ -651,7 +651,7 @@ public class KnnGraphShort<O extends OBShort>
 								stats.incExtra("Enqueued");
 							}
 						}
-					}
+					//}
 					i++;
 				}
 				// assert i <= super.localk :

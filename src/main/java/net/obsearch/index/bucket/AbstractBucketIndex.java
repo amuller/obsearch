@@ -173,7 +173,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		return res;
 	}
 
-	private BC getBucketContainer(byte[] id) {
+	protected BC getBucketContainer(byte[] id) {
 		BC bc = instantiateBucketContainer(null, id);
 		return bc;
 	}
@@ -242,20 +242,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 
 		}
 		it.closeCursor();
-		// now we can count the # of buckets!
-		CloseIterator<TupleBytes> it2 = Buckets.processAll();
-		byte[] prev = null;
-		int count = 0;
-		while(it2.hasNext()){
-			TupleBytes t = it2.next();
-			if(prev != null && ! Arrays.equals(prev, t.getKey())){
-				prev = t.getKey();
-				count++;
-			}if(prev == null){
-				prev = t.getKey();
-			}
-		}
-		logger.info("# of buckets: " + count);
+		
 		
 	}
 

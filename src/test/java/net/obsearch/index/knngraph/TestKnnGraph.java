@@ -33,11 +33,11 @@ public class TestKnnGraph {
 	        //BDBFactoryDb fact = Utils.getFactoryDb();
 	        //OBLFactory fact = Utils.getFactoryL();
 
-	        KnnGraphShort<OBSlice> knn = new KnnGraphShort<OBSlice>(OBSlice.class, sel, 32, 40, (short)500, 40);
+	        KnnGraphShort<OBSlice> knn = new KnnGraphShort<OBSlice>(OBSlice.class, sel, 32, 40, (short)500, 30);
 	        // k = 25, 10 seeds. Increasing k improves things a lot!
 	        // 2.4 for range 3 (1 / 1000)
 	        // 4 for  range 20
-	        knn.setT(5.0f);
+	        knn.setT(3.0f);
 	        knn.init(fact);
 	        knn.setSeeds(30);
 	        IndexSmokeTUtilApprox<OBSlice> t = new IndexSmokeTUtilApprox<OBSlice>(new OBSliceFactory());
