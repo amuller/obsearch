@@ -79,7 +79,7 @@ public class TestIDistanceIndex
                  100, 100);
     	//OBLFactory fact = Utils.getFactoryL();
     	BDBFactoryDb fact = Utils.getFactoryDb();
-        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 16);
+        IDistanceIndexShort<OBSlice> i = new IDistanceIndexShort<OBSlice>(OBSlice.class, sel, 32);
         i.init(fact);
         IndexSmokeTUtil<OBSlice> t = new IndexSmokeTUtil<OBSlice>(new OBSliceFactory());
         t.tIndex(i);

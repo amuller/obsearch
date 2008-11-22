@@ -400,6 +400,10 @@ import net.obsearch.constants.ByteConstants;
 						return res;
 		}
 
+		public void setKey(byte[] key){
+				this.key = key;
+		}
+
 
 }
 </#list>
