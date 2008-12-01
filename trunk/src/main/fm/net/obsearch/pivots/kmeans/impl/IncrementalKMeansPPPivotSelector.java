@@ -80,7 +80,6 @@ public class IncrementalKMeansPPPivotSelector${Type}<O extends OB${Type}> extend
     PivotsUnavailableException
     {
         long centroidIds[] = null;
-        try{
         // we need to prepare the index for freezing!
         int k = pivotsCount;
         double potential = 0;
@@ -174,9 +173,6 @@ public class IncrementalKMeansPPPivotSelector${Type}<O extends OB${Type}> extend
             }                        
             centerCount++;
         }        
-        }catch(DatabaseException e){
-            throw new OBStorageException(e);
-        }
         // store the pivots
         return new PivotResult(centroidIds);
     }

@@ -340,6 +340,18 @@ import net.obsearch.constants.ByteConstants;
 						key1 = key;
 						key2 = key;
 				}
+				return search(query,b,smapComputations,dataRead,filter,key1,key2);
+    }
+
+
+		/**
+     * Convenience method that forces the search to be performed on a certain key set.
+		 */ 
+		public long search(OBQuery${Type} < O > query, B b,
+											 IntegerHolder smapComputations,  IntegerHolder dataRead, Filter<O> filter, byte[] key1, byte[] key2) throws IllegalAccessException,
+				OBException, InstantiationException, IllegalIdException {
+
+
 				CloseIterator<TupleBytes> pr = storage.processRange(key1,key2);
 				long res = 0;
 				try{
@@ -371,7 +383,8 @@ import net.obsearch.constants.ByteConstants;
 				}
        
         return res;
-    }
+				
+		}
 
     /*
      * (non-Javadoc)

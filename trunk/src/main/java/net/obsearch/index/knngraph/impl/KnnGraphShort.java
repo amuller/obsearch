@@ -45,7 +45,7 @@ import net.obsearch.utils.bytes.ByteConversion;
 
 public class KnnGraphShort<O extends OBShort>
 		extends
-		AbstractKnnGraph<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
+		AbstractKnnGraph<O, BucketObjectShort<O>, OBQueryShort<O>, BucketContainerShort<O>>
 		implements IndexShort<O> {
 
 	/**

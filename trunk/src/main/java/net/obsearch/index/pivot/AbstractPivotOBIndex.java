@@ -74,7 +74,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     /**
      * The pivot selector used by the index.
      */
-    private IncrementalPivotSelector < O > pivotSelector;
+    protected IncrementalPivotSelector < O > pivotSelector;
     
     private int pivotCount;
     

@@ -39,7 +39,7 @@ import com.sleepycat.je.DatabaseException;
 
 public final class DPrimeIndexShort<O extends OBShort>
 		extends
-		AbstractDPrimeIndex<O, BucketObjectShort, OBQueryShort<O>, BucketContainerShort<O>>
+		AbstractDPrimeIndex<O, BucketObjectShort<O>, OBQueryShort<O>, BucketContainerShort<O>>
 		implements IndexShort<O> {
 
 	/**

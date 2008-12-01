@@ -260,8 +260,9 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @param object
 	 *            An object.
 	 * @return The rosa filter value of the given object.
+	 * @throws OBException 
 	 */
-	protected abstract byte[] getAddress(B bucket);
+	protected abstract byte[] getAddress(B bucket) throws OBException;
 
 	protected void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {

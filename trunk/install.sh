@@ -82,3 +82,30 @@ mvn install:install-file -Dfile=commons-lang-2.4.jar -DgroupId=apache -Dartifact
 cd ..
 cd ..
 rm -fdr hilbert
+
+
+# install weka
+
+
+wget http://www.obsearch.net/weka-3-5-8.zip
+
+unzip weka-3-5-8.zip
+
+
+cd weka-3-5-8/
+
+mvn install:install-file -Dfile=weka.jar -DgroupId=weka -DartifactId=weka -Dversion=3.5.8 -Dpackaging=jar -DgeneratePom=true
+
+cd ..
+
+rm -fdr weka-3-5-8/
+
+
+
+#infovis
+
+wget http://www.obsearch.net/infovis.jar
+
+mvn install:install-file -Dfile=infovis.jar -DgroupId=inria -DartifactId=infovis -Dversion=0.9 -Dpackaging=jar -DgeneratePom=true
+
+rm infovis.jar

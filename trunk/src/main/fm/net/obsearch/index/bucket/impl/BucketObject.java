@@ -36,9 +36,10 @@ import net.obsearch.ob.OB${Type};
  * @author Arnoldo Jose Muller Molina
  */
 <@gen_warning filename="BucketObject.java "/>
-public class BucketObject${Type}
-        extends BucketObject implements Comparable<BucketObject${Type}>{
-						
+		public class BucketObject${Type}<O extends OB${Type}>
+        extends BucketObject<O> implements Comparable<BucketObject${Type}>{
+			
+			
     /**
      * SMAP vector of the object.
      */
@@ -65,9 +66,29 @@ public class BucketObject${Type}
      */
     public BucketObject${Type}(${type}[] smapVector,
              long id) {
-        super(id);
-        this.smapVector = smapVector;
+        this(smapVector,id,null);
     }
+
+		/**
+     * Creates a new bucket ${type} with
+     * @param bucket
+     *                Bucket number.
+     * @param level
+     *                Level within the hash table.
+     * @param smapVector
+     *                The distances of the corresponding object and the pivots
+     *                for the given level.
+     * @param exclusionBucket
+     *                If true, the corresponding object is in the exclusion
+     *                zone.
+     * @param id Optional id of the given object. Not always used.
+     */
+    public BucketObject${Type}(${type}[] smapVector,
+															 long id, O object) {
+        super(id, object);
+				this.smapVector = smapVector;
+    }
+
     
     /**
      * Execute l-inf between this object and b.

@@ -127,7 +127,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         // "learn the data".
         logger.info("freezing");
         index.freeze();
-        
+        logger.info(index.getStats());
         return;
 
         /*

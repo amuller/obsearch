@@ -1,5 +1,7 @@
 package net.obsearch.index.bucket;
 
+import net.obsearch.OB;
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -25,9 +27,10 @@ package net.obsearch.index.bucket;
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class BucketObject {
+public abstract class BucketObject<O> {
     
 
+	private O object;		
         
     /**
      * Id of the object.
@@ -46,6 +49,25 @@ public abstract class BucketObject {
     public BucketObject(long id) {
         super();
         this.id = id;
+        object = null;
+    }
+    
+    /**
+     * Creates a new bucket with the given bucket number and
+     * the specified level.
+     * @param bucket Bucket number.
+     * @param exclusionBucket If true, the corresponding object is in the exclusion zone.
+     * @param optional id of the object.
+     */
+    public BucketObject(long id, O object) {
+        super();
+        this.id = id;
+        this.object = object;
+    }
+    
+    
+    public O getObject(){
+    	return object;
     }
     
     /**

@@ -404,8 +404,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 */
 	@Override
 	public Statistics getStats() throws OBStorageException {
-		stats.putStats("Read Stats A", A.getReadStats());
-		stats.putObjects("Env", fact.stats());
+		//stats.putStats("Read Stats A", A.getReadStats());
+		//stats.putObjects("Env", fact.stats());
 		return stats;
 	}
 
