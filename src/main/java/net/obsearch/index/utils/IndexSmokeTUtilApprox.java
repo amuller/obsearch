@@ -18,6 +18,7 @@ import net.obsearch.index.IndexShort;
 import net.obsearch.ob.OBShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
+import net.obsearch.stats.Statistics;
 
 import org.apache.log4j.Logger;
 import static org.junit.Assert.assertEquals;
@@ -93,6 +94,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		int emptyResults = 0;
 		int badResults = 0;
 		IntegerHolder badCount = new IntegerHolder(0);
+		Statistics st = new Statistics();
 		while (re != null) {
 			String line = parseLine(re);
 			if (line != null) {
@@ -106,13 +108,14 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 					OBPriorityQueueShort<O> x1 = it.next();
 					// assertEquals("Error in query line: " + i + " slice: "
 					// + line, x2, x1);
+					st.addExtraStats("ReturnedSize", x2.getSize());
 					if(x1.getSize() == 0 && x2.getSize() != 0){
 						//logger.info("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
 	                    //        + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
 						emptyResults++;
+					}else{
+						stats.add(ep(x1,x2,index));
 					}
-					
-					stats.add(ep(x1,x2,index));
 					if(!ok(x1,x2)){
 						badResults++;
 					}
@@ -130,6 +133,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		
 		r.close();
 		logger.info("Finished  EP calculation: ");
+		logger.info("Returned size" + st);
 		logger.info(StatsUtil.prettyPrintStats("EP", stats));
 		assertFalse(it.hasNext());
 		logger.info("Zero queries: " + emptyResults);
@@ -146,7 +150,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		Iterator<OBResultShort<O>> it = db.iterator();
 		for(OBResultShort<O> r : query){
 			assert it.hasNext();
-			if(r.compareTo(it.next()) != 0){
+			if(it.hasNext() && r.compareTo(it.next()) != 0){
 				return false;
 			}
 		}

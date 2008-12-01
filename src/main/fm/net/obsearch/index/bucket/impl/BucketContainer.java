@@ -39,7 +39,7 @@ import net.obsearch.storage.OBStore;
   */
 <@gen_warning filename="BucketContainer.java "/>
 
-public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketContainer${Type}<O, BucketObject${Type}>{
+public class BucketContainer${Type}<O extends OB${Type}> extends AbstractBucketContainer${Type}<O, BucketObject${Type}<O>>{
 
 	public BucketContainer${Type}(Index < O > index, int pivots, OBStore<TupleBytes> storage, byte[] key) {
 			super(index, pivots, storage, key);

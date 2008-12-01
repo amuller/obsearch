@@ -107,6 +107,24 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			 <version>3.3.62</version>
 		 </dependency>
 
+		 	 <dependency>
+       <groupId>weka</groupId>
+			 <artifactId>weka</artifactId>
+			 <version>3.5.8</version>
+		 </dependency>
+
+		 <dependency>
+			 <groupId>jfreechart</groupId>
+<artifactId>jfreechart</artifactId>
+<version>1.0.0</version>
+		 </dependency>
+
+
+		  <dependency>
+			 <groupId>jmath</groupId>
+<artifactId>jmath</artifactId>
+<version>1</version>
+		 </dependency>
 
 
 		 <dependency>

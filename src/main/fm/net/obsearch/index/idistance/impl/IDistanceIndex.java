@@ -76,7 +76,7 @@ import net.obsearch.filter.Filter;
   <@gen_warning filename="IDistanceIndex.java "/>
 public class IDistanceIndex${Type}<O extends OB${Type}>
 		extends
-		AbstractIDistanceIndex<O, BucketObject${Type}, OBQuery${Type}<O>, BucketContainer${Type}<O>>
+		AbstractIDistanceIndex<O, BucketObject${Type}<O>, OBQuery${Type}<O>, BucketContainer${Type}<O>>
 		implements Index${Type}<O> {
 
 	private static ByteArrayComparator comp = new ByteArrayComparator();

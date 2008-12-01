@@ -9,6 +9,12 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OB${Type};
 import net.obsearch.Index;
+import java.util.Random;
+import net.obsearch.exception.OBStorageException;
+import cern.colt.list.LongArrayList;
+import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.List;
 /*
 		OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -70,6 +76,69 @@ import net.obsearch.Index;
         }
         return res;
     }
+
+  
+   
+
+	/**
+	 * Selects k random elements from the given source.
+	 * 
+	 * @param k
+	 *            number of elements to select
+	 * @param r
+	 *            Random object used to randomly select objects.
+	 * @param source
+	 *            The source of item ids.
+	 * @param index
+	 *            underlying index.
+	 * @param will
+	 *            not add pivots included in excludes.
+   * @param minDistance The min distance required by the objects.
+	 * @return The ids of selected objects.
+	 */
+	public static long[] select(int k, Random r, LongArrayList source,
+															Index<OB${Type}> index, LongArrayList excludes, ${type} minDistance) throws IllegalIdException, OBException, IllegalAccessException, InstantiationException {
+		int max = max(source, index);
+		long[] res = new long[k];
+		int i = 0;
+		List<Long> l = new LinkedList<Long>();
+		
+		while (i < res.length) {
+			long id = mapId(r.nextInt(max), source);
+			if ((excludes == null || !excludes.contains(id)) && minDistance(l, index) > minDistance ) {
+				res[i] = id;
+				l.add(id);
+			} else {
+				l.remove(l.size() -1);
+				continue; // repeat step.
+			}
+			i++;
+		}
+		return res;
+	}
+
+
+	
+
+	/**
+   * Calculate the minimum distance of the given objects (all objects
+   * compared against all objects)
+   * @param objects
+   * @return the min distance
+   */ 
+  public static ${type} minDistance(List<Long> objects, Index<OB${Type}> index)throws IllegalIdException, OBException, IllegalAccessException, InstantiationException{
+			${type} res = ${ClassType}.MAX_VALUE;
+			Iterator<Long> it = objects.iterator();
+			for(long l1 : objects){
+					for(long l2 : objects){
+							if(l1 == l2){
+									continue;
+							}
+							res = (${type})Math.min(res, index.getObject(l1).distance(index.getObject(l2)));
+					}
+			}
+			return res;
+	}
 
 				 /**
 					* Creates a ${type} array from the given pivots and the given object.
@@ -202,7 +271,9 @@ import net.obsearch.Index;
         ${type} max = <@min_value/>;
         int i = 0;
         while(i < a.length){
-            ${type} t = (${type})Math.abs(a[i]  - b[i]);
+            // ${type} t = (${type})Math.abs(a[i]  - b[i]);
+						${type} t = (${type})(a[i]  - b[i]);
+						t = t < 0 ? (${type})-t : t;
             if(t > max){
                 max = t;
             }
