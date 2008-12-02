@@ -120,12 +120,6 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 		 </dependency>
 
 
-		  <dependency>
-			 <groupId>jmath</groupId>
-<artifactId>jmath</artifactId>
-<version>1</version>
-		 </dependency>
-
 
 		 <dependency>
        <groupId>bdb-c</groupId>
