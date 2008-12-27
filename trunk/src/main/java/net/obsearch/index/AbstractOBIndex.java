@@ -606,7 +606,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 */
 	@Override
 	public void resetStats() {
-		stats.resetStats();
+		stats = new Statistics();
 	}
 
 	/*

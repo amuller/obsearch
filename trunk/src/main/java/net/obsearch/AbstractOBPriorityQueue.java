@@ -70,7 +70,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
      *                maximum number of elements to accept
      */
     public AbstractOBPriorityQueue(final int k) {
-        queue = new PriorityQueue < O >();
+        queue = new PriorityQueue < O >(k);
         this.k = k;
     }
 
@@ -79,6 +79,10 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
      */
     public final int getSize() {
         return queue.size();
+    }
+    
+    public O peek(){
+    	return queue.peek();
     }
 
     /**
@@ -131,6 +135,9 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
 
     }
     
+		/**
+     * @return the sorted list from smaller to larger of elements.
+     */
     @SuppressWarnings("unchecked")
 	public List<O> getSortedElements(){
     	ArrayList<O> result = new ArrayList<O>(queue.size());

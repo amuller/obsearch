@@ -282,6 +282,25 @@ import java.util.List;
         return max;
     }
 
+
+		/**
+     * Calculates the euc distance for two tuples
+     * @param a  tuple
+     * @param b tuple
+     * @return L-infinite for a and b.
+     */
+    public static ${type} euclidean(${type}[] a, ${type}[] b){
+        assert a.length == b.length;
+        double result = 0;
+				int i = 0;
+        while(i < a.length){
+            double j = a[i] - b[i];
+            result += j * j;
+            i++;
+        }
+        return (${type})Math.sqrt(result);
+    }
+
 		 }
 
 
