@@ -31,7 +31,7 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 		<!-- additional unit test files to be downloaded -->
 
 		<my.test.data.db>slices</my.test.data.db>
-		<my.test.data.query>slices-query</my.test.data.query>
+		<my.test.data.query>slices-query2</my.test.data.query>
 		<my.test.data.dir>${user.home}/temp/</my.test.data.dir>
   </properties>
 
@@ -113,12 +113,24 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			 <version>3.5.8</version>
 		 </dependency>
 
+
+		 	 <dependency>
+       <groupId>opt4j</groupId>
+			 <artifactId>opt4j</artifactId>
+			 <version>1.51</version>
+		 </dependency>
+
 		 <dependency>
 			 <groupId>jfreechart</groupId>
 <artifactId>jfreechart</artifactId>
 <version>1.0.0</version>
 		 </dependency>
 
+		 <dependency>
+			 <groupId>libsvm</groupId>
+<artifactId>libsvm</artifactId>
+<version>2.88</version>
+		 </dependency>
 
 
 		 <dependency>
@@ -572,10 +584,12 @@ Would be cool to use this.
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
 						<argLine>-Djava.library.path=/usr/local/BerkeleyDB.4.7/lib/</argLine>
-          <argLine>-Xmx1200M</argLine>
+          <argLine>-Xmx3800M</argLine>
+					<argLine>-Xms3500M</argLine>
+<!--					<argLine>-XX:+UseCompressedOops</argLine>-->
 					<argLine>-server</argLine>
-					<useSystemClassLoader>true</useSystemClassLoader>
-					<useManifestOnlyJar>false</useManifestOnlyJar>
+<!--					<useSystemClassLoader>true</useSystemClassLoader>
+					<useManifestOnlyJar>false</useManifestOnlyJar>-->
 <!--					<argLine>-Xshare:off</argLine>-->
 
 <!--					<argLine>-agentlib:hprof=cpu=samples,interval=20,depth=5</argLine>-->
@@ -663,7 +677,7 @@ Would be cool to use this.
 		 <developer timezone="+9">
 			 <id>arnoldomuller</id>
 			 <name>Arnoldo Jose Muller Molina</name>
-			 <email> #AT# g m a i l #dOt# c o m #:)# arnoldoMuller</email>
+			 <email>arnoldoMuller #AT# g m a i l #dOt# c o m #:)# </email>
 			 <organization>Kyushu Institute of Technology</organization>
 			 <roles>
 				 <role>Developer</role>

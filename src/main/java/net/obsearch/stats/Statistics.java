@@ -80,6 +80,8 @@ public class Statistics {
      */
     private long bucketsRead = 0;
     
+    
+    
     /**
      * Adds x to the current value of {@link #bucketsRead}.
      * @param x
@@ -285,6 +287,15 @@ public class Statistics {
      */
     public void putStats(String name, StaticBin1D stats){
     	this.extraStats.put(name, stats);
+    }
+    
+    public StaticBin1D getStats(String name){
+    	StaticBin1D r = extraStats.get(name);
+    	if(r != null){
+    		return r;
+    	}else{
+    		return new StaticBin1D();
+    	}
     }
     
     /**

@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.kohsuke.args4j.Option;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -21,10 +22,15 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.stats.Statistics;
 
 public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O>, A extends Ambient<O, I>> extends AbstractCommandLine<O, I, A> {
 
 	private static Logger logger = Logger.getLogger(AbstractNewLineCommandLine.class);
+	
+	
+	@Option(name = "-ml", usage = "# of data elements to be loaded", aliases = { "--maxLoad" })
+	protected int maxLoad = Integer.MAX_VALUE;
 	
 	private BufferedReader createReader(File toOpen) throws FileNotFoundException{
 		
@@ -35,7 +41,7 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
 		int i = 0;
-		while(line != null){
+		while(line != null && i < maxLoad){
 			O o = instantiate(line);
 			index.insert(o);
 			line = r.readLine();
@@ -46,7 +52,7 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 		}
 	}
 	
-	protected void searchObjects(I index, File load) throws IOException, OBException, InstantiationException, IllegalAccessException{
+	protected void searchObjects(I index, File load, Statistics other) throws IOException, OBException, InstantiationException, IllegalAccessException{
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
 		int i = 0;
@@ -58,16 +64,16 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 			line = r.readLine();
 		}		
 		r.close();
-		logger.info("Searching with r: " + r + " k: " + k);
+		
 		i = 0;
-		for(O o : queries){			
-			searchObject(index, o);
+		for(O o : queries){	
+			updateParams();
+			searchObject(index, o, other);
 			if(i % 100 == 0){
 				logger.info("Searching: " + i);
 			}
 			i++;			
-		}
-		
+		}		
 	}
 	
 	/**
@@ -81,9 +87,14 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 	 * @throws OutOfRangeException 
 	 * @throws IllegalIdException 
 	 * @throws NotFrozenException 
+	 * @throws IOException 
 	 */
-	protected abstract void searchObject(I index, O object) throws NotFrozenException, IllegalIdException, OutOfRangeException, InstantiationException, IllegalAccessException, OBException;
+	protected abstract void searchObject(I index, O object, Statistics other) throws NotFrozenException, IllegalIdException, OutOfRangeException, InstantiationException, IllegalAccessException, OBException, IOException;
 
+	/**
+	 * Updates the underlying index based on different parameters
+	 */
+	protected abstract void updateParams();
 	
 	/**
 	 * Instantiate an object from a string.

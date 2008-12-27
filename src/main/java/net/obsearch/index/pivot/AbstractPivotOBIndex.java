@@ -164,7 +164,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
             IllegalAccessException, InstantiationException,
             OBException {
         if (logger.isDebugEnabled()) {
-            logger.debug("Pivots selected " + Arrays.toString(ids));
+           // logger.debug("Pivots selected " + Arrays.toString(ids));
 
         }
         O[] p  = emptyPivotsArray(ids.length);
@@ -175,7 +175,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
             i++;
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Detail: " + Arrays.toString(p));
+           // logger.debug("Detail: " + Arrays.toString(p));
         }
         return p;
         

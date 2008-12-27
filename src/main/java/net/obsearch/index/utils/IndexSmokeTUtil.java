@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -91,14 +92,14 @@ public class IndexSmokeTUtil<O extends OBShort> {
         File query = new File(testProperties.getProperty("test.query.input"));
         File db = new File(testProperties.getProperty("test.db.input"));
         logger.debug("query file: " + query);
-        logger.debug("db file: " + db);
-
+        logger.debug("db file: " + db);        
         logger.info("Adding data");
         BufferedReader r = new BufferedReader(new FileReader(db));
         String re = r.readLine();
         long realIndex = 0;
         long i = 0;
-        while (re != null && i < 10000) {
+        final int totalToLoad = 10000;
+        while (re != null && i < totalToLoad) {
             String line = parseLine(re);
             if (line != null) {
                 O s = factory.create(line);
@@ -128,9 +129,9 @@ public class IndexSmokeTUtil<O extends OBShort> {
         logger.info("freezing");
         index.freeze();
         logger.info(index.getStats());
-        return;
+        
 
-        /*
+        
         // we should test that the exists method works well
         r = new BufferedReader(new FileReader(db));
         re = r.readLine();
@@ -142,6 +143,10 @@ public class IndexSmokeTUtil<O extends OBShort> {
             if (line != null) {
                 O s = factory.create(line);
              
+                if(i >= totalToLoad){
+                	break; 
+                }
+                
                 if (factory.shouldProcess(s)) {
                     OperationStatus res = index.exists(s);
                     assertTrue("Str: " + line + " line: " + i, res.getStatus() == Status.EXISTS);
@@ -163,7 +168,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
 
         assertEquals(realIndex, index.databaseSize());
         r.close();
-        */
+        
     }
 
     /**

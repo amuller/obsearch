@@ -59,6 +59,8 @@ public final class OBAsserts {
 			throw new OBException(msg);
 		}
 	}
+	
+	
 
 	public static void chkAssertStorage(final boolean condition, final String msg)
 			throws OBStorageException {

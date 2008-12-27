@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import net.obsearch.Index;
+import net.obsearch.OB;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
@@ -103,7 +104,7 @@ public abstract class AbstractDimension {
 	 * @return The ids of selected objects.
 	 */
 	public static long[] select(int k, Random r, LongArrayList source,
-			Index<OBShort> index, LongArrayList excludes)
+			Index<OB> index, LongArrayList excludes)
 			throws IllegalIdException, OBException, IllegalAccessException,
 			InstantiationException {
 		int max = max(source, index);

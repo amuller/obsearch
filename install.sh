@@ -109,3 +109,33 @@ wget http://www.obsearch.net/infovis.jar
 mvn install:install-file -Dfile=infovis.jar -DgroupId=inria -DartifactId=infovis -Dversion=0.9 -Dpackaging=jar -DgeneratePom=true
 
 rm infovis.jar
+
+
+wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm-2.88.tar.gz
+tar -xzf libsvm-2.88.tar.gz
+cd libsvm-2.88 
+cd java
+
+mvn install:install-file -Dfile=libsvm.jar -DgroupId=libsvm -DartifactId=libsvm -Dversion=2.88 -Dpackaging=jar -DgeneratePom=true
+
+cd ..
+cd ..
+
+rm -fdr libsvm-2.88
+rm libsvm-2.88.tar.gz
+
+
+
+# install opt4j
+mkdir opt4j
+cd opt4j
+
+wget obsearch.net/opt4j-1.5.1.zip
+
+cd opt4j-1.5.1/
+
+mvn install:install-file -Dfile=opt4j-1.5.1.jar -DgroupId=opt4j -DartifactId=opt4j -Dversion=1.51 -Dpackaging=jar -DgeneratePom=true
+
+cd ..
+cd ..
+rm -fdr opt4j

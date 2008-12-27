@@ -266,9 +266,9 @@ public abstract class AbstractPPTree < O extends OB >
         int i = 0;
         boolean res = true;
         while (i < center.length && res) {
-            assert Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000003 : " c[i]: " + center[i]
+            assert Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000005 : " c[i]: " + center[i]
                     + " i " + i + " T(c[i]) " + x.normalizeAux(center[i], i);
-            res = Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000000003;
+            res = Math.abs(x.normalizeAux(center[i], i) - 0.5)< 0.000000000005;
             i++;
         }
         return res;
