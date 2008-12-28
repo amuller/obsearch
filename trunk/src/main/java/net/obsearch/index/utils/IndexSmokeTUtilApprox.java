@@ -115,7 +115,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 					// assertEquals("Error in query line: " + i + " slice: "
 					// + line, x2, x1);
 					st.addExtraStats("ReturnedSize", x2.size());
-					if(x1.getSize() == 0 && x2.size() != 0){
+					if(x1.getSize() == 0 && (x2.size() != 0 && x2.get(0).getDistance() <= range)){
 						//logger.info("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
 	                    //        + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
 						emptyResults++;
@@ -126,11 +126,11 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 						}
 						stats.add(ep);
 					}
-					if(!ok(x1,x2)){
+					if(!ok(x1,x2) && x2.get(0).getDistance() <= range){
 						badResults++;
 					}
 					
-					if(x2.size() == 0){
+					if(x2.get(0).getDistance() > range){
 						zeroResults++;
 					}
 					i++;
@@ -195,9 +195,9 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
         while (i < max) {
             O obj = index.getObject(i);
             short res = o.distance(obj);
-            if (res <= range) {
+            //if (res <= range) {
                 result.add( new OBResultShort<O>(obj, i, res));
-            }
+            //}
             i++;
         }
         Collections.sort(result);
