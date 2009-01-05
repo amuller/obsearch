@@ -111,12 +111,19 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	@Option(name = "-r", usage = "Range used for retrieval")
 	protected double r;
 
+	@Option(name = "-it", usage = "Iterations for the optimization")
+	protected int iterations = 100;
+
+	private int iterationTimes = 0;
+
 	@Option(name = "-validate", usage = "Validate results against sequential search")
 	protected boolean validate = false;
 
 	private A ambiente;
 
 	private I index;
+
+	private Opt4JTask task;
 
 	/**
 	 * Number of queries executed.
@@ -318,7 +325,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		List<Pair<Statistics, Statistics>> result = new LinkedList<Pair<Statistics, Statistics>>();
 		for (String set : sets) {
 			logger.info("Executing experiment " + this.experimentName + " : "
-					+ set);
+					+ set + " : " + expDetails());
 			String[] rk = set.split(",");
 			OBAsserts.chkAssert(rk.length == 2, "Wrong experiment set format");
 			r = Double.parseDouble(rk[0]);
@@ -359,34 +366,32 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	private void optimize() throws OBException, IOException, DatabaseException,
 			InstantiationException, IllegalAccessException {
 		openIndex();
-		EvolutionaryAlgorithmModule ea = new EvolutionaryAlgorithmModule(); 
-	    ea.setGenerations(1000); 
-	    ea.setAlpha(100);  
-	    
-	    OBOptimizerModule op = new OBOptimizerModule(getCreator(), this);
-	    
+		this.validate = true; // we always validate in optimize mode.
+		EvolutionaryAlgorithmModule ea = new EvolutionaryAlgorithmModule();
+		ea.setGenerations(iterations);
+		ea.setAlpha(100); //population size
+		//ea.setMu(3); // numer of parents per gen
+		//ea.setLambda(); // number of children per gen
+
+		OBOptimizerModule op = new OBOptimizerModule(getCreator(), this);
+
 		Collection<Module> modules = new ArrayList<Module>();
 		modules.add(ea);
 		modules.add(op);
 		// setup opt4j
-		Opt4JTask task = new Opt4JTask(true); 
-	    task.init(modules); 
-	    
-	    try { 
-	        task.execute(); 
-	        Archive archive = task.getInstance(Archive.class); 
-	   
-	        for(Individual individual: archive){ 
-	        	logger.info("Param: " + individual.getGenotype() );
-	        	logger.info("Results: " + individual.getObjectives());	        	
-	        } 
-	   
-	      } catch (Exception e) { 
-	        throw new OBException(e);
-	      } finally { 
-	        task.close(); 
-	      } 
-	    
+		task = new Opt4JTask(false);
+		task.init(modules);
+
+		try {
+			task.execute();
+			logger.info("Final optimization result:");
+			this.printOptStatus();
+		} catch (Exception e) {
+			throw new OBException(e);
+		} finally {
+			task.close();
+		}
+
 		closeIndex();
 	}
 
@@ -410,10 +415,15 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	Objective recall = new Objective("recall", Sign.MAX);
 
 	/**
+	 * Recall
+	 */
+	Objective zeros = new Objective("zeros", Sign.MIN);
+
+	/**
 	 * EP result
 	 */
 	Objective ep = new Objective("ep", Sign.MIN);
-	
+
 	@Override
 	public Collection<Objective> getObjectives() {
 		List<Objective> objs = new LinkedList();
@@ -422,46 +432,67 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		objs.add(buckets);
 		objs.add(recall);
 		objs.add(ep);
+		objs.add(zeros);
 		return objs;
+	}
+
+	private void printOptStatus() {
+		Archive archive = task.getInstance(Archive.class);
+
+		for (Individual individual : archive) {
+			logger.info("Param: " + individual.getGenotype());
+			logger.info("Results: " + individual.getObjectives());
+		}
 	}
 
 	/**
 	 * Returns the creator used to generate new configurations for this index.
 	 * 
 	 * @return a new creator
+	 * @throws OBException
 	 */
-	protected abstract Class<? extends Creator<DoubleString>> getCreator();
+	protected abstract Creator<DoubleString> getCreator() throws OBException;
 
 	public Objectives evaluate(DoubleString config) {
 		try {
-			logger.info("Evaluating: " + config);
+			logger.info("Opt status: ");
+			this.printOptStatus();
+			logger.info("Evaluating: " + config + " times: " + iterationTimes);
+			iterationTimes++;
 			updateIndexConfig(config);
 			List<Pair<Statistics, Statistics>> stats = processExperimentSet();
 			int totalQueries = 0;
 			int failed = 0;
 			int distances = 0;
+			int zeros = 0;
 			int smap = 0;
 			int buckets = 0;
 			double ep = 0;
-			for(Pair<Statistics, Statistics> s : stats){
+			for (Pair<Statistics, Statistics> s : stats) {
 				totalQueries += s.getB().getQueryCount();
 				failed += s.getB().getExtra("BAD");
 				ep += s.getB().getStats("EP").mean();
 				distances += s.getA().getDistanceCount();
 				smap += s.getA().getSmapCount();
-				buckets  += s.getA().getBucketsRead();
+				buckets += s.getA().getBucketsRead();
+				zeros += s.getB().getExtra("ZEROS");
 			}
-			ep = ep / stats.size(); // normalize ep.
-			double recall = 1d - (double)failed / (double)totalQueries ;
-			 Objectives objectives = new Objectives();  
-			 objectives.add(this.distance, distances);
-			 objectives.add(this.smap, smap);
-			 objectives.add(this.buckets, buckets);
-			 objectives.add(this.recall, recall);
-			 objectives.add(this.ep, ep);
-			
-			 return objectives;
-			
+			// ep = ep / ((double)stats.size()); // normalize ep.
+			double recall = 1d - ((double) failed / (double) totalQueries);
+			Objectives objectives = new Objectives();
+			objectives.add(this.distance, (double) distances
+					/ (double) totalQueries);
+			objectives.add(this.smap, (double) smap /   (double) totalQueries);
+			objectives.add(this.buckets, (double) buckets
+					 / (double) totalQueries);
+			objectives.add(this.recall, (double) recall);
+			objectives.add(this.ep, (double) ep / (double) stats.size());
+			objectives.add(this.zeros, (double) zeros / (double) stats.size());
+			logger.info("Objectives: " + objectives);
+			// logger.info("BAD: " + failed + " Z: " + zeros + " rec: " + recall
+			// + " ep: " + ep );
+			return objectives;
+
 		} catch (Exception e) {
 			// the interface of the library
 			// does not include exceptions, Hack!
@@ -479,7 +510,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected abstract void updateIndexConfig(DoubleString phenotype);
 
 	protected String expName() {
-		return this.experimentName + "r" + this.r + "k";
+			return this.experimentName + "r" + this.r + "-" + this.k + "k";
 	}
 
 	private String p(double value) {
