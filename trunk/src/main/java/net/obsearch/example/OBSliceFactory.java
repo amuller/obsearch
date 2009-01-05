@@ -7,7 +7,7 @@ import net.obsearch.index.utils.OBFactory;
 
 public class OBSliceFactory implements OBFactory<OBSlice> {
 
-    public static  int maxSliceSize = 500;
+    public static  int maxSliceSize = 300;
     
     
     

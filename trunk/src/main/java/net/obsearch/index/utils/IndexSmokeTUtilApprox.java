@@ -40,7 +40,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
     private static transient final Logger logger = Logger
             .getLogger(IndexSmokeTUtilApprox.class);
 
-	public void search(IndexShort<O> index, short range, byte k)
+	public void search(IndexShort<O> index, short range, short k)
 			throws Exception {
 		// assertEquals(index.aDB.count(), index.bDB.count());
 		// assertEquals(index.aDB.count(), index.bDB.count());
@@ -115,22 +115,22 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 					// assertEquals("Error in query line: " + i + " slice: "
 					// + line, x2, x1);
 					st.addExtraStats("ReturnedSize", x2.size());
-					if(x1.getSize() == 0 && (x2.size() != 0 && x2.get(0).getDistance() <= range)){
+					if(isApproxZero(x1,x2,range)){
 						//logger.info("Error in query line: " + i + " " + index.debug(s) + "\n slice: "
 	                    //        + line + " " + debug(x2.getSortedElements().subList(0, Math.min(3, x2.getSize())).iterator(),index ) + "\n");
 						emptyResults++;
 					}else{
 						double ep = ep(x1,x2,index);
-						if(ok(x1,x2)){
+						if(ok(x1,x2,range)){
 							assertTrue(ep == 0);
 						}
 						stats.add(ep);
 					}
-					if(!ok(x1,x2) && x2.get(0).getDistance() <= range){
+					if(!ok(x1,x2, range)){
 						badResults++;
 					}
 					
-					if(x2.get(0).getDistance() > range){
+					if(zeroResults(x2,range)){
 						zeroResults++;
 					}
 					i++;
@@ -155,8 +155,38 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		logger.info("Zero (real) queries : " + zeroResults);
 	}
 	
-	public boolean ok(OBPriorityQueueShort<O> x1, List<OBResultShort<O>> db){
+	/**
+	 * 
+	 * @param db database
+	 * @param range range query
+	 * @return true if the results are zero.
+	 */
+	public boolean zeroResults( List<OBResultShort<O>> db, short range){
+		return db.get(0).getDistance() > range;
+	}
+	
+	/**
+	 * If x1 (query) returned zero results but db had results, this function returns
+	 * true. Otherwise false.
+	 * @param x1
+	 * @param db
+	 * @param range
+	 * @return
+	 */
+	public boolean isApproxZero(OBPriorityQueueShort<O> x1, List<OBResultShort<O>> db, short range){
+		return x1.getSize() == 0 && (db.size() != 0 && db.get(0).getDistance() <= range);
+	}
+	
+	public boolean ok(OBPriorityQueueShort<O> x1, List<OBResultShort<O>> db, short range){
+		
+		// if the db is empty, then we don't have to worry about anything else.
+		if(zeroResults(db,range)){
+			assert x1.getSize() == 0;
+			return true;
+		}
+		
 		List<OBResultShort<O>> query = x1.getSortedElements();
+		
 		if(query.size() == 0 && db.size() != 0){
 			return false;
 		}

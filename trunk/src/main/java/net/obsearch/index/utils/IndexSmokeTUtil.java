@@ -188,9 +188,18 @@ public class IndexSmokeTUtil<O extends OBShort> {
         int cx = 0;
 
         initIndex(index);
-        search(index, (short) 3, (byte) 3);
-        search(index, (short) 7, (byte) 1);
-        search(index, (short) 12, (byte) 3);
+        //search(index, (short) 3, (byte) 3);
+        //search(index, (short) 7, (byte) 1);
+        //search(index, (short) 12, (byte) 3);
+        
+        search(index, (short) 1000, (byte) 1);
+
+        search(index, (short) 1000, (byte) 3);
+
+        search(index, (short) 1000, (byte) 10);
+        
+        search(index, (short) 1000, (byte) 50);
+        
         long i = 0;
         // int realIndex = 0;
         // test special methods that only apply to
@@ -224,7 +233,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
      * @param range
      * @param k
      */
-    public void search(IndexShort < O > index, short range, byte k)
+    public void search(IndexShort < O > index, short range, short k)
             throws Exception {
         // assertEquals(index.aDB.count(), index.bDB.count());
         // assertEquals(index.aDB.count(), index.bDB.count());

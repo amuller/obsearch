@@ -41,7 +41,7 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 			IllegalIdException, OutOfRangeException, InstantiationException,
 			IllegalAccessException, OBException, IOException {
 		
-		if(super.mode != Mode.x){
+		if(super.mode != Mode.x && mode != Mode.opt){
 			index.resetStats();
 		}
 		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(k);
@@ -56,17 +56,18 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 			ArrayList<OBResultShort<O>> x2 = new ArrayList<OBResultShort<O>>((int)index.databaseSize());
 			t.searchSequential(index.databaseSize(), object, x2, index, range);
 			
-			double ep = t.ep(result, x2, index);
-			
-			if(result.getSize() == 0 && x2.size() != 0){
+			double ep = t.ep(result, x2, index);			
+			if(t.isApproxZero(result, x2, range)){
 				other.incExtra("ZEROS");
+			}else{
+				other.addExtraStats("EP", ep);			
 			}
-			if(! t.ok(result, x2)){
+			if(! t.ok(result, x2, range)){
 				other.incExtra("BAD");
 			}
-			if(ep != 0){
-				other.addExtraStats("EP", ep);				
-			}
+		
+					
+		
 		}
 		
 		
