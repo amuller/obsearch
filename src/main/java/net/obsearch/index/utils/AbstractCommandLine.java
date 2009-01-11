@@ -111,9 +111,25 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	@Option(name = "-r", usage = "Range used for retrieval")
 	protected double r;
 
+	/**
+	 * Options related to opt4j optimization
+	 */
 	@Option(name = "-it", usage = "Iterations for the optimization")
 	protected int iterations = 100;
-
+	
+	@Option(name = "-optPopSize", usage = "Population size (optimization)")
+	protected int optPopulationSize = 30;
+	
+	@Option(name = "-optNumParents", usage = "Num of parents (optimization)")
+	protected int optNumParents = 8;
+	
+	@Option(name = "-optNumChildren", usage = "Num of children (optimization)")
+	protected int optNumChildren= 8;
+	
+	
+	/**
+	 * Keep track of the optimization iterations.
+	 */
 	private int iterationTimes = 0;
 
 	@Option(name = "-validate", usage = "Validate results against sequential search")
@@ -323,9 +339,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 			InstantiationException, IllegalAccessException {
 		String[] sets = this.experimentSet.split(":");
 		List<Pair<Statistics, Statistics>> result = new LinkedList<Pair<Statistics, Statistics>>();
-		for (String set : sets) {
-			logger.info("Executing experiment " + this.experimentName + " : "
-					+ set + " : " + expDetails());
+		for (String set : sets) {			
 			String[] rk = set.split(",");
 			OBAsserts.chkAssert(rk.length == 2, "Wrong experiment set format");
 			r = Double.parseDouble(rk[0]);
@@ -369,9 +383,9 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		this.validate = true; // we always validate in optimize mode.
 		EvolutionaryAlgorithmModule ea = new EvolutionaryAlgorithmModule();
 		ea.setGenerations(iterations);
-		ea.setAlpha(100); //population size
-		//ea.setMu(3); // numer of parents per gen
-		//ea.setLambda(); // number of children per gen
+		ea.setAlpha(optPopulationSize); //population size
+		ea.setMu(this.optNumParents); // numer of parents per gen
+		ea.setLambda(this.optNumChildren); // number of children per gen
 
 		OBOptimizerModule op = new OBOptimizerModule(getCreator(), this);
 
@@ -427,12 +441,12 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	@Override
 	public Collection<Objective> getObjectives() {
 		List<Objective> objs = new LinkedList();
-		objs.add(distance);
+		//objs.add(distance);
 		objs.add(smap);
-		objs.add(buckets);
+		//objs.add(buckets);
 		objs.add(recall);
 		objs.add(ep);
-		objs.add(zeros);
+		//objs.add(zeros);
 		return objs;
 	}
 
@@ -468,26 +482,28 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 			int smap = 0;
 			int buckets = 0;
 			double ep = 0;
+			double recall = 0;
 			for (Pair<Statistics, Statistics> s : stats) {
 				totalQueries += s.getB().getQueryCount();
 				failed += s.getB().getExtra("BAD");
 				ep += s.getB().getStats("EP").mean();
 				distances += s.getA().getDistanceCount();
+				recall += s.getB().getStats("RECALL").mean();
 				smap += s.getA().getSmapCount();
 				buckets += s.getA().getBucketsRead();
 				zeros += s.getB().getExtra("ZEROS");
 			}
 			// ep = ep / ((double)stats.size()); // normalize ep.
-			double recall = 1d - ((double) failed / (double) totalQueries);
+			
 			Objectives objectives = new Objectives();
-			objectives.add(this.distance, (double) distances
-					/ (double) totalQueries);
+			//objectives.add(this.distance, (double) distances
+			//		/ (double) totalQueries);
 			objectives.add(this.smap, (double) smap /   (double) totalQueries);
-			objectives.add(this.buckets, (double) buckets
-					 / (double) totalQueries);
-			objectives.add(this.recall, (double) recall);
+			//objectives.add(this.buckets, (double) buckets
+			//		 / (double) totalQueries);
+			objectives.add(this.recall, (double) recall / (double) stats.size());;
 			objectives.add(this.ep, (double) ep / (double) stats.size());
-			objectives.add(this.zeros, (double) zeros / (double) stats.size());
+			//objectives.add(this.zeros, (double) zeros / (double) stats.size());
 			logger.info("Objectives: " + objectives);
 			// logger.info("BAD: " + failed + " Z: " + zeros + " rec: " + recall
 			// + " ep: " + ep );
@@ -541,6 +557,11 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	private void closeIndex() throws OBException {
 		ambiente.close();
 	}
+	
+	/**
+	 * Updates the underlying index based on different parameters
+	 */
+	protected abstract void updateParams();
 
 	protected Pair<Statistics, Statistics> searchAux() throws IOException,
 			OBStorageException, OBException, DatabaseException,
@@ -552,13 +573,15 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		if (d.length() == 0) {
 			// write header if the file is empty
 			writeLine(w, new String[] { "exp_name", "details", "dist", "smap",
-					"ep", "bad", "zeros", "buckets" });
+					"ep", "recall", "zeros", "buckets" });
 		}
 
 		index.resetStats();
-		logger.info("Searching... ");
 		Statistics otherStats = new Statistics();
-		logger.info("Searching with: " + expName());
+		
+		updateParams();
+		logger.info("Executing experiment " + expName() + " : "
+				 + " : " + expDetails());
 		searchObjects(index, query, otherStats);
 		logger.info(index.getStats().toString());
 		logger.info(otherStats.toString());
@@ -568,7 +591,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 				String.valueOf(stats.getDistanceCount()),
 				String.valueOf(stats.getSmapCount()),
 				String.valueOf(otherStats.getStats("EP").mean()),
-				String.valueOf(otherStats.getExtra("BAD")),
+				String.valueOf(otherStats.getStats("RECALL").mean()),
 				String.valueOf(otherStats.getExtra("ZEROS")),
 				String.valueOf(stats.getBucketsRead()), });
 

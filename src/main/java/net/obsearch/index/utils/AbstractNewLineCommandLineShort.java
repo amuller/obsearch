@@ -65,7 +65,7 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 			if(! t.ok(result, x2, range)){
 				other.incExtra("BAD");
 			}
-		
+			other.addExtraStats("RECALL", t.recall(result, x2, k, range));
 					
 		
 		}

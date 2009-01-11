@@ -45,6 +45,10 @@ public final class OBPriorityQueue${r}${Type}<O> extends AbstractOBPriorityQueue
     public OBPriorityQueue${r}${Type}(int k){
         super(k);
     }
+
+		
+		
+		
     /**
      * Add the given object, object id and distance of type ${type} to the
      * queue. This method tries to minimize the sizes of distances
@@ -59,8 +63,9 @@ public final class OBPriorityQueue${r}${Type}<O> extends AbstractOBPriorityQueue
      *             If there is a problem when instantiating objects O
      * @throws InstantiationException
      *             If there is a problem when instantiating objects O
+		 * @return true if the range has changed.
      */
-    public void add(long id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
+    public boolean add(long id, O obj, ${type} distance) throws InstantiationException, IllegalAccessException {
         if (queue.size() == k) {
             // recycle objects.
 						
@@ -73,7 +78,9 @@ public final class OBPriorityQueue${r}${Type}<O> extends AbstractOBPriorityQueue
                 c.setId(id);
 								//								assert validateAddition(c);
                 queue.offer(c);
+								return true;
             }
+						
         } else { // if we are smaller than k we just create the object
             OBResult${r}${Type}<O> c = new OBResult${r}${Type}<O>();
             c.setDistance(distance);
@@ -82,6 +89,7 @@ public final class OBPriorityQueue${r}${Type}<O> extends AbstractOBPriorityQueue
 						// assert validateAddition(c);
             queue.offer(c);
         }
+				return false;
         //assert queue.size() <= k;
     }
 

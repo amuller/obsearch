@@ -156,7 +156,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}
 
 	@Override
-	protected BucketObjectShort getBucket(O object) throws OBException {
+	public BucketObjectShort getBucket(O object) throws OBException {
 		return getBucket(object, (short) 0);
 	}
 
@@ -471,15 +471,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 
 				BucketContainerShort<O> bc = instantiateBucketContainer(block);
 				stats.incBucketsRead();
-				// assert bc.size() != 0; // this should not happen.
-
-				IntegerHolder data = new IntegerHolder(0);
-				IntegerHolder h = new IntegerHolder(0);
-				stats.incDistanceCount(bc.search(q, b, h, data, null));
-				stats.incDataRead(data.getValue());
-				// stats.incDistanceCount(bc.search(q, b));
-				stats.incSmapCount(h.getValue());
-				
+				bc.search(q, b, null, getStats());
 			}
 		}
 
@@ -504,7 +496,7 @@ public final class DPrimeIndexShort<O extends OBShort>
 	}*/
 
 	@Override
-	protected byte[] getAddress(BucketObjectShort bucket) {
+	public byte[] getAddress(BucketObjectShort bucket) {
 		return longToBytes(this.getBucketId(bucket));
 	}
 

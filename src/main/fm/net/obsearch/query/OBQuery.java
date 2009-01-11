@@ -1,17 +1,18 @@
 <@pp.dropOutputFile />
+<#include "/@inc/ob.ftl">
 <#list types as t>
-<#assign type = t.name>
-<#assign Type = t.name?cap_first>
-<#if type == "int">
-<#assign Type2 = "Integer">
-<#else>
-<#assign Type2 = Type>
-</#if>
+<@type_info t=t/>
 <@pp.changeOutputFile name="OBQuery"+Type+".java" />
 package net.obsearch.query;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.Set;
 import net.obsearch.ob.OB${Type};
 import net.obsearch.result.OBResult${Type};
 import net.obsearch.result.OBPriorityQueue${Type};
+import net.obsearch.exception.OBException;
+import net.obsearch.AbstractOBResult;
 
 /*
     OBSearch: a distributed similarity search engine
@@ -38,9 +39,10 @@ import net.obsearch.result.OBPriorityQueue${Type};
  */
 
 
-public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O> {
+public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O> {
 
 
+		private OBResult${Type}<O> query;
     /**
      * Holds the results for the query.
      */
@@ -70,6 +72,10 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     public OBQuery${Type}(){
     }
 
+		public O getObject(){
+				return query.getObject();
+		}
+
     /**
      * Creates a new OBQuery${Type} object.
      * @param object
@@ -81,9 +87,13 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
      */
     public OBQuery${Type}(O object, ${type} range, OBPriorityQueue${Type}<O> result){
 
-        super(object,-1,range);
+        query = new OBResult${Type}<O>(object,-1,range);
         this.result = result;
     }
+
+		public OBQuery${Type}(O object, OBPriorityQueue${Type}<O> result){
+				this(object, ${ClassType}.MAX_VALUE, result);
+		}
 
 		/**
 		 * Returns true if the given rectangle collides
@@ -133,8 +143,8 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 				if(smap != null){
 				int i = 0;
 				while (i < smap.length) {
-				    min[i] = (${type})Math.max(smap[i] - distance, 0);
-						max[i] = (${type})Math.min(smap[i] + distance, ${Type2}.MAX_VALUE);
+				    min[i] = (${type})Math.max(smap[i] - query.getDistance(), 0);
+						max[i] = (${type})Math.min(smap[i] + query.getDistance(), ${ClassType}.MAX_VALUE);
 				    i++;
 				}
 				}
@@ -177,8 +187,25 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * 
     */
     public boolean isCandidate(${type} smapDistance){
-        return smapDistance <= getDistance() && result.isCandidate(smapDistance);
+        return smapDistance <= query.getDistance() && result.isCandidate(smapDistance);
     }
+
+
+		public  boolean add(long id, O object) throws InstantiationException, IllegalAccessException , OBException{
+				return add(id, object,  query.getObject().distance(object));
+		}
+
+		public ${type} getDistance(){
+				return query.getDistance();
+		}
+
+		public List<AbstractOBResult<O>> getSortedElements(){
+				List<AbstractOBResult<O>> res = new LinkedList<AbstractOBResult<O>>();
+				for(OBResult${Type}<O> r : result.getSortedElements()){
+						res.add(r);
+				}
+				return res;	
+		}
 
    /**
     * Add the given object, object id and distance of type float to the
@@ -195,22 +222,23 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
     * @throws InstantiationException
     *             If there is a problem when instantiating objects O
     */
-    public void add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
-				result.add(id,obj,d);
-				${type} temp = result.updateRange(this.distance);
-				if(temp != this.distance){
+    public boolean add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+				boolean res = result.add(id,obj,d);
+				${type} temp = result.updateRange(query.getDistance());
+				if(temp != query.getDistance()){
 						<#if type=="int" || type =="short" || type=="long">
-						this.distance = (${type})(temp-(${type})1);
-            if(this.distance < 0){
-								this.distance = (${type})0;
+  					query.setDistance( (${type})(temp-(${type})1));
+            if(query.getDistance() < 0){
+								query.setDistance( (${type})0);
 						}
 
 						<#else>
-						this.distance = temp;
+								 query.setDistance( temp );
 						</#if>
 
 						updateRectangle();
         }
+				return res;
 		}
 
 		/**
@@ -218,7 +246,42 @@ public final class OBQuery${Type}<O extends OB${Type}> extends OBResult${Type}<O
 		 * @return true If the current range (getDistance()) is different than originalRange.
 		 */
 		public boolean updatedRange(${type} originalRange){
-				return getDistance() != originalRange;
+				return query.getDistance() != originalRange;
+		}
+
+		/**
+		 * @return true if the underlying priority queue's size is equal to k
+     */
+		public boolean isFull(){
+				return result.isFull();
+		}
+
+
+		public  double ep(List<AbstractOBResult<O>> dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int i = 0;
+				int result = 0;
+				Set<OBResult${Type}<O>> s = new HashSet<OBResult${Type}<O>>();
+				for(OBResult${Type}<O> r : query){
+						// find the position in the db. 
+						int cx = 0;
+						for(AbstractOBResult<O> cr : dbin){
+								OBResult${Type}<O> c = (OBResult${Type}<O>)cr;
+								if(! s.contains(c) &&c.compareTo(r) == 0){
+										s.add(c);
+										result += cx - i;
+										break;
+								}
+								cx++;
+						}
+						i++;
+				}
+				if(query.size() == 0){
+						return 0;
+				}else{
+						double res = ((double)result)/ ((double)(query.size() * dbin.size()));
+						return res;
+				}
 		}
 }
 

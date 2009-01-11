@@ -99,6 +99,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		int zeroResults = 0;
 		IntegerHolder badCount = new IntegerHolder(0);
 		Statistics st = new Statistics();
+		StaticBin1D recall = new StaticBin1D();
 		while (re != null) {
 			String line = parseLine(re);
 			if (line != null) {
@@ -133,6 +134,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 					if(zeroResults(x2,range)){
 						zeroResults++;
 					}
+					recall.add(recall(x1,x2,k,range));
 					i++;
 				}
 
@@ -150,6 +152,7 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		logger.info("Returned size" + st);
 		logger.info(StatsUtil.prettyPrintStats("EP", stats));
 		assertFalse(it.hasNext());
+		logger.info("Recall: " + recall.toString());
 		logger.info("Zero queries: " + emptyResults);
 		logger.info("Bad results: " + badResults);
 		logger.info("Zero (real) queries : " + zeroResults);
@@ -199,6 +202,30 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 			}
 		}
 		return true;
+	}
+	
+	public double recall(OBPriorityQueueShort<O> x1, List<OBResultShort<O>> db, int k, short range){
+		if(zeroResults(db,range)){
+			assert x1.getSize() == 0;
+			return 1;
+		}
+		int hits = 0;
+		Set<OBResultShort<O>> s = new HashSet<OBResultShort<O>>();
+		for(OBResultShort<O> r : x1.getSortedElements()){			
+			int i = 0;
+			for(OBResultShort<O> d : db){
+				if(i == k){
+					break;
+				}
+				if(! s.contains(d) &&d.compareTo(r) == 0){
+					s.add(d);
+					hits++;
+					break;
+				}
+				i++;
+			}
+		}
+		return (double)hits / (double)k;
 	}
 	
 	/**

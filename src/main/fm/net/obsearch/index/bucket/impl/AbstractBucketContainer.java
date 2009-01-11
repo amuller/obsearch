@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-
+import net.obsearch.stats.Statistics;
 import net.obsearch.Index;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
@@ -39,6 +39,7 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.index.utils.IntegerHolder;
 import net.obsearch.index.bucket.BucketContainer;
+import net.obsearch.query.AbstractOBQuery;
 
 import net.obsearch.ob.OB${Type};
 import net.obsearch.query.OBQuery${Type};
@@ -288,14 +289,14 @@ import net.obsearch.constants.ByteConstants;
     }
 
     
-		public long search(OBQuery${Type} < O > query, B b,
-											 IntegerHolder smapComputations,  IntegerHolder dataRead,  Filter<O> filter, ByteBuffer data) throws IllegalAccessException,
+		public void search(OBQuery${Type} < O > query, B b,
+											 ByteBuffer data, Filter<O> filter, Statistics stats) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
 				
 			  
 				current.read(data, getPivots());
-				dataRead.add(TUPLE_SIZE);
-				smapComputations.inc();
+				stats.incDataRead(TUPLE_SIZE);
+				stats.incSmapCount();
 				${type} max = current.lInf(b);
 				long res = 0;
 				if (max <= query.getDistance() && query.isCandidate(max)) {
@@ -304,13 +305,20 @@ import net.obsearch.constants.ByteConstants;
 										// Process query only if the filter is null.
 										if(filter == null || filter.accept(toCompare, query.getObject())){
 												${type} realDistance = query.getObject().distance(toCompare);
-												res++;
+												stats.incDistanceCount();
 												if (realDistance <= query.getDistance()) {
 														query.add(id, toCompare, realDistance);
 												}
 										}
 								}
-				return res;
+		}
+
+		
+
+		public void search(AbstractOBQuery<O> q, B bucket,  Filter<O> filter, Statistics stats) throws IllegalAccessException,
+	 OBException, InstantiationException,
+				IllegalIdException{
+				search((OBQuery${Type})q, bucket, filter, stats ) ;
 		}
 
     
@@ -327,8 +335,8 @@ import net.obsearch.constants.ByteConstants;
      * @throws InstantiationException
      * @throws IllegalIdException
      */
-    public long search(OBQuery${Type} < O > query, B b,
-											 IntegerHolder smapComputations,  IntegerHolder dataRead, Filter<O> filter) throws IllegalAccessException,
+    public void search(OBQuery${Type} < O > query, B b,
+											 Filter<O> filter, Statistics stats) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
 			 
 				byte[] key1;
@@ -340,15 +348,15 @@ import net.obsearch.constants.ByteConstants;
 						key1 = key;
 						key2 = key;
 				}
-				return search(query,b,smapComputations,dataRead,filter,key1,key2);
+				search(query,b,filter,key1,key2, stats);
     }
 
 
 		/**
      * Convenience method that forces the search to be performed on a certain key set.
 		 */ 
-		public long search(OBQuery${Type} < O > query, B b,
-											 IntegerHolder smapComputations,  IntegerHolder dataRead, Filter<O> filter, byte[] key1, byte[] key2) throws IllegalAccessException,
+		public void search(OBQuery${Type} < O > query, B b,
+											  Filter<O> filter, byte[] key1, byte[] key2, Statistics stats) throws IllegalAccessException,
 				OBException, InstantiationException, IllegalIdException {
 
 
@@ -359,18 +367,18 @@ import net.obsearch.constants.ByteConstants;
 
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
-								//								assert Arrays.equals(t.getKey(), key): Arrays.toString(t.getKey())+ " another: " +Arrays.toString(key);
+								
 								current.read(t.getValue(), getPivots());
-								dataRead.add(t.getValue().array().length);
+								stats.incDataRead(t.getValue().array().length);
 								${type} max = current.lInf(b);
-								smapComputations.inc();
+								stats.incSmapCount();
 								if (max <= query.getDistance() && query.isCandidate(max)) {
 										long id = current.getId();
 										O toCompare = index.getObject(id);
 										// Process query only if the filter is null.
 										if(filter == null || filter.accept(toCompare, query.getObject())){
 												${type} realDistance = query.getObject().distance(toCompare);
-												res++;
+												stats.incDistanceCount();
 												if (realDistance <= query.getDistance()) {
 														query.add(id, toCompare, realDistance);
 												}
@@ -381,9 +389,6 @@ import net.obsearch.constants.ByteConstants;
 				}finally{
 						pr.closeCursor();
 				}
-       
-        return res;
-				
 		}
 
     /*
