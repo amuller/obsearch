@@ -1,5 +1,7 @@
 package net.obsearch.index.bucket;
 
+import java.nio.ByteBuffer;
+
 import net.obsearch.OB;
 
 /*
@@ -85,7 +87,13 @@ public abstract class BucketObject<O> {
     }
 
    
-
+    /**
+     * Read the contents of the byte buffer into this
+     * bucket object.
+     * @param in The bytes to be read.
+     * @param pivots # of pivots of the index.
+     */
+    public abstract void read(ByteBuffer in, int pivots);
    
     
     /**

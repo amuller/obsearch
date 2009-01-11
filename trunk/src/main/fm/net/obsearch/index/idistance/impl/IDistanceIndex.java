@@ -113,7 +113,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
   <@searchOBBoxesUnsupported/>
 
 	@Override
-	protected byte[] getAddress(BucketObject${Type} bucket) {
+	public byte[] getAddress(BucketObject${Type} bucket) {
 
 		${type}[] smap = bucket.getSmapVector();
 		assert smap.length <= Short.MAX_VALUE;
@@ -144,7 +144,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	}
 
 	@Override
-	protected BucketObject${Type} getBucket(O object) throws OBException,
+	public BucketObject${Type} getBucket(O object) throws OBException,
 			InstantiationException, IllegalAccessException {
 		${type}[] smapTuple = Dimension${Type}.getPrimitiveTuple(super.pivots,
 				object);
@@ -316,9 +316,8 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 
 							BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
 																																						null, t.getKey());
-						stats
-								.incDistanceCount(bmatch.search(q, b,
-																						smapCount, data , filter));
+					bmatch.search(q, b,
+																								filter, getStats());
 						
 						// update ranges
 						if (q.updatedRange(lastRange)) {
@@ -347,9 +346,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 							BucketContainer${Type}<O> bmatch = instantiateBucketContainer(
 																																						null, t.getKey());
 							
-						stats
-								.incDistanceCount(bmatch.search(q, b,
-																								smapCount, data, filter));
+							bmatch.search(q, b, filter, getStats());
 					
 						if (q.updatedRange(lastRange)) {
 							updateHighLow();

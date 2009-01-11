@@ -24,83 +24,108 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.stats.Statistics;
 
-public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O>, A extends Ambient<O, I>> extends AbstractCommandLine<O, I, A> {
+public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O>, A extends Ambient<O, I>>
+		extends AbstractCommandLine<O, I, A> {
 
-	private static Logger logger = Logger.getLogger(AbstractNewLineCommandLine.class);
-	
-	
+	private static Logger logger = Logger
+			.getLogger(AbstractNewLineCommandLine.class);
+
 	@Option(name = "-ml", usage = "# of data elements to be loaded", aliases = { "--maxLoad" })
 	protected int maxLoad = Integer.MAX_VALUE;
-	
-	private BufferedReader createReader(File toOpen) throws FileNotFoundException{
-		
-		return new BufferedReader(new InputStreamReader(new FileInputStream(toOpen),  Charset.forName("US-ASCII")));
+
+	private BufferedReader createReader(File toOpen)
+			throws FileNotFoundException {
+
+		return new BufferedReader(new InputStreamReader(new FileInputStream(
+				toOpen), Charset.forName("US-ASCII")));
 	}
-	
-	protected void addObjects(I index, File load) throws IOException, OBStorageException, OBException, IllegalAccessException, InstantiationException{
+
+	protected void addObjects(I index, File load) throws IOException,
+			OBStorageException, OBException, IllegalAccessException,
+			InstantiationException {
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
 		int i = 0;
-		while(line != null && i < maxLoad){
+		while (line != null && i < maxLoad) {
 			O o = instantiate(line);
-			index.insert(o);
+			if (isValidObject(o)) {
+				index.insert(o);
+				i++;
+			}
 			line = r.readLine();
-			if(i % 10000 == 0){
+			if (i % 10000 == 0) {
 				logger.info("Loading: " + i);
 			}
-			i++;
+			
 		}
 	}
-	
-	protected void searchObjects(I index, File load, Statistics other) throws IOException, OBException, InstantiationException, IllegalAccessException{
+
+	/**
+	 * Override this if some objects should not be accepted.
+	 * 
+	 * @param object
+	 * @return
+	 * @throws OBException
+	 */
+	protected boolean isValidObject(O object) throws OBException {
+		return true;
+	}
+
+	protected void searchObjects(I index, File load, Statistics other)
+			throws IOException, OBException, InstantiationException,
+			IllegalAccessException {
 		BufferedReader r = createReader(load);
 		String line = r.readLine();
 		int i = 0;
 		List<O> queries = new LinkedList<O>();
-		while(line != null && i < super.maxQueries){
+		while (line != null && i < super.maxQueries) {
 			O o = instantiate(line);
-			queries.add(o);
-			i++;
+			if (isValidObject(o)) {
+				queries.add(o);
+				i++;
+			}
 			line = r.readLine();
-		}		
+		}
 		r.close();
-		
+
 		i = 0;
-		for(O o : queries){	
-			updateParams();
+		for (O o : queries) {
+
 			searchObject(index, o, other);
-			if(i % 100 == 0){
+			if (i % 100 == 0) {
 				logger.info("Searching: " + i);
 			}
-			i++;			
-		}		
+			i++;
+		}
 	}
-	
-	/**
-	 * The subclass implements this method and decides to print
-	 * or do something with the result.
-	 * @param index The index to be searched.
-	 * @param object The object to search.
-	 * @throws OBException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws OutOfRangeException 
-	 * @throws IllegalIdException 
-	 * @throws NotFrozenException 
-	 * @throws IOException 
-	 */
-	protected abstract void searchObject(I index, O object, Statistics other) throws NotFrozenException, IllegalIdException, OutOfRangeException, InstantiationException, IllegalAccessException, OBException, IOException;
 
 	/**
-	 * Updates the underlying index based on different parameters
+	 * The subclass implements this method and decides to print or do something
+	 * with the result.
+	 * 
+	 * @param index
+	 *            The index to be searched.
+	 * @param object
+	 *            The object to search.
+	 * @throws OBException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws OutOfRangeException
+	 * @throws IllegalIdException
+	 * @throws NotFrozenException
+	 * @throws IOException
 	 */
-	protected abstract void updateParams();
-	
+	protected abstract void searchObject(I index, O object, Statistics other)
+			throws NotFrozenException, IllegalIdException, OutOfRangeException,
+			InstantiationException, IllegalAccessException, OBException,
+			IOException;
+
 	/**
 	 * Instantiate an object from a string.
+	 * 
 	 * @return The object
-	 * @throws OBException 
+	 * @throws OBException
 	 */
 	protected abstract O instantiate(String line) throws OBException;
-	
+
 }

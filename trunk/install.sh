@@ -132,10 +132,12 @@ cd opt4j
 
 wget obsearch.net/opt4j-1.5.1.zip
 
+unzip opt4j-1.5.1.zip
+
 cd opt4j-1.5.1/
 
 mvn install:install-file -Dfile=opt4j-1.5.1.jar -DgroupId=opt4j -DartifactId=opt4j -Dversion=1.51 -Dpackaging=jar -DgeneratePom=true
 
 cd ..
-cd ..
-rm -fdr opt4j
+
+rm -fdr opt4j-1.5.1/

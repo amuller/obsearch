@@ -112,7 +112,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @return The bucket information for the given object.
 	 * @throws IllegalAccessException
 	 */
-	protected abstract B getBucket(O object) throws OBException,
+	public abstract B getBucket(O object) throws OBException,
 			InstantiationException, IllegalAccessException;
 
 	/**
@@ -262,7 +262,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @return The rosa filter value of the given object.
 	 * @throws OBException 
 	 */
-	protected abstract byte[] getAddress(B bucket) throws OBException;
+	public abstract byte[] getAddress(B bucket) throws OBException;
 
 	protected void bucketStats() throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException {
@@ -316,6 +316,10 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		}
 
 		return res;
+	}
+	
+	public OBStore<TupleBytes> getBuckets(){
+		return Buckets;
 	}
 
 	@Override

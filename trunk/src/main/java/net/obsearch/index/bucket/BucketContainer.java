@@ -10,6 +10,8 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.filter.Filter;
 import net.obsearch.index.utils.IntegerHolder;
+import net.obsearch.query.AbstractOBQuery;
+import net.obsearch.stats.Statistics;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -123,14 +125,14 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 *            The search parameters (range, priority queue with the closest
 	 *            elements)
 	 * @param bucket
-	 *            The object of the given object.
+	 *            The bucket of the given object.
 	 * @param object
 	 *            The object that will be searched.
 	 * @param filter Filter to be employed.
 	 * @return # of distance computations executed.
 	 */
-	long search(Q query, B bucket, IntegerHolder smapCount, IntegerHolder dataRead, Filter<O> filter, ByteBuffer b) throws IllegalAccessException,
-	DatabaseException, OBException, InstantiationException,
+	void search(Q query, B bucket, ByteBuffer b, Filter<O> filter, Statistics stats) throws IllegalAccessException,
+	 OBException, InstantiationException,
 	IllegalIdException;
 	
 	
@@ -143,15 +145,32 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 *            The search parameters (range, priority queue with the closest
 	 *            elements)
 	 * @param bucket
-	 *            The object of the given object.
+	 *            The bucket of the given object.
 	 * @param object
 	 *            The object that will be searched.
 	 * @param filter Filter to be employed.
 	 * @return # of distance computations executed.
 	 */
-	long search(Q query, B bucket, IntegerHolder smapCount, IntegerHolder dataRead, Filter<O> filter) throws IllegalAccessException,
-			DatabaseException, OBException, InstantiationException,
+	void search(Q query, B bucket, Filter<O> filter, Statistics stats) throws IllegalAccessException,
+			 OBException, InstantiationException,
 			IllegalIdException;
+	
+	
+	/**
+	 * Same as {@link #search(AbstractOBQuery, BucketObject, Filter, Statistics)} but
+	 * it forces the query AbstractOBQuery<O> into the correct type.
+	 * @param q
+	 * @param bucket
+	 * @param stats
+	 * @throws IllegalAccessException
+	 * @throws DatabaseException
+	 * @throws OBException
+	 * @throws InstantiationException
+	 * @throws IllegalIdException
+	 */
+	void search(AbstractOBQuery<O> q, B bucket,  Filter<O> filter, Statistics stats) throws IllegalAccessException,
+	 OBException, InstantiationException,
+	IllegalIdException;
 
 	/**
 	 * # of objects in this container.
@@ -171,6 +190,12 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	 * Sets the # of pivots for this container.
 	 */
 	void setPivots(int pivots);
+
+	/**
+	 * Sets the key (bucket id) of a bucket container
+	 * @param key
+	 */
+	void setKey(byte[] key);
 
 	
 }

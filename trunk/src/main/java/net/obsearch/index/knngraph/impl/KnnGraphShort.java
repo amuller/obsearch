@@ -227,7 +227,7 @@ public class KnnGraphShort<O extends OBShort>
 	}
 
 	@Override
-	protected byte[] getAddress(BucketObjectShort bucket) {
+	public byte[] getAddress(BucketObjectShort bucket) {
 		short[] t = bucket.getSmapVector();
 		// return Buckets.prepareBytes( grayCode(t));
 		return zOrder(t);
@@ -302,7 +302,7 @@ public class KnnGraphShort<O extends OBShort>
 	}
 
 	@Override
-	protected BucketObjectShort getBucket(O object) throws OBException,
+	public BucketObjectShort getBucket(O object) throws OBException,
 			InstantiationException, IllegalAccessException {
 		short[] smap = BucketObjectShort.convertTuple(object, super.pivots);
 		return new BucketObjectShort(smap, -1);

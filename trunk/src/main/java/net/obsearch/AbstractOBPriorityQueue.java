@@ -36,6 +36,8 @@ import java.util.PriorityQueue;
  */
 
 public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > {
+	
+	
 
     /**
      * The internal queue used to store results.
@@ -94,6 +96,14 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
     
     public O poll(){
     	return queue.poll();
+    }
+    
+    /**
+     * Returns true if the queue is full.
+     * @return
+     */
+    public boolean isFull(){
+    	return k == queue.size();
     }
 
     /**
@@ -158,5 +168,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
     public final String toString() {
         return queue.toString();
     }
+    
+    
 
 }
