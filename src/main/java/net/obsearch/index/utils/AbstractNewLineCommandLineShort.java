@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.Option;
 
+import net.obsearch.AbstractOBResult;
+import net.obsearch.ApproxIndexShort;
 import net.obsearch.ambient.Ambient;
+import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
@@ -16,6 +20,8 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.index.IndexShort;
 import net.obsearch.ob.OBShort;
+import net.obsearch.query.AbstractOBQuery;
+import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 import net.obsearch.stats.Statistics;
@@ -34,6 +40,47 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 	
 	private static Logger logger = Logger.getLogger(AbstractNewLineCommandLineShort.class);
 	
+	
+	
+	
+	protected void searchObjectApprox(I index, O object, Statistics other) throws NotFrozenException,
+	IllegalIdException, OutOfRangeException, InstantiationException,
+	IllegalAccessException, OBException, IOException {
+		OBAsserts.chkAssert( index instanceof ApproxIndexShort, "Index must implement the interface " + ApproxIndexShort.class.getCanonicalName());
+		OBAsserts.chkAssert(index.databaseSize() <= Integer.MAX_VALUE, "db is too large");		
+		short perfectRange = (short)r;
+		int perfectK;
+		// k is different in ep mode (all the db) and in recall mode (k).
+		if(mode == Mode.approxEvalEP){
+			perfectK = (int)index.databaseSize();
+		}else{
+			perfectK = k;
+		}
+
+		// perform sequential search
+		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(perfectK);
+		OBQueryShort<O> dbQueue = new OBQueryShort<O>(object,perfectRange, result );
+		int i = 0;
+		int max = (int)index.databaseSize();
+        while (i < max) {
+            O obj = index.getObject(i);
+            short res = object.distance(obj);
+            if(res <= perfectRange){
+            	dbQueue.add(i, obj, res);
+            }
+            i++;
+        }
+        List<AbstractOBResult<O>> db = dbQueue.getSortedElements();
+        // now we just have to ask the index to evaluate with the given ep or recall
+        ApproxIndexShort<O> ai = (ApproxIndexShort<O>)index;
+        OBPriorityQueueShort<O> res = new  OBPriorityQueueShort<O>(k);
+        if(mode == Mode.approxEvalEP){
+        	ai.searchOBAnalyzeEp(object, (short)r, res, super.approxEvalEp, db);
+        }else{
+        	ai.searchOBAnalyzeRecall(object, (short)r, res, super.approxEvalRecall, db);
+        }
+		
+	}
 	
 	
 	@Override
@@ -66,13 +113,8 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 				other.incExtra("BAD");
 			}
 			other.addExtraStats("RECALL", t.recall(result, x2, k, range));
-					
-		
-		}
-		
-		
+
+		}				
 	}
-
 	
-
 }

@@ -21,9 +21,12 @@ package net.obsearch.index.pivot;
 
 
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Random;
 
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStoreFactory;
@@ -85,7 +88,11 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      */
     protected  O[] pivots;
    
-   
+    /**
+     * Use the following amount of pairs when the intrinsic dimensionality
+     * is calculated.
+     */
+    protected int intrinsicDimensionalityPairs = 1000000;
 
     /**
      * Creates an index that uses pivots as its major data partitioning strategy.
@@ -109,6 +116,39 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
         pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());      
+    }
+    
+    /**
+     * Calculates the intrinsic dimensionality of the inserted dataset.
+     * @return
+     * @throws IllegalIdException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws OBException
+     */
+    protected double calculateIntrinsicDimensionality() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException{
+    	StaticBin1D stats = new StaticBin1D();
+    	Random r = new Random();
+    	long max = databaseSize();
+    	for(int i = 0 ; i < this.intrinsicDimensionalityPairs ; i++){
+    		O a = getObject(r.nextInt((int)max));
+    		O b = getObject(r.nextInt((int)max));
+    		stats.add(distance(a,b));
+    	}
+    	logger.info(stats.toString());
+    	return Math.pow(stats.mean(),2) / (2 * stats.variance());
+    }
+    
+    /**
+     * Used for internal (statistics etc) operations,
+     * where efficiency counts we don't use this function.
+     * @param a 
+     * @param b 
+     * @return
+     * @throws OBException 
+     */
+    protected  double distance(O a, O b) throws OBException{
+    	throw new UnsupportedOperationException();
     }
     
    

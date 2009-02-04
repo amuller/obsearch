@@ -256,6 +256,25 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				return result.isFull();
 		}
 
+		
+
+		public  double recall(List<AbstractOBResult<O>> perfectQuery){
+				int hits = 0;
+				Set<AbstractOBResult<O>> s = new HashSet<AbstractOBResult<O>>();
+				for(OBResult${Type}<O> r : this.result.getSortedElements()){			
+						int i = 0;
+						for(AbstractOBResult<O> d : perfectQuery){
+								if(! s.contains(d) && d.compareTo(r) == 0){
+										s.add(d);
+										hits++;
+										break;
+								}
+								i++;
+						}
+				}
+				return (double)hits / (double)perfectQuery.size();
+		}
+
 
 		public  double ep(List<AbstractOBResult<O>> dbin){
 				List<OBResult${Type}<O>> query = getResult().getSortedElements();

@@ -141,3 +141,24 @@ mvn install:install-file -Dfile=opt4j-1.5.1.jar -DgroupId=opt4j -DartifactId=opt
 cd ..
 
 rm -fdr opt4j-1.5.1/
+
+
+
+wget obsearch.net/fastutil-5.1.5.jar
+
+mvn install:install-file -Dfile=fastutil-5.1.5.jar -DgroupId=mg4j -DartifactId=fastutil -Dversion=5.1.5 -Dpackaging=jar -DgeneratePom=true
+
+rm fastutil-5.1.5.jar
+
+
+wget obsearch.net/dsiutils-1.0.7.jar
+
+mvn install:install-file -Dfile=dsiutils-1.0.7.jar -DgroupId=mg4j -DartifactId=dsiutils -Dversion=1.0.7 -Dpackaging=jar -DgeneratePom=true
+
+rm dsiutils-1.0.7.jar
+
+wget obsearch.net/mg4j-2.1.2.jar
+
+mvn install:install-file -Dfile=mg4j-2.1.2.jar -DgroupId=mg4j -DartifactId=mg4j -Dversion=2.1.2 -Dpackaging=jar -DgeneratePom=true
+
+rm mg4j-2.1.2.jar

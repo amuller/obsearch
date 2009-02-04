@@ -164,6 +164,22 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			<scope>compile</scope>
 		</dependency>
 
+
+					
+
+					<dependency>
+						<groupId>mg4j</groupId>
+						<artifactId>dsiutils</artifactId>
+						<version>1.0.7</version>
+					</dependency>
+					
+					<dependency>
+						<groupId>mg4j</groupId>
+						<artifactId>fastutil</artifactId>
+						<version>5.1.5</version>
+					</dependency>
+				
+
 		<dependency>
 			<groupId>trove</groupId>
 			<artifactId>trove</artifactId>
@@ -283,12 +299,12 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
         </excludes>
 				</configuration>
       </plugin>-->
-
+<!--
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
       </plugin>
-
+-->
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-changelog-plugin</artifactId>
@@ -302,6 +318,9 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<excludePackageNames>index.rosa:net.obsearch.pivots.muller2*:net.obsearch.example.*:shogi:netflix:netflixob:net.obsearch.index.rosa*</excludePackageNames>
+				</configuration>
       </plugin>
 
 <!--
@@ -315,12 +334,12 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 				</configuration>
 			</plugin>
 -->
-
+<!--
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
-
+-->
 <!--
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -528,6 +547,7 @@ Would be cool to use this.
         </executions>
 
 				<dependencies>
+					
 					<dependency>
 						<groupId>freemarker</groupId>
 						<artifactId>freemarker</artifactId>

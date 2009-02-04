@@ -55,6 +55,8 @@ public class OBSlice implements OBShort  {
      */
     protected SliceAST tree;
     private int hashCode;
+    
+    
 
     /**
      * Default constructor must be provided by every object that implements the
@@ -62,6 +64,10 @@ public class OBSlice implements OBShort  {
      */
     public OBSlice() {
 
+    }
+    
+    public SliceAST getTree(){
+    	return tree;
     }
 
     /**
