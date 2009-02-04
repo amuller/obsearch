@@ -37,7 +37,7 @@ import net.obsearch.ob.OB${Type};
  */
 
 
-public  class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
+public  final class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
 
 
     /**
@@ -71,7 +71,7 @@ public  class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
     /**
      * @return The distance of the result and the original query.
      */
-    public ${type} getDistance(){
+    public final ${type} getDistance(){
         return distance;
     }
 
@@ -80,7 +80,7 @@ public  class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
      * @param x
      *            The new value to set.
      */
-    public void setDistance(${type} x){
+    public final void setDistance(${type} x){
         this.distance = x;
     }
 
@@ -118,23 +118,19 @@ public  class OBResult${r}${Type}<O> extends AbstractOBResult<O> {
     /**
      * @return the hash code of this object.
      */
-    public int hashCode(){
+    /*public int hashCode(){
         return  (int) distance;
-    }
+				}*/
+
+		
 
     /**
      * We do not care about the object itself, just that both objects are at
      * the same distance from the query.
      * @return true if both distances are the same.
      */
-    /*public boolean equals(Object obj){        
-        if(obj == null){
-            return false;
-        }
-        if(! (obj instanceof OBResult${Type})){
-            return false;
-        }
-        OBResult${Type}<O> comp = (OBResult${Type}<O>) obj;
+    /*public boolean equals(Object obj){                
+        OBResult${r}${Type}<O> comp = (OBResult${r}${Type}<O>) obj;
         // a result object is the same if the distance is the same
         // we do not care about the id.
         return distance == comp.distance;

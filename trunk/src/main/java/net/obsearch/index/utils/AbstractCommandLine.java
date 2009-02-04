@@ -57,11 +57,13 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected enum Mode {
 		search, // search data
 		create, // create a database
-		add, // add data to an existing db.
+		add, // add data to an existing db, only objects that are not in the db are added.
 		x, // experiment set
 		// optimize an experiment set.
-		opt
-
+		opt,
+		approxEvalEP, // evaluate approximate indexes
+		approxEvalRecall, // evaluate approximate indexes
+		
 	};
 
 	/**
@@ -110,6 +112,13 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 
 	@Option(name = "-r", usage = "Range used for retrieval")
 	protected double r;
+	
+	@Option(name = "-evalEp", usage = "Expected ep in approxEvalEp mode" )
+	protected double approxEvalEp;
+	
+	@Option(name = "-evalRecall", usage = "Expected ep in approxEvalRecall mode" )
+	protected double approxEvalRecall;
+
 
 	/**
 	 * Options related to opt4j optimization
@@ -214,6 +223,10 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 			case opt:
 				optimize();
 				return;
+			case approxEvalEP:
+			case approxEvalRecall:
+				approxEval();
+				return;
 			}
 
 			throw new OBException("Incorrect operation mode");
@@ -274,6 +287,9 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected abstract void searchObjects(I index, File query, Statistics other)
 			throws IOException, OBException, InstantiationException,
 			IllegalAccessException;
+	
+	
+	
 
 	protected void create() throws IOException, OBStorageException,
 			OBException, DatabaseException, InstantiationException,
@@ -285,6 +301,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		I index = ambiente.getIndex();
 
 		logger.info("Loading Data...");
+		logger.info(expName() + " pivots: " + pivots);
 		addObjects(index, load);
 		/*
 		 * logger.info("Closing..."); ambiente.close();
@@ -306,9 +323,9 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		A ambiente = instantiateAmbient(databaseFolder);
 		I index = ambiente.getIndex();
 
-		logger.info("Loading Data...");
+		logger.info("Loading Data... current size: " + index.databaseSize());
 		addObjects(index, load);
-
+		logger.info("Size after load: " + index.databaseSize());
 		logger.info(index.getStats());
 		ambiente.close();
 	}
@@ -361,6 +378,23 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	 * @throws IllegalAccessException
 	 */
 	private void experimentSet() throws OBException, IOException,
+			DatabaseException, InstantiationException, IllegalAccessException {
+		openIndex();
+		processExperimentSet();
+		closeIndex();
+	}
+	
+	
+	/**
+	 * Evaluation of approximate algorithms
+	 * 
+	 * @throws OBException
+	 * @throws IOException
+	 * @throws DatabaseException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private void approxEval() throws OBException, IOException,
 			DatabaseException, InstantiationException, IllegalAccessException {
 		openIndex();
 		processExperimentSet();
@@ -526,7 +560,17 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	protected abstract void updateIndexConfig(DoubleString phenotype);
 
 	protected String expName() {
-			return this.experimentName + "r" + this.r + "-" + this.k + "k";
+		String base = this.experimentName + ":r" + this.r + ":k" + this.k ;
+			if(isApproxMode()){
+				if(mode == Mode.approxEvalEP){
+					return base + ":ep" + this.approxEvalEp;
+				}else{
+					return base + ":recall" + this.approxEvalRecall;
+				}
+			}else{
+				return base;
+			}
+			
 	}
 
 	private String p(double value) {
@@ -582,7 +626,9 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		updateParams();
 		logger.info("Executing experiment " + expName() + " : "
 				 + " : " + expDetails());
+		
 		searchObjects(index, query, otherStats);
+		
 		logger.info(index.getStats().toString());
 		logger.info(otherStats.toString());
 
@@ -597,6 +643,10 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 
 		w.close();
 		return new Pair<Statistics, Statistics>(stats, otherStats);
+	}
+	
+	protected boolean isApproxMode(){
+		return this.mode == Mode.approxEvalEP || this.mode == Mode.approxEvalRecall;
 	}
 
 	protected abstract String expDetails();

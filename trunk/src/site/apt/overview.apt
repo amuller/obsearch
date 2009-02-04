@@ -4,31 +4,53 @@ OBSearch
 * Synopsis
 ~~~~~~~~~~~
 
-  OBSearch is a similarity search engine.
+  OBSearch is a similarity search engine. 
 
 * Details
 ~~~~~~~~~~
 
  Similarity search is required in many areas. For example, music matching and binary program matching require a similarity search engine. Nowadays, it is common to hear news of projects like "photosynth" that heavily rely on similarity search. OBSearch is a similarity search engine that can help you to create an interesting and new application!
 
-* Why OBSearch?
-~~~~~~~~~~~~~~~
 
-  There has been much research on the subject of similarity search, and several approaches that work well in practice have been developed. Nevertheless, these approaches are CPU intensive, and therefore the amount of clients a server can hold is very limited. As a consequence, individuals or small companies who want to provide similarity search services cannot afford the infrastructure required. OBSearch attempts to solve this problem by distributing the workload among the users(1).
+* Features
+~~~~~~~~
 
-  OBSearch achieves this by dividing the search space into n "boxes". In addition, OBsearch can determine for any query, which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches by distributing the queries among the peers.  This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc. 
+ * Single-computer or distributed mode. (1)
+	
+ * Designed to handle efficiently heavy objects (trees, graphs).
 
+ * Code generation for each primitive datatype (byte, short, int, long, float, double) for maximum performance.
 
-	By using these ideas, CPU-intensive information retrieval can be performed with just a few servers. Infrastructure cost is reduced considerably. Also, the approach is very general. The only thing that the user has to provide is a distance function that satisfies the triangular inequality(2).
+ * The API is compact and easy to understand.
 
-	This project started as part of Google Summer of Code 2007. The mentoring organization was Portland State University.
+ * Stability and scalability: OBSearch's secondary storage backend is Oracle's Berkeley DB. An extensive test suite makes sure that data integrity is preserved.
+ 
+ * Cutting edge:  We strive to put together the latest algorithms the scientific community has to offer. For example, we use the K-means++ algorithm in one of our indexes.
+ 
+  []
+
 
 * Technicalities:
 ~~~~~~~~~~~~~~~~~
 
-	Among similarity search indexing techniques, the pyramid technique is of special interest. In this approach, all the data is divided into an i number of pyramids (the user specifies i). A query can be answered by looking only at the pyramids that intersect it. It is very natural then to separate each pyramid into a client and apply a distributed approach for answering queries. The pyramid technique can only match vectors. In order to be able to match any kind of object, a dimension reduction technique called {{{http://www.springerlink.com/content/lxv8afe9wtk796rh/}SMAP}} (Simple Map) is being employed. To further improve performance, we are employing a P+Tree (partitions the space so that the pyramid technique becomes more efficient) combined with K-means++.
+ Available indexes:
+ 
+ * IDistance
+
+ * Extended Pyramid Technique
+
+ * P+Tree
+
+ * D-Index (with rho=0)
+
+ * K-nn graph
+
+  []
+
+ And more to come! ;)
+
 
   (1) The first version 0.7-GSOC supports distributed access by JXTA. We are currently evaluating 
       alternative network frameworks.      
  
-	(2) Also the users can provide an 'almost metric' and with some tweaking the function can be forced to satisfy the triangular inequality. 
+	

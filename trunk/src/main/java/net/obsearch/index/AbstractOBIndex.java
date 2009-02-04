@@ -134,6 +134,13 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			OBException {
 		this.type = type;
 	}
+	
+	/**
+	 * Clear A cache. 
+	 */
+	protected void clearACache(){
+		aCache.clear();
+	}
 
 	/**
 	 * Returns the type of the object to be stored.
@@ -461,6 +468,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}
 		return res;
 	}
+	
+	
 
 	public OperationStatus insert(O object, long id) throws OBStorageException,
 			OBException, IllegalAccessException, InstantiationException {
@@ -473,14 +482,15 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		if (this.isFrozen()) {
 			res = exists(object);
 			if (res.getStatus() == Status.NOT_EXISTS) {
-				// must insert object into A before the index is updated
-				OBAsserts.chkAssert(A.getValue(id) == null,
-						"id already used, fatal error");
-				this.A.put(id, objectToByteBuffer(object));
-				// update the index:
-				if (id == -1) {
+				if (id == -1) { // auto mode
 					id = A.nextId();
 				}
+				// must insert object into A before the index is updated
+				OBAsserts.chkAssert( A.getValue(id) == null,
+						"id already used, fatal error" + id);
+				this.A.put(id, objectToByteBuffer(object));
+				// update the index:
+				
 				res = insertAux(id, object);
 				res.setId(id);
 			}

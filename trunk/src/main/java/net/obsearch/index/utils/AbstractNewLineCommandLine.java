@@ -16,6 +16,8 @@ import org.kohsuke.args4j.Option;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
 import net.obsearch.ambient.Ambient;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
@@ -37,7 +39,7 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 			throws FileNotFoundException {
 
 		return new BufferedReader(new InputStreamReader(new FileInputStream(
-				toOpen), Charset.forName("US-ASCII")));
+				toOpen)));
 	}
 
 	protected void addObjects(I index, File load) throws IOException,
@@ -49,13 +51,17 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 		while (line != null && i < maxLoad) {
 			O o = instantiate(line);
 			if (isValidObject(o)) {
-				index.insert(o);
-				i++;
+				OperationStatus s = index.insert(o);
+				if(s.getStatus() == Status.OK){
+					i++; // only add objects if they do not exist in the index.
+					if (i % 10000 == 0) {
+						logger.info("Loading: " + i);
+					}
+				}
+				
 			}
 			line = r.readLine();
-			if (i % 10000 == 0) {
-				logger.info("Loading: " + i);
-			}
+			
 			
 		}
 	}
@@ -90,8 +96,11 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 
 		i = 0;
 		for (O o : queries) {
-
-			searchObject(index, o, other);
+			if(super.isApproxMode()){
+				searchObjectApprox(index, o, other);
+			}else{
+				searchObject(index, o, other);
+			}
 			if (i % 100 == 0) {
 				logger.info("Searching: " + i);
 			}
@@ -116,6 +125,26 @@ public abstract class AbstractNewLineCommandLine<O extends OB, I extends Index<O
 	 * @throws IOException
 	 */
 	protected abstract void searchObject(I index, O object, Statistics other)
+			throws NotFrozenException, IllegalIdException, OutOfRangeException,
+			InstantiationException, IllegalAccessException, OBException,
+			IOException;
+	
+	
+	/**
+	 * Search object in approx mode.
+	 * @param index
+	 *            The index to be searched.
+	 * @param object
+	 *            The object to search.
+	 * @throws OBException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws OutOfRangeException
+	 * @throws IllegalIdException
+	 * @throws NotFrozenException
+	 * @throws IOException
+	 */
+	protected abstract void searchObjectApprox(I index, O object, Statistics other)
 			throws NotFrozenException, IllegalIdException, OutOfRangeException,
 			InstantiationException, IllegalAccessException, OBException,
 			IOException;
