@@ -14,11 +14,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.obsearch.AbstractOBResult;
+import net.obsearch.ApproxIndexShort;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.index.IndexShort;
 import net.obsearch.ob.OBShort;
+import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 import net.obsearch.stats.Statistics;
@@ -126,6 +129,16 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 							assertTrue(ep == 0);
 						}
 						stats.add(ep);
+						if(index instanceof ApproxIndexShort){
+							OBQueryShort<O> q = new OBQueryShort<O>(null, x1);
+							List<AbstractOBResult<O>> seq = new LinkedList<AbstractOBResult<O>>();
+							for(OBResultShort<O> o : x2){
+								seq.add(o);
+							}
+							double anotherEp = q.ep(seq);
+							assertTrue("index ep " + ep + " priority ep: " + anotherEp, ep == anotherEp);
+							
+						}
 					}
 					if(!ok(x1,x2, range)){
 						badResults++;
