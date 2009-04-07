@@ -2,8 +2,10 @@ package net.obsearch.index.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -23,6 +25,7 @@ import net.obsearch.ob.OBShort;
 import net.obsearch.query.AbstractOBQuery;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultInvertedShort;
 import net.obsearch.result.OBResultShort;
 import net.obsearch.stats.Statistics;
 
@@ -41,7 +44,13 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 	private static Logger logger = Logger.getLogger(AbstractNewLineCommandLineShort.class);
 	
 	
+	@Option(name = "-histogram", usage = "Generate histogram of distances")
+	protected boolean histogram = false;
 	
+	@Option(name = "-histogramFile", usage = "Generate histogram of distances")
+	protected File histogramFile = new File("histogram.csv");
+	
+	protected ArrayList<O> seq = null;
 	
 	protected void searchObjectApprox(I index, O object, Statistics other) throws NotFrozenException,
 	IllegalIdException, OutOfRangeException, InstantiationException,
@@ -60,24 +69,45 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 		// perform sequential search
 		OBPriorityQueueShort<O> result = new OBPriorityQueueShort<O>(perfectK);
 		OBQueryShort<O> dbQueue = new OBQueryShort<O>(object,perfectRange, result );
+		List<OBResultShort<O>> results = new ArrayList<OBResultShort<O>>((int)index.databaseSize());
+		
 		int i = 0;
 		int max = (int)index.databaseSize();
-        while (i < max) {
-            O obj = index.getObject(i);
-            short res = object.distance(obj);
-            if(res <= perfectRange){
-            	dbQueue.add(i, obj, res);
-            }
-            i++;
-        }
-        List<AbstractOBResult<O>> db = dbQueue.getSortedElements();
+		if(seq == null){
+			seq = new ArrayList<O>(max);
+			while (i < max) {
+				seq.add(index.getObject(i));
+				i++;
+			}
+		}
+		
+		i = 0;
+		for(O o : seq){
+			short res = object.distance(o);          
+			results.add(new OBResultShort<O>(o, i, res));
+			i++;
+		}
+		       
+        Collections.sort(results);
+        Collections.reverse(results);
         // now we just have to ask the index to evaluate with the given ep or recall
         ApproxIndexShort<O> ai = (ApproxIndexShort<O>)index;
         OBPriorityQueueShort<O> res = new  OBPriorityQueueShort<O>(k);
+        List<?> l =  results; // trick
+        long distances = index.getStats().getDistanceCount();
         if(mode == Mode.approxEvalEP){
-        	ai.searchOBAnalyzeEp(object, (short)r, res, super.approxEvalEp, db);
+        	
+        	ai.searchOBAnalyzeEp(object, (short)r, res, super.approxEvalEp, (List<AbstractOBResult<O>>)l);
         }else{
-        	ai.searchOBAnalyzeRecall(object, (short)r, res, super.approxEvalRecall, db);
+        	ai.searchOBAnalyzeRecall(object, (short)r, res, super.approxEvalRecall, (List<AbstractOBResult<O>>) l);
+        }
+        
+        if(histogram){
+        	long computedDistances = index.getStats().getDistanceCount() - distances;
+        	short cost = res.getSortedElements().get(0).getDistance();
+        	FileWriter f = new FileWriter(new File(histogramFile.getAbsolutePath() + "-" + k), true);
+        	f.write(cost +  ", " + computedDistances +  "\n");
+        	f.close();
         }
 		
 	}

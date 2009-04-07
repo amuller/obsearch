@@ -6,9 +6,9 @@
 <!-- Lock mode for BDB LockMode.IGNORE_LEASES-->
 <#macro lock>
 <#if bdb = "db">
-null
+LockMode.READ_UNCOMMITTED 
 <#else>
-null
+LockMode.READ_UNCOMMITTED 
 </#if>
 </#macro> 
 

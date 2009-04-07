@@ -128,14 +128,13 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
         envConfig.setTransactional(false);
 				<#if bdb = "je">
         envConfig.setConfigParam("java.util.logging.DbLogHandler.on", "false");
-				envConfig.setLocking(true);
+				envConfig.setLocking(false);
 				<#else>
 			  envConfig.setInitializeCache(true);
 				envConfig.setInitializeLocking(true);
 				envConfig.setCacheSize(OBSearchProperties.getBDBCacheSize());
 				envConfig.setCacheCount(2);
 				envConfig.setInitializeLogging(false);
-				
 				</#if>
 				envConfig.setTxnNoSync(true);
         //envConfig.setTxnWriteNoSync(true);
