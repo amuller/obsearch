@@ -41,7 +41,7 @@ public enum ByteConstants {
         this.bits = size * 8;
     }
     /**
-     * @return the size
+     * @return the size in bytes
      */
     public int getSize() {
         return size;

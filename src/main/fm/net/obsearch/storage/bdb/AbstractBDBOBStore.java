@@ -338,7 +338,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				this.current = min;
 			}
 			try {
-				this.cursor = db.openCursor(null, null);
+				this.cursor = db.openCursor(null, CursorConfig.READ_UNCOMMITTED );
 
 				
 				keyEntry.setData(current);
