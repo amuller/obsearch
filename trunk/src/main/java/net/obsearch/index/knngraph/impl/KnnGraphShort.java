@@ -549,7 +549,7 @@ public class KnnGraphShort<O extends OBShort>
 				.getSmapVector());
 
 		OBPriorityQueueInvertedShort<Node> searchQueue = new OBPriorityQueueInvertedShort<Node>(
-				-1);
+				result.getK() * 1000);
 		HashSet<Node> visited = new HashSet<Node>();
 
 		//findZSeeds(q, b, visited, searchQueue, (int) (3));
