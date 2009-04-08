@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<!-- This is a convenience script used to run OB's examples 
+     This allows the programmer to control exactly what parameters
+		 are being passed to OB. Using unit tests is not a good idea, as
+		 assertions are always enabled.
+-->
+
+<project name="OBSearchExample" xmlns:artifact="urn:maven-artifact-ant">
+
+<target name="init">
+	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
+	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
+	<property name="destlocation" value="${ant.home}/lib/"/>
+	
+	
+	<!-- Search -->
+	<property name="k" value="3"/>
+	<property name="r" value="3"/>
+	
+	<!-- System related properties -->
+	
+	<property name="memory" value="5000"/>
+	<property name="pivots" value="32"/>
+		<!-- DB and QUERY datafiles -->
+		
+ <!--<property name="dbfolder" value="/home/amuller/franky/db-32-idistanceL/"/>-->
+	<property name="dbfolder" value="/home/amuller/franky/db-${pivots}-Knn/"/>
+	<property name="dbdata" value="/home/amuller/franky/banmen_newline.data"/>
+	<property name="querydata" value="/home/amuller/franky/out-70.txt"/>
+	
+
+
+</target>
+
+<!-- check if maven tasks have been downloaded -->
+<target name="checkprerequisites">
+<condition property="mavenanttaskavailable">
+      <available file="${destlocation}/${anttask}"/>
+</condition>
+</target>
+
+<!-- download maven tasks -->
+<target name="downloadprerequisites" unless="mavenanttaskavailable" depends="checkprerequisites, init">
+
+	<get src="${jardownloadlocation}/${anttask}" dest="${destlocation}/${anttask}"/>
+	
+</target>
+
+<!-- initialize maven tasks-->
+<target name="maven" depends="init, downloadprerequisites">
+	
+	<path id="maven-ant-tasks.classpath" path="${destlocation}/${anttask}" />
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+           classpathref="maven-ant-tasks.classpath" />
+	<!-- access maven project -->
+	<artifact:pom id="project" file="pom.xml" />
+	<!-- define the classpath -->
+
+	
+	<!-- generate the classpath -->
+	<artifact:dependencies pathId="dependency.classpath">
+      <pom refid="project"/>
+  </artifact:dependencies>
+	
+	<echo>
+		Local class path ${project.build.outputDirectory}
+	</echo>
+
+</target>
+
+ 
+<target name="create" depends="maven">
+	 <delete dir="${dbfolder}"/>
+	 <!-- configuration -->
+	 <mkdir dir="${dbfolder}/data/"/>
+	   <echo file="${dbfolder}/data/je.properties">
+			 #je.maxMemoryPercent=90
+			 je.log.numBuffers=2
+			 #je.log.totalBufferBytes=3221000000
+		 </echo>
+<echo>Running on dir: ${project.build.outputDirectory}</echo>
+	    <java dir="${project.build.outputDirectory}" fork="yes" classpath="/home/amuller/gsoc/obsearch/target/classes:/home/amuller/gsoc/obsearch/target/test-classes:/home/amuller/.m2/repository/commons-cli/commons-cli/1.0/commons-cli-1.0.jar:/home/amuller/.m2/repository/oro/oro/2.0.8/oro-2.0.8.jar:/home/amuller/.m2/repository/org/neo4j/neo/1.0-b7/neo-1.0-b7.jar:/home/amuller/.m2/repository/org/neo4j/shell/1.0-b7/shell-1.0-b7.jar:/home/amuller/.m2/repository/commons-logging/commons-logging/1.0/commons-logging-1.0.jar:/home/amuller/.m2/repository/antlr/antlr/2.7.6/antlr-2.7.6.jar:/home/amuller/.m2/repository/args4j/args4j/2.0.9/args4j-2.0.9.jar:/home/amuller/.m2/repository/xpp3/xpp3_min/1.1.3.4.O/xpp3_min-1.1.3.4.O.jar:/home/amuller/.m2/repository/commons-lang/commons-lang/1.0/commons-lang-1.0.jar:/home/amuller/.m2/repository/commons-net/commons-net/1.4.1/commons-net-1.4.1.jar:/home/amuller/.m2/repository/junit/junit/4.2/junit-4.2.jar:/home/amuller/.m2/repository/org/freehep/freehep-argv/2.0.1/freehep-argv-2.0.1.jar:/home/amuller/.m2/repository/concurrent/concurrent/1.3.4/concurrent-1.3.4.jar:/home/amuller/.m2/repository/trove/trove/2.0.1/trove-2.0.1.jar:/home/amuller/.m2/repository/jxta/jxta/2.5/jxta-2.5.jar:/home/amuller/.m2/repository/com/sleepycat/je/3.3.62/je-3.3.62.jar:/home/amuller/.m2/repository/bdb-c/bdb-c/4.7/bdb-c-4.7.jar:/home/amuller/.m2/repository/colt/colt/1.2.0/colt-1.2.0.jar:/home/amuller/.m2/repository/com/thoughtworks/xstream/xstream/1.2.2/xstream-1.2.2.jar:/home/amuller/.m2/repository/log4j/log4j/1.2.13/log4j-1.2.13.jar:${project.build.outputDirectory}:${project.build.testOutputDirectory}"   classname="shogi.Shogi" classpathref="dependency.classpath"  failonerror="true">				
+				<jvmarg value="-server" />
+
+				<jvmarg value="-Xmx${memory}M" />
+						<jvmarg value="-XX:+UseParallelOldGC"/>
+				<arg value="-m"/>
+				<arg value="create"/>
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-l"/>
+				<arg value="${dbdata}"/>
+				<arg value="-p"/>
+				<arg value="${pivots}"/>
+				<arg value="-mnav"/>
+				<arg value="1000"/>
+				<arg value="-lnav"/>
+				<arg value="1000"/>
+				<arg value="-b"/>
+			</java>
+</target>
+
+
+
+
+<target name="search" depends="maven">	
+	<java dir="${project.build.outputDirectory}" fork="yes" classpath="/home/amuller/gsoc/obsearch/target/classes:/home/amuller/gsoc/obsearch/target/test-classes:/home/amuller/.m2/repository/commons-cli/commons-cli/1.0/commons-cli-1.0.jar:/home/amuller/.m2/repository/oro/oro/2.0.8/oro-2.0.8.jar:/home/amuller/.m2/repository/org/neo4j/neo/1.0-b7/neo-1.0-b7.jar:/home/amuller/.m2/repository/org/neo4j/shell/1.0-b7/shell-1.0-b7.jar:/home/amuller/.m2/repository/commons-logging/commons-logging/1.0/commons-logging-1.0.jar:/home/amuller/.m2/repository/antlr/antlr/2.7.6/antlr-2.7.6.jar:/home/amuller/.m2/repository/args4j/args4j/2.0.9/args4j-2.0.9.jar:/home/amuller/.m2/repository/xpp3/xpp3_min/1.1.3.4.O/xpp3_min-1.1.3.4.O.jar:/home/amuller/.m2/repository/commons-lang/commons-lang/1.0/commons-lang-1.0.jar:/home/amuller/.m2/repository/commons-net/commons-net/1.4.1/commons-net-1.4.1.jar:/home/amuller/.m2/repository/junit/junit/4.2/junit-4.2.jar:/home/amuller/.m2/repository/org/freehep/freehep-argv/2.0.1/freehep-argv-2.0.1.jar:/home/amuller/.m2/repository/concurrent/concurrent/1.3.4/concurrent-1.3.4.jar:/home/amuller/.m2/repository/trove/trove/2.0.1/trove-2.0.1.jar:/home/amuller/.m2/repository/jxta/jxta/2.5/jxta-2.5.jar:/home/amuller/.m2/repository/com/sleepycat/je/3.3.62/je-3.3.62.jar:/home/amuller/.m2/repository/bdb-c/bdb-c/4.7/bdb-c-4.7.jar:/home/amuller/.m2/repository/colt/colt/1.2.0/colt-1.2.0.jar:/home/amuller/.m2/repository/com/thoughtworks/xstream/xstream/1.2.2/xstream-1.2.2.jar:/home/amuller/.m2/repository/log4j/log4j/1.2.13/log4j-1.2.13.jar:${project.build.outputDirectory}:${project.build.testOutputDirectory}" classpathref="dependency.classpath"   classname="shogi.Shogi"  failonerror="true">
+<!--<jvmarg value="-server" />
+
+						 -->
+<!--<jvmarg value="-XX:GCTimeRatio=4"/>-->
+<!--<jvmarg value="-XX:MaxGCPauseMillis=10"/>-->
+<jvmarg value="-Xmx${memory}M" />
+<!--<jvmarg value="-Xms${memory}M"/>-->
+<jvmarg value="-XX:+UseParallelGC"/>
+<!--<jvmarg value="-XX:-RelaxAccessControlCheck"/>
+<jvmarg value="-XX:+AggressiveOpts"/>
+<jvmarg value="-XX:+UseFastAccessorMethods"/>-->
+<!--<jvmarg value="-Xincgc"/>-->
+<!--<jvmarg value="-XX:+UseConcMarkSweepGC"/>-->
+<!--<jvmarg value="-agentlib:hprof=monitor=y,interval=20,depth=15,force=y"/>-->
+<!--<jvmarg value="-XX:+UseParallelOldGC"/>-->
+        <arg value="-m"/>	
+					<arg value="x"/>	<!-- extended experiment set mode -->
+				<arg value="-db"/>
+				<arg value="${dbfolder}"/>
+				<arg value="-q"/>
+				<arg value="${querydata}"/>
+				<arg value="-r"/>
+					<arg value="2"/>
+				<arg value="-k"/>
+				<arg value="1"/>				
+<!--				<arg value="-validate"/>-->
+        				<arg value="-n"/>
+				<arg value="SD"/>
+				<arg value="-es"/>
+				<!--<arg value="2,1:2,5:4,1:4,5:8,1:8,5:12,1:12,5:14,1:14,5:20,1:20,5"/>-->
+				<arg value="14,1:14,5:20,1:20,5"/>
+				<!--<arg value="12,1:12,5:14,1:14,5:20,1:20,5"/>-->
+				<arg value="-mq"/>
+				<arg value="100"/>
+			</java>
+</target>
+
+
+</project>

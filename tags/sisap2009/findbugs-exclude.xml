@@ -1,0 +1,8 @@
+<FindBugsFilter>
+     <Match>
+       <Class name="org.ajmm.obsearch.example.SliceLexer" />
+     </Match>
+		  <Match>
+       <Class name="org.ajmm.obsearch.example.SliceParser" />
+     </Match>
+</FindBugsFilter>

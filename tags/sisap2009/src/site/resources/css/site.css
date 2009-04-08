@@ -1,0 +1,88 @@
+#leftColumn {
+ float:left;
+ overflow: auto;
+}
+
+body, td, select, input, li{
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  background: #3D3E42; 
+  color: #FFF;                            
+}
+
+a:link {
+  font-weight:bold;
+  color:#F29900;
+}
+a:visited  {
+  color:#F29900;
+}
+a:active, a:hover {
+  color:#F29900;
+  text-decoration:underline;
+}
+
+h2 {
+  padding: 4px 4px 4px 6px;
+  border: 1px solid #555;
+  color: #F29900;
+  background-color: #45464B;
+  font-weight:900;
+  font-size: x-large;
+}
+h3 {
+  padding: 4px 4px 4px 6px;
+  border: 1px solid #555;
+  color: #F29900;
+  background-color: #45464B;
+  font-weight: normal;
+  font-size: large;
+}
+h4 {
+  padding: 4px 4px 4px 6px;
+  border: 1px solid #555;
+  color: #F29900;
+  background-color: #45464B;
+  font-weight: normal;
+  font-size: large;
+}
+h5 {
+  padding: 4px 4px 4px 6px;
+  color: #F29900;
+  font-size: normal;
+}
+
+#breadcrumbs {
+  border-top: 1px solid #555;
+  border-bottom: 1px solid #555;
+  background-color: #45464B;
+}
+
+#navcolumn h5 {
+  font-size: smaller;
+  border-bottom: 1px solid #aaaaaa;
+  padding-top: 2px;
+  background-color: #eee;
+  color: #45464B;
+}
+
+table.bodyTable th {
+  color: #45464B;
+  background-color: #eee;
+  text-align: left;
+  font-weight: bold;
+}
+
+#banner {
+  border-bottom: 0px solid #F29900;
+}
+
+dl {
+  padding: 4px 4px 4px 6px;
+  border: 1px solid #555;
+  background-color: #45464B;
+}
+
+dt {
+  color: #F29900;
+}
