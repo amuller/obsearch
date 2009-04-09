@@ -201,11 +201,15 @@ public class OBSlice implements OBShort  {
     /**
      * Re-creates this object from the given byte stream
      * @param in
-     *                A byte stream with the data that must be loaded.
+     *                A byte vector from which the stream will be loaded.
      * @see net.obsearch.Storable#load(com.sleepycat.bind.tuple.TupleInput)
      */
     public final void load(byte [] in) throws IOException, OBException {
             updateTree(new String(in));
+    }
+    
+    public final int recordSize(){
+    	return 0;
     }
 
     /**

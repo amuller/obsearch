@@ -1,26 +1,25 @@
-package net.obsearch.example.lev;
+package net.obsearch.example.l1;
 
+import java.io.File;
 import java.io.IOException;
 
 import net.obsearch.example.OBSlice;
-
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OutOfRangeException;
-
 import net.obsearch.index.utils.AbstractCommandLine;
 import net.obsearch.stats.Statistics;
 /**
- * Command line matcher for LEV objects
+ * Command line matcher for MTD objects
  * @author Arnoldo Jose Muller-Molina
  *
  */
-public class L2SymMatcherLEV {/*extends L2SymMatcher<OBString> {
+public class HPMatcherL1  {/*extends HPMatcher<L1> {
 
 	@Override
-	protected Class<OBString> obtainClass() {
-		return OBString.class;
+	protected Class<L1> obtainClass() {
+		return L1.class;
 	}
 	
 	@Override
@@ -29,19 +28,19 @@ public class L2SymMatcherLEV {/*extends L2SymMatcher<OBString> {
 	}
 
 	@Override
-	protected OBString instantiate(String line) throws OBException {
-		return new OBString(line);
+	protected L1 instantiate(String line) throws OBException {
+		return new L1(line);
 	}
 	
 	public static void main(String args[]){
-		L2SymMatcherLEV s = new L2SymMatcherLEV();
+		HPMatcherL1 s = new HPMatcherL1();
 		s.processUserCommands(args);
 	}
 	
-	protected boolean isValidObject(OBString object) throws OBException{
-		return object.length() <= Short.MAX_VALUE;
+	protected boolean isValidObject(L1 object) throws OBException{		
+		return true;
 	}
-	
-*/	
+
+	*/
 
 }

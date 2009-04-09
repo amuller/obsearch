@@ -6,6 +6,7 @@ package net.obsearch;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import net.obsearch.exception.OBException;
 
@@ -40,9 +41,9 @@ public interface Storable {
     byte[] store() throws OBException, IOException;
 
     /**
-     * Populates the object's internal properties from the given byte stream.
-     * @param in
-     *            A DataInputStream object from where primitive types can be loaded.
+     * Populates the object's internal properties from the given byte stream.    
+     * @param input
+     *            byte array from where we will load data.
      * @throws OBException
      *             if the data cannot be loaded.
      * @since 0.0

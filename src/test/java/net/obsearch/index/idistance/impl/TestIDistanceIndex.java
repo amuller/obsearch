@@ -25,7 +25,6 @@ import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelectorShort;
 import net.obsearch.storage.bdb.BDBFactoryDb;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
-import net.obsearch.storage.l.OBLFactory;
 
 import org.apache.log4j.Logger;
 
