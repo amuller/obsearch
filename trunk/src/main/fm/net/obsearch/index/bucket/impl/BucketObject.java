@@ -102,7 +102,7 @@ import net.obsearch.ob.OB${Type};
 
 		public static ${type} lInf(${type}[] smapVector, ${type}[] other){
         int cx = 0;
-        ${type} max = <@min_value/>;
+        ${type} max = 0;
         ${type} t;
         assert smapVector.length == other.length;
         while (cx < smapVector.length) {

@@ -51,8 +51,10 @@ import net.obsearch.storage.TupleLong;
  */
 /**
  * ExtendedPyramidIndexShort is an index that uses the pyramid technique. The
- * distance function used must return short values. The spore file name is:
- * ExtendedPyramidTechniqueShort
+ * distance function used must return short values. 
+ * This index will be deprecated soon because often floating point errors affect the results.
+ * Please use the idistance instead.
+ * 
  * @param <O>
  *                The type of object to be stored in the Index.
  * @author Arnoldo Jose Muller Molina

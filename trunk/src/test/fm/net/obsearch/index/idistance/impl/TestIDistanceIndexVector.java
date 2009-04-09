@@ -24,7 +24,6 @@ import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavez${Type};
 import net.obsearch.pivots.dummy.IncrementalFixedPivotSelector;
 import net.obsearch.pivots.kmeans.impl.IncrementalKMeansPPPivotSelector${Type};
 import net.obsearch.storage.bdb.BDBFactoryJe;
-import net.obsearch.storage.l.OBLFactory;
 import net.obsearch.storage.bdb.Utils;
 import org.apache.log4j.Logger;
 

@@ -7,7 +7,6 @@ import junit.framework.TestCase;
 
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.TUtils;
-import net.obsearch.storage.l.OBLFactory;
 
 public class Utils extends TestCase{
 
@@ -31,14 +30,6 @@ public class Utils extends TestCase{
         return fact;
     }
     
-    public static OBLFactory getFactoryL() throws Exception{
-        File dbFolder = new File(TUtils.getTestProperties().getProperty(
-                "test.db.path"));
-        Directory.deleteDirectory(dbFolder);
-        assertTrue(!dbFolder.exists());
-        assertTrue(dbFolder.mkdirs());
-        OBLFactory fact = new OBLFactory(dbFolder);
-        return fact;
-    }
+   
 
 }
