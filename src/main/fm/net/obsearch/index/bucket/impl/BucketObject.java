@@ -89,6 +89,11 @@ import net.obsearch.ob.OB${Type};
 				this.smapVector = smapVector;
     }
 
+		public boolean equals(Object other){
+				BucketObject${Type}<O> another = (BucketObject${Type}<O>) other;
+				return Arrays.equals(smapVector,another.smapVector) && getObject().equals(another.getObject()) && getId() == another.getId();
+	}
+
     
     /**
      * Execute l-inf between this object and b.
