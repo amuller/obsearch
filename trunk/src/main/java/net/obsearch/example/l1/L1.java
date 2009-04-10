@@ -16,6 +16,10 @@ public class L1 implements OBShort {
 	public L1(){
 		// required by OBSearch
 	}
+	
+	public L1(short[] vect){
+		this.vector = vect;
+	}
 	/**
 	 * Parses a string with numbers separated by spaces
 	 * @param data
@@ -59,6 +63,21 @@ public class L1 implements OBShort {
 		ShortBuffer s = b.asShortBuffer();
 		s.put(vector);
 		return b.array();
+	}
+	
+	public boolean equals(Object o){
+		L1 another = (L1)o;
+		int i = 0;
+		if(this.vector.length != another.vector.length){
+			return false;
+		}
+		while(i < vector.length){
+			if(vector[i] != another.vector[i]){
+				return false;
+			}
+			i++;
+		}
+		return true;
 	}
 
 }
