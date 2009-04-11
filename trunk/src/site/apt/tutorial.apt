@@ -129,7 +129,7 @@ public class L1 implements OBInt {
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
+	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots from the database.
 There are several selection strategies. Please see the Javadocs for more information. The following strategy is very popular:
 
 ---
@@ -157,9 +157,7 @@ Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L
 * To insert an object:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-   You will have to give OBSearch a bunch of objects. OBSearch will "learn"
-from these objects and optimize its index when enough data has been
-added.	You decide when you have given OBSearch "enough" objects.
+   You will have to give OBSearch a bunch of objects. OBSearch will analyze these objects and optimize its index when enough data has been added.	You decide when you have given OBSearch "enough" objects.
 
 ---
 // Create your object (load it from a file)
@@ -173,8 +171,8 @@ index.insert(o);
 * To freeze an index:
 ~~~~~~~~~~~~~~~~~~~~~
 	
-	OBSearch has to "learn" some sample data before it can efficiently
-retrieve it. This process is called "freezing".  Note that after a freeze you can still insert and 
+	OBSearch has to get some sample data before it can efficiently
+retrieve objects. This process is called "freezing".  Note that after a freeze you can still insert and 
 delete items. After a freeze you can start searching the index and not before.
 
 ---
