@@ -326,7 +326,7 @@ public class Statistics {
     
     public String toStringSummary(){
     	return "Distances: " + distanceCount +
-        " Smap count: " + smapCount +        
+        " Pivot vector count: " + smapCount +        
         " Disk access count: " + diskAccessCount +        
     " Query count: " + queryCount +         
     " Data read: " + dataRead +

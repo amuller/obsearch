@@ -33,7 +33,7 @@ public class TestSleekBucketShort {
 	// max objects to store in a bucket
 	private final int MAX_OBJECTS = 1000;
 	// max # of pivots
-	private final int MAX_PIVOTS = 100;
+	private final int MAX_PIVOTS = 10;
 
 	public L1 generateObject() {
 		short[] data = new short[TOTAL_DIMS];
@@ -49,7 +49,7 @@ public class TestSleekBucketShort {
 	public void testBucket() throws IllegalIdException, OBException, IllegalAccessException, InstantiationException, IOException{
 		// do the test several times with different configurations.
 		int i = 0;
-		while(i < 20000){
+		while(i < 1000){
 			testBucketAux(r.nextInt(MAX_OBJECTS), r.nextInt(MAX_PIVOTS));
 			i++;
 		}

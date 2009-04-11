@@ -11,7 +11,7 @@
 
  Similarity search is required in many areas. For example, music matching and binary program matching require a similarity search engine. Nowadays, it is common to hear news of projects like "photosynth" that heavily rely on similarity search. OBSearch is a similarity search engine that can help you to create an interesting and new application!
 
-Why OBSearch?
+
 
 
 
@@ -124,13 +124,13 @@ Why OBSearch?
 <version>2.88</version>
 		 </dependency>
 
-
+<!--
 		 <dependency>
        <groupId>bdb-c</groupId>
 			 <artifactId>bdb-c</artifactId>
 			 <version>4.7</version>
 		 </dependency>
-
+-->
 
 		
 
@@ -291,12 +291,12 @@ Why OBSearch?
         </excludes>
 				</configuration>
       </plugin>-->
-<!--
+
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
       </plugin>
--->
+
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-changelog-plugin</artifactId>
@@ -326,12 +326,12 @@ Why OBSearch?
 				</configuration>
 			</plugin>
 -->
-
+<!--
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
-
+-->
 <!--
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
