@@ -68,7 +68,7 @@ public class VectorsDemo {
 	 * Index folder
 	 */
 	
-	final static File INDEX_FOLDER = new File("index");
+	final static File INDEX_FOLDER = new File("." + File.separator + "index");
 	
 	
 	final static Random r = new Random();

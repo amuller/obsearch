@@ -10,7 +10,7 @@ import net.obsearch.index.utils.IndexSmokeTUtilApprox;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.dummy.IncrementalDummyPivotSelector;
-import net.obsearch.storage.bdb.BDBFactoryDb;
+
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
 

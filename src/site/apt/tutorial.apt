@@ -4,7 +4,7 @@ A 20 minute tutorial
 	This quick tutorial will show how to use OBSearch on a single computer.
 
 	What you need first is to know the object you want to store.
-You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other.
+You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other. 
 
 	So we will store vectors of 100 dimensions, and we will calculate the
 {{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
@@ -23,81 +23,81 @@ import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBInt;
 // our class implements OBInt because our distance returns ints.
 public class L1 implements OBInt {
-	
-  /**
-   * 1) Actual data.
-   */
-	private short[] vector;
-	
+  
+ /**
+  * 1) Actual data.
+  */
+  private short[] vector;
+  
  /**
   * 2) Default constructor is required by OBSearch.
   */
-	public L1(){
-		// required by OBSearch
-	}
-	
+  public L1(){
+     // required by OBSearch
+  }
+  
 
-  /**
-   * Additional constructors can be created to make your life easier.
-   * (OBSearch does not use them)
-   */
-	public L1(short[] vector){
-		this.vector = vector;
-	}
+ /**
+  * Additional constructors can be created to make your life easier.
+  * (OBSearch does not use them)
+  */
+  public L1(short[] vector){
+    this.vector = vector;
+  }
 
 
 
-	  /**
-     * 3) 1-norm distance function. A casting error can happen here, but we
-     * don't check it for efficiency reasons.
-     * @param object
-     *            The object to compare.
-     * @return The distance between this and object.
-     * @throws OBException
-     *             if something goes wrong. But nothing should be wrong in this
-     *             function.
-     */
-	@Override
-	public int distance(OBInt object) throws OBException {
-		L1 other = (L1)object;
-		int i = 0;
-		int res = 0;
-		OBAsserts.chkAssert(vector.length == other.vector.length, "Vector size mismatch");
-		while(i < vector.length){
-			res += Math.abs(vector[i] - other.vector[i]);
-			i++;
-		}
-		OBAsserts.chkAssert(res <= Integer.MAX_VALUE, "max value exceeded");
-		return res; 
-	}
+ /**
+  * 3) 1-norm distance function. A casting error can happen here, but we
+  * don't check it for efficiency reasons.
+  * @param object
+  *            The object to compare.
+  * @return The distance between this and object.
+  * @throws OBException
+  *             if something goes wrong. But nothing should be wrong in this
+  *             function.
+  */
+  @Override
+  public int distance(OBInt object) throws OBException {
+    L1 other = (L1)object;
+    int i = 0;
+    int res = 0;
+    OBAsserts.chkAssert(vector.length == other.vector.length, "Vector size mismatch");
+    while(i < vector.length){
+      res += Math.abs(vector[i] - other.vector[i]);
+      i++;
+    }
+    OBAsserts.chkAssert(res <= Integer.MAX_VALUE, "max value exceeded");
+    return res; 
+  }
 
-  /**
-    * 4) Load method. Loads the data into this object. This is analogous to
-    * object de-serialization.
-    * @param in
-    *            Byte array with all the data that has to be loaded into this
-    *            object.
-    */
-	@Override
-	public void load(byte[] input) throws OBException, IOException {
-		ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
-		vector = new short[input.length / ByteConstants.Short.getSize()];
-		s.get(vector);
-	}
+ /**
+  * 4) Load method. Loads the data into this object. This is analogous to
+  * object de-serialization.
+  * @param in
+  *            Byte array with all the data that has to be loaded into this
+  *            object.
+  */
+  @Override
+  public void load(byte[] input) throws OBException, IOException {
+    ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
+    vector = new short[input.length / ByteConstants.Short.getSize()];
+    s.get(vector);
+  }
 
-  /**
-     * 5) Store method. Write the contents of the object into a byte array
-     * Think of it as Java's object serialization but done manually for performance reasons.
-     * @param out
-     *            Stream where we will store this object.
-     */
-	@Override
-	public byte[] store() throws OBException, IOException {
-		ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
-		ShortBuffer s = b.asShortBuffer();
-		s.put(vector);
-		return b.array();
-	}
+ /**
+  * 5) Store method. Write the contents of the object into a byte array
+  * Think of it as Java's object serialization but done manually for performance reasons.
+  * @param out
+  *            Stream where we will store this object.
+  */
+  @Override
+  public byte[] store() throws OBException, IOException {
+    ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
+    ShortBuffer s = b.asShortBuffer();
+    s.put(vector);
+    return b.array();
+  }
 
 }
 ----------------------------------------
@@ -113,9 +113,8 @@ There are several selection strategies. Please see the Javadocs (package org.ajm
 
 ---
 
-IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(
-				new AcceptAll<L1>(), 5000, 1000);
-
+IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(new AcceptAll<L1>(), 5000, 1000);
+				
 ---
 
   Now that we have a pivot selector, we can create the index:
@@ -168,7 +167,7 @@ index.freeze();
 // Create your object (load it from a file)
 // using your constructor
 L1 o = new L1(data);
-index.delete(d);
+index.delete(o);
 ---
 
 * Search for similar objects:
@@ -183,16 +182,25 @@ For objects a,b if d(a,b) > r then the pairs will not be returned.
 OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
 // perform a query with r=3000000 and k = 1 
 index.searchOB(q, 3000000, queue);
-// You can iterate "result" to see the results.
+// You can iterate "result".
 ---
 
 
 * Running the Example
 ~~~~~~~~~~~~~
 
-  You can download the L1 class from {{{}here}.
-	To run the example, {{{download.html}download} the latest version of OBSearch. If you are a SISAP 2009
-  reviewer, you can download the jar from {{{download.html}here}.
+  You can download the L1 class from {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/net/obsearch/example/vectors/L1.java}here}}. A class that initializes and queries the index can be downloaded from {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/net/obsearch/example/vectors/VectorsDemo.java}here}}.
+  To run the example, {{{download.html}download}} the latest version of OBSearch. If you are a <<SISAP 2009 reviewer>>, you can download the jar from {{{http://obsearch.net/download}here}}.
+
+  To run the previous demo simply do:
+
+---
+
+java -jar obsearch-with-dependencies.jar net.obsearch.example.vectors.VectorsDemo
+
+---
+
+[perezosoUltimateRecortadoWeb.jpg]  
   
   
 

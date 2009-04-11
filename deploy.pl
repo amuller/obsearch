@@ -23,7 +23,7 @@ shell("mvn compile");
 shell("mvn site:site");
 # generate the assemblies
 shell("mvn assembly:assembly");
-
+# use mvn assembly:single (without testing)
 
 
 
