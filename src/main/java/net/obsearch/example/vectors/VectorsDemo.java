@@ -3,6 +3,7 @@ package net.obsearch.example.vectors;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -20,6 +21,7 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezInt;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.result.OBPriorityQueueInt;
+import net.obsearch.result.OBResultInt;
 import net.obsearch.storage.bdb.Utils;
 
 /*
@@ -134,6 +136,14 @@ public class VectorsDemo {
 			OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
 			// perform a query with r=3000000 and k = 1 
 			index.searchOB(q, 3000000, queue);
+			// you can see the results with this loop:
+			/*Iterator<OBResultInt<L1>> it =  queue.iterator();
+			while(it.hasNext()){
+				OBResultInt<L1> res = it.next(); 
+				L1 answerObject = res.getObject(); // get the answer object
+				long id = res.getId(); // the id of the answer object
+				int distance = res.getDistance(); // the distance of the object to the query
+			}*/
 			i++;
 		}
 		// print the results of the set of queries. 

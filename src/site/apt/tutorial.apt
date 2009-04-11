@@ -195,7 +195,6 @@ index.delete(o);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	You just need to decide the amount of items you want (k) and a range (r).
-For objects a,b if d(a,b) > r then the pairs will not be returned. 
 
 ---
 
@@ -204,6 +203,13 @@ OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);
 // perform a query with r=3000000 and k = 1 
 index.searchOB(q, 3000000, queue);
 // You can iterate "result".
+Iterator<OBResultInt<L1>> it =  result.iterator();
+while(it.hasNext()){
+  OBResultInt<L1> res = it.next(); 
+  L1 answerObject = res.getObject(); // get the answer object
+  long id = res.getId(); // the id of the answer object
+  int distance = res.getDistance(); // the distance of the object to the query
+}
 ---
 
 
