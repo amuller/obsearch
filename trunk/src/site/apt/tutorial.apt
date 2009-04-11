@@ -108,8 +108,8 @@ public class L1 implements OBInt {
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	OBSearch (usually) uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
-There are several selection strategies. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. The actual pivot selection strategy is called during a phase called: "freeze".
+	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
+There are several selection strategies. Please see the Javadocs for more information. The following strategy is very popular:
 
 ---
 

@@ -112,7 +112,7 @@ public class VectorsDemo {
 		
 		
 		// Add some random objects to the index:	
-		logger.info("Adding objects...");
+		logger.info("Adding " + DB_SIZE + " objects...");
 		int i = 0;		
 		while(i < DB_SIZE){
 			index.insert(generateVector());
