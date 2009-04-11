@@ -149,7 +149,7 @@ IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 126);
   Berkeley DB Java edition for this example:
 
 ---
-// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
+// Create the ambient that will store the index's data. (NOTE: folder name is hard-coded)
 // We bind the index to the ambient with the following constructor:
 Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L1>>( index, INDEX_FOLDER );
 ---
@@ -174,7 +174,7 @@ index.insert(o);
 	OBSearch has to get some sample data before it can efficiently
 retrieve objects. This process is called "freezing".  Note that after a freeze you can still insert and 
 delete items. After a freeze you can start searching the index and not before.
-Note that we freeze the Ambient because we need to store the metadata of the index somewhere
+Note that we freeze the Ambient because we need to store the meta-data of the index somewhere
 and only the Ambient knows how to do this.
 
 ---
