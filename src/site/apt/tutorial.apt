@@ -174,9 +174,11 @@ index.insert(o);
 	OBSearch has to get some sample data before it can efficiently
 retrieve objects. This process is called "freezing".  Note that after a freeze you can still insert and 
 delete items. After a freeze you can start searching the index and not before.
+Note that we freeze the Ambient because we need to store the metadata of the index somewhere
+and only the Ambient knows how to do this.
 
 ---
-index.freeze();
+a.freeze();
 ---
 
 * To delete an object:
