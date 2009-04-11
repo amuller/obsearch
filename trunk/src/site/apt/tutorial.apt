@@ -6,48 +6,48 @@ A 20 minute tutorial
 	What you need first is to know the object you want to store.
 You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other.
 
-	So we will store vectors of 100 shorts, and we will calculate the
+	So we will store vectors of 100 dimensions, and we will calculate the
 {{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
 
 	The following code shows 7 things that OBSearch needs in order to be able to retrieve and compare objects. 
 
 ----------------------------------------
-/**
- * Example Object. Store many shorts into a vector and use 1-norm distance on
- * them.
- * @author Arnoldo Jose Muller Molina.
- * @since 0.7
- */
 
-public class OBVectorExample implements OBShort {
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
+import java.util.Arrays;
+import net.obsearch.asserts.OBAsserts;
+import net.obsearch.constants.ByteConstants;
+import net.obsearch.exception.OBException;
+import net.obsearch.ob.OBInt;
+// our class implements OBInt because our distance returns ints.
+public class L1 implements OBInt {
+	
+  /**
+   * 1) Actual data.
+   */
+	private short[] vector;
+	
+ /**
+  * 2) Default constructor is required by OBSearch.
+  */
+	public L1(){
+		// required by OBSearch
+	}
+	
 
-    /**
-     * Total number of elements to store.
-     */
-    private static final int VECTOR_SIZE = 100;
+  /**
+   * Additional constructors can be created to make your life easier.
+   * (OBSearch does not use them)
+   */
+	public L1(short[] vector){
+		this.vector = vector;
+	}
 
-    /**
-     * 1) Actual data.
-     */
-    private short[] data;
 
-    /**
-     * 2) Default constructor is required by OBSearch.
-     */
-    public OBVectorExample() {
-        data = new short[VECTOR_SIZE];
-    }
 
-    /**
-     * Additional constructors can be created to make your life easier.
-     * (OBSearch does not use them)
-     */
-    public OBVectorExample(short[] data) {
-        assert data.length == VECTOR_SIZE;
-        this.data = data;
-    }
-
-    /**
+	  /**
      * 3) 1-norm distance function. A casting error can happen here, but we
      * don't check it for efficiency reasons.
      * @param object
@@ -57,71 +57,47 @@ public class OBVectorExample implements OBShort {
      *             if something goes wrong. But nothing should be wrong in this
      *             function.
      */
-    public final short distance(final OBShort object) throws OBException {
-        OBVectorExample o = (OBVectorExample) object;
-        short res = 0;
-        int i = 0;
-        while (i < VECTOR_SIZE) {
-            res += Math.abs(data[i] - o.data[i]);
-            i++;
-        }
-        return res;
-    }
+	@Override
+	public int distance(OBInt object) throws OBException {
+		L1 other = (L1)object;
+		int i = 0;
+		int res = 0;
+		OBAsserts.chkAssert(vector.length == other.vector.length, "Vector size mismatch");
+		while(i < vector.length){
+			res += Math.abs(vector[i] - other.vector[i]);
+			i++;
+		}
+		OBAsserts.chkAssert(res <= Integer.MAX_VALUE, "max value exceeded");
+		return res; 
+	}
 
-    /**
-     * 4) Load method. Loads the data into this object. This is analogous to
-     * object de-serialization.
-     * @param in
-     *            Byte Stream with all the data that has to be loaded into this
-     *            object.
-     */
-    public final void load(final TupleInput in) throws OBException {
-        int i = 0;
-        while (i < VECTOR_SIZE) {
-            // read a short from the stream and
-            // store it into our array.
-            data[i] = in.readShort();
-            i++;
-        }
-    }
+  /**
+    * 4) Load method. Loads the data into this object. This is analogous to
+    * object de-serialization.
+    * @param in
+    *            Byte array with all the data that has to be loaded into this
+    *            object.
+    */
+	@Override
+	public void load(byte[] input) throws OBException, IOException {
+		ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
+		vector = new short[input.length / ByteConstants.Short.getSize()];
+		s.get(vector);
+	}
 
-    /**
-     * 5) Store method. Write the contents of the object into out. Analogous to
-     * Java's object serialization.
+  /**
+     * 5) Store method. Write the contents of the object into a byte array
+     * Think of it as Java's object serialization but done manually for performance reasons.
      * @param out
      *            Stream where we will store this object.
      */
-    public final void store(TupleOutput out) {
-        int i = 0;
-        while (i < VECTOR_SIZE) {
-            // write each short into
-            // the stream
-            out.writeShort(data[i]);
-            i++;
-        }
-    }
-
-    /**
-     * 6) Equals method. Implementation of the equals method is required. A
-     * casting error can happen here, but we don't check it for efficiency
-     * reasons.
-     * @param object
-     *            The object to compare.
-     * @return true if this and object are equal.
-     */
-    public final boolean equals(final Object object) {
-        OBVectorExample o = (OBVectorExample) object;
-        return Arrays.equals(data, o.data);
-    }
-
-    /**
-     * 7) Hash code method. This method is required too.
-     * @return The hash code of the data array.
-     */
-    public final int hashCode() {
-        // TODO: this value should be cached.
-        return Arrays.hashCode(data);
-    }
+	@Override
+	public byte[] store() throws OBException, IOException {
+		ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
+		ShortBuffer s = b.asShortBuffer();
+		s.put(vector);
+		return b.array();
+	}
 
 }
 ----------------------------------------
@@ -132,41 +108,43 @@ public class OBVectorExample implements OBShort {
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
-There are several selection strategies. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. The actual pivot selection, occurs during freeze.
+	OBSearch (usually) uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots (in the example n = 30) from the database.
+There are several selection strategies. Please see the Javadocs (package org.ajmm.obsearch.index.pivotselection.*) for more information. The actual pivot selection strategy is called during a phase called: "freeze".
 
 ---
-TentaclePivotSelectorShort < OBSlice > ps = new TentaclePivotSelectorShort < OBSlice >(
-                             (short) 10, 32, new AcceptAll< OBSlice >());
+
+IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(
+				new AcceptAll<L1>(), 5000, 1000);
+
 ---
 
   Now that we have a pivot selector, we can create the index:
 
 ---
-// dbFolder: Folder where the database will be created.
-// 30: Number of pivots used by SMAP (see below). 
-// Depending on the distance function a greater number might improve performance.  
-// You might want to spend some time tweaking this parameter function.
-// od: Partitions of the P+Tree. Depending on the distance function a value of
-//     9-12 might be good. You have to perform some tests to decide which
-//     is the best value for your distance function.
-// ps: is the pivot selection strategy that will be used.
-PPTreeShort < OBVectorExample > index = 
-	new PPTreeShort < OBVectorExample > (dbFolder, (short) 30, od, ps, OBVectorExample.class );	
+// Create an instance of the IDistance method
+IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 126);
 ---
 
+  We must create an "ambient" that encapsulates the storage devices of the index. We will use
+  Berkeley DB Java edition for this example:
+
+---
+// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
+// We bind the index to the ambient with the following constructor:
+Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L1>>( index, INDEX_FOLDER );
+---
 
 * To insert an object:
 ~~~~~~~~~~~~~~~~~~~~~~
 
    You will have to give OBSearch a bunch of objects. OBSearch will "learn"
 from these objects and optimize its index when enough data has been
-presented to him.	You decide when you have given OBSearch "enough" objects.
+added.	You decide when you have given OBSearch "enough" objects.
 
 ---
 // Create your object (load it from a file)
 // using your constructor
-OBVectorExample o = new OBVectorExample(mydata);
+L1 o = new L1(data);
 // insert the object
 index.insert(o);
 ---
@@ -176,10 +154,8 @@ index.insert(o);
 ~~~~~~~~~~~~~~~~~~~~~
 	
 	OBSearch has to "learn" some sample data before it can efficiently
-retrieve it. This process is called "freezing". Before freezing, the pivots
-must be selected. When enough data is collected and when the pivots have been
-selected, you can freeze the index. Note that after a freeze you can still insert and 
-delete items. After a freeze you can start searching the index.
+retrieve it. This process is called "freezing".  Note that after a freeze you can still insert and 
+delete items. After a freeze you can start searching the index and not before.
 
 ---
 index.freeze();
@@ -191,7 +167,7 @@ index.freeze();
 ---
 // Create your object (load it from a file)
 // using your constructor
-OBVectorExample d = new OBVectorExample(mydata);
+L1 o = new L1(data);
 index.delete(d);
 ---
 
@@ -202,21 +178,22 @@ index.delete(d);
 For objects a,b if d(a,b) > r then the pairs will not be returned. 
 
 ---
-// This result object will hold the result of the search process.
-// note that it is here where you define k
-OBPriorityQueueShort < OBVectorExample > result = 
-	new OBPriorityQueueShort < OBVectorExample > (k);
 
-// now you can search the closest elements to o within a range r
-// the result will be stored in "result"
-	index.searchOB(o, r, result);
-// You can iterate "result".
+// query the index with k=1			
+OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
+// perform a query with r=3000000 and k = 1 
+index.searchOB(q, 3000000, queue);
+// You can iterate "result" to see the results.
 ---
 
 
-* Next steps!
+* Running the Example
 ~~~~~~~~~~~~~
 
-	If you want to learn how to use the P2P version of OBSearch, please review the {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/org/ajmm/obsearch/example/OBSearchExample.java}p2p example}}. Warning: We are currently voting. We might actually scrap the current p2p implementation and re-implement everything in Jabber. Please {{{http://groups.google.com/group/obsearch-users}let us know}} what do you think about this.
+  You can download the L1 class from {{{}here}.
+	To run the example, {{{download.html}download} the latest version of OBSearch. If you are a SISAP 2009
+  reviewer, you can download the jar from {{{download.html}here}.
+  
+  
 
 

@@ -3,6 +3,7 @@ package net.obsearch.example.vectors;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
@@ -61,6 +62,21 @@ public class L1 implements OBInt {
 		vector = new short[input.length / ByteConstants.Short.getSize()];
 		s.get(vector);
 	}
+	
+	/**
+     * 6) Equals method. Implementation of the equals method is required. A
+     * casting error can happen here, but we don't check it for efficiency
+     * reasons.
+     * @param object
+     *            The object to compare.
+     * @return true if this and object are equal.
+     */
+    public final boolean equals(final Object object) {
+        L1 o = (L1) object;
+        return Arrays.equals(vector, o.vector);
+    }
+
+
 
 	@Override
 	public byte[] store() throws OBException, IOException {
