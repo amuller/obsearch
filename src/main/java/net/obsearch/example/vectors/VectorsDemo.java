@@ -52,12 +52,12 @@ public class VectorsDemo {
 	/**
 	 * Dimension of the vectors.
 	 */
-	final static int VEC_SIZE = 128;
+	final static int VEC_SIZE = 100;
 	
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 1000000;
+	final static int DB_SIZE = 100000;
 	
 	/**
 	 * Query count.
@@ -99,10 +99,10 @@ public class VectorsDemo {
 					
 		// Create a pivot selection strategy for L1 distance
 		IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(
-				new AcceptAll<L1>(), 5000, 5000);
+				new AcceptAll<L1>(), 5000, 1000);
 
-		// Create the IDistance method with 20 pivots
-		IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 126);
+		// Create the iDistance method with 126 pivots
+		IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 64);
 
 		// Delete the directory of the index just in case.
 		Directory.deleteDirectory(INDEX_FOLDER);
@@ -128,27 +128,22 @@ public class VectorsDemo {
 		i = 0;
 		index.resetStats(); // reset the stats counter
 		long start = System.currentTimeMillis();
-		int result = 0;
 		while(i < QUERY_SIZE){
 			L1 q = 	generateVector();	
 			// query the index with k=1			
 			OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
-			// perform a query with r=1000000 
+			// perform a query with r=3000000 and k = 1 
 			index.searchOB(q, 3000000, queue);
-			
-			if(queue.getSize() == 1){
-				result++;
-			}
 			i++;
 		}
-		// print the results of the query. 
+		// print the results of the set of queries. 
 		long elapsed = System.currentTimeMillis() - start;
 		logger.info("Time per query: " + elapsed / QUERY_SIZE + " millisec.");
 		
-		logger.info("Stats follow:");
+		logger.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
-		logger.info("Results: " + result);
+
 	}
 
 }

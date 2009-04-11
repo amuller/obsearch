@@ -4,13 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9.1c-alpha</version>
-<!-- TODO:
-		 * spore
-		 * Cache
-		 * Settings... ponerlos un poquito mas fuertes.
-		 * 
- -->
+  <version>0.9.2-sisap2009</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description> OBSearch is a similarity search engine.
@@ -19,12 +13,10 @@
 
 Why OBSearch?
 
-There has been much research on the subject of similarity search, and several approaches that work well in practice have been developed. Nevertheless, these approaches are CPU intensive, and therefore the amount of clients a server can hold is very limited. As a consequence, individuals or small companies who want to provide similarity search services cannot afford the infrastructure required. OBSearch attempts to solve this problem by distributing the workload among the users.
 
-OBSearch achieves this by dividing the search space into n "boxes". In addition, OBsearch can determine for any query, which boxes have to be searched. This allows OBSearch to efficiently perform similarity searches by distributing the queries among the peers.  This project could benefit different communities that require similarity matching services on audio, source code, video, biology data, etc. 
 
 </description>
-  <url>http://code.google.com/p/obsearch/</url>
+  <url>http://obsearch.net</url>
 
 
 	<properties>
@@ -334,12 +326,12 @@ OBSearch achieves this by dividing the search space into n "boxes". In addition,
 				</configuration>
 			</plugin>
 -->
-<!--
+
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
--->
+
 <!--
 			 <plugin>
         <groupId>org.codehaus.mojo</groupId>
