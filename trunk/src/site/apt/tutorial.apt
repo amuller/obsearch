@@ -9,7 +9,7 @@ You also need a distance function d that satisfies the {{{http://en.wikipedia.or
 	So we will store vectors of 100 dimensions, and we will calculate the
 {{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
 
-	The following code shows 7 things that OBSearch needs in order to be able to retrieve and compare objects. 
+	The following code shows 6 things that OBSearch needs in order to be able to retrieve and compare objects. 
 
 ----------------------------------------
 
@@ -98,6 +98,27 @@ public class L1 implements OBInt {
     s.put(vector);
     return b.array();
   }
+
+  /**
+  * 6) Equals method, just as java's collections require it, OBSearch also uses it
+  *    when doing maintenance operations (inserts, deletes)
+  * @param out
+  *            Stream where we will store this object.
+  */ 
+  public boolean equals(Object o){
+		L1 another = (L1)o;
+		int i = 0;
+		if(this.vector.length != another.vector.length){
+			return false;
+		}
+		while(i < vector.length){
+			if(vector[i] != another.vector[i]){
+				return false;
+			}
+			i++;
+		}
+		return true;
+	}
 
 }
 ----------------------------------------
