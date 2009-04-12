@@ -8,6 +8,7 @@ import java.util.ListIterator;
 
 import org.junit.Test;
 
+import net.obsearch.Index;
 import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
@@ -72,7 +73,7 @@ public class SleekBucketShort<O extends OBShort> implements
 	/**
 	 * The list of pivot objects;
 	 */
-	private List<O> pivots;
+	private List<BucketObjectShort<O>> pivots;
 
 	/**
 	 * The list of objects.
@@ -100,7 +101,7 @@ public class SleekBucketShort<O extends OBShort> implements
 	public SleekBucketShort(Class<O> type, int pivots) {
 		this.pivotCount = pivots;
 		this.type = type;
-		this.pivots = new ArrayList<O>(pivotCount);
+		this.pivots = new ArrayList<BucketObjectShort<O>>(pivotCount);
 		objects = new ArrayList<BucketObjectShort<O>>(count);
 	}
 
@@ -133,7 +134,7 @@ public class SleekBucketShort<O extends OBShort> implements
 	public void parseData(int pivotCount, byte[] data)
 			throws InstantiationException, IllegalAccessException, OBException,
 			IOException {
-		pivots = new ArrayList<O>(pivotCount);
+		pivots = new ArrayList<BucketObjectShort<O>>(pivotCount);
 		ByteBuffer buf = ByteConversion.createByteBuffer(data);
 		// read the number of objects included in the bucket.
 		count = buf.getInt();
@@ -141,35 +142,38 @@ public class SleekBucketShort<O extends OBShort> implements
 		objects = new ArrayList<BucketObjectShort<O>>(count);
 		// get the pivots!
 		int i = 0;
-		while (i < Math.min(pivotCount , count)) {
-			O obj = type.newInstance();
-			byte[] objectRawData = getNextObjectChunk(buf);
-			obj.load(objectRawData);
-			pivots.add(obj);
+		while (i < Math.min(pivotCount , count)) {			
+			pivots.add(readBucketObject(0, buf));
 			i++;
 		}
 		// now we can start getting objects.
 		// continue loading objects
-		while (i < count) {
-			int cx = 0;
-			// get the pivots
-			short[] pivotVector = new short[pivotCount];
-			while (cx < pivotCount) {
-				pivotVector[cx] = buf.getShort();
-				cx++;
-			}
-			// now we can get the object
-			O obj = type.newInstance();
-			byte[] objectRawData = getNextObjectChunk(buf);
-			obj.load(objectRawData);
-			BucketObjectShort<O> b = new BucketObjectShort<O>(pivotVector, -1,
-					obj);
-			objects.add(b);
+		while (i < count) {			
+			objects.add(readBucketObject(pivotCount, buf));
 			i++;
 		}
 		assert count == (pivots.size() + objects.size());	
 		assert (! buf.hasRemaining()) : "Remaining: " + buf.remaining() + " Position: " + buf.position() + " capacity: " + buf.capacity() + " count: " + count;
 		
+	}
+	
+	/**
+	 * Read the next object in the given buffer
+	 * @param pivots number of pivots to use
+	 * @return A new BucketObject
+	 * @throws IOException 
+	 * @throws OBException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	private BucketObjectShort<O> readBucketObject(int pivots, ByteBuffer buf) throws OBException, IOException, InstantiationException, IllegalAccessException{
+		O obj = type.newInstance();
+		BucketObjectShort<O> bucket = new BucketObjectShort<O>();
+		bucket.read(buf, pivots);
+		byte[] objectRawData = getNextObjectChunk(buf);
+		obj.load(objectRawData);
+		bucket.setObject(obj);
+		return bucket;
 	}
 
 	private ByteConstants getAppropiate(int size) {
@@ -190,7 +194,7 @@ public class SleekBucketShort<O extends OBShort> implements
 			return false;
 		}
 		try {
-			for (O p : pivots) {
+			for (BucketObjectShort<O> p : pivots) {
 				if (! another.pivots.contains(p)) {
 					return false;
 				}
@@ -263,9 +267,27 @@ public class SleekBucketShort<O extends OBShort> implements
 	}
 
 	private void removeAll() {
-		pivots = new ArrayList<O>(pivotCount);
-		objects = new ArrayList<BucketObjectShort<O>>(count);
+		pivots.clear();
+		objects.clear();
 		count = 0;
+	}
+	
+	/**
+	 * Remove the object if it is found in the list
+	 * @param list
+	 * @param object
+	 * @return the object removed or null otherwise
+	 */
+	private BucketObjectShort<O> removeObject(List<BucketObjectShort<O>> list, O object){
+		ListIterator<BucketObjectShort<O>> it = list.listIterator();
+		while (it.hasNext()) {
+			BucketObjectShort<O> b = it.next();
+			if (b.getObject().equals(object)) {
+				it.remove();
+				return b;
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -277,32 +299,30 @@ public class SleekBucketShort<O extends OBShort> implements
 		// if we have to remove a pivot we have to remove all objects,
 		// shuffle them and re-insert them again.
 		// start with the pivots.
-		if (pivots.remove(object)) {
+		BucketObjectShort<O> removed = removeObject(pivots, object);
+		if (removed != null) {
 			// removed one of the pivots, we have to re-build the container.
 			result.setStatus(Status.OK);
-			assert ! pivots.contains(object);
-			List<O> objs = new ArrayList<O>(count);
-			for (O p : pivots) {
+			result.setId(removed.getId());
+			assert this.existsObjects(object, pivots) == null;
+			List<BucketObjectShort<O>> objs = new ArrayList<BucketObjectShort<O>>(count);
+			for (BucketObjectShort<O> p : pivots) {
 				objs.add(p);
 			}
 			for (BucketObjectShort<O> b : objects) {
-				objs.add(b.getObject());
+				objs.add(b);
 			}
 
 			removeAll(); // empty the bucket.
-			for (O o : objs) {
-				insertBulk(null, o);
+			for (BucketObjectShort<O> o : objs) {
+				insertBulk(o, o.getObject());
 			}
 		} else {
 			// bucket.
-			ListIterator<BucketObjectShort<O>> it = objects.listIterator();
-			while (it.hasNext()) {
-				BucketObjectShort<O> b = it.next();
-				if (b.getObject().equals(object)) {
-					it.remove();
-					result.setStatus(Status.OK);					
-					break;
-				}
+			removed = removeObject(objects, object);
+			if(removed != null){
+				result.setStatus(Status.OK);
+				result.setId(removed.getId());
 			}
 		}
 		count = pivots.size() + objects.size();
@@ -315,25 +335,32 @@ public class SleekBucketShort<O extends OBShort> implements
 			throws OBException, IllegalIdException, IllegalAccessException,
 			InstantiationException {
 		OperationStatus res = new OperationStatus();
-		if (pivots.contains(object) || existsObjects(object)) {
+		BucketObjectShort<O> inPivots = existsObjects(object, pivots);
+		BucketObjectShort<O> inObjects = existsObjects(object, objects);
+		if (inPivots != null || inObjects != null) {
 			res.setStatus(Status.EXISTS);
+			if(inPivots != null){
+				res.setId(inPivots.getId());
+			}else if(inObjects != null){
+				res.setId(inObjects.getId());
+			}
 		} else {
 			res.setStatus(Status.NOT_EXISTS);
 		}
 		return res;
 	}
 	/**
-	 * Check if the given object exists.
-	 * @param object
-	 * @return
+	 * Check if the given object exists on the given list
+	 * @param object the object to search
+	 * @return the bucket if it exists otherwise null
 	 */
-	private boolean existsObjects(O object){
-		for(BucketObjectShort<O> o : objects){
+	private BucketObjectShort<O> existsObjects(O object, List<BucketObjectShort<O>> list){
+		for(BucketObjectShort<O> o : list){
 			if( o.getObject().equals(object)){
-				return true;
+				return o;
 			}
 		}
-		return false;
+		return null;
 	}
 
 	@Override
@@ -361,28 +388,34 @@ public class SleekBucketShort<O extends OBShort> implements
 		OperationStatus res = new OperationStatus();
 		if (pivots.size() < pivotCount) { // not enough pivots? we add it to the
 			// pivots.
-			pivots.add(object);
+			//OBAsserts.chkAssert(bucket.getObject().equals(object), "Both objects should be the same");
+			bucket.setObject(object);
+			
+			pivots.add(bucket);
 			res.setStatus(Status.OK);
 		} else {
 			// enough pivots, we calculate the pivot vector
-			objects.add(createBucket(object));
+			objects.add(createBucket(bucket, object));
 			res.setStatus(Status.OK);
+		}
+		if(res.getStatus() == Status.OK){
+			// inserted, update id
+			res.setId(bucket.getId());
 		}
 		count++;
 		assert count == pivots.size() + objects.size();
 		return res;
 	}
 
-	private BucketObjectShort<O> createBucket(O object) throws OBException {
+	private BucketObjectShort<O> createBucket(BucketObjectShort<O> bucket, O object) throws OBException {
 		short[] pivotVector = new short[pivotCount];
 		int i = 0;
 		while (i < pivotCount) {
-			pivotVector[i] = object.distance(pivots.get(i));
+			pivotVector[i] = object.distance(pivots.get(i).getObject());
 			i++;
 		}
-		BucketObjectShort<O> b = new BucketObjectShort<O>(pivotVector, -1,
-				object);
-		return b;
+		bucket.setSmapVector(pivotVector);
+		return bucket;
 	}
 
 	@Override
@@ -406,16 +439,18 @@ public class SleekBucketShort<O extends OBShort> implements
 			OBException, InstantiationException, IllegalIdException {
 		// must add also the pivots.
 		stats.incSmapCount(count);
-		short[] pivotVector = new short[pivotCount];
 		int i = 0;
+		short[] pivotVector = new short[pivotCount];
 		while (i < pivotCount) {
-			O p = pivots.get(i); // get the pivot.
-			short distance = query.getObject().distance(p);
-			query.add(-1, p, distance);
+			BucketObjectShort<O> p = pivots.get(i); // get the pivot.
+			short distance = query.getObject().distance(p.getObject());
+			query.add(p.getId(), p.getObject(), distance);
 			pivotVector[i] = distance;
 			stats.incDistanceCount();
 			i++;
 		}
+		this.createBucket(bucket, query.getObject());
+		stats.incDistanceCount(pivotCount);
 		BucketObjectShort<O> b = new BucketObjectShort<O>(pivotVector, -1,
 				query.getObject());
 		// now we can match the remaining of the objects.
@@ -445,14 +480,14 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * @throws OBException
 	 */
 	public byte[] serialize() throws OBException, IOException {
-		ArrayList<byte[]> serializedPivots = new ArrayList<byte[]>(count);
+		ArrayList<byte[]> serializedPivots = new ArrayList<byte[]>(pivotsCount());
 		ArrayList<byte[]> serializedObjects = new ArrayList<byte[]>(objectsCount());
 		int objectBytes = 0;
 		// serialize pivots
 		int minSize = Integer.MAX_VALUE;
 		int maxSize = Integer.MIN_VALUE;
-		for (O p : pivots) {
-			byte[] t = p.store();
+		for (BucketObjectShort<O> p : pivots) {
+			byte[] t = p.getObject().store();
 			objectBytes += t.length;
 			serializedPivots.add(t);
 			minSize = Math.min(t.length, minSize);
@@ -481,31 +516,45 @@ public class SleekBucketShort<O extends OBShort> implements
 		}
 		int bufferSize = HEADER_SIZE + objectBytes
 				+ (objectsCount() * pivotCount * DISTANCE_SIZE)
-				+ miniHeaders;
+				+ miniHeaders + (Index.ID_SIZE * size());
 		ByteBuffer buf = ByteConversion.createByteBuffer(bufferSize);
-		buf.putInt(count); // write size
+		buf.putInt(size()); // write size
 		buf.putInt(mode);
 
 		// write the pivots:
 
-		for (byte[] b : serializedPivots) {
-			putNextObjectChunk(buf, b);
+		
+		
+		int i = 0;
+		while (i < serializedPivots.size()) {
+			BucketObjectShort<O> b = pivots.get(i);
+			putObject(b, serializedPivots.get(i), buf);
+			i++;
 		}
 
 		// write the rest of the objects.
-		int i = 0;
+		i = 0;
 		while (i < serializedObjects.size()) {
-			BucketObjectShort<O> p = objects.get(i);
-			// write the pivot vector
-			for (short s : p.getSmapVector()) {
-				buf.putShort(s);
-			}
-			putNextObjectChunk(buf, serializedObjects.get(i));
+			BucketObjectShort<O> b = objects.get(i);
+			putObject(b, serializedObjects.get(i), buf);
 			i++;
 		}
 		assert count == pivots.size() + objects.size();
 		assert buf.remaining() == 0 : "Remaining: " + buf.remaining();
 		return buf.array();
+	}
+	
+	/**
+	 * Write the given bucket and object data into buf
+	 * @param b bucket
+	 * @param object object data
+	 * @param buf the buffer in which we will write everything
+	 */
+	private void putObject(BucketObjectShort<O> b, byte[] object, ByteBuffer buf){
+		// write the bucket
+		b.write(buf);
+		// now we can write the object
+		putNextObjectChunk(buf, object);
 	}
 
 	/**

@@ -11,10 +11,14 @@ import java.util.logging.Logger;
 import net.obsearch.AbstractOBResult;
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.OperationStatus;
+import net.obsearch.Status;
+import net.obsearch.cache.OBCacheByteArray;
 import net.obsearch.dimension.AbstractDimension;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.filter.FilterNonEquals;
 import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
@@ -26,6 +30,7 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.utils.bytes.ByteConversion;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -102,6 +107,11 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * A compressed bit set for 64 bits.
 	 */
 	private transient CompressedBitSet64 sketchSet;
+	
+	/**
+	 * Cache used for storing buckets
+	 */
+	private transient OBCacheByteArray<BC> bucketCache;
 
 	public AbstractSketch64(Class<O> type,
 			IncrementalPivotSelector<O> pivotSelector, int pivotCount, int m)
@@ -182,6 +192,29 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		conf.setRecordSize(primitiveDataTypeSize());
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
+	}
+
+	protected OperationStatus insertBucket(B b, O object)
+			throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+		// get the bucket id.
+		byte[] bucketId = getAddress(b);
+		// if the bucket is the exclusion bucket
+		// get the bucket container from the cache.
+		BC bc = getBucketContainer(bucketId);
+		OperationStatus res = new OperationStatus();		
+		res = bc.insert(b, object);
+		if(res.getStatus() == Status.OK){
+			Buckets.put(bucketId, ByteConversion.createByteBuffer(bc.serialize()));
+		}
+		return res;
+	}
+	
+	protected BC getBucketContainer(byte[] id) throws OutOfRangeException, OBException, InstantiationException, IllegalAccessException {
+		//BC bc = instantiateBucketContainer(null, id);	
+		BC container = this.bucketCache.get(id);		
+		return container;
 	}
 
 	/**

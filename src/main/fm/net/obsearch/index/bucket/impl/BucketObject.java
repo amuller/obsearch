@@ -47,7 +47,7 @@ import net.obsearch.ob.OB${Type};
     
     public BucketObject${Type}(){
     	super(-1);
-    	smapVector = null;
+    	smapVector = new ${type}[0];
     }
 
     /**
@@ -91,8 +91,27 @@ import net.obsearch.ob.OB${Type};
 
 		public boolean equals(Object other){
 				BucketObject${Type}<O> another = (BucketObject${Type}<O>) other;
-				return Arrays.equals(smapVector,another.smapVector) && getObject().equals(another.getObject()) && getId() == another.getId();
+        boolean pivotVectorsEqual = comparePivotVectors(smapVector, another.smapVector);
+        boolean idsEqual = getId() == another.getId();
+        boolean objectsEqual = getObject().equals(another.getObject());
+				return pivotVectorsEqual && idsEqual  &&  objectsEqual;
 	}
+
+    private boolean comparePivotVectors(${type}[] a, ${type}[] b){
+				int la = 0;
+				int lb = 0;
+				if(a != null){
+						la = a.length;
+				}
+				if(b != null){
+						lb = b.length;
+				}
+				if(la == 0 && lb == 0){
+						return true;
+				}
+
+				return  Arrays.equals(a,b);
+		}
 
     
     /**
@@ -145,9 +164,11 @@ import net.obsearch.ob.OB${Type};
      * @param data The ByteBuffer that will be modified.
      */
     public void write(ByteBuffer out){
-        for (${type} j : getSmapVector()) {
-            out.put${BBType}(j);
-        }
+				if(getSmapVector() != null){
+						for (${type} j : getSmapVector()) {
+								out.put${BBType}(j);
+						}
+				}
         out.putLong(getId());
     }
     
