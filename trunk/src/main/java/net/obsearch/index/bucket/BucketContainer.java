@@ -198,4 +198,8 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	void setKey(byte[] key);
 
 	
+	/**
+	 * Serialize the bucket
+	 */	
+	byte[] serialize();
 }

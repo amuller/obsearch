@@ -78,6 +78,10 @@ public abstract class BucketObject<O> {
     public long getId() {
         return id;
     }
+    
+    public void setObject(O object){
+    	this.object = object;
+    }
 
     /**
      * @param id the id to set
