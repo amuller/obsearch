@@ -130,7 +130,7 @@ public class L1 implements OBInt {
 
 
 	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots from the database.
-There are several selection strategies. Please see the Javadocs for more information. The following strategy is very popular:
+There are several selection strategies, please see the Javadocs for more information. The following strategy is very popular:
 
 ---
 
@@ -164,7 +164,7 @@ Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L
 // using your constructor
 L1 o = new L1(data);
 // insert the object
-index.insert(o);
+OperationStatus result = index.insert(o);
 ---
 
 
@@ -188,7 +188,7 @@ a.freeze();
 // Create your object (load it from a file)
 // using your constructor
 L1 o = new L1(data);
-index.delete(o);
+OperationStatus result = index.delete(o);
 ---
 
 * Search for similar objects:
@@ -203,7 +203,7 @@ OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);
 // perform a query with r=3000000 and k = 1 
 index.searchOB(q, 3000000, queue);
 // You can iterate "result".
-Iterator<OBResultInt<L1>> it =  result.iterator();
+Iterator<OBResultInt<L1>> it =  queue.iterator();
 while(it.hasNext()){
   OBResultInt<L1> res = it.next(); 
   L1 answerObject = res.getObject(); // get the answer object
@@ -223,7 +223,7 @@ while(it.hasNext()){
 
 ---
 
-java -jar obsearch-with-dependencies.jar net.obsearch.example.vectors.VectorsDemo
+java -classpath obsearch-with-dependencies.jar net.obsearch.example.vectors.VectorsDemo
 
 ---
 
