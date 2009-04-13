@@ -55,7 +55,7 @@ public abstract class AbstractIDistanceIndex<O extends OB, B extends BucketObjec
 
 	
 
-	public void freeze() throws IOException, AlreadyFrozenException,
+	public void freeze() throws AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		super.freeze();

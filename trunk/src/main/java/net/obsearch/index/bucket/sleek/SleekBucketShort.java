@@ -84,6 +84,11 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * Type of the object that is being stored.
 	 */
 	private Class<O> type;
+	
+	/**
+	 * Flag used to know when the data has been modified.
+	 */
+	private boolean modified = false;
 
 	/**
 	 * Positive means that records are fixed. Negative means the maximum size of
@@ -114,10 +119,11 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * @throws OBException
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
+	 * @throws IOException 
 	 */
 	public SleekBucketShort(Class<O> type, int pivots, byte[] data)
-			throws InstantiationException, IllegalAccessException, OBException,
-			IOException {
+			throws InstantiationException, IllegalAccessException, OBException, IOException
+			 {
 		this(type, pivots);
 		parseData(pivots, data);
 	}
@@ -249,8 +255,7 @@ public class SleekBucketShort<O extends OBShort> implements
 			ByteConstants mo = getAppropiate(Math.abs(mode));
 			if (mo == ByteConstants.Byte) {
 				assert size <= Byte.MAX_VALUE;
-				buf.put((byte) size);
-				size = buf.get();
+				buf.put((byte) size);				
 			} else if (mo == ByteConstants.Short) {
 				assert size <= Short.MAX_VALUE;
 				buf.putShort((short) size);
@@ -301,6 +306,7 @@ public class SleekBucketShort<O extends OBShort> implements
 		// start with the pivots.
 		BucketObjectShort<O> removed = removeObject(pivots, object);
 		if (removed != null) {
+			
 			// removed one of the pivots, we have to re-build the container.
 			result.setStatus(Status.OK);
 			result.setId(removed.getId());
@@ -325,9 +331,16 @@ public class SleekBucketShort<O extends OBShort> implements
 				result.setId(removed.getId());
 			}
 		}
+		if(result.getStatus() == Status.OK){
+			this.modified = true;
+		}
 		count = pivots.size() + objects.size();
 		assert count == (pivots.size() + objects.size());
 		return result;
+	}
+	
+	public boolean isModified(){
+		return modified;
 	}
 
 	@Override
@@ -398,6 +411,7 @@ public class SleekBucketShort<O extends OBShort> implements
 			objects.add(createBucket(bucket, object));
 			res.setStatus(Status.OK);
 		}
+		modified = true;
 		if(res.getStatus() == Status.OK){
 			// inserted, update id
 			res.setId(bucket.getId());
@@ -438,7 +452,7 @@ public class SleekBucketShort<O extends OBShort> implements
 			Filter<O> filter, Statistics stats) throws IllegalAccessException,
 			OBException, InstantiationException, IllegalIdException {
 		// must add also the pivots.
-		stats.incSmapCount(count);
+		
 		int i = 0;
 		short[] pivotVector = new short[pivotCount];
 		while (i < pivotCount) {
@@ -449,14 +463,14 @@ public class SleekBucketShort<O extends OBShort> implements
 			stats.incDistanceCount();
 			i++;
 		}
-		this.createBucket(bucket, query.getObject());
-		stats.incDistanceCount(pivotCount);
+		this.createBucket(bucket, query.getObject());		
 		BucketObjectShort<O> b = new BucketObjectShort<O>(pivotVector, -1,
 				query.getObject());
 		// now we can match the remaining of the objects.
 		for (BucketObjectShort<O> db : objects) {
 			short lowerBound = b.lInf(db);
-			if (query.isCandidate(lowerBound)) {
+			stats.incSmapCount();
+			if (query.isCandidate(lowerBound) && (filter == null || filter.accept(db.getObject(), query.getObject()))) {
 				short distance = query.getObject().distance(db.getObject());
 				stats.incDistanceCount();
 				query.add(-1, db.getObject(), distance);
@@ -480,6 +494,8 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * @throws OBException
 	 */
 	public byte[] serialize() throws OBException, IOException {
+		OBAsserts.chkAssert(size() > 0, "Do not serialize an empty bucket");
+		
 		ArrayList<byte[]> serializedPivots = new ArrayList<byte[]>(pivotsCount());
 		ArrayList<byte[]> serializedObjects = new ArrayList<byte[]>(objectsCount());
 		int objectBytes = 0;
@@ -512,7 +528,7 @@ public class SleekBucketShort<O extends OBShort> implements
 			miniHeaders = 0; // no space required.
 		} else {
 			miniHeaders = getAppropiate(Math.abs(mode)).getSize()
-					* Math.max((count - pivotCount), 0);
+					* size();
 		}
 		int bufferSize = HEADER_SIZE + objectBytes
 				+ (objectsCount() * pivotCount * DISTANCE_SIZE)

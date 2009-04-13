@@ -11,7 +11,8 @@ import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBInt;
 import net.obsearch.ob.OBShort;
 
-public class L1 implements OBInt {
+
+public class L1 implements OBShort {
 	
 	private short[] vector;
 	
@@ -43,7 +44,7 @@ public class L1 implements OBInt {
 	}
 
 	@Override
-	public int distance(OBInt object) throws OBException {
+	public short distance(OBShort object) throws OBException {
 		L1 other = (L1)object;
 		int i = 0;
 		int res = 0;
@@ -52,8 +53,8 @@ public class L1 implements OBInt {
 			res += Math.abs(vector[i] - other.vector[i]);
 			i++;
 		}
-		OBAsserts.chkAssert(res <= Integer.MAX_VALUE, "max value exceeded");
-		return res; 
+		OBAsserts.chkAssert(res <= Short.MAX_VALUE, "max value exceeded");
+		return (short)res; 
 	}
 
 	@Override

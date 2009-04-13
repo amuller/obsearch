@@ -7,9 +7,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
+import net.obsearch.result.OBResultInvertedByte;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -142,7 +147,7 @@ public final class CompressedBitSet64 {
 	 * @throws IllegalAccessException
 	 * @throws OBException
 	 */
-	protected long[] searchBuckets(long query, int maxF, int m)
+	public long[] searchBuckets(long query, int maxF, int m)
 			throws OBException {
 
 		InputBitStream delta = new InputBitStream(data);
@@ -168,6 +173,40 @@ public final class CompressedBitSet64 {
 			throw new OBException(e);
 		}
 		return l.get();
+	}
+	
+	/**
+	 * Search the entire bitset. This should be done with datasets
+	 * that can fit in memory and only to generate statistics
+	 * on the data.
+	 * @param query query to search
+	 * @return
+	 */
+	public List<OBResultInvertedByte<Long>> searchFull(long query) throws OBException {
+		List<OBResultInvertedByte<Long>> result = new ArrayList<OBResultInvertedByte<Long>>(size());
+		InputBitStream delta = new InputBitStream(data);
+		// do the first element.
+		int distance = bucketDistance(query, first);
+		result.add(new OBResultInvertedByte<Long>(first, first, (byte)distance));
+		long prev = first;
+		int i = 1;
+		try {
+		while (i < count) {
+			long object;
+			
+				object = read(delta) + prev;
+			
+			distance = bucketDistance(query, object);
+			assert distance <= Byte.MAX_VALUE;
+			result.add(new OBResultInvertedByte<Long>(object, object, (byte)distance));
+			prev = object;
+			i++;
+		}
+		Collections.sort(result);
+		return result;
+		} catch (IOException e) {
+			throw new OBException(e);
+		}
 	}
 	
 	public int size(){

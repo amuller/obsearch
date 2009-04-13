@@ -345,23 +345,7 @@ public class KnnGraphShort<O extends OBShort>
 		return ByteConstants.Short.getSize();
 	}
 
-	@Override
-	public Iterator<Long> intersectingBoxes(O object, short r)
-			throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean intersects(O object, short r, int box)
-			throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 	
 	
 
@@ -803,13 +787,6 @@ public class KnnGraphShort<O extends OBShort>
 
 	}
 
-	@Override
-	public void searchOB(O object, short r, OBPriorityQueueShort<O> result,
-			int[] boxes) throws NotFrozenException, InstantiationException,
-			IllegalIdException, IllegalAccessException, OutOfRangeException,
-			OBException {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 }

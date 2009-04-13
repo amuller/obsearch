@@ -114,12 +114,12 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	/**
 	 * True if this index is frozen.
 	 */
-	private boolean isFrozen;
+	protected boolean isFrozen;
 
 	/**
 	 * The type used to instantiate objects of type O.
 	 */
-	private Class<O> type;
+	protected Class<O> type;
 
 	/**
 	 * Constructors of an AbstractOBIndex should receive only parameters related
@@ -577,7 +577,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @see net.obsearch.Index#freeze()
 	 */
 	@Override
-	public void freeze() throws IOException, AlreadyFrozenException,
+	public void freeze() throws  AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OBStorageException, OutOfRangeException, OBException {
 		if (isFrozen()) {
@@ -585,8 +585,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			throw new AlreadyFrozenException();
 		}
 		this.isFrozen = true;
-		
-		// fact.removeOBStore(preFreeze);
+
 	}
 
 	/*

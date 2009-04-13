@@ -3,10 +3,15 @@ package net.obsearch.index.ghs;
 import hep.aida.bin.StaticBin1D;
 import it.unimi.dsi.io.InputBitStream;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
+
+import cern.colt.Arrays;
 
 import net.obsearch.AbstractOBResult;
 import net.obsearch.Index;
@@ -14,7 +19,10 @@ import net.obsearch.OB;
 import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.cache.OBCacheByteArray;
+import net.obsearch.cache.OBCacheHandlerByteArray;
+import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.dimension.AbstractDimension;
+import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
@@ -24,8 +32,10 @@ import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.pivots.PivotResult;
 import net.obsearch.query.AbstractOBQuery;
 import net.obsearch.result.OBResultInt;
+import net.obsearch.result.OBResultInvertedByte;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
@@ -72,12 +82,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * Estimators for k ranges. This object tells us the amount of buckets we
 	 * should read for a given k query to match a certain value of error.
 	 */
-	private StaticBin1D[] kEstimators;
+	protected StaticBin1D[] kEstimators;
 
 	/**
 	 * Number of samples employed to generate the k estimators.
 	 */
-	private int sampleSize = 1000;
+	private int sampleSize = 20;
 
 	/**
 	 * For a query k we take the kEstimators[k] estimation and return the value
@@ -86,10 +96,9 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	private float kAlpha = 2f; // two standard deviations, 95% precision
 
 	/**
-	 * Maximum k that will be returned by this index. This is required for the
-	 * estimation.
+	 * K configuration that will be used by the user.
 	 */
-	private int maxK = 50;
+	protected int[] userK = new int[]{1, 3, 10, 50};
 
 	/**
 	 * The target EP value used in the estimation.
@@ -101,23 +110,56 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	/**
 	 * Number of bits.
 	 */
-	private int m;
+	protected int m;
 
 	/**
 	 * A compressed bit set for 64 bits.
 	 */
-	private transient CompressedBitSet64 sketchSet;
-	
+	protected transient CompressedBitSet64 sketchSet;
+
 	/**
 	 * Cache used for storing buckets
 	 */
-	private transient OBCacheByteArray<BC> bucketCache;
+	protected transient OBCacheByteArray<BC> bucketCache;
+
+	/**
+	 * Only two values per dimension (1, 0)
+	 */
+	private static final int HEIGHT = 2;
+
+	/**
+	 * pivot grid.
+	 */
+	protected O[][] pivotGrid;
+
+	/**
+	 * Distortion stats
+	 */
+	protected int[][] distortionStats;
+
+	/**
+	 * Pivot count for each bucket.
+	 */
+	protected int bucketPivotCount;
+
+	/**
+	 * Pivot selector for the masks.
+	 */
+	protected IncrementalPivotSelector<O> maskPivotSelector;
 
 	public AbstractSketch64(Class<O> type,
-			IncrementalPivotSelector<O> pivotSelector, int pivotCount, int m)
-			throws OBStorageException, OBException {
-		super(type, pivotSelector, pivotCount);
+			IncrementalPivotSelector<O> pivotSelector, int m,
+			int bucketPivotCount) throws OBStorageException, OBException {
+		super(type, null, 0);
 		this.m = m;
+		this.bucketPivotCount = bucketPivotCount;
+		this.maskPivotSelector = pivotSelector;
+		pivotGrid = (O[][]) Array.newInstance(type, m, HEIGHT);
+		distortionStats = new int[m][HEIGHT];
+	}
+
+	public int getBucketPivotCount() {
+		return bucketPivotCount;
 	}
 
 	/**
@@ -133,12 +175,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	}
 
 	/**
-	 * Set the max value used to calculate the estimation.
+	 * Set the k values used by this index.
 	 * 
-	 * @param maxK
+	 * @param userK
 	 */
-	public void setMaxK(int maxK) {
-		this.maxK = maxK;
+	public void setMaxK(int[] maxK) {
+		this.userK = maxK;
 	}
 
 	/**
@@ -194,27 +236,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 	}
 
-	protected OperationStatus insertBucket(B b, O object)
-			throws OBStorageException, IllegalIdException,
-			IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
-		// get the bucket id.
-		byte[] bucketId = getAddress(b);
-		// if the bucket is the exclusion bucket
-		// get the bucket container from the cache.
-		BC bc = getBucketContainer(bucketId);
-		OperationStatus res = new OperationStatus();		
-		res = bc.insert(b, object);
-		if(res.getStatus() == Status.OK){
-			Buckets.put(bucketId, ByteConversion.createByteBuffer(bc.serialize()));
-		}
-		return res;
-	}
-	
-	protected BC getBucketContainer(byte[] id) throws OutOfRangeException, OBException, InstantiationException, IllegalAccessException {
-		//BC bc = instantiateBucketContainer(null, id);	
-		BC container = this.bucketCache.get(id);		
+	protected BC getBucketContainer(byte[] id) throws OBException,
+			InstantiationException, IllegalAccessException {
+		// BC bc = instantiateBucketContainer(null, id);
+		BC container = this.bucketCache.get(id);
 		return container;
+
 	}
 
 	/**
@@ -233,8 +260,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			sketchSet.add(bucketId);
 		}
 		it.closeCursor();
+
 		// load the sketch into memory.
 		sketchSet.commit();
+
+		logger.info("Compressed Sketch size: " + sketchSet.getBytesSize());
+
 	}
 
 	/**
@@ -248,7 +279,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 */
 	private void maxKEstimation() throws IllegalIdException, OBException,
 			IllegalAccessException, InstantiationException {
-		kEstimators = new StaticBin1D[maxK + 1];
+		kEstimators = new StaticBin1D[getMaxK().length];
 		logger.fine("Max k estimation");
 		int i = 0;
 		while (i < kEstimators.length) {
@@ -256,92 +287,175 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			i++;
 		}
 
+		List<O> db = getAllObjects();			
+
 		long[] sample = AbstractDimension.select(sampleSize, r, null,
 				(Index) this, null);
 		O[] sampleSet = getObjects(sample);
 		i = 0;
 		for (O o : sampleSet) {
-			logger.finer("Estimating k: " + i);
-			maxKEstimationAux(o);
+			logger.info("Estimating k sample #: " + i + " of " + sampleSize);
+			maxKEstimationAux(o, db);
+			i++;
+		}
+
+		i = 0;
+		for (StaticBin1D s : kEstimators) {
+			logger.info(" k" + userK[i]);
+			logger.info(s.toString());
 			i++;
 		}
 
 	}
-
-	private byte[] convertLongToBytesAddress(long bucketId) {
-		return fact.serializeLong(bucketId);
-	}
-
-	protected abstract long getLongAddress(B b);
-
+	
 	/**
-	 * Get the kMax closest objects. Count how many different bucket ids are
-	 * there for each k and fill in accordingly the tables.
-	 * 
-	 * @param object
-	 * @throws OBException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * Returns a list of all the objects of this index.
+	 * @return a list of all the objects of this index.
+	 * @throws OBException 
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException 
+	 * @throws IllegalIdException 
 	 */
-	protected void maxKEstimationAux(O object) throws OBException,
-			InstantiationException, IllegalAccessException {
-		// we calculate first the list of elements against the DB.
-		B b = getBucket(object);
-
-		long longAddr = getLongAddress(b);
-
-		byte[] addr = convertLongToBytesAddress(longAddr);
-		AbstractOBQuery<O> dbQueue = getKQuery(object, (int) databaseSize());
+	public List<O> getAllObjects() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException{
+		List<O> db = new ArrayList<O>((int)databaseSize());
 		int i = 0;
 		long max = databaseSize();
 		while (i < max) {
 			O obj = getObject(i);
-			if (!obj.equals(object)) {
-				dbQueue.add(i, obj);
-			}
+			db.add(obj);
 			i++;
 		}
-		List<AbstractOBResult<O>> db = dbQueue.getSortedElements();
+		return db;
+	}
 
-		// we now calculate the buckets and we sort them
-		// according to the distance of the query.
-		long[] sortedBuckets = searchBuckets(longAddr, sketchSet.size());
+	protected void initCache() throws OBException {
+		super.initCache();
+		bucketCache = new OBCacheByteArray<BC>(new BucketsLoader(),
+				OBSearchProperties.getBucketsCacheSize());
+	}
 
-		// now we have to calculate the EP for each k up to maxK
-		// and for each k we calculate how many buckets must be read in order
-		// to obtain ep less than
-		i = 0;
-		BC container = this.instantiateBucketContainer(null, addr); // bucket
-		// container
-		// used to
-		// read
-		// data.
-		FilterNonEquals<O> fne = new FilterNonEquals<O>();
-		while (i < maxK) {
-			double ep = 1;
-			int goodK = 0;
-			// get the query for the
-			AbstractOBQuery<O> query = getKQuery(object, i + 1);
-			for (long result : sortedBuckets) {
-				container.setKey(convertLongToBytesAddress(result));
-				// search the objects
-				container.search(query, b, fne, getStats());
-				// calculate the ep of the query and the DB.
-				if (query.isFull()) { // only if the query is full of items.
-					ep = query.ep(db);
-				}
-				goodK++;
-				if (ep < this.expectedEP) {
-					// add the information to the stats:
-					// goodK buckets required to retrieve with k==i.
-					kEstimators[i].add(goodK);
-					break; // we are done.
-				}
+	private class BucketsLoader implements OBCacheHandlerByteArray<BC> {
+
+		public long getDBSize() throws OBStorageException {
+			return Buckets.size();
+		}
+
+		public BC loadObject(byte[] i) throws OBException,
+				InstantiationException, IllegalAccessException,
+				IllegalIdException {
+
+			ByteBuffer data = Buckets.getValue(i);
+			if (data == null) {
+				return null;
 			}
-			i++;
+
+			return instantiateBucketContainer(data, i);
+		}
+
+		@Override
+		public void store(byte[] key, BC object) throws OBException {
+			try {
+				if (object.isModified()) {
+					Buckets.put(key, ByteConversion.createByteBuffer(object
+							.serialize()));
+				}
+			} catch (IOException e) {
+				throw new OBException(e);
+			}
 		}
 
 	}
+
+	/**
+	 * Stores the given bucket b into the {@link #Buckets} storage device. The
+	 * given bucket b should have been returned by {@link #getBucket(OB, int)}
+	 * 
+	 * @param b
+	 *            The bucket in which we will insert the object.
+	 * @param object
+	 *            The object to insert.
+	 * @return A OperationStatus object with the new id of the object if the
+	 *         object was inserted successfully.
+	 * @throws OBStorageException
+	 */
+	protected OperationStatus insertBucket(B b, O object)
+			throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+
+		return insertBucketAux(b, object).insert(b, object);
+	}
+
+	/**
+	 * Common functionality for insert operations
+	 * 
+	 * @param b
+	 *            The bucket in which we will insert the object.
+	 * @param object
+	 *            The object to insert.
+	 * @return
+	 * @throws OBException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	protected BC insertBucketAux(B b, O object) throws OBException,
+			InstantiationException, IllegalAccessException {
+		// get the bucket id.
+		byte[] bucketId = getAddress(b);
+		// if the bucket is the exclusion bucket
+		// get the bucket container from the cache.
+		BC bc = getBucketContainer(bucketId);
+		if (bc == null) {
+			bc = instantiateBucketContainer(null, bucketId);
+			this.bucketCache.put(bucketId, bc);
+		}
+		return bc;
+	}
+
+	/**
+	 * Stores the given bucket b into the {@link #Buckets} storage device. The
+	 * given bucket b should have been returned by {@link #getBucket(OB, int)}
+	 * No checks are performed, we simply add the objects believing they are
+	 * unique.
+	 * 
+	 * @param b
+	 *            The bucket in which we will insert the object.
+	 * @param object
+	 *            The object to insert.
+	 * @return A OperationStatus object with the new id of the object if the
+	 *         object was inserted successfully.
+	 * @throws OBStorageException
+	 */
+	@Override
+	protected OperationStatus insertBucketBulk(B b, O object)
+			throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+
+		return insertBucketAux(b, object).insertBulk(b, object);
+	}
+
+	protected byte[] convertLongToBytesAddress(long bucketId) {
+		return fact.serializeLong(bucketId);
+	}
+
+	@Override
+	public byte[] getAddress(B bucket) throws OBException {
+		return convertLongToBytesAddress(getLongAddress(bucket));
+	}
+
+	protected abstract long getLongAddress(B b) throws OBException;
+
+	/**
+	 * Estimate ks for the given query object and the given list of objects.
+	 * @param object
+	 * @param objects
+	 * @throws OBException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	protected abstract void maxKEstimationAux(O object, List<O> objects)
+	throws OBException, InstantiationException, IllegalAccessException ;
 
 	/**
 	 * Returns a k query for the given object.
@@ -380,15 +494,105 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	/**
 	 * Estimate the k needed for a k-nn query.
 	 * 
-	 * @param k
-	 *            of the k-nn query.
+	 * @param queryK
+	 *            k of the k-nn query.
 	 * @return Number of buckets that should be retrieved for this query.
+	 * @throws OBException 
 	 */
-	public int estimateK(int k) {
-		long x = Math.round(this.kEstimators[k - 1].mean()
-				+ (this.kEstimators[k - 1].standardDeviation() * kAlpha));
+	public int estimateK(int queryK) throws OBException {
+		int i = 0;
+		for(int kval : this.userK){
+			if(kval == queryK){
+				break;
+			}
+			i++;
+		}
+		if(i == this.userK.length){
+			throw new OBException("Wrong k value");
+		}
+		long x = Math.round(this.kEstimators[i].mean()
+				+ (this.kEstimators[i].standardDeviation() * kAlpha));
 		assert x <= Integer.MAX_VALUE;
 		return (int) x;
+	}
+
+	public void freeze() throws AlreadyFrozenException, IllegalIdException,
+			OutOfRangeException, IllegalAccessException,
+			InstantiationException, OBException {
+		super.freeze();
+		int i = 0;
+
+		while (i < m) {
+			int cx = 0;
+			PivotResult r = super.selectPivots(HEIGHT, this.maskPivotSelector);
+			while (cx < HEIGHT) {
+				pivotGrid[i][cx] = getObject(r.getPivotIds()[cx]);
+				cx++;
+			}
+			i++;
+		}
+		logger.info("Moving objects to the buckets...");
+		freezeDefault();
+		this.bucketCache.clearAll();
+		// test the mask thing.
+		logger.info("Loading masks...");
+		loadMasks();
+		logger.info("Calculating estimators...");
+		calculateEstimators();
+		logger.info("Index stats...");
+		bucketStats();
+		sketchStats();
+
+	}
+
+	private void sketchStats() throws OBStorageException {
+		if (HEIGHT == 2) {
+			StaticBin1D s = new StaticBin1D();
+			int i = 0;
+			while (i < distortionStats.length) {
+				s.add(Math.abs(this.distortionStats[i][0]
+						- this.distortionStats[i][1]));
+				i++;
+			}
+			logger.info("Distortion:");
+			logger.info(s.toString());
+			logger.info("Distortion:" + s.mean() / databaseSize());
+		}
+	}
+
+	protected void bucketStats() throws OBStorageException, IllegalIdException,
+			IllegalAccessException, InstantiationException, OBException {
+
+		logger.fine("Bucket stats starts!");
+		CloseIterator<TupleBytes> it = Buckets.processAll();
+		// assert Buckets.size() == A.size();
+		StaticBin1D s = new StaticBin1D();
+
+		while (it.hasNext()) {
+			TupleBytes t = it.next();
+			BC bc = instantiateBucketContainer(t.getValue(), t.getKey());
+			s.add(bc.size());
+		}
+		getStats().putStats("BUCKET_STATS", s);
+		logger.info("Bucket Stats:");
+		logger.info(s.toString());
+		it.closeCursor();
+		logger.info("Spread: "
+				+ (s.size() / Math.min(Math.pow(2, m), databaseSize())));
+	}
+
+	@Override
+	public void close() throws OBException {
+		bucketCache.clearAll();
+		super.close();
+	}
+
+	public int[] getMaxK() {
+		return userK;
+	}
+
+	public double getExpectedEP() {
+		return expectedEP;
 	}
 
 }
