@@ -423,5 +423,14 @@ import net.obsearch.constants.ByteConstants;
 		}
 
 
+		public byte[] serialize(){
+				return null;
+		}
+
+		public boolean isModified(){
+				return true;
+		}
+
+
 }
 </#list>

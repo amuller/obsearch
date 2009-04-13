@@ -106,11 +106,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 	}
 	
 
-	<@intersectingBoxesUnsupported/>
 
-  <@intersectsUnsupported/>
-
-  <@searchOBBoxesUnsupported/>
 
 	@Override
 	public byte[] getAddress(BucketObject${Type} bucket) {

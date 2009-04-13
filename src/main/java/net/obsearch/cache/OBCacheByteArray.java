@@ -73,7 +73,7 @@ public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, 
 	     * @return null if no object is found
 	     */
 	    
-	    public O get(byte[] id) throws  OutOfRangeException, OBException, InstantiationException , IllegalAccessException {
+	    public O get(byte[] id) throws  OBException, InstantiationException , IllegalAccessException {
 	    	ByteArrayKey realId = new ByteArrayKey(id);
 	        O obj = super.get(realId);
 	        if (obj == null) {
@@ -111,7 +111,6 @@ public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, 
 		public void clearAll() throws OBException {
 			for(Map.Entry<ByteArrayKey, O> e : super.entrySet()){
 				handler.store(e.getKey().getKey(), e.getValue());
-				
 			}
 			this.clear();
 		}

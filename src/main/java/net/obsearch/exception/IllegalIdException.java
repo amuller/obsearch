@@ -31,6 +31,7 @@ package net.obsearch.exception;
 public class IllegalIdException
         extends OBException {
     private long id;
+    private byte[] idbytes;
     public String toString(){
         return "Illegal id was received :( : " + id;
     }
@@ -41,5 +42,8 @@ public class IllegalIdException
     public IllegalIdException(){
         this.id = -1;
     }
+	public IllegalIdException(byte[] i) {
+		this.idbytes = i;
+	}
     
 }

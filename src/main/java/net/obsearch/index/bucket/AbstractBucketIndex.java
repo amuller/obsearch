@@ -164,16 +164,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		byte[] bucketId = getAddress(b);
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
-
 		BC bc = getBucketContainer(bucketId);
-		OperationStatus res = new OperationStatus();
-		synchronized (bc) {
-			res = bc.insert(b, object);
-		}
+		OperationStatus res = new OperationStatus();		
+		res = bc.insert(b, object);
 		return res;
 	}
 
-	protected BC getBucketContainer(byte[] id) {
+	protected BC getBucketContainer(byte[] id) throws OBException, InstantiationException, IllegalAccessException {
 		BC bc = instantiateBucketContainer(null, id);
 		return bc;
 	}
@@ -201,11 +198,8 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = getBucketContainer(bucketId);
-
 		OperationStatus res = new OperationStatus();
-		synchronized (bc) {
-			res = bc.insertBulk(b, object);
-		}
+		res = bc.insertBulk(b, object);
 		return res;
 	}
 
@@ -220,7 +214,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		return res;
 	}
 
-	protected void freezeDefault() throws IOException, AlreadyFrozenException,
+	protected void freezeDefault() throws  AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
 		// get n pivots.
@@ -229,7 +223,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// the remaining
 		// objects are small enough.
 		
-
+		
 		
 		CloseIterator<TupleLong> it = A.processAll();
 		while (it.hasNext()) {
@@ -265,7 +259,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	public abstract byte[] getAddress(B bucket) throws OBException;
 
 	protected void bucketStats() throws OBStorageException, IllegalIdException,
-			IllegalAccessException, InstantiationException, OBException {
+			IllegalAccessException, InstantiationException, OBException{
 
 		logger.debug("Bucket stats");
 		CloseIterator<TupleBytes> it = Buckets.processAll();
@@ -355,9 +349,13 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @param data
 	 *            The data from which the bucket container will be loaded.
 	 * @return A new bucket container ready to be used.
+	 * @throws IOException 
+	 * @throws OBException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
 	protected abstract BC instantiateBucketContainer(ByteBuffer data,
-			byte[] address);
+			byte[] address) throws InstantiationException, IllegalAccessException, OBException;
 
 	/**
 	 * Print debug info. of the given object.

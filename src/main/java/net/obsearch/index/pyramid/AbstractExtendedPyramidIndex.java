@@ -236,7 +236,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     protected abstract ByteBuffer objectToProjectionBytes(O object) throws OBException;
 
     @Override
-    public void freeze() throws IOException, AlreadyFrozenException,
+    public void freeze() throws AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
             OBStorageException, OutOfRangeException, OBException {
         super.freeze();

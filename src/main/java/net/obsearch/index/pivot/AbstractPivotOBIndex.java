@@ -105,17 +105,19 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     protected AbstractPivotOBIndex(Class < O > type, IncrementalPivotSelector < O > pivotSelector, int pivotCount) throws OBStorageException,
             OBException {
         super(type);
-        OBAsserts.chkAssert(pivotCount > 0, "Pivot count must be > 0");
+        OBAsserts.chkAssert(pivotCount >= 0, "Pivot count must be >= 0");
         this.pivotCount = pivotCount;
         this.pivotSelector = pivotSelector;       
     }
 
     @Override
-    public void freeze() throws IOException, AlreadyFrozenException,
+    public void freeze() throws  AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException {
         super.freeze();
-        pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());      
+        if(pivotCount > 0){
+        	pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());
+        }
     }
     
     /**
@@ -156,7 +158,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     /**
      * Override this method if selection must be changed
      */
-    protected PivotResult  selectPivots(int pivotCount, IncrementalPivotSelector < O > pivotSelector) throws IOException, AlreadyFrozenException,
+    protected PivotResult  selectPivots(int pivotCount, IncrementalPivotSelector < O > pivotSelector) throws  AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.

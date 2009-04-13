@@ -166,7 +166,7 @@ public abstract class AbstractKnnGraph<O extends OB, B extends BucketObject, Q, 
 	
 	
 	@Override
-	public void freeze() throws IOException, AlreadyFrozenException,
+	public void freeze() throws AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OBStorageException, OutOfRangeException, OBException {
 

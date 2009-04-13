@@ -3,9 +3,13 @@ package net.obsearch.example.vectors;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Logger;
+
+import org.apache.log4j.PropertyConfigurator;
 
 import net.obsearch.ambient.Ambient;
 import net.obsearch.ambient.bdb.AmbientBDBJe;
@@ -21,6 +25,7 @@ import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezInt;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.result.OBPriorityQueueInt;
+import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultInt;
 import net.obsearch.storage.bdb.Utils;
 
@@ -59,12 +64,12 @@ public class VectorsDemo {
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 100000;
+	final static int DB_SIZE = 20000000;
 	
 	/**
 	 * Query count.
 	 */
-	final static int QUERY_SIZE = 1000;
+	final static int QUERY_SIZE = 100;
 		
 	/**
 	 * Index folder
@@ -90,27 +95,39 @@ public class VectorsDemo {
 		int i = 0;
 				
 		while(i < data.length){
-			data[i] = (short)r.nextInt(Short.MAX_VALUE);
+			data[i] = (short)r.nextInt(500);
 			i++;
 		}
 		
 		return new L1(data);
 	}
+	
+	public static void init() throws IOException{
+		
+		InputStream is = VectorsDemo.class.getResourceAsStream(
+				File.separator + "obsearch.properties");
+		Properties props = new Properties();
+		props.load(is);
+		String prop = props.getProperty("log4j.file");
+		PropertyConfigurator.configure(prop);
+	}
 
 	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException {
-					
+				
+		init();
+		
 		// Create a pivot selection strategy for L1 distance
-		IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(
+		IncrementalBustosNavarroChavezShort<L1> sel = new IncrementalBustosNavarroChavezShort<L1>(
 				new AcceptAll<L1>(), 5000, 1000);
 
 		// Create the iDistance method with 126 pivots
-		IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 64);
+		IDistanceIndexShort<L1> index = new IDistanceIndexShort<L1>(L1.class, sel, 64);
 
 		// Delete the directory of the index just in case.
 		Directory.deleteDirectory(INDEX_FOLDER);
 
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-		Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L1>>( index, INDEX_FOLDER );
+		Ambient<L1, IDistanceIndexShort<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexShort<L1>>( index, INDEX_FOLDER );
 		
 		
 		// Add some random objects to the index:	
@@ -133,9 +150,9 @@ public class VectorsDemo {
 		while(i < QUERY_SIZE){
 			L1 q = 	generateVector();	
 			// query the index with k=1			
-			OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
+			OBPriorityQueueShort<L1> queue = new OBPriorityQueueShort<L1>(1);			
 			// perform a query with r=3000000 and k = 1 
-			index.searchOB(q, 3000000, queue);
+			index.searchOB(q, Short.MAX_VALUE, queue);
 			// you can see the results with this loop:
 			/*Iterator<OBResultInt<L1>> it =  queue.iterator();
 			while(it.hasNext()){

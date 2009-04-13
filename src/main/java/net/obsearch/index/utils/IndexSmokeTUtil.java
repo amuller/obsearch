@@ -98,7 +98,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
         String re = r.readLine();
         long realIndex = 0;
         long i = 0;
-        final int totalToLoad = 10000;
+        final int totalToLoad = 100000;
         while (re != null && i < totalToLoad) {
             String line = parseLine(re);
             if (line != null) {

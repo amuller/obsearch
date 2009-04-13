@@ -1,5 +1,6 @@
 package net.obsearch.index.bucket;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -201,5 +202,11 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	/**
 	 * Serialize the bucket
 	 */	
-	byte[] serialize();
+	byte[] serialize() throws OBException, IOException;
+	
+	/**
+	 * Return true if the bucket has been modified since it was instantiated.
+	 * @return true if the bucket has been modified since it was instantiated.
+	 */
+	boolean isModified();
 }

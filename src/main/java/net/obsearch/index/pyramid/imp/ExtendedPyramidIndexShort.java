@@ -515,19 +515,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         return out;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see net.obsearch.result.index.IndexShort#searchOB(net.obsearch.result.ob.OBShort,
-     *      short, net.obsearch.result.result.OBPriorityQueueShort, int[])
-     */
-    @Override
-    public void searchOB(O object, short r, OBPriorityQueueShort < O > result,
-            int[] boxes) throws NotFrozenException, InstantiationException,
-            IllegalIdException, IllegalAccessException, OutOfRangeException,
-            OBException {
-        // TODO Auto-generated method stub
-
-    }
+    
     
     
 	public void searchOB(O object, short r, Filter<O> filter,
