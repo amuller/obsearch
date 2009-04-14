@@ -67,7 +67,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	/**
 	 * Factory of this storage device.
 	 */
-	private OBStoreFactory fact;
+	protected OBStoreFactory fact;
 
 	/**
 	 * Sequences are stored in this record.
@@ -123,8 +123,14 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	 * @return the current sequence id.
 	 */
 	private long getSequence() {
-		return fact.deSerializeLong(metadata.get(fact
-				.serializeInt(SEQUENCE_RECORD)));
+		byte[] rec = metadata.get(fact
+				.serializeInt(SEQUENCE_RECORD));
+		if(rec == null){
+			return 0;
+		}else{
+			return fact.deSerializeLong(rec);
+		}
+		
 	}
 
 	private void putSequence(long id) {
@@ -156,7 +162,8 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 			throw new OBStorageException("Unable to close the database: "
 					+ code);
 		}
-		metadata.close();
+		this.putSequence(currentId);
+		OBAsserts.chkAssertStorage(metadata.close(), "Could not close metadata DB");
 	}
 
 	private int lastErrorCode() {
@@ -216,32 +223,28 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		return this.name;
 	}
 
-	public ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
+	public byte[] getValue(byte[] key) throws IllegalArgumentException,
 			OBStorageException {
 		if (storageConf.isDuplicates()) {
 			throw new IllegalArgumentException();
 		}
 
 		byte[] value = db.get(key);
-		if (value != null) {
-			return ByteConversion.createByteBuffer(value);
-		} else {
-			return null;
-		}
+		return value;
 
 	}
 
-	public net.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
+	public net.obsearch.OperationStatus put(byte[] key, byte[] value)
 			throws OBStorageException {
 		OBAsserts
 				.chkAssertStorage(
 						storageConf.getIndexType() != IndexType.FIXED_RECORD
 								|| (storageConf.getIndexType() == IndexType.FIXED_RECORD && value
-										.array().length == storageConf
+										.length == storageConf
 										.getRecordSize()),
 						"Record size does not match the size for this index");
 		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
-		if (db.put(key, value.array())) {
+		if (db.put(key, value)) {
 			res.setStatus(Status.OK);
 		} else {
 			res.setMsg(this.lastErrorString());
@@ -309,10 +312,12 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		 */
 		private void loadNext() throws NoSuchElementException {
 			nextKey = db.iternext();
-			nextValue = db.get(nextKey);
+			if(nextKey != null){
+				nextValue = db.get(nextKey);
+			}
 		}
 
-		protected T createT(byte[] key, ByteBuffer value) {
+		protected T createT(byte[] key, byte[] value) {
 			return createTuple(key, value);
 		}
 
@@ -326,10 +331,10 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		 * @return A new tuple of type T created from the raw data key and
 		 *         value.
 		 */
-		protected abstract T createTuple(byte[] key, ByteBuffer value);
+		protected abstract T createTuple(byte[] key, byte[] value);
 
 		public T next() {
-			T res = createT(nextKey, ByteConversion.createByteBuffer(nextValue));
+			T res = createT(nextKey, nextValue);
 			lastReturnedKey = nextKey;
 			loadNext();
 			return res;
@@ -351,7 +356,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 
 	public long size() throws OBStorageException {
 
-		long res = db.fsiz();
+		long res = db.rnum();
 
 		return res;
 
@@ -364,9 +369,9 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	 */
 	public long nextId() throws OBStorageException {
 		synchronized (metadata) {
-			this.currentId++;
-			this.putSequence(currentId);
-			return currentId;
+			long res = currentId;
+			this.currentId++;			
+			return res;
 		}
 	}
 
@@ -387,7 +392,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		}
 
 		@Override
-		protected TupleBytes createTuple(byte[] key, ByteBuffer value) {
+		protected TupleBytes createTuple(byte[] key, byte[] value) {
 			return new TupleBytes(key, value);
 		}
 	}

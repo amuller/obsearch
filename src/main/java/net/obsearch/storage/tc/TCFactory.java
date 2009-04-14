@@ -7,6 +7,7 @@ import tokyocabinet.BDB;
 import tokyocabinet.DBM;
 import tokyocabinet.FDB;
 import tokyocabinet.HDB;
+import tokyocabinet.Util;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.OBSearchProperties;
@@ -23,6 +24,7 @@ import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.OBStoreShort;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStorageConfig.IndexType;
+import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.utils.bytes.ByteConversion;
 
 public class TCFactory implements OBStoreFactory {
@@ -40,31 +42,35 @@ public class TCFactory implements OBStoreFactory {
 
 	}
 
-	@Override
-	public OBStore<TupleBytes> createOBStore(String name, OBStorageConfig config)
-			throws OBStorageException, OBException {
-
+	private DBM createDB(String name, OBStorageConfig config) throws OBStorageException, OBException{
 		DBM db = null;
 		String path = directory + File.separator + name;
-		if (IndexType.HASH == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
+		if (IndexType.HASH == config.getIndexType() ) {
 			HDB tdb = new HDB();
-			tdb.open(path, HDB.OCREAT | HDB.OREADER | HDB.OWRITER);
-			OBAsserts.chkAssertStorage(tdb.tune(OBSearchProperties.getLongProperty("tc.expected.db.count") * 4, -1, -1, HDB.TLARGE  ), "Could not set the tuning parameters for the hash table" );
+			OBAsserts.chkAssertStorage(tdb.tune(OBSearchProperties.getLongProperty("tc.expected.db.count") * 4, -1, -1, HDB.TLARGE  ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER), "Could not open database: " + tdb.errmsg());			
 			db = tdb;
-		} else if (IndexType.BTREE == config.getIndexType()) {
+		} else if (IndexType.BTREE == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
 			BDB tdb = new BDB();
-			tdb.open(path, BDB.OCREAT | BDB.OREADER | BDB.OWRITER);
+			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER), "Could not open database: " + tdb.errmsg() );
 			db = tdb;
 		} else if(IndexType.FIXED_RECORD == config.getIndexType()){
 			FDB tdb = new FDB();
-			tdb.open(path, FDB.OCREAT | FDB.OREADER | FDB.OWRITER);
 			OBAsserts.chkAssert(config.getRecordSize() > 0, "Invalid record size");
-			OBAsserts.chkAssertStorage(tdb.tune(config.getRecordSize(), OBSearchProperties.getIntProperty("tc.fdb.max.file.size")), "Could not set the tuning parameters for the fixed record device");
+			OBAsserts.chkAssertStorage(tdb.tune(config.getRecordSize(), OBSearchProperties.getLongProperty("tc.fdb.max.file.size")), "Could not set the tuning parameters for the fixed record device");
+			OBAsserts.chkAssertStorage(tdb.open(path, FDB.OCREAT |  FDB.OWRITER), "Could not open database: " + tdb.errmsg() );
 			db = tdb;
 		}else{
 			OBAsserts.fail("Fatal error, invalid index type.");
 		}
-		
+		return db;
+	}
+	
+	@Override
+	public OBStore<TupleBytes> createOBStore(String name, OBStorageConfig config)
+			throws OBStorageException, OBException {
+
+		DBM db = createDB(name, config);
 		TCOBStorageBytesArray t = new TCOBStorageBytesArray(name, db, this, config);
 		return t;
 	}
@@ -99,9 +105,10 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public OBStoreLong createOBStoreLong(String name, OBStorageConfig config)
-			throws OBStorageException, OBException {
-		// TODO Auto-generated method stub
-		return null;
+			throws OBStorageException, OBException {		
+		DBM db = createDB(name, config);
+		TCOBStorageLong t = new TCOBStorageLong(name, db, this, config);
+		return t;
 	}
 
 	@Override
@@ -133,12 +140,14 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public int deSerializeInt(byte[] value) {
-		return ByteConversion.bytesToInt(value);
+		//return ByteConversion.bytesToInt(value);
+		return Util.unpackint(value);
 	}
 
 	@Override
 	public long deSerializeLong(byte[] value) {
-		return ByteConversion.bytesToLong(value);
+		//return ByteConversion.bytesToLong(value);
+		return BDBFactoryJe.bytesToLong(value);
 	}
 
 	@Override
@@ -180,12 +189,14 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public byte[] serializeInt(int value) {
-		return ByteConversion.intToBytes(value);
+		//return ByteConversion.intToBytes(value);
+		return Util.packint(value);
 	}
 
 	@Override
 	public byte[] serializeLong(long value) {
-		return ByteConversion.longToBytes(value);
+		//return ByteConversion.longToBytes(value);
+		return BDBFactoryJe.longToBytes(value);
 	}
 
 	@Override

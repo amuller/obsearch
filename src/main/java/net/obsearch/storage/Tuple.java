@@ -29,9 +29,9 @@ import java.nio.ByteBuffer;
 
 public class Tuple {
 
-    private ByteBuffer value;
+    private byte[] value;
 
-    public Tuple(ByteBuffer value) {
+    public Tuple(byte[] value) {
 
         this.value = value;
     }
@@ -39,11 +39,11 @@ public class Tuple {
     /**
      * @return The value.
      */
-    public ByteBuffer getValue() {
+    public byte[] getValue() {
         return value;
     }
     
-    public void setValue(ByteBuffer newValue){
+    public void setValue(byte[] newValue){
     	this.value = newValue;
     }
 

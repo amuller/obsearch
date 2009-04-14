@@ -6,7 +6,9 @@ public class OBStorageConfig {
 	 *
 	 */
 	public enum IndexType {
-		HASH, BTREE, FIXED_RECORD, DEFAULT
+		HASH, BTREE, 
+		FIXED_RECORD,
+		DEFAULT
 	}
 	
 	private boolean temp = false;

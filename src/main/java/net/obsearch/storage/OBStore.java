@@ -67,7 +67,7 @@ public interface OBStore<T extends Tuple> {
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
 	 */
-	ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
+	byte[] getValue(byte[] key) throws IllegalArgumentException,
 			OBStorageException;
 
 	/**
@@ -86,7 +86,7 @@ public interface OBStore<T extends Tuple> {
 	 *         successfully. {@link net.obsearch.Status#ERROR} if the record
 	 *         could not be updated.
 	 */
-	OperationStatus put(byte[] key, ByteBuffer value) throws OBStorageException;
+	OperationStatus put(byte[] key, byte[] value) throws OBStorageException;
 
 	/**
 	 * Deletes the given key and its corresponding value from the database.
