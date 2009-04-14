@@ -43,8 +43,21 @@ public class OperationStatus {
      * Number of times this 
      */
     private long frequency;
-
+    
     /**
+     * String message
+     */
+    private String msg = null;
+
+    public String getMsg() {
+		return msg;
+	}
+
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+
+	/**
      * Creates a default status with status Status.Error
      * and an id of -1.
      */
