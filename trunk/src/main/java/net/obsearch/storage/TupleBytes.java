@@ -31,7 +31,7 @@ public class TupleBytes
         extends Tuple {
     private byte[] key;
 
-    public TupleBytes(byte[] key, ByteBuffer value) {
+    public TupleBytes(byte[] key, byte[] value) {
         super(value);
         this.key = key;
     }
