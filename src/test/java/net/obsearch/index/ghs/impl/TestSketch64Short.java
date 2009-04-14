@@ -7,10 +7,12 @@ import net.obsearch.example.OBSlice;
 import net.obsearch.example.OBSliceFactory;
 import net.obsearch.index.utils.IndexSmokeTUtil;
 import net.obsearch.index.utils.IndexSmokeTUtilApprox;
+import net.obsearch.index.utils.OBFactory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.muller2.IncrementalMullerRosaShort;
 import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.storage.bdb.Utils;
+import net.obsearch.storage.tc.TCFactory;
 
 
 public class TestSketch64Short {
@@ -31,7 +33,8 @@ public class TestSketch64Short {
       
     	 IncrementalMullerRosaShort<OBSlice> sel = new IncrementalMullerRosaShort<OBSlice>(
  				new AcceptAll<OBSlice>(), 100, 100, (short) 5000);
-    	BDBFactoryJe fact = Utils.getFactoryJe();
+    	//BDBFactoryJe fact = Utils.getFactoryJe();
+    	TCFactory fact = Utils.getFactoryTC();
     	Sketch64Short<OBSlice> index = new Sketch64Short<OBSlice>(OBSlice.class, sel, 64, 1 );
         index.init(fact);
         index.setKAlpha(2f);

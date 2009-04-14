@@ -12,6 +12,7 @@ import net.obsearch.ob.OBShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.storage.OBStoreDouble;
 import net.obsearch.storage.TupleDouble;
+import net.obsearch.utils.bytes.ByteConversion;
 
 /**
  * Utilities for short indexes.
@@ -63,7 +64,7 @@ public class UtilsShort<O extends OBShort> {
         short realDistance = Short.MIN_VALUE;
         while (it.hasNext()) {
             TupleDouble tup = it.next();
-            ByteBuffer in = tup.getValue();
+            ByteBuffer in = ByteConversion.createByteBuffer(tup.getValue());
 
             int i = 0;
             short t;

@@ -99,12 +99,12 @@ public final class BDBOBStore${Bdb}${Type}
         return ${binding}Binding.entryTo${Type}(e);        
     }
 
-    public ByteBuffer getValue(${type} key) throws IllegalArgumentException,
+    public byte[] getValue(${type} key) throws IllegalArgumentException,
             OBStorageException {
         return super.getValue(getBytes(key));
     }
 
-    public net.obsearch.OperationStatus put(${type} key, ByteBuffer value) throws IllegalArgumentException,
+    public net.obsearch.OperationStatus put(${type} key, byte[] value) throws IllegalArgumentException,
             OBStorageException {
         return super.put(getBytes(key), value);
     }
@@ -162,7 +162,7 @@ public final class BDBOBStore${Bdb}${Type}
 						super(null, null,true, false,true);
         }
 
-				protected Tuple${Type} createTuple(byte[] key, ByteBuffer value) {
+				protected Tuple${Type} createTuple(byte[] key, byte[] value) {
             return new Tuple${Type}(bytesToValue(key),value);
         }
     }

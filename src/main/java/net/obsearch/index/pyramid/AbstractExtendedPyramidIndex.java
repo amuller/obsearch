@@ -29,6 +29,8 @@ import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.TupleDouble;
 import net.obsearch.storage.TupleLong;
+import net.obsearch.utils.bytes.ByteConversion;
+
 import org.apache.log4j.Logger;
 
 import cern.colt.list.DoubleArrayList;
@@ -187,7 +189,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
         try {
             while (it.hasNext()) {
                 TupleLong t = it.next();
-                double [] vect = extractTuple(t.getValue());
+                double [] vect = extractTuple(ByteConversion.createByteBuffer(t.getValue()));
                 updateMedianHolder(vect, medianHolder);
                 calculateDistances(vect, qt);
             }
@@ -248,7 +250,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
                 O obj = bytesToObject(tup.getValue());
                 ByteBuffer pivots = objectToProjectionBytes(obj);
                 assert pivots != null : "Implement projection serialization";
-                B.put(tup.getKey(), pivots);
+                B.put(tup.getKey(), pivots.array());
             }
         } finally {
             it.closeCursor();

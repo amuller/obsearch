@@ -39,7 +39,7 @@ public final class Tuple${Type} extends Tuple{
     
     
 
-    public Tuple${Type}(${type} key, ByteBuffer value) {
+    public Tuple${Type}(${type} key, byte[] value) {
 				super(value);
         this.key = key;
     }

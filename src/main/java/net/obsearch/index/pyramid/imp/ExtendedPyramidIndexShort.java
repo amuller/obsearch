@@ -21,6 +21,7 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.TupleBytes;
 
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
+import net.obsearch.utils.bytes.ByteConversion;
 
 import net.obsearch.index.IndexShort;
 import net.obsearch.ob.OBShort;
@@ -256,7 +257,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         	stats.incBucketsRead();
         	
             TupleDouble tup = it.next();
-            ByteBuffer in = tup.getValue();
+            ByteBuffer in = ByteConversion.createByteBuffer(tup.getValue());
             stats.incDataRead(in.array().length);
             int i = 0;
             short t;
@@ -383,7 +384,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         }
         // write the object's id
         out.putLong(id);
-        C.put(pyramidValue, out);
+        C.put(pyramidValue, out.array());
         OperationStatus result = new OperationStatus();
         result.setStatus(Status.OK);
         result.setId(id);
@@ -456,7 +457,7 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         short max = Short.MIN_VALUE;
         while (it.hasNext()) {
             TupleDouble tup = it.next();
-            ByteBuffer in = tup.getValue();
+            ByteBuffer in = ByteConversion.createByteBuffer(tup.getValue());
 
             int i = 0;
             short t;

@@ -277,6 +277,11 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
 				return entry.getData();
 		}
 
+		public static ${type} bytesTo${Type}(byte[] value){
+				DatabaseEntry entry = new DatabaseEntry(value);
+				return ${binding}Binding.entryTo${Type}(entry);
+		}
+
 </#list>
 
 		public byte[] serializeBigInteger(BigInteger value){

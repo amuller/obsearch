@@ -82,12 +82,12 @@ implements IndexShort<O> {
 	
 	@Override
 	protected SleekBucketShort<O> instantiateBucketContainer(
-			ByteBuffer data, byte[] address) throws InstantiationException, IllegalAccessException, OBException {
+			byte[] data, byte[] address) throws InstantiationException, IllegalAccessException, OBException {
 		if(data == null){
 			return new SleekBucketShort<O>( type, bucketPivotCount);
 		}else{
 			try{
-				return new SleekBucketShort<O>( type, bucketPivotCount, data.array());
+				return new SleekBucketShort<O>( type, bucketPivotCount, data);
 			}catch(IOException e){
 				throw new OBException(e);
 			}

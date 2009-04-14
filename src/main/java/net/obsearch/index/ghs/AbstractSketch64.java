@@ -344,7 +344,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 				InstantiationException, IllegalAccessException,
 				IllegalIdException {
 
-			ByteBuffer data = Buckets.getValue(i);
+			byte[] data = Buckets.getValue(i);
 			if (data == null) {
 				return null;
 			}
@@ -356,8 +356,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		public void store(byte[] key, BC object) throws OBException {
 			try {
 				if (object.isModified()) {
-					Buckets.put(key, ByteConversion.createByteBuffer(object
-							.serialize()));
+					Buckets.put(key, object
+							.serialize());
 				}
 			} catch (IOException e) {
 				throw new OBException(e);

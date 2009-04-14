@@ -115,15 +115,15 @@ public class KnnGraphShort<O extends OBShort>
 		// we have to create a node
 		try {
 
-			ByteBuffer pointer = Buckets.getValue(code);
+			byte[] pointer = Buckets.getValue(code);
 			Node n = null;
 			if (pointer == null) {
 				n = neo.createNode();
-				ByteBuffer id = ByteConversion.longToByteBuffer(n.getId());
+				byte[] id = ByteConversion.longToBytes(n.getId());
 				Buckets.put(code, id);
 			} else {
 				// get the node from the DB.
-				long id = ByteConversion.byteBufferToLong(pointer);
+				long id = ByteConversion.bytesToLong(pointer);
 				n = neo.getNodeById(id);
 			}
 			updateSeeds(b, object, n.getId());
@@ -138,7 +138,7 @@ public class KnnGraphShort<O extends OBShort>
 			while (it.hasNext()) {
 				TupleBytes other = it.next();
 				long otherId = ByteConversion
-						.byteBufferToLong(other.getValue());
+						.bytesToLong(other.getValue());
 				
 				Node otherN = neo.getNodeById(otherId);
 				// update the k nearest neighbors of this node
@@ -336,7 +336,7 @@ public class KnnGraphShort<O extends OBShort>
 
 	@Override
 	protected BucketContainerShort<O> instantiateBucketContainer(
-			ByteBuffer data, byte[] address) {
+			byte[] data, byte[] address) {
 		return null;
 	}
 
@@ -416,7 +416,7 @@ public class KnnGraphShort<O extends OBShort>
 			}
 			if (t != null) {
 				// process from this node.
-				long id = ByteConversion.byteBufferToLong(t.getValue());
+				long id = ByteConversion.bytesToLong(t.getValue());
 				Node seed = neo.getNodeById(id);
 				// all the distances are with respect to the query.
 				short distance = lInf(b.getSmapVector(), seed);

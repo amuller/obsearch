@@ -54,7 +54,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *                 You can query the exception to see more details regarding
      *                 the nature of the error.
      */
-    ByteBuffer getValue(${type}  key) throws IllegalArgumentException, OBStorageException;
+    byte[] getValue(${type}  key) throws IllegalArgumentException, OBStorageException;
     
     /**
      * Process the given range of items (from low to high), including low and high. The TupleProcessor's process
@@ -98,7 +98,7 @@ public interface OBStore${Type} extends OBStore<Tuple${Type}> {
      *               {@link net.obsearch.OperationStatus.Status#ERROR} if
      * the record could not be updated.
      */
-    OperationStatus put(${type} key, ByteBuffer value) throws OBStorageException;
+    OperationStatus put(${type} key, byte[] value) throws OBStorageException;
 
 		/**
      * Deletes the given key and its corresponding value from the database.

@@ -26,6 +26,7 @@ import net.obsearch.index.pptree.SpaceTreeLeaf;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
+import net.obsearch.utils.bytes.ByteConversion;
 
 import net.obsearch.index.IndexShort;
 
@@ -434,7 +435,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			while (it.hasNext()) {
 				stats.incSmapCount();
 				TupleDouble tup = it.next();
-				ByteBuffer in = tup.getValue();
+				ByteBuffer in = ByteConversion.createByteBuffer(tup.getValue());
 
 				int i = 0;
 				short t;
@@ -483,7 +484,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		}
 		// write the object's id
 		out.putLong(id);
-		C.put(ppTreeValue, out);
+		C.put(ppTreeValue, out.array());
 		OperationStatus result = new OperationStatus();
 		result.setStatus(Status.OK);
 		result.setId(id);
@@ -535,7 +536,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		public double[] loadObject(long id) throws OutOfRangeException,
 				OBException, InstantiationException, IllegalAccessException {
 			double[] tempTuple = new double[getPivotCount()];
-			ByteBuffer in = B.getValue(id);
+			ByteBuffer in = ByteConversion.createByteBuffer(B.getValue(id));
 			int i = 0;
 			while (i < getPivotCount()) {
 				tempTuple[i] = normalizeFirstPassAux(in.getShort());
@@ -679,7 +680,7 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 			short max = Short.MIN_VALUE;
 			while (it.hasNext()) {
 				TupleDouble tup = it.next();
-				ByteBuffer in = tup.getValue();
+				ByteBuffer in = ByteConversion.createByteBuffer(tup.getValue());
 
 				int i = 0;
 				short t;

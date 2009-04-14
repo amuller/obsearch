@@ -141,11 +141,11 @@ public abstract class AbstractKnnGraph<O extends OB, B extends BucketObject, Q, 
 	 * @throws IllegalArgumentException 
 	 */
 	protected long getNodeId(byte[] grayCode) throws IllegalArgumentException, OBStorageException{
-		ByteBuffer b = Buckets.getValue(grayCode);
+		byte[] b = Buckets.getValue(grayCode);
 		if(b == null){
 			return -1;
 		}
-		return b.getLong();
+		return ByteConversion.bytesToLong(b);
 	}
 	
 	/**

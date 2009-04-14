@@ -149,7 +149,7 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 
 	@Override
 	protected BucketContainer${Type}<O> instantiateBucketContainer(
-			ByteBuffer data, byte[] address) {
+			byte[] data, byte[] address) {
 			//byte pivot = fact.deSerializeByte(address);
 			return new BucketContainer${Type}<O>(this, getPivotCount(), Buckets, address);
 	}

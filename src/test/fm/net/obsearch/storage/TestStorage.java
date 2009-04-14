@@ -86,12 +86,12 @@ public class StorageValidation${Type} extends TestCase {
 
         for(${type} j : testData.keySet()){
 						//						logger.info(j +  ": " + Arrays.toString(testData.get(j)));
-            storage.put(j, ByteConversion.createByteBuffer(testData.get(j)));
+            storage.put(j, testData.get(j));
 						//logger.info(Arrays.toString(testData.get(j)));
         }               
         // test that all the data is there:
         for(${type} j : testData.keySet()){               
-						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
+						assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
         }         
 
         
@@ -103,7 +103,7 @@ public class StorageValidation${Type} extends TestCase {
         while(it.hasNext()){
             Tuple${Type} t = it.next();
 						assertTrue(testData.get(t.getKey()) != null);
-						assertTrue("A:" + Arrays.toString(testData.get(t.getKey())) +  "B:" + Arrays.toString(t.getValue().array()) + " i: " + i + "A-key: " + t.getKey() , Arrays.equals(testData.get(t.getKey()), t.getValue().array()) );
+						assertTrue("A:" + Arrays.toString(testData.get(t.getKey())) +  "B:" + Arrays.toString(t.getValue()) + " i: " + i + "A-key: " + t.getKey() , Arrays.equals(testData.get(t.getKey()), t.getValue()) );
             //assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
             if(first){
                 prev = t.getKey();
@@ -124,7 +124,7 @@ public class StorageValidation${Type} extends TestCase {
         prev = ${ClassType}.MIN_VALUE;
         while(it.hasNext()){
             Tuple${Type} t = it.next();
-            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue().array()));
+            assertTrue(Arrays.equals(testData.get(t.getKey()), t.getValue()));
             if(first){
                 prev = t.getKey();
                 first = false;
@@ -144,12 +144,12 @@ public class StorageValidation${Type} extends TestCase {
         // Test updates:
         for(${type} j : testData.keySet()){
             String d = x.nextDouble() + "";
-            testData.put(j,d.getBytes());
-            storage.put(j, ByteConversion.createByteBuffer(d.getBytes()));
+            testData.put(j, d.getBytes());//:)
+            storage.put(j, d.getBytes());
         }          
         // test that all the new  data is there:
         for(${type} j : testData.keySet()){               
-						assertTrue(Arrays.equals(storage.getValue(j).array(), testData.get(j)));
+						assertTrue(Arrays.equals(storage.getValue(j), testData.get(j)));
         }   
 
 				// Test deletes:
@@ -207,7 +207,7 @@ public class StorageValidation${Type} extends TestCase {
 						//						logger.info(j +  ": " + Arrays.toString(testData.get(j)));
 						byte[][] data = testData.get(j);
 						for(byte[] d : data){
-								storage.put(j, ByteConversion.createByteBuffer(d));
+								storage.put(j, d);
 						}           
 						//logger.info(Arrays.toString(testData.get(j)));
         }               
@@ -219,7 +219,7 @@ public class StorageValidation${Type} extends TestCase {
 								int found = 0;
 								while(it.hasNext()){
 										Tuple${Type} t = it.next();
-										if(Arrays.equals(d, t.getValue().array())){
+										if(Arrays.equals(d, t.getValue())){
 												found++;
 										}
 										
