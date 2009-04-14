@@ -224,7 +224,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// objects are small enough.
 		
 		
-		
+		int i = 0;
 		CloseIterator<TupleLong> it = A.processAll();
 		while (it.hasNext()) {
 			TupleLong t = it.next();
@@ -233,7 +233,9 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			B b = getBucket(o);
 			b.setId(id);
 			this.insertBucketBulk(b, o);
-
+			if(i % 100000 == 0){
+				logger.info("Converting... " + i);
+			}
 		}
 		it.closeCursor();
 		
@@ -354,7 +356,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	protected abstract BC instantiateBucketContainer(ByteBuffer data,
+	protected abstract BC instantiateBucketContainer(byte[] data,
 			byte[] address) throws InstantiationException, IllegalAccessException, OBException;
 
 	/**

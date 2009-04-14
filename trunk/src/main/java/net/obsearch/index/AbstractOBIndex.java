@@ -50,6 +50,7 @@ import net.obsearch.utils.bytes.ByteConversion;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.OBStoreLong;
+import net.obsearch.storage.OBStorageConfig.IndexType;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -104,7 +105,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * are in preFreeze. It would make things much more efficient and cheap for
 	 * prefreeze.
 	 */
-	private boolean isPreFreeze = true;
+	private boolean isPreFreeze = false;
 
 	/**
 	 * Cache used for storing recently accessed objects O.
@@ -190,7 +191,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		conf.setTemp(false);
 		conf.setDuplicates(false);
 		conf.setBulkMode(! isFrozen());
-		
+		conf.setIndexType(IndexType.HASH);
 		this.A = fact.createOBStoreLong("A", conf );
 		if (!this.isFrozen()) {
 			conf = new OBStorageConfig();
@@ -226,12 +227,12 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		public O loadObject(long i) throws OBException, InstantiationException,
 				IllegalAccessException, IllegalIdException {
 
-			ByteBuffer data = A.getValue(i);
+			byte[] data = A.getValue(i);
 			if (data == null) {
 				throw new IllegalIdException(i);
 			}
 
-			return bytesToObject(data.array());
+			return bytesToObject(data);
 		}
 
 		@Override
@@ -358,8 +359,8 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}
 	}
 
-	protected ByteBuffer objectToByteBuffer(O object) throws OBException {
-		return ByteConversion.createByteBuffer(objectToBytes(object));
+	protected byte[] objectToByteBuffer(O object) throws OBException {
+		return objectToBytes(object);
 	}
 
 	/*
@@ -502,16 +503,16 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			// with objects that have multiplicity.
 			if (isPreFreeze) {
 				byte[] key = objectToBytes(object);
-				ByteBuffer value = this.preFreeze.getValue(key);
+				byte[] value = this.preFreeze.getValue(key);
 				if (value == null) {
 					if (id == -1) {
 						id = A.nextId();
 					}
 					res.setId(id);
-					preFreeze.put(key, ByteConversion.longToByteBuffer(id));
+					preFreeze.put(key, ByteConversion.longToBytes(id));
 				} else {
 					res.setStatus(Status.EXISTS);
-					res.setId(ByteConversion.byteBufferToLong(value));
+					res.setId(ByteConversion.bytesToLong(value));
 				}
 			} else {
 				res.setId(id);

@@ -185,7 +185,7 @@ import net.obsearch.constants.ByteConstants;
 				
 										while(pr.hasNext()){
 												TupleBytes t = pr.next();
-												cmp.read(t.getValue(), getPivots());
+												cmp.read(ByteConversion.createByteBuffer(t.getValue()), getPivots());
 												if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){
 														res.setStatus(Status.OK);
 														res.setId(cmp.getId());
@@ -246,7 +246,7 @@ import net.obsearch.constants.ByteConstants;
 						res.setId(bucket.getId());
 						bucket.write(out);
 						byte[] key2 = buildKey(key, bucket);
-						storage.put(key2, out);
+						storage.put(key2, out.array());
 						return res;
     }
 
@@ -275,7 +275,7 @@ import net.obsearch.constants.ByteConstants;
 						B cmp = instantiateBucketObject();
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
-								cmp.read(t.getValue(), getPivots());
+								cmp.read(ByteConversion.createByteBuffer(t.getValue()), getPivots());
 								if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){						
 										res.setStatus(Status.EXISTS);							
 										res.setId(cmp.getId());
@@ -368,8 +368,8 @@ import net.obsearch.constants.ByteConstants;
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
 								
-								current.read(t.getValue(), getPivots());
-								stats.incDataRead(t.getValue().array().length);
+								current.read(ByteConversion.createByteBuffer(t.getValue()), getPivots());
+								stats.incDataRead(t.getValue().length);
 								${type} max = current.lInf(b);
 								stats.incSmapCount();
 								if (max <= query.getDistance() && query.isCandidate(max)) {

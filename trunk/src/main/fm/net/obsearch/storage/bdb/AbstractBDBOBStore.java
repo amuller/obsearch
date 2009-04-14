@@ -186,7 +186,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		return this.name;
 	}
 
-	public ByteBuffer getValue(byte[] key) throws IllegalArgumentException,
+	public byte[] getValue(byte[] key) throws IllegalArgumentException,
 			OBStorageException {
 		if (duplicates) {
 			throw new IllegalArgumentException();
@@ -202,7 +202,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				if (this.stats != null) {
 					stats.add(value.getData().length);
 				}
-				return ByteConversion.createByteBuffer(value.getData());
+				return value.getData();
 			} else {
 				return null;
 			}
@@ -211,14 +211,14 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		}
 	}
 
-	public net.obsearch.OperationStatus put(byte[] key, ByteBuffer value)
+	public net.obsearch.OperationStatus put(byte[] key, byte[] value)
 			throws OBStorageException {
 
 		DatabaseEntry k = new DatabaseEntry(key);
 		
 		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
 		try {
-				DatabaseEntry v = new DatabaseEntry(value.array());
+				DatabaseEntry v = new DatabaseEntry(value);
 			OperationStatus r = db.put(null, k, v);
 			if (r == OperationStatus.SUCCESS) {
 				res.setStatus(Status.OK);
@@ -394,8 +394,8 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			
 				if (backwardsMode) {
 						if (full || withinRange()) {
-						next = createT(current, ByteConversion
-															 .createByteBuffer(dataEntry.getData()));
+						next = createT(current, 
+															 (dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
 						next = null;
@@ -405,8 +405,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 
 				} else {
 						if (full || withinRange()) {
-						next = createT(current, ByteConversion
-															 .createByteBuffer(dataEntry.getData()));
+						next = createT(current, (dataEntry.getData()));
 						stats.add(dataEntry.getData().length);
 					} else { // end of the loop
 						next = null;
@@ -421,7 +420,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			}
 		}
 
-		protected  T createT(byte[] key, ByteBuffer value){
+		protected  T createT(byte[] key, byte[] value){
 				<#if bdb = "je">
 									return		 createTuple(key,value);
 				<#else>
@@ -442,7 +441,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		 * @return A new tuple of type T created from the raw data key and
 		 *         value.
 		 */
-		protected abstract T createTuple(byte[] key, ByteBuffer value);
+		protected abstract T createTuple(byte[] key, byte[] value);
 
 		public T next() {
 			
@@ -614,7 +613,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		}
 
 		@Override
-		protected TupleBytes createTuple(byte[] key, ByteBuffer value) {
+		protected TupleBytes createTuple(byte[] key, byte[] value) {
 			return new TupleBytes(key, value);
 		}
 	}

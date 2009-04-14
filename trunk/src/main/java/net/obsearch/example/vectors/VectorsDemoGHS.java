@@ -11,6 +11,7 @@ import java.util.List;
 import net.obsearch.ambient.Ambient;
 import net.obsearch.ambient.bdb.AmbientBDBDb;
 import net.obsearch.ambient.bdb.AmbientBDBJe;
+import net.obsearch.ambient.tc.AmbientTC;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
@@ -42,7 +43,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 	    index.setSampleSize(100);
 	    index.setMaxK(new int[]{1});
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-		Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
+		Ambient<L1, Sketch64Short<L1>> a =  new AmbientTC<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 		
 		
 		// Add some random objects to the index:	
