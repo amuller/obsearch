@@ -162,3 +162,10 @@ wget obsearch.net/mg4j-2.1.2.jar
 mvn install:install-file -Dfile=mg4j-2.1.2.jar -DgroupId=mg4j -DartifactId=mg4j -Dversion=2.1.2 -Dpackaging=jar -DgeneratePom=true
 
 rm mg4j-2.1.2.jar
+
+
+
+wget obsearch.net/dependencies/tokyocabinet.jar
+mvn install:install-file -Dfile=tokyocabinet.jar -DgroupId=tc -DartifactId=tc -Dversion=1.17 -Dpackaging=jar -DgeneratePom=true
+
+rm tokyocabinet.jar

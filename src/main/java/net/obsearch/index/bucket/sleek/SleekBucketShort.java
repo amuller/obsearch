@@ -494,7 +494,7 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * @throws OBException
 	 */
 	public byte[] serialize() throws OBException, IOException {
-		OBAsserts.chkAssert(size() > 0, "Do not serialize an empty bucket");
+		//OBAsserts.chkAssert(size() > 0, "Do not serialize an empty bucket");
 		
 		ArrayList<byte[]> serializedPivots = new ArrayList<byte[]>(pivotsCount());
 		ArrayList<byte[]> serializedObjects = new ArrayList<byte[]>(objectsCount());

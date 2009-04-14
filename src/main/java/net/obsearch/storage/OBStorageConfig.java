@@ -1,11 +1,27 @@
 package net.obsearch.storage;
 
 public class OBStorageConfig {
+	/**
+	 * Index that will be used by the underlying storage device
+	 *
+	 */
+	public enum IndexType {
+		HASH, BTREE, FIXED_RECORD, DEFAULT
+	}
 	
 	private boolean temp = false;
 	private boolean duplicates = false; 
 	private boolean bulkMode = false;
+	private boolean fixedSizeIndex = false;
 	
+	private IndexType type = IndexType.DEFAULT;
+	
+	public boolean isFixedSizeIndex() {
+		return fixedSizeIndex;
+	}
+	public void setFixedSizeIndex(boolean fixedSizeIndex) {
+		this.fixedSizeIndex = fixedSizeIndex;
+	}
 	/**
 	 * Size of the records that will be stored
 	 * Some storage devices require this information or
@@ -14,6 +30,14 @@ public class OBStorageConfig {
 	 * 
 	 */
 	private int recordSize = -1;
+	
+	public IndexType getIndexType(){
+		return type;
+	}
+	
+	public void setIndexType(IndexType newType){
+		this.type = newType;
+	}
 	
 	public boolean isTemp() {
 		return temp;

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.obsearch.ambient.Ambient;
+import net.obsearch.ambient.bdb.AmbientBDBDb;
 import net.obsearch.ambient.bdb.AmbientBDBJe;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
@@ -41,7 +42,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 	    index.setSampleSize(100);
 	    index.setMaxK(new int[]{1});
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-		Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBJe<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
+		Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 		
 		
 		// Add some random objects to the index:	
@@ -49,6 +50,9 @@ public class VectorsDemoGHS extends VectorsDemo {
 		int i = 0;		
 		while(i < DB_SIZE){
 			index.insert(generateVector());
+			if(i % 100000 == 0){
+				logger.info("Loading: " + i);
+			}
 			i++;
 		}
 		
@@ -71,6 +75,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 			index.searchOB(q, Short.MAX_VALUE, queue);
 			queryResults.add(queue);
 			queries.add(q);
+			
 			i++;
 		}
 		// print the results of the set of queries. 
