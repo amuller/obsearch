@@ -234,6 +234,13 @@ public interface OBStore<T extends Tuple> {
 	 * @throws OBStorageException
 	 */
 	CloseIterator<T> processAll() throws OBStorageException;
+	
+	/**
+	 * Process all the keys of this storage
+	 * @return
+	 * @throws OBStorageException
+	 */
+	CloseIterator<byte[]> processAllKeys() throws OBStorageException;
 
 	// TODO: For File mappings we might need to create a function that allows
 	// the user to expand the size of the buffer by some %.

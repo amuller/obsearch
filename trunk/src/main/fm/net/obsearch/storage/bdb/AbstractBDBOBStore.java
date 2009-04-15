@@ -232,6 +232,16 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 	public boolean allowsDuplicatedData() {
 		return duplicates;
 	}
+
+	/**
+	 * Transform Bytes in a format that can be used by the 
+	 * underlying index.
+	 * @param in Input byte array
+	 * @return transformed bytes ready to be sorted.`
+	 */
+	public CloseIterator<byte[]> processAllKeys() throws OBStorageException{
+			throw new IllegalArgumentException();
+	}
   
   public byte[] prepareBytes(byte[] in){
 			byte[] res = new byte[in.length];

@@ -105,7 +105,15 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * are in preFreeze. It would make things much more efficient and cheap for
 	 * prefreeze.
 	 */
-	private boolean isPreFreeze = false;
+	private boolean preFreezeCheck = false;
+
+	public boolean isPreFreezeCheck() {
+		return preFreezeCheck;
+	}
+
+	public void setPreFreezeCheck(boolean preFreezeCheck) {
+		this.preFreezeCheck = preFreezeCheck;
+	}
 
 	/**
 	 * Cache used for storing recently accessed objects O.
@@ -249,19 +257,19 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 *         freezing.
 	 */
 	public boolean isPreFreeze() {
-		return isPreFreeze;
+		return preFreezeCheck;
 	}
 
 	/**
 	 * If we are going to check for the existence of data before freezing
-	 * isPreFreeze should be set to true. If you know each object is unique then
+	 * preFreezeCheck should be set to true. If you know each object is unique then
 	 * you can set this to false and with this improve performance.
 	 * 
-	 * @param isPreFreeze
+	 * @param preFreezeCheck
 	 *            true (quality, data integrity) false (performance)
 	 */
 	public void setPreFreeze(boolean isPreFreeze) {
-		this.isPreFreeze = isPreFreeze;
+		this.preFreezeCheck = isPreFreeze;
 	}
 
 	/**
@@ -501,7 +509,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			// based on their binary signature.
 			// TODO: maybe change this to a hash to avoid the problem
 			// with objects that have multiplicity.
-			if (isPreFreeze) {
+			if (preFreezeCheck) {
 				byte[] key = objectToBytes(object);
 				byte[] value = this.preFreeze.getValue(key);
 				if (value == null) {

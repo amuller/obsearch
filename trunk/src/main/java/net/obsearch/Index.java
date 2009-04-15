@@ -330,4 +330,11 @@ public interface Index < O extends OB > {
      * @throws OBException 
      */
     String debug(O object) throws OBException, InstantiationException, IllegalAccessException;
+    
+    
+    /**
+     * If the index should check for existent objects before freeze.
+     * @param preFreezeCheck Set the flag.
+     */
+    public void setPreFreezeCheck(boolean preFreezeCheck);
 }

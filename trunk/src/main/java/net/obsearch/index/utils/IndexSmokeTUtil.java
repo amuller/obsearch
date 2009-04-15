@@ -89,6 +89,7 @@ public class IndexSmokeTUtil<O extends OBShort> {
      *                 If something goes wrong.
      */
     public void initIndex(IndexShort < O > index) throws Exception {
+    	index.setPreFreezeCheck(true);
         File query = new File(testProperties.getProperty("test.query.input"));
         File db = new File(testProperties.getProperty("test.db.input"));
         logger.debug("query file: " + query);
