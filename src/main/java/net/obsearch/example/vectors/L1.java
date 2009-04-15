@@ -1,5 +1,9 @@
 package net.obsearch.example.vectors;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
@@ -62,6 +66,16 @@ public class L1 implements OBShort {
 		ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
 		vector = new short[input.length / ByteConstants.Short.getSize()];
 		s.get(vector);
+		/*ByteArrayInputStream in = new ByteArrayInputStream(input);
+		DataInputStream i = new DataInputStream(in);
+		int max = input.length / ByteConstants.Short.getSize();
+		vector = new short[max];
+		int cx = 0;
+		while(cx < max){
+			vector[cx] = i.readShort();
+			cx++;
+		}
+		i.close();		*/
 	}
 	
 	/**
@@ -81,10 +95,16 @@ public class L1 implements OBShort {
 
 	@Override
 	public byte[] store() throws OBException, IOException {
+		/*ByteArrayOutputStream out = new ByteArrayOutputStream();
+		DataOutputStream o = new DataOutputStream(out);
+		for(short s : vector){
+			o.writeShort(s);
+		}
+		o.close();*/
 		ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
 		ShortBuffer s = b.asShortBuffer();
 		s.put(vector);
-		return b.array();
+		return b.array();		
 	}
 
 }

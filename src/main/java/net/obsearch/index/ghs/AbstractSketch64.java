@@ -5,13 +5,14 @@ import it.unimi.dsi.io.InputBitStream;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import cern.colt.Arrays;
+
 
 import net.obsearch.AbstractOBResult;
 import net.obsearch.Index;
@@ -40,6 +41,7 @@ import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.OBStorageConfig.IndexType;
 import net.obsearch.utils.bytes.ByteConversion;
 
 /*
@@ -232,6 +234,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		conf.setDuplicates(false);
 		conf.setBulkMode(!isFrozen());
 		conf.setRecordSize(primitiveDataTypeSize());
+		conf.setIndexType(IndexType.HASH);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
@@ -252,16 +255,24 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected void loadMasks() throws OBException {
 		logger.fine("Loading masks!");
 		sketchSet = new CompressedBitSet64();
-		CloseIterator<TupleBytes> it = Buckets.processAll();
+		CloseIterator<byte[]> it = Buckets.processAllKeys();
 		// assert Buckets.size() == A.size();
+		long[] keys = new long[(int)Buckets.size()];
+		int i = 0;
 		while (it.hasNext()) {
-			TupleBytes t = it.next();
-			long bucketId = fact.deSerializeLong(t.getKey());
-			sketchSet.add(bucketId);
-		}
+			byte[] t = it.next();
+			long bucketId = fact.deSerializeLong(t);
+			keys[i] = bucketId;
+			i++;
+		}		
 		it.closeCursor();
-
-		// load the sketch into memory.
+		long time = System.currentTimeMillis();
+		Arrays.sort(keys);
+		logger.info("Sorted in: " + (System.currentTimeMillis() - time));
+		for(long l : keys){
+			sketchSet.add(l);
+		}
+	// load the sketch into memory.
 		sketchSet.commit();
 
 		logger.info("Compressed Sketch size: " + sketchSet.getBytesSize());

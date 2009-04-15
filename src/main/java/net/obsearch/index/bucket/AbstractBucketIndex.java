@@ -198,7 +198,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// if the bucket is the exclusion bucket
 		// get the bucket container from the cache.
 		BC bc = getBucketContainer(bucketId);
-		OperationStatus res = new OperationStatus();
+		OperationStatus res;
 		res = bc.insertBulk(b, object);
 		return res;
 	}
@@ -224,7 +224,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		// objects are small enough.
 		
 		
-		int i = 0;
+		/*int i = 0;
 		CloseIterator<TupleLong> it = A.processAll();
 		while (it.hasNext()) {
 			TupleLong t = it.next();
@@ -236,9 +236,22 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			if(i % 100000 == 0){
 				logger.info("Converting... " + i);
 			}
+			i++;
 		}
-		it.closeCursor();
+		it.closeCursor();*/
 		
+		long i = 0;
+		long max = databaseSize();
+		while(i < max){
+			O o = getObject(i);
+			B b = getBucket(o);
+			b.setId(i);
+			this.insertBucketBulk(b, o);
+			if(i % 100000 == 0){
+				logger.info("Converting... " + i);
+			}
+			i++;
+		}
 		
 	}
 

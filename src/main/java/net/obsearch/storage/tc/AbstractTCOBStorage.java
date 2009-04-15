@@ -275,6 +275,10 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 			byte[] high) throws OBStorageException {
 		throw new IllegalArgumentException();
 	}
+	
+	public CloseIterator < byte[] > processAllKeys() throws OBStorageException {
+        return new ByteArrayKeyIterator();
+    }
 
 	/**
 	 * Base class used to iterate over cursors. Only supports full search
@@ -310,10 +314,13 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		 * go beyond max, we set next to null so that everybody will work
 		 * properly.
 		 */
-		private void loadNext() throws NoSuchElementException {
+		protected void loadNext() throws NoSuchElementException {
 			nextKey = db.iternext();
 			if(nextKey != null){
 				nextValue = db.get(nextKey);
+			}else{
+				// stop the cursor.
+				doingCursor = false;
 			}
 		}
 
@@ -395,6 +402,23 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		protected TupleBytes createTuple(byte[] key, byte[] value) {
 			return new TupleBytes(key, value);
 		}
+	}
+	
+	protected class ByteArrayKeyIterator extends CursorIterator<byte[]> {
+
+		protected ByteArrayKeyIterator() throws OBStorageException {
+			super();
+		}
+
+		@Override
+		protected byte[] createTuple(byte[] key, byte[] value) {
+			return key;
+		}
+		
+		protected void loadNext() throws NoSuchElementException {
+			nextKey = db.iternext();			
+		}
+
 	}
 
 }
