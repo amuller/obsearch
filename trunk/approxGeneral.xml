@@ -16,7 +16,7 @@
 	
 	<!-- System related properties -->
 	
-	<property name="memory" value="5500"/>
+	<property name="memory" value="3500"/>
 	<property name="pivots" value="2"/>
 		<!-- DB and QUERY datafiles -->
 		
@@ -218,7 +218,13 @@
 
 <target name="example" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes" classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
+<jvmarg value="-Xms${memory}M" />
 <jvmarg value="-Xmx${memory}M" />
+<jvmarg value="-Xmn2g" />
+<jvmarg value="-Xss128k" />
+<jvmarg value="-XX:+UseParallelGC"/>
+<jvmarg value="-XX:+AggressiveOpts"/>
+<jvmarg value="-XX:+UseParallelOldGC"/>
 	</java>
 </target>
 
