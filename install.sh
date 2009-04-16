@@ -110,8 +110,8 @@ mvn install:install-file -Dfile=infovis.jar -DgroupId=inria -DartifactId=infovis
 
 rm infovis.jar
 
+wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz
 
-wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm-2.88.tar.gz
 tar -xzf libsvm-2.88.tar.gz
 cd libsvm-2.88 
 cd java
@@ -132,7 +132,13 @@ cd opt4j
 
 wget obsearch.net/opt4j-1.5.1.zip
 
+
 unzip opt4j-1.5.1.zip
+rm opt4j-1.5.1.zip
+
+
+unzip opt4j-1.5.1.zip
+
 
 cd opt4j-1.5.1/
 
@@ -140,7 +146,11 @@ mvn install:install-file -Dfile=opt4j-1.5.1.jar -DgroupId=opt4j -DartifactId=opt
 
 cd ..
 
+
 rm -fdr opt4j-1.5.1/
+
+
+
 
 
 
@@ -164,8 +174,8 @@ mvn install:install-file -Dfile=mg4j-2.1.2.jar -DgroupId=mg4j -DartifactId=mg4j 
 rm mg4j-2.1.2.jar
 
 
-
 wget obsearch.net/dependencies/tokyocabinet.jar
 mvn install:install-file -Dfile=tokyocabinet.jar -DgroupId=tc -DartifactId=tc -Dversion=1.17 -Dpackaging=jar -DgeneratePom=true
 
 rm tokyocabinet.jar
+

@@ -49,7 +49,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// Add some random objects to the index:	
 		logger.info("Adding " + DB_SIZE + " objects...");
 		int i = 0;		
-		while(i < DB_SIZE){
+		while(i < FREEZE_SIZE){
 			index.insert(generateVector());
 			if(i % 100000 == 0){
 				logger.info("Loading: " + i);
@@ -60,6 +60,14 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// prepare the index
 		logger.info("Preparing the index...");
 		a.freeze();
+		// add the rest of the objects
+		while(i < DB_SIZE){
+			index.insert(generateVector());
+			if(i % 100000 == 0){
+				logger.info("Loading: " + i);
+			}
+			i++;
+		}
 		
 		// now we can match some objects!		
 		logger.info("Querying the index...");
