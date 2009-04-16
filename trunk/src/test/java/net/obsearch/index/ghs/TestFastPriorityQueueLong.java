@@ -56,10 +56,6 @@ public class TestFastPriorityQueueLong extends TestCase {
 	}
 	
 	
-	public void testTupleInput(){
-		DatabaseEntry entry = new DatabaseEntry();
-		LongBinding.longToEntry(3L, entry);		
-		logger.info("Size: " + entry.getData().length);
-	}
+	
 
 }

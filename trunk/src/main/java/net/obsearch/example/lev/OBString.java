@@ -121,4 +121,7 @@ public final class OBString implements OBShort {
 		return str.getBytes();
 	}
 
+	public String toString(){
+		return str;
+	}
 }

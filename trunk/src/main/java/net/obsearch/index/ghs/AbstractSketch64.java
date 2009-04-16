@@ -234,7 +234,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		conf.setDuplicates(false);
 		conf.setBulkMode(!isFrozen());
 		conf.setRecordSize(primitiveDataTypeSize());
-		conf.setIndexType(IndexType.BTREE);
+		conf.setIndexType(IndexType.HASH);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
