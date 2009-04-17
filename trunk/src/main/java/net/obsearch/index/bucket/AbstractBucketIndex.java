@@ -241,14 +241,20 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		it.closeCursor();*/
 		
 		long i = 0;
-		long max = databaseSize();
+		long max = databaseSize();		
 		while(i < max){
 			O o = getObject(i);
 			B b = getBucket(o);
 			b.setId(i);
 			this.insertBucketBulk(b, o);
 			if(i % 100000 == 0){
-				logger.info("Converting... " + i);
+				//logger.info("Converting... " + i + " b_size:\n" + stats.getStats("B_SIZE"));
+				StaticBin1D s = stats.getStats("B_SIZE");
+				if(s != null){
+				logger.info("Converting... " + i + " " + s.mean() + " std: " + s.standardDeviation());
+				}else{
+					logger.info("Converting... " + i );
+				}
 			}
 			i++;
 		}

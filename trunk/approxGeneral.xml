@@ -16,7 +16,7 @@
 	
 	<!-- System related properties -->
 	
-	<property name="memory" value="3500"/>
+	<property name="memory" value="2500"/>
 	<property name="pivots" value="2"/>
 		<!-- DB and QUERY datafiles -->
 		
@@ -221,7 +221,7 @@
 <jvmarg value="-Xms${memory}M" />
 <jvmarg value="-Xmx${memory}M" />
 <jvmarg value="-Xmn2g" />
-<jvmarg value="-Xss128k" />
+<!--<jvmarg value="-Xss128k" />-->
 <jvmarg value="-XX:+UseParallelGC"/>
 <jvmarg value="-XX:+AggressiveOpts"/>
 <jvmarg value="-XX:+UseParallelOldGC"/>

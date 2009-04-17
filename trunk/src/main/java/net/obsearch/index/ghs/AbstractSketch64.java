@@ -207,6 +207,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	public void setExpectedEP(double ep) {
 		this.expectedEP = ep;
 	}
+	
+	
 
 	/**
 	 * Calculate the estimators.
@@ -255,13 +257,16 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected void loadMasks() throws OBException {
 		logger.fine("Loading masks!");
 		sketchSet = new CompressedBitSet64();
-		CloseIterator<byte[]> it = Buckets.processAllKeys();
+		CloseIterator<TupleBytes> it = Buckets.processAll();
+		if(it == null){
+			return;
+		}
 		// assert Buckets.size() == A.size();
 		long[] keys = new long[(int)Buckets.size()];
 		int i = 0;
 		while (it.hasNext()) {
-			byte[] t = it.next();
-			long bucketId = fact.deSerializeLong(t);
+			TupleBytes t = it.next();
+			long bucketId = fact.deSerializeLong(t.getKey());
 			keys[i] = bucketId;
 			i++;
 		}		
@@ -297,8 +302,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			kEstimators[i] = new StaticBin1D();
 			i++;
 		}
-
-		List<O> db = getAllObjects();			
+		
 
 		long[] sample = AbstractDimension.select(sampleSize, r, null,
 				(Index) this, null);
@@ -306,7 +310,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		i = 0;
 		for (O o : sampleSet) {
 			logger.info("Estimating k sample #: " + i + " of " + sampleSize);
-			maxKEstimationAux(o, db);
+			maxKEstimationAux(o);
 			i++;
 		}
 
@@ -365,14 +369,14 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 		@Override
 		public void store(byte[] key, BC object) throws OBException {
-			try {
-				if (object.isModified()) {
-					Buckets.put(key, object
+			
+				/*if (object.isModified()) {
+					OperationStatus s = Buckets.putIfNew(key, object
 							.serialize());
-				}
-			} catch (IOException e) {
-				throw new OBException(e);
-			}
+					if(s.)
+					stats.addExtraStats("B_SIZE", object.size());
+				}*/
+			
 		}
 
 	}
@@ -393,35 +397,27 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
-
-		return insertBucketAux(b, object).insert(b, object);
-	}
-
-	/**
-	 * Common functionality for insert operations
-	 * 
-	 * @param b
-	 *            The bucket in which we will insert the object.
-	 * @param object
-	 *            The object to insert.
-	 * @return
-	 * @throws OBException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 */
-	protected BC insertBucketAux(B b, O object) throws OBException,
-			InstantiationException, IllegalAccessException {
-		// get the bucket id.
+		
 		byte[] bucketId = getAddress(b);
-		// if the bucket is the exclusion bucket
-		// get the bucket container from the cache.
-		BC bc = getBucketContainer(bucketId);
-		if (bc == null) {
-			bc = instantiateBucketContainer(null, bucketId);
-			this.bucketCache.put(bucketId, bc);
+		BC bc = instantiateBucketContainer(null, bucketId);
+		OperationStatus s = bc.insert(b, object);		
+		// store the data in the index. 
+		OperationStatus res = Buckets.putIfNew(bucketId, bc.serialize());
+		if(res.getStatus() == Status.EXISTS){
+			// we have to re-do everything. 
+			byte[] bucketData =  Buckets.getValue(bucketId);
+			bc = instantiateBucketContainer(bucketData, bucketId);
+			s = bc.insert(b, object);
+			if(s.getStatus() == Status.OK){
+				Buckets.put(bucketId, bc.serialize());
+			}
 		}
-		return bc;
+		this.bucketCache.put(bucketId, bc);
+		stats.addExtraStats("B_SIZE", bc.size());
+		return s;
 	}
+
+	
 
 	/**
 	 * Stores the given bucket b into the {@link #Buckets} storage device. The
@@ -441,9 +437,22 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected OperationStatus insertBucketBulk(B b, O object)
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {
-
-		return insertBucketAux(b, object).insertBulk(b, object);
+			OutOfRangeException, OBException {		
+		byte[] bucketId = getAddress(b);
+		BC bc = instantiateBucketContainer(null, bucketId);
+		OperationStatus s = bc.insertBulk(b, object);		
+		// store the data in the index. 
+		OperationStatus res = Buckets.putIfNew(bucketId, bc.serialize());
+		if(res.getStatus() == Status.EXISTS){
+			// we have to re-do everything. 
+			byte[] bucketData =  Buckets.getValue(bucketId);
+			bc = instantiateBucketContainer(bucketData, bucketId);
+			s = bc.insertBulk(b, object);
+			Buckets.put(bucketId, bc.serialize());
+		}
+		this.bucketCache.put(bucketId, bc);
+		stats.addExtraStats("B_SIZE", bc.size());
+		return s;
 	}
 
 	protected byte[] convertLongToBytesAddress(long bucketId) {
@@ -465,7 +474,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	protected abstract void maxKEstimationAux(O object, List<O> objects)
+	protected abstract void maxKEstimationAux(O object)
 	throws OBException, InstantiationException, IllegalAccessException ;
 
 	/**

@@ -123,14 +123,13 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	 * @return the current sequence id.
 	 */
 	private long getSequence() {
-		byte[] rec = metadata.get(fact
-				.serializeInt(SEQUENCE_RECORD));
-		if(rec == null){
+		byte[] rec = metadata.get(fact.serializeInt(SEQUENCE_RECORD));
+		if (rec == null) {
 			return 0;
-		}else{
+		} else {
 			return fact.deSerializeLong(rec);
 		}
-		
+
 	}
 
 	private void putSequence(long id) {
@@ -163,7 +162,8 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 					+ code);
 		}
 		this.putSequence(currentId);
-		OBAsserts.chkAssertStorage(metadata.close(), "Could not close metadata DB");
+		OBAsserts.chkAssertStorage(metadata.close(),
+				"Could not close metadata DB");
 	}
 
 	private int lastErrorCode() {
@@ -236,18 +236,38 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 
 	public net.obsearch.OperationStatus put(byte[] key, byte[] value)
 			throws OBStorageException {
-		OBAsserts
-				.chkAssertStorage(
-						storageConf.getIndexType() != IndexType.FIXED_RECORD
-								|| (storageConf.getIndexType() == IndexType.FIXED_RECORD && value
-										.length == storageConf
-										.getRecordSize()),
-						"Record size does not match the size for this index");
+		checkFixedRecord(value);
 		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
 		if (db.put(key, value)) {
 			res.setStatus(Status.OK);
 		} else {
 			res.setMsg(this.lastErrorString());
+		}
+		return res;
+	}
+	
+	private void checkFixedRecord(byte[] value) throws OBStorageException{
+		OBAsserts
+		.chkAssertStorage(
+				storageConf.getIndexType() != IndexType.FIXED_RECORD
+						|| (storageConf.getIndexType() == IndexType.FIXED_RECORD && value.length == storageConf
+								.getRecordSize()),
+				"Record size does not match the size for this index");
+	}
+
+	public net.obsearch.OperationStatus putIfNew(byte[] key, byte[] value)
+			throws OBStorageException {
+		checkFixedRecord(value);
+		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
+		if (db.putkeep(key, value)) {
+			res.setStatus(Status.OK);
+		} else {
+			res.setMsg(this.lastErrorString());
+			if(this.lastErrorCode() == BDB.EKEEP){
+				res.setStatus(Status.EXISTS);
+			}else{
+				res.setStatus(Status.ERROR);
+			}
 		}
 		return res;
 	}
@@ -275,10 +295,10 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 			byte[] high) throws OBStorageException {
 		throw new IllegalArgumentException();
 	}
-	
-	public CloseIterator < byte[] > processAllKeys() throws OBStorageException {
-        return new ByteArrayKeyIterator();
-    }
+
+	public CloseIterator<byte[]> processAllKeys() throws OBStorageException {
+		return new ByteArrayKeyIterator();
+	}
 
 	/**
 	 * Base class used to iterate over cursors. Only supports full search
@@ -316,9 +336,9 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		 */
 		protected void loadNext() throws NoSuchElementException {
 			nextKey = db.iternext();
-			if(nextKey != null){
+			if (nextKey != null) {
 				nextValue = db.get(nextKey);
-			}else{
+			} else {
 				// stop the cursor.
 				doingCursor = false;
 			}
@@ -377,7 +397,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	public long nextId() throws OBStorageException {
 		synchronized (metadata) {
 			long res = currentId;
-			this.currentId++;			
+			this.currentId++;
 			return res;
 		}
 	}
@@ -403,7 +423,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 			return new TupleBytes(key, value);
 		}
 	}
-	
+
 	protected class ByteArrayKeyIterator extends CursorIterator<byte[]> {
 
 		protected ByteArrayKeyIterator() throws OBStorageException {
@@ -414,9 +434,9 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		protected byte[] createTuple(byte[] key, byte[] value) {
 			return key;
 		}
-		
+
 		protected void loadNext() throws NoSuchElementException {
-			nextKey = db.iternext();			
+			nextKey = db.iternext();
 		}
 
 	}

@@ -493,7 +493,7 @@ public class SleekBucketShort<O extends OBShort> implements
 	 * @throws IOException
 	 * @throws OBException
 	 */
-	public byte[] serialize() throws OBException, IOException {
+	public byte[] serialize() throws OBException {
 		//OBAsserts.chkAssert(size() > 0, "Do not serialize an empty bucket");
 		
 		ArrayList<byte[]> serializedPivots = new ArrayList<byte[]>(pivotsCount());
@@ -502,6 +502,7 @@ public class SleekBucketShort<O extends OBShort> implements
 		// serialize pivots
 		int minSize = Integer.MAX_VALUE;
 		int maxSize = Integer.MIN_VALUE;
+		try{
 		for (BucketObjectShort<O> p : pivots) {
 			byte[] t = p.getObject().store();
 			objectBytes += t.length;
@@ -516,6 +517,9 @@ public class SleekBucketShort<O extends OBShort> implements
 			serializedObjects.add(t);
 			minSize = Math.min(t.length, minSize);
 			maxSize = Math.max(t.length, maxSize);
+		}
+		}catch(IOException e){
+			throw new OBException(e);
 		}
 		// calculate the mode of the index.
 		if (minSize == maxSize) {

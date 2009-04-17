@@ -86,6 +86,11 @@ public final class OBCacheByteArray < O > extends AbstractOBCache<ByteArrayKey, 
 	        return obj;
 	    }
 	    
+	    public boolean exists(byte[] id){
+	    	ByteArrayKey realId = new ByteArrayKey(id);
+	    	return super.containsKey(realId);
+	    }
+	    
 	    public void put(byte[] id, O object){
 	    	super.put(new ByteArrayKey(id), object);
 	    }

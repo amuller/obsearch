@@ -37,19 +37,19 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		// Create a pivot selection strategy for L1 distance
 		 IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
-	 				new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
+	 				new AcceptAll<L1>(), 400, 100, (short) Short.MAX_VALUE);
 	    Sketch64Short<L1> index = new Sketch64Short<L1>(L1.class, sel, 64, 0);
 	    index.setExpectedEP(0.00001);
 	    index.setSampleSize(100);
 	    index.setMaxK(new int[]{1});
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-		Ambient<L1, Sketch64Short<L1>> a =  new AmbientTC<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
-		
+		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
+	    Ambient<L1, Sketch64Short<L1>> a =  new AmbientTC<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 		
 		// Add some random objects to the index:	
 		logger.info("Adding " + DB_SIZE + " objects...");
 		int i = 0;		
-		while(i < FREEZE_SIZE){
+		while(i < DB_SIZE){
 			index.insert(generateVector());
 			if(i % 100000 == 0){
 				logger.info("Loading: " + i);
@@ -61,13 +61,13 @@ public class VectorsDemoGHS extends VectorsDemo {
 		logger.info("Preparing the index...");
 		a.freeze();
 		// add the rest of the objects
-		while(i < DB_SIZE){
+		/*while(i < DB_SIZE){
 			index.insert(generateVector());
 			if(i % 100000 == 0){
 				logger.info("Loading: " + i);
 			}
 			i++;
-		}
+		}*/
 		
 		// now we can match some objects!		
 		logger.info("Querying the index...");
@@ -97,7 +97,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		logger.info("Doing EP validation");
 		StaticBin1D ep = new StaticBin1D();
 		
-		List<L1> allObjects = index.getAllObjects();
+
 		Iterator<OBPriorityQueueShort<L1>> it1 = queryResults.iterator();
 		Iterator<L1> it2 = queries.iterator();
 		StaticBin1D seqTime = new StaticBin1D();
@@ -105,7 +105,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 			OBPriorityQueueShort<L1> qu = it1.next();
 			L1 q = it2.next();
 			long time = System.currentTimeMillis();
-			List<OBResultShort<L1>> sortedList = index.fullMatch(allObjects, q);
+			List<OBResultShort<L1>> sortedList = index.fullMatch(q);
 			seqTime.add(System.currentTimeMillis() - time);
 			OBQueryShort<L1> queryObj = new OBQueryShort<L1>(q, Short.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep((List)sortedList));
