@@ -155,13 +155,19 @@ implements IndexShort<O> {
 	 * removes query from the end result.
 	 * @return the results of matching the given query against all the DB.
 	 * @throws OBException 
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException 
 	 */
-	public List<OBResultShort<O>> fullMatch(List<O> objects, O query) throws OBException{
-		List<OBResultShort<O>> sortedList = new ArrayList<OBResultShort<O>>(objects.size() - 1);
+	public List<OBResultShort<O>> fullMatch(O query) throws OBException, IllegalAccessException, InstantiationException{
+		long max = databaseSize();
+		List<OBResultShort<O>> sortedList = new ArrayList<OBResultShort<O>>((int)(max - 1));
 		long id = 0;
-		for(O o : objects){
+		
+		while(id < max){
+			O o = getObject(id);
 			short distance = o.distance(query);
 			if(distance == 0 && o.equals(query)){
+				id++;
 				continue; // do not add self.
 			}else{
 				sortedList.add(new OBResultShort<O>(o, id, distance));
@@ -183,7 +189,7 @@ implements IndexShort<O> {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	protected void maxKEstimationAux(O object, List<O> objects)
+	protected void maxKEstimationAux(O object)
 			throws OBException, InstantiationException, IllegalAccessException {
 		// we calculate first the list of elements against the DB.
 		BucketObjectShort<O> b = getBucket(object);
@@ -191,7 +197,7 @@ implements IndexShort<O> {
 		byte[] addr = convertLongToBytesAddress(longAddr);
 		AbstractOBQuery<O> dbQueue = getKQuery(object, (int) databaseSize());
 
-		List<OBResultShort<O>> sortedList = fullMatch(objects, object);
+		List<OBResultShort<O>> sortedList = fullMatch( object);
 		
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.

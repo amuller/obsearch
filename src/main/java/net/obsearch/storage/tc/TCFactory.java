@@ -47,7 +47,7 @@ public class TCFactory implements OBStoreFactory {
 		String path = directory + File.separator + name;
 		if (IndexType.HASH == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
 			HDB tdb = new HDB();
-			OBAsserts.chkAssertStorage(tdb.tune(OBSearchProperties.getLongProperty("tc.expected.db.count") * 4, -1, -1, HDB.TLARGE  ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count")) * 4, -1, -1, HDB.TLARGE  ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
 			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER), "Could not open database: " + tdb.errmsg());			
 			db = tdb;
 		} else if (IndexType.BTREE == config.getIndexType() ) {

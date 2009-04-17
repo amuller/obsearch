@@ -87,6 +87,25 @@ public interface OBStore<T extends Tuple> {
 	 *         could not be updated.
 	 */
 	OperationStatus put(byte[] key, byte[] value) throws OBStorageException;
+	
+	
+	/**
+	 * Inserts the key value pair. If the key existed, it will NOT be overwritten.
+	 * 
+	 * @param key
+	 *            Key to insert
+	 * @param value
+	 *            The value that the key will hold after this operation
+	 *            completes.
+	 * @throws OBStorageException
+	 *             If an exception occurs at the underlying storage system. You
+	 *             can query the exception to see more details regarding the
+	 *             nature of the error.
+	 * @return {@link net.obsearch.Status#OK} the record was inserted/updated
+	 *         successfully. {@link net.obsearch.Status#EXISTS} if the record
+	 *         existed in the DB.
+	 */
+	OperationStatus putIfNew(byte[] key, byte[] value) throws OBStorageException;
 
 	/**
 	 * Deletes the given key and its corresponding value from the database.

@@ -229,6 +229,28 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		return res;
 	}
 
+
+	public net.obsearch.OperationStatus putIfNew(byte[] key, byte[] value)
+			throws OBStorageException {
+
+		DatabaseEntry k = new DatabaseEntry(key);
+		
+		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
+		try {
+				DatabaseEntry v = new DatabaseEntry(value);
+			OperationStatus r = db.putNoOverwrite(null, k, v);
+			if (r == OperationStatus.SUCCESS) {
+				res.setStatus(Status.OK);
+			}else if (r == OperationStatus.KEYEXIST) {
+				res.setStatus(Status.EXISTS);	
+			}
+		} catch (DatabaseException e) {
+			throw new OBStorageException(e);
+		}
+		return res;
+	}
+
+
 	public boolean allowsDuplicatedData() {
 		return duplicates;
 	}
@@ -240,7 +262,7 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 	 * @return transformed bytes ready to be sorted.`
 	 */
 	public CloseIterator<byte[]> processAllKeys() throws OBStorageException{
-			throw new IllegalArgumentException();
+			return null;
 	}
   
   public byte[] prepareBytes(byte[] in){
@@ -627,6 +649,9 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 			return new TupleBytes(key, value);
 		}
 	}
+
+
+	
 
 }
 

@@ -202,7 +202,7 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 	/**
 	 * Serialize the bucket
 	 */	
-	byte[] serialize() throws OBException, IOException;
+	byte[] serialize() throws OBException;
 	
 	/**
 	 * Return true if the bucket has been modified since it was instantiated.
