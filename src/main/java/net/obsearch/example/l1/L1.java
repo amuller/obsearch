@@ -8,6 +8,7 @@ import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBShort;
+import net.obsearch.utils.bytes.ByteConversion;
 
 public class L1 implements OBShort {
 	
@@ -52,14 +53,16 @@ public class L1 implements OBShort {
 
 	@Override
 	public void load(byte[] input) throws OBException, IOException {
-		ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
-		vector = new short[input.length / ByteConstants.Short.getSize()];
+		ShortBuffer s = ByteConversion.createByteBuffer(input).asShortBuffer();
+		if(vector == null){
+			vector = new short[input.length / ByteConstants.Short.getSize()];
+		}
 		s.get(vector);
 	}
 
 	@Override
 	public byte[] store() throws OBException, IOException {
-		ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
+		ByteBuffer b = ByteConversion.createByteBuffer(ByteConstants.Short.getSize() * vector.length);
 		ShortBuffer s = b.asShortBuffer();
 		s.put(vector);
 		return b.array();

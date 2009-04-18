@@ -45,14 +45,16 @@ public class TCFactory implements OBStoreFactory {
 	private DBM createDB(String name, OBStorageConfig config) throws OBStorageException, OBException{
 		DBM db = null;
 		String path = directory + File.separator + name;
-		if (IndexType.HASH == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
+		if (IndexType.HASH == config.getIndexType() || IndexType.DEFAULT == config.getIndexType() ) {
 			HDB tdb = new HDB();
-			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count")) * 4, -1, -1, HDB.TLARGE  ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count")) * 4, -1, 12, 0 ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.setcache(200000), "Could not enable cache size");
+			OBAsserts.chkAssertStorage(tdb.setxmsiz((long)Math.pow(1024, 2) * 500), "Could not enable mmap  size");
 			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER), "Could not open database: " + tdb.errmsg());			
 			db = tdb;
 		} else if (IndexType.BTREE == config.getIndexType() ) {
 			BDB tdb = new BDB();
-			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER), "Could not open database: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER), "Could not open database: " + tdb.errmsg() );			
 			db = tdb;
 		} else if(IndexType.FIXED_RECORD == config.getIndexType()){
 			FDB tdb = new FDB();

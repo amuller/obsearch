@@ -163,18 +163,17 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBStorageException, OutOfRangeException, OBException{
         // select pivots.
     	OBAsserts.chkAssert(A.size() <= Integer.MAX_VALUE, "Cannot accept more than " + Integer.MAX_VALUE + " on freeze");
-        LongArrayList elementsSource = new LongArrayList(Math.min( (int)A.size(), MAX_PIVOT_SAMPLE));
-        CloseIterator<TupleLong> it = A.processAll();
+    	/*int max = Math.min( (int)A.size(), MAX_PIVOT_SAMPLE);
+        LongArrayList elementsSource = new LongArrayList(max);
+
         int i = 0;
-        while(it.hasNext() && i < MAX_PIVOT_SAMPLE){
-        	TupleLong t = it.next();
-        	elementsSource.add(t.getKey());
+        while( i < max){
+        	elementsSource.add(i);
         	i++;
-        }
-        it.closeCursor();
+        }*/
         try{
         PivotResult pivots = pivotSelector.generatePivots(pivotCount,
-                elementsSource, this);       
+                null, this);       
         // store the pivots selected for serialization.
         //this.storePivots(pivots.getPivotIds());
         return pivots;

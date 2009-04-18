@@ -47,7 +47,7 @@ import net.obsearch.ob.OB${Type};
     
     public BucketObject${Type}(){
     	super(-1);
-    	smapVector = new ${type}[0];
+    	smapVector = null;
     }
 
     /**
@@ -178,12 +178,15 @@ import net.obsearch.ob.OB${Type};
      * @param pivots
      */
     public void read(ByteBuffer in, int pivots){
-    	this.smapVector = new ${type}[pivots];
-    	int i = 0;
-    	while(i < pivots){
-    		smapVector[i] = in.get${BBType}();
-    		i++;
-    	}        
+				if(pivots != 0){
+						this.smapVector = new ${type}[pivots];
+				int i = 0;
+				while(i < pivots){
+						smapVector[i] = in.get${BBType}();
+						i++;
+				}        
+		}
+		    smapVector = null;
         super.setId(in.getLong());
     }
     
@@ -197,7 +200,11 @@ import net.obsearch.ob.OB${Type};
     }
     
     public int getPivotSize(){
-        return smapVector.length;
+				if(smapVector == null){
+						return 0;
+				}else{
+						return smapVector.length;
+				}
     }
 
     /* (non-Javadoc)
