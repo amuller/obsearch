@@ -242,8 +242,11 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		
 		long i = 0;
 		long max = databaseSize();		
+		O o = type.newInstance();
+		try{
 		while(i < max){
-			O o = getObject(i);
+			//O o = getObject(i);			
+			o.load(A.getValue(i));
 			B b = getBucket(o);
 			b.setId(i);
 			this.insertBucketBulk(b, o);
@@ -257,6 +260,9 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 				}
 			}
 			i++;
+		}
+		}catch(IOException e){
+			throw new OBException(e);
 		}
 		
 	}

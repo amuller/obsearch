@@ -34,8 +34,8 @@ public class TestSketch64Short {
       
     	 IncrementalMullerRosaShort<OBSlice> sel = new IncrementalMullerRosaShort<OBSlice>(
  				new AcceptAll<OBSlice>(), 400, 100, (short) 5000);
-    	BDBFactoryDb fact = Utils.getFactoryDb();
-    	//TCFactory fact = Utils.getFactoryTC();
+    	//BDBFactoryDb fact = Utils.getFactoryDb();
+    	TCFactory fact = Utils.getFactoryTC();
     	Sketch64Short<OBSlice> index = new Sketch64Short<OBSlice>(OBSlice.class, sel, 64, 1 );
     	index.setSampleSize(100);
     	index.setExpectedEP(0.0003);

@@ -58,6 +58,11 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 	 * Tokyo cabinet database
 	 */
 	private DBM db;
+	
+	/**
+	 * Used for special async operations available on the HDB 
+	 */
+	private HDB hdb;
 
 	/**
 	 * Name of the database.
@@ -114,6 +119,9 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		metadata.open(fact.getFactoryLocation() + File.separator + name
 				+ "_META", FDB.OWRITER | FDB.OCREAT | FDB.OREADER);
 		currentId = getSequence();
+		if(storageConf.getIndexType() == IndexType.HASH){
+			this.hdb = (HDB)db;
+		}
 		this.storageConf = storageConf;
 	}
 
@@ -238,10 +246,18 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 			throws OBStorageException {
 		checkFixedRecord(value);
 		net.obsearch.OperationStatus res = new net.obsearch.OperationStatus();
-		if (db.put(key, value)) {
+		boolean ok = false;
+		if(this.storageConf.getIndexType() == IndexType.HASH){
+			ok = hdb.putasync(key, value);
+		}else{
+			ok = db.put(key, value);
+		}
+		
+		if (ok) {
 			res.setStatus(Status.OK);
 		} else {
 			res.setMsg(this.lastErrorString());
+			res.setStatus(Status.ERROR);
 		}
 		return res;
 	}
