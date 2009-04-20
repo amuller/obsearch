@@ -45,22 +45,23 @@ public class TCFactory implements OBStoreFactory {
 	private DBM createDB(String name, OBStorageConfig config) throws OBStorageException, OBException{
 		DBM db = null;
 		String path = directory + File.separator + name;
-		if (IndexType.HASH == config.getIndexType() || IndexType.DEFAULT == config.getIndexType() ) {
+		if (IndexType.HASH == config.getIndexType()  ) {
 			HDB tdb = new HDB();
-			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count")) * 4, -1, 12, 0 ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count") * 4), -1, 20, HDB.TLARGE ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
 			OBAsserts.chkAssertStorage(tdb.setcache(200000), "Could not enable cache size");
 			OBAsserts.chkAssertStorage(tdb.setxmsiz((long)Math.pow(1024, 2) * 500), "Could not enable mmap  size");
-			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER), "Could not open database: " + tdb.errmsg());			
+			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER | HDB.ONOLCK), "Could not open database: " + tdb.errmsg());			
 			db = tdb;
-		} else if (IndexType.BTREE == config.getIndexType() ) {
+		} else if (IndexType.BTREE == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
 			BDB tdb = new BDB();
-			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER), "Could not open database: " + tdb.errmsg() );			
+			tdb.tune(-1, -1, OBSearchProperties.getLongProperty("tc.expected.db.count") / 128, -1, -1, BDB.TLARGE);
+			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER | BDB.ONOLCK), "Could not open database: " + tdb.errmsg() );			
 			db = tdb;
 		} else if(IndexType.FIXED_RECORD == config.getIndexType()){
 			FDB tdb = new FDB();
 			OBAsserts.chkAssert(config.getRecordSize() > 0, "Invalid record size");
 			OBAsserts.chkAssertStorage(tdb.tune(config.getRecordSize(), OBSearchProperties.getLongProperty("tc.fdb.max.file.size")), "Could not set the tuning parameters for the fixed record device");
-			OBAsserts.chkAssertStorage(tdb.open(path, FDB.OCREAT |  FDB.OWRITER), "Could not open database: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.open(path, FDB.OCREAT |  FDB.OWRITER | FDB.ONOLCK), "Could not open database: " + tdb.errmsg() );
 			db = tdb;
 		}else{
 			OBAsserts.fail("Fatal error, invalid index type.");
@@ -149,7 +150,8 @@ public class TCFactory implements OBStoreFactory {
 	@Override
 	public long deSerializeLong(byte[] value) {
 		//return ByteConversion.bytesToLong(value);
-		return BDBFactoryJe.bytesToLong(value);
+		//return BDBFactoryJe.bytesToLong(value);
+		return Long.parseLong(new String(value));
 	}
 
 	@Override
@@ -198,7 +200,8 @@ public class TCFactory implements OBStoreFactory {
 	@Override
 	public byte[] serializeLong(long value) {
 		//return ByteConversion.longToBytes(value);
-		return BDBFactoryJe.longToBytes(value);
+		//return BDBFactoryJe.longToBytes(value);
+		return String.valueOf(value).getBytes();
 	}
 
 	@Override

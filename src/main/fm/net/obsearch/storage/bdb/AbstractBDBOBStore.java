@@ -38,6 +38,7 @@ import net.obsearch.asserts.OBAsserts;
 <#if bdb = "db">
 import com.sleepycat.db.BtreeStats;
 import com.sleepycat.db.HashStats;
+import com.sleepycat.db.QueueStats;
 import com.sleepycat.db.StatsConfig;
 </#if>
 
@@ -584,7 +585,16 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 				 <#else>
 				 	StatsConfig conf = new StatsConfig();
 		conf.setFast(false);
-		res = ((<@bdbStats/>)db.getStats(null, conf)).getNumData();
+		Object s = db.getStats(null, conf);
+		if(s instanceof HashStats){
+				res = ((HashStats)s).getNumData();
+		}else if (s instanceof BtreeStats){
+				res = ((BtreeStats)s).getNumData();
+		} else if (s instanceof QueueStats){
+				res = ((QueueStats)s).getNumData();
+		} else{
+				throw new OBStorageException("Stats object is wrong: " + s);
+		}
 		</#if>
 		} catch (DatabaseException e) {
 			throw new OBStorageException(e);
@@ -592,6 +602,9 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		return res;
 		
 	
+	}
+
+	public void optimize(){
 	}
 
 	/**

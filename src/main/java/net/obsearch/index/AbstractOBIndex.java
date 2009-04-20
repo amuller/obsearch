@@ -206,8 +206,25 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			conf.setTemp(false);
 			conf.setDuplicates(false);
 			conf.setBulkMode(false);
+			conf.setFixedSizeIndex(fixedRecord);
+			conf.setRecordSize(fixedRecordSize);
+			if(fixedRecord){
+				conf.setIndexType(IndexType.FIXED_RECORD);
+			}
 			this.preFreeze = fact.createOBStore("pre", conf);
 		}
+	}
+	
+	private boolean fixedRecord = false;
+	
+	public void setFixedRecord(boolean fixedRecord){
+		this.fixedRecord = fixedRecord;
+	}
+	
+	private int fixedRecordSize = -1;
+	
+	public void setFixedRecord(int fixedRecordSize){
+		this.fixedRecordSize = fixedRecordSize;
 	}
 
 	/**

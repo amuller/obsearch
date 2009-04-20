@@ -31,7 +31,7 @@ import java.math.BigInteger;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OBException;
-
+import net.obsearch.storage.OBStorageConfig.IndexType;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.constants.OBSearchProperties;
@@ -204,9 +204,7 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
         dbConfig.setTransactional(false);
         dbConfig.setAllowCreate(true);
 				<#if bdb = "db">
-	  		 // Using database mode: ${bdb_mode}
-											 dbConfig.setType(DatabaseType.${bdb_mode});
-				
+						dbConfig.setType(DatabaseType.HASH);					 
 				<#else>
 						 
 				</#if>

@@ -234,9 +234,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		OBStorageConfig conf = new OBStorageConfig();
 		conf.setTemp(false);
 		conf.setDuplicates(false);
-		conf.setBulkMode(!isFrozen());
-		conf.setRecordSize(primitiveDataTypeSize());
-		//conf.setIndexType(IndexType.BTREE);
+		conf.setBulkMode(!isFrozen());		
+		conf.setIndexType(IndexType.BTREE);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
@@ -416,8 +415,6 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		stats.addExtraStats("B_SIZE", bc.size());
 		return s;
 	}
-	
-	protected BC
 
 	
 

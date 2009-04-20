@@ -165,7 +165,11 @@
 			<scope>compile</scope>
 		</dependency>
 
-
+	<dependency>
+						<groupId>bouncycastle</groupId>
+						<artifactId>bcprov-jdk16</artifactId>
+						<version>140</version>
+					</dependency>
 					
 
 					<dependency>
@@ -570,6 +574,7 @@ Would be cool to use this.
 						<version>2.0.8</version>
 					</dependency>
 
+					
 
 				</dependencies>				
 

@@ -34,10 +34,10 @@ public class TestTCByteArrayStorage {
 		OBStorageConfig config = new OBStorageConfig();
 		config.setRecordSize(8);
 		for(IndexType i : IndexType.values()){
-			if(i != IndexType.FIXED_RECORD){
+			//if(i != IndexType.FIXED_RECORD){
 				config.setIndexType(i);
 				validateStorageWithConfig(config);
-			}
+			//}
 		}				
 	}
 	

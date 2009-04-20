@@ -42,6 +42,8 @@ public class VectorsDemoGHS extends VectorsDemo {
 	    index.setExpectedEP(0.00001);
 	    index.setSampleSize(100);
 	    index.setMaxK(new int[]{1});
+	    //index.setFixedRecord(true);
+    	//index.setFixedRecord(VEC_SIZE*2);
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
 		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 	    Ambient<L1, Sketch64Short<L1>> a =  new AmbientTC<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
