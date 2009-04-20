@@ -33,7 +33,7 @@ env.openDatabase(null, name, dbConfig)
 
 <#macro openDBSeq>
 <#if bdb = "db">
-env.openDatabase(null,  sequentialDatabaseName(name),  sequentialDatabaseName(name), dbConfig)
+env.openDatabase(null,  sequentialDatabaseName(name),  sequentialDatabaseName(name), createDefaultDatabaseConfig())
 <#else>
 env.openDatabase(null,  sequentialDatabaseName(name), dbConfig)
 </#if>
@@ -55,9 +55,25 @@ DatabaseConfig dbConfig = createDefaultDatabaseConfig();
 								}
 								
 								<#else>
-//										 dbConfig.setUnsortedDuplicates(duplicates);	
+//									 dbConfig.setUnsortedDuplicates(duplicates);	
 										 dbConfig.setSortedDuplicates(duplicates);									 
 										 dbConfig.setNoMMap(false);
+										 dbConfig.setChecksum(false);
+										 try{
+										 dbConfig.setCacheSize(OBSearchProperties.getBDBCacheSize());
+										 }catch(OBException e){
+										 throw new OBStorageException(e);
+										 }
+						 	  		 // Using database mode: ${bdb_mode}
+										 if(config.isFixedSizeIndex() || config.getIndexType() == IndexType.FIXED_RECORD){
+										      dbConfig.setType(DatabaseType.RECNO);
+													dbConfig.setRecordLength(config.getRecordSize());
+										 }else if(config.getIndexType() == IndexType.HASH){
+										  	 dbConfig.setType(DatabaseType.HASH);
+										 }else if (config.getIndexType() == IndexType.BTREE){
+										     dbConfig.setType(DatabaseType.BTREE);
+										 }
+
 								</#if>
 											Database seq = null;
 						if(!duplicates){

@@ -280,4 +280,11 @@ public interface OBStore<T extends Tuple> {
 	byte[] prepareBytes(byte[] in);
 	
 	
+	/**
+	 * Somehow optimizes the underlying storage representation.
+	 * @throws OBStorageException
+	 */
+	void optimize() throws OBStorageException;
+	
+	
 }

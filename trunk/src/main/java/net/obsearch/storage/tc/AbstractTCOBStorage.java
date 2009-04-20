@@ -185,6 +185,20 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		}
 		return res;
 	}
+	
+	public void optimize() throws OBStorageException{
+		boolean res = false;
+		if (db instanceof FDB) {
+			res = ((FDB) db).optimize();
+		} else if (db instanceof HDB) {
+			res = ((HDB) db).optimize();
+		} else if (db instanceof BDB) {
+			res = ((BDB) db).optimize();
+		}
+		if(! res){
+			throw new OBStorageException(this.lastErrorString());
+		}
+	}
 
 	private String lastErrorString() {
 		String res = "";
