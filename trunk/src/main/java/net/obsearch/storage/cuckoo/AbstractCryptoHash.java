@@ -32,7 +32,7 @@ public abstract class AbstractCryptoHash implements HashFunction{
 		// TODO fix this.
 		throw new IllegalArgumentException();
 		for(byte b : digest){
-			//hashCode += b* Byte.MAX_VALUE
+			hashCode += b* Byte.MAX_VALUE
 		}
 		return hashCode;
 	}
