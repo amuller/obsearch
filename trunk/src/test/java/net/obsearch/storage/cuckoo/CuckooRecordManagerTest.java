@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -77,6 +78,17 @@ public class CuckooRecordManagerTest {
 			i++;
 		}
 		compareRecords(data, man);
+		
+		// do an iteration to see how it is.
+		Iterator<CuckooEntry> it = man.iterator();
+		i = 1;
+		for(CuckooEntry c : data){
+			assertTrue("At index: " + i , i < data.size() == it.hasNext());
+			//assertTrue("At index: " + i ,it.hasNext());
+			CuckooEntry c2 = it.next();
+			assertEquals(c, c2);
+			i++;
+		}
 	}
 	
 	public void compareRecords(List<CuckooEntry> data, CuckooRecordManager man) throws OBException, IOException{

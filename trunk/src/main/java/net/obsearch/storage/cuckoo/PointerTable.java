@@ -46,7 +46,7 @@ public class PointerTable {
 	 * @throws IOException
 	 */
 	public Entry get(long i) throws OBException, IOException{		
-		OBAsserts.chkAssert(i < size(), "Invalid item");
+		OBAsserts.chkAssert(i < size(), "Invalid item: " + i);
 		ByteBuffer buf = ByteConversion.createByteBuffer(ENTRY_SIZE);		
 		data.read(buf, (i * ENTRY_SIZE));
 		buf.rewind();
@@ -73,7 +73,9 @@ public class PointerTable {
 		setAux(size(), entry);	
 	}
 	
-	private void setAux(long i, Entry entry) throws IOException{		
+	private void setAux(long i, Entry entry) throws IOException{
+		// TODO: optimize usage of these ByteBuffer objects.
+		// we do not need to create them all the time.
 		ByteBuffer buf = ByteConversion.createByteBuffer(ENTRY_SIZE);
 		buf.putLong(entry.getOffset());
 		buf.putInt(entry.getLength());

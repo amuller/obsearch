@@ -235,6 +235,27 @@ public abstract class Hash32 implements HashFunction{
 		hash += (hash << 15);
 		return hash;
 	}
+	
+	/**
+	 * One at a time hash
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static int joaatAux(byte[] key, int start, int end) {
+		int hash = 0;
+		int i = start;
+		while(i < end){ 
+			byte b = key[i];
+			hash += (b & 0xFF);
+			hash += (hash << 10);
+			hash ^= (hash >>> 6);
+		}
+		hash += (hash << 3);
+		hash ^= (hash >>> 11);
+		hash += (hash << 15);
+		return hash;
+	}
 
 	public  int murmur(byte[] data) {
 		return murmurAux(data, 1);

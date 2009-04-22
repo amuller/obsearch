@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import net.obsearch.exception.OBException;
 
@@ -129,7 +131,46 @@ public class CuckooRecordManager {
 			putEntry(last.getId(), last);
 		}
 	}
+
+	public StaticBin1D fragmentationReport() throws IOException, OBException {
+		return store.fragmentationReport();
+	}
 	
+	
+	/**
+	 * Return an interator of all the keys i
+	 * @return
+	 */
+	public Iterator<CuckooEntry> iterator(){
+		return new CuckooRecordManagerIterator(); 		
+	}
+	
+	private class CuckooRecordManagerIterator implements Iterator<CuckooEntry>{
+		private Iterator<byte[]> it;
+		public CuckooRecordManagerIterator(){
+			it = store.iterator();
+		}
+		@Override
+		public boolean hasNext() {
+			return it.hasNext();
+		}
+		@Override
+		public CuckooEntry next() {
+			CuckooEntry e = new CuckooEntry(-1);	
+			try{
+				e.load(it.next());
+			}catch(IOException ex){
+				throw new NoSuchElementException(ex.toString());
+			}
+			return e;
+		}
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+			
+		}
+		
+	}
 	
 
 }

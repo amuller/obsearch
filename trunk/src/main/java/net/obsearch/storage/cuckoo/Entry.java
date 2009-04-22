@@ -1,6 +1,6 @@
 package net.obsearch.storage.cuckoo;
 
-public class Entry {
+public final class Entry {
 	private long offset;
 	private int length;
 
