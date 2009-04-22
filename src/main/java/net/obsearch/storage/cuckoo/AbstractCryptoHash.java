@@ -11,6 +11,7 @@ public abstract class AbstractCryptoHash implements HashFunction{
 	
 	private MessageDigest m;
 	private BigInteger f;
+	private HashFunction j = new Jenkins64();
 	/**
 	 * Create a new crypto hash
 	 * @param i i is only the 
@@ -27,14 +28,13 @@ public abstract class AbstractCryptoHash implements HashFunction{
 	public long compute(byte[] data){
 		byte[] digest = m.digest(data);
 		// java way of doing byte hashes.
-		long hashCode = 0;
-		//s[0]*31^(n-1) + s[1]*31^(n-2) + ... + s[n-1]
-		// TODO fix this.
-		throw new IllegalArgumentException();
-		for(byte b : digest){
-			hashCode += b* Byte.MAX_VALUE
-		}
-		return hashCode;
+		//BigInteger b = new BigInteger(digest);
+		//b.mod(f);
+		//return b.longValue();
+		//long res = Hash32.joaatAux(digest, 0);
+		//res = res << 32;
+		//res = res | joaat(data);
+		return j.compute(digest);
 	}
 
 }
