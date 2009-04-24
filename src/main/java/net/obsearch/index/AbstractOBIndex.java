@@ -206,7 +206,6 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			conf.setTemp(false);
 			conf.setDuplicates(false);
 			conf.setBulkMode(false);
-			conf.setFixedSizeIndex(fixedRecord);
 			conf.setRecordSize(fixedRecordSize);
 			if(fixedRecord){
 				conf.setIndexType(IndexType.FIXED_RECORD);

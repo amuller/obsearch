@@ -2,6 +2,7 @@ package net.obsearch.storage;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
@@ -66,9 +67,11 @@ public interface OBStore<T extends Tuple> {
 	 *             If an exception occurs at the underlying storage system. You
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
+	 * @throws OBException 
+	 * @throws IOException 
 	 */
 	byte[] getValue(byte[] key) throws IllegalArgumentException,
-			OBStorageException;
+			OBStorageException, OBException;
 
 	/**
 	 * Inserts the key value pair. If the key existed, it will be overwritten.
@@ -85,27 +88,15 @@ public interface OBStore<T extends Tuple> {
 	 * @return {@link net.obsearch.Status#OK} the record was inserted/updated
 	 *         successfully. {@link net.obsearch.Status#ERROR} if the record
 	 *         could not be updated.
+	 * @throws OBException 
 	 */
-	OperationStatus put(byte[] key, byte[] value) throws OBStorageException;
+	OperationStatus put(byte[] key, byte[] value) throws OBStorageException, OBException;
 	
 	
-	/**
-	 * Inserts the key value pair. If the key existed, it will NOT be overwritten.
-	 * 
-	 * @param key
-	 *            Key to insert
-	 * @param value
-	 *            The value that the key will hold after this operation
-	 *            completes.
-	 * @throws OBStorageException
-	 *             If an exception occurs at the underlying storage system. You
-	 *             can query the exception to see more details regarding the
-	 *             nature of the error.
-	 * @return {@link net.obsearch.Status#OK} the record was inserted/updated
-	 *         successfully. {@link net.obsearch.Status#EXISTS} if the record
-	 *         existed in the DB.
-	 */
-	OperationStatus putIfNew(byte[] key, byte[] value) throws OBStorageException;
+	
+	
+	
+	
 
 	/**
 	 * Deletes the given key and its corresponding value from the database.
@@ -119,12 +110,14 @@ public interface OBStore<T extends Tuple> {
 	 *             nature of the error.
 	 * @return {@link net.obsearch.Status#OK} if the key was found, otherwise,
 	 *         {@link net.obsearch.Status#NOT_EXISTS}.
+	 * @throws OBException 
+	 * @throws IOException 
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 * @throws OBException 
 	 * @throws OutOfRangeException 
 	 */
-	OperationStatus delete(byte[] key) throws OBStorageException;
+	OperationStatus delete(byte[] key) throws OBStorageException, IOException, OBException;
 
 	/**
 	 * Closes the storage system.
@@ -133,6 +126,7 @@ public interface OBStore<T extends Tuple> {
 	 *             If an exception occurs at the underlying storage system. You
 	 *             can query the exception to see more details regarding the
 	 *             nature of the error.
+	 * @throws OBException 
 	 * @throws OBException 
 	 */
 	void close() throws OBStorageException;
@@ -254,12 +248,7 @@ public interface OBStore<T extends Tuple> {
 	 */
 	CloseIterator<T> processAll() throws OBStorageException;
 	
-	/**
-	 * Process all the keys of this storage
-	 * @return
-	 * @throws OBStorageException
-	 */
-	CloseIterator<byte[]> processAllKeys() throws OBStorageException;
+	
 
 	// TODO: For File mappings we might need to create a function that allows
 	// the user to expand the size of the buffer by some %.

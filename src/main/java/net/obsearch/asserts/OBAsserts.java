@@ -60,7 +60,11 @@ public final class OBAsserts {
 		}
 	}
 	
-	
+	public static void chkNotNull(Object x, String msg) throws OBException{
+		if(x == null){
+			throw new OBException("Object cannot be null: " + msg);
+		}
+	}
 
 	public static void chkAssertStorage(final boolean condition, final String msg)
 			throws OBStorageException {
@@ -98,23 +102,23 @@ public final class OBAsserts {
 	 * @param file
 	 *            File that will be confirmed for existence
 	 */
-	public static void chkFileExists(final File file) throws IOException {
+	public static void chkFileExists(final File file) throws OBStorageException {
 		if (!file.exists()) {
-			throw new IOException("File:" + file + "does not exist");
+			throw new OBStorageException("File:" + file + "does not exist");
 		}
 	}
 
-	public static void chkFileExists(String file) throws IOException {
+	public static void chkFileExists(String file) throws OBStorageException {
 		chkFileExists(new File(file));
 	}
 
-	public static void chkFileNotExists(String file) throws IOException {
+	public static void chkFileNotExists(String file) throws OBStorageException {
 		chkFileNotExists(new File(file));
 	}
 
-	public static void chkFileNotExists(File file) throws IOException {
+	public static void chkFileNotExists(File file) throws OBStorageException {
 		if (file.exists()) {
-			throw new IOException("File:" + file + "exists and it should not.");
+			throw new OBStorageException("File:" + file + "exists and it should not.");
 		}
 	}
 

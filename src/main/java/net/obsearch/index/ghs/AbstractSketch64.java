@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
-
-
 import net.obsearch.AbstractOBResult;
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -42,6 +40,7 @@ import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStorageConfig.IndexType;
+import net.obsearch.storage.cuckoo.CuckooEntry;
 import net.obsearch.utils.bytes.ByteConversion;
 
 /*
@@ -100,7 +99,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	/**
 	 * K configuration that will be used by the user.
 	 */
-	protected int[] userK = new int[]{1, 3, 10, 50};
+	protected int[] userK = new int[] { 1, 3, 10, 50 };
 
 	/**
 	 * The target EP value used in the estimation.
@@ -207,8 +206,6 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	public void setExpectedEP(double ep) {
 		this.expectedEP = ep;
 	}
-	
-	
 
 	/**
 	 * Calculate the estimators.
@@ -234,7 +231,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		OBStorageConfig conf = new OBStorageConfig();
 		conf.setTemp(false);
 		conf.setDuplicates(false);
-		conf.setBulkMode(!isFrozen());		
+		conf.setBulkMode(!isFrozen());
 		conf.setIndexType(IndexType.BTREE);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
@@ -257,26 +254,35 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		logger.fine("Loading masks!");
 		sketchSet = new CompressedBitSet64();
 		CloseIterator<TupleBytes> it = Buckets.processAll();
-		if(it == null){
+		if (it == null) {
 			return;
 		}
 		// assert Buckets.size() == A.size();
-		long[] keys = new long[(int)Buckets.size()];
+		long[] keys = new long[(int) Buckets.size()];
 		int i = 0;
 		while (it.hasNext()) {
 			TupleBytes t = it.next();
+			CuckooEntry c = (CuckooEntry)t;
+			assert i == c.getId() : "id mismatch: " + i;
 			long bucketId = fact.deSerializeLong(t.getKey());
+			if(bucketId == 0){
+				logger.info("!!!CRAP!, we are iterating over 0");
+			}
 			keys[i] = bucketId;
 			i++;
-		}		
+		}
+		if(Buckets.size() > 0){
+			logger.info("Problem: " + keys[(int)Buckets.size() - 1]);
+		}
+		assert i == Buckets.size() : "i is: " + i + " but the buckets: " + Buckets.size();
 		it.closeCursor();
 		long time = System.currentTimeMillis();
 		Arrays.sort(keys);
 		logger.info("Sorted in: " + (System.currentTimeMillis() - time));
-		for(long l : keys){
+		for (long l : keys) {
 			sketchSet.add(l);
 		}
-	// load the sketch into memory.
+		// load the sketch into memory.
 		sketchSet.commit();
 
 		logger.info("Compressed Sketch size: " + sketchSet.getBytesSize());
@@ -301,7 +307,6 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			kEstimators[i] = new StaticBin1D();
 			i++;
 		}
-		
 
 		long[] sample = AbstractDimension.select(sampleSize, r, null,
 				(Index) this, null);
@@ -321,17 +326,19 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		}
 
 	}
-	
+
 	/**
 	 * Returns a list of all the objects of this index.
+	 * 
 	 * @return a list of all the objects of this index.
-	 * @throws OBException 
-	 * @throws InstantiationException 
-	 * @throws IllegalAccessException 
-	 * @throws IllegalIdException 
+	 * @throws OBException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalIdException
 	 */
-	public List<O> getAllObjects() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException{
-		List<O> db = new ArrayList<O>((int)databaseSize());
+	public List<O> getAllObjects() throws IllegalIdException,
+			IllegalAccessException, InstantiationException, OBException {
+		List<O> db = new ArrayList<O>((int) databaseSize());
 		int i = 0;
 		long max = databaseSize();
 		while (i < max) {
@@ -368,14 +375,13 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 		@Override
 		public void store(byte[] key, BC object) throws OBException {
-			
-				/*if (object.isModified()) {
-					OperationStatus s = Buckets.putIfNew(key, object
-							.serialize());
-					if(s.)
-					stats.addExtraStats("B_SIZE", object.size());
-				}*/
-			
+
+			/*
+			 * if (object.isModified()) { OperationStatus s =
+			 * Buckets.putIfNew(key, object .serialize()); if(s.)
+			 * stats.addExtraStats("B_SIZE", object.size()); }
+			 */
+
 		}
 
 	}
@@ -396,27 +402,22 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
-		
+
 		byte[] bucketId = getAddress(b);
 		BC bc = instantiateBucketContainer(null, bucketId);
-		OperationStatus s = bc.insert(b, object);		
-		// store the data in the index. 
-		OperationStatus res = Buckets.putIfNew(bucketId, bc.serialize());
-		if(res.getStatus() == Status.EXISTS){
-			// we have to re-do everything. 
-			byte[] bucketData =  Buckets.getValue(bucketId);
-			bc = instantiateBucketContainer(bucketData, bucketId);
-			s = bc.insert(b, object);
-			if(s.getStatus() == Status.OK){
-				Buckets.put(bucketId, bc.serialize());
-			}
-		}
+		OperationStatus s = bc.insert(b, object);
+		// store the data in the index.
+		
+		// we have to re-do everything.
+		byte[] bucketData = Buckets.getValue(bucketId);
+		bc = instantiateBucketContainer(bucketData, bucketId);
+		s = bc.insertBulk(b, object);
+		Buckets.put(bucketId, bc.serialize());
+		
 		this.bucketCache.put(bucketId, bc);
 		stats.addExtraStats("B_SIZE", bc.size());
 		return s;
 	}
-
-	
 
 	/**
 	 * Stores the given bucket b into the {@link #Buckets} storage device. The
@@ -436,25 +437,29 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected OperationStatus insertBucketBulk(B b, O object)
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
-			OutOfRangeException, OBException {		
+			OutOfRangeException, OBException {
 		byte[] bucketId = getAddress(b);
 		BC bc = instantiateBucketContainer(null, bucketId);
-		OperationStatus s = bc.insertBulk(b, object);		
-		// store the data in the index. 
-		OperationStatus res = Buckets.putIfNew(bucketId, bc.serialize());
-		if(res.getStatus() == Status.EXISTS){
-			// we have to re-do everything. 
-			byte[] bucketData =  Buckets.getValue(bucketId);
-			bc = instantiateBucketContainer(bucketData, bucketId);
-			s = bc.insertBulk(b, object);
-			Buckets.put(bucketId, bc.serialize());
-		}
+		OperationStatus s = bc.insertBulk(b, object);
+
+		// we have to re-do everything.
+		byte[] bucketData = Buckets.getValue(bucketId);
+		bc = instantiateBucketContainer(bucketData, bucketId);
+		s = bc.insertBulk(b, object);
+		long prevSize = Buckets.size();
+		Buckets.put(bucketId, bc.serialize());
+		/*if(bucketData == null){
+			assert Buckets.size() == (prevSize + 1);
+		}*/
 		this.bucketCache.put(bucketId, bc);
 		stats.addExtraStats("B_SIZE", bc.size());
 		return s;
 	}
 
 	protected byte[] convertLongToBytesAddress(long bucketId) {
+		if(bucketId == 0){
+			System.out.println("HEY --> in");
+		}
 		return fact.serializeLong(bucketId);
 	}
 
@@ -467,14 +472,15 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 	/**
 	 * Estimate ks for the given query object and the given list of objects.
+	 * 
 	 * @param object
 	 * @param objects
 	 * @throws OBException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	protected abstract void maxKEstimationAux(O object)
-	throws OBException, InstantiationException, IllegalAccessException ;
+	protected abstract void maxKEstimationAux(O object) throws OBException,
+			InstantiationException, IllegalAccessException;
 
 	/**
 	 * Returns a k query for the given object.
@@ -516,17 +522,17 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * @param queryK
 	 *            k of the k-nn query.
 	 * @return Number of buckets that should be retrieved for this query.
-	 * @throws OBException 
+	 * @throws OBException
 	 */
 	public int estimateK(int queryK) throws OBException {
 		int i = 0;
-		for(int kval : this.userK){
-			if(kval == queryK){
+		for (int kval : this.userK) {
+			if (kval == queryK) {
 				break;
 			}
 			i++;
 		}
-		if(i == this.userK.length){
+		if (i == this.userK.length) {
 			throw new OBException("Wrong k value");
 		}
 		long x = Math.round(this.kEstimators[i].mean()

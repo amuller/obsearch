@@ -34,6 +34,14 @@ public class PointerTable {
 		return (long)data.size()/ ENTRY_SIZE;
 	}
 	
+	/**
+	 * empty the pointer table.
+	 * @throws IOException 
+	 */
+	public void deleteAll() throws IOException{
+		data.truncate(0);
+	}
+	
 	public void close() throws IOException{
 		data.close();
 	}
@@ -45,8 +53,10 @@ public class PointerTable {
 	 * @throws OBException
 	 * @throws IOException
 	 */
-	public Entry get(long i) throws OBException, IOException{		
-		OBAsserts.chkAssert(i < size(), "Invalid item: " + i);
+	public Entry get(long i) throws OBException, IOException{				
+		if(i >= size()){
+			return Entry.NULL_ENTRY;
+		}
 		ByteBuffer buf = ByteConversion.createByteBuffer(ENTRY_SIZE);		
 		data.read(buf, (i * ENTRY_SIZE));
 		buf.rewind();

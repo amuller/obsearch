@@ -29,8 +29,12 @@ import java.nio.ByteBuffer;
 
 public class TupleBytes
         extends Tuple {
-    private byte[] key;
+    protected byte[] key;
 
+    public TupleBytes(){
+    	super();
+    	key = null;    	
+    }
     public TupleBytes(byte[] key, byte[] value) {
         super(value);
         this.key = key;

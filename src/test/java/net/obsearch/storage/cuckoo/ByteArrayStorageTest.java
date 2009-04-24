@@ -15,6 +15,7 @@ import java.util.List;
 
 import net.obsearch.exception.OBException;
 import net.obsearch.index.utils.Directory;
+import net.obsearch.storage.TupleLong;
 
 import org.junit.Test;
 
@@ -29,6 +30,12 @@ public class ByteArrayStorageTest {
 	
 	protected static int TEST_SIZE = 100000;
 	private static Random r = new Random();
+	
+	public static byte[] generalArray(){
+		byte[] res = new byte[1 + r.nextInt(20)];
+		r.nextBytes(res);
+		return res;
+	}
 	
 	public byte[] generateByteArray(){
 		return String.valueOf(r.nextLong()).getBytes();
@@ -65,7 +72,24 @@ public class ByteArrayStorageTest {
 			assertTrue(store.add(data[i]) == i);
 			i++;
 		}
+		
+		
+		
 		System.out.println("Total DB creation time: " + (System.currentTimeMillis() - time));
+		
+		assertTrue(store.size() == TEST_SIZE);
+		// let's do an interation
+		Iterator<TupleLong> it =  store.iterator();
+		i = 0;
+		while(it.hasNext()){
+			TupleLong t = it.next();
+			assertTrue(Arrays.equals(data[i], t.getValue()));
+			assertTrue(Arrays.equals(data[i], t.getValue()));
+			assertTrue(t.getKey() == i);
+			i++;
+		}
+		
+		
 		// make sure they are equal.
 		verifyData(data, store);
 		
@@ -94,8 +118,8 @@ public class ByteArrayStorageTest {
 		}
 		
 		// now that we have done these things, iterators should return exactly the same thing.
-		Iterator<Tuple> it = store.iterator();
-		i = 1;
+		it = store.iterator();
+		i = 0;
 		long cx = 0;
 		StaticBin1D nextStats = new StaticBin1D();
 		for(byte[] d : data){
@@ -108,11 +132,11 @@ public class ByteArrayStorageTest {
 			assertTrue("At index: " + i , i < data.length == it.hasNext());
 			//assertTrue("At index: " + i ,it.hasNext());
 			time = System.currentTimeMillis();
-			Tuple t = it.next();
+			TupleLong t = it.next();
 			nextStats.add(System.currentTimeMillis() - time);
-			byte[] d2 = t.getEntry();
+			byte[] d2 = t.getValue();
 			assertTrue(Arrays.equals(d, d2));
-			assertTrue(cx == t.getId());
+			assertTrue(cx == t.getKey());
 			i++;
 			cx++;
 		}

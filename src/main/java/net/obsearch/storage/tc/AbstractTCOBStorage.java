@@ -113,7 +113,7 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		this.name = name;
 		this.fact = fact;
 		OBStorageConfig conf = new OBStorageConfig();
-		conf.setFixedSizeIndex(true);
+		//conf.setFixedSizeIndex(true);
 		conf.setRecordSize(Index.ID_SIZE);
 		metadata = new FDB();
 		metadata.open(fact.getFactoryLocation() + File.separator + name
