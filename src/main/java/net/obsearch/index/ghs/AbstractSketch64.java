@@ -444,7 +444,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		byte[] bucketData = Buckets.getValue(bucketId);
 		bc = instantiateBucketContainer(bucketData, bucketId);
 		s = bc.insertBulk(b, object);
-		long prevSize = Buckets.size();
+		//long prevSize = Buckets.size();
 		Buckets.put(bucketId, bc.serialize());
 		/*if(bucketData == null){
 			assert Buckets.size() == (prevSize + 1);
