@@ -21,7 +21,7 @@ public class TestCuckooHash {
 	
 	private int TEST_SIZE = 1000000;
 	
-	private int TEST_PERF_SIZE = 100000000;
+	private int TEST_PERF_SIZE = 1000000;
 	
 	private int TEST_QUERIES = 10000;
 	
@@ -30,7 +30,7 @@ public class TestCuckooHash {
 		File test = new File("cuckooTest");
 		Directory.deleteDirectory(test);
 		assertTrue(test.mkdirs());
-		CuckooHash h = new CuckooHash(TEST_SIZE , test, new Jenkins64(), new Murmur64() );
+		CuckooHash h = new CuckooHash(TEST_SIZE , test, new Murmur64(), new Jenkins64() );
 		List<byte[]> vals = TestHashFunctions.createData(TEST_SIZE);
 		StaticBin1D put  = new	StaticBin1D ();
 		StaticBin1D get  = new	StaticBin1D ();
@@ -40,6 +40,22 @@ public class TestCuckooHash {
 			h.put(k, k);
 			put.add(System.currentTimeMillis() - time);											
 		}
+		
+		// try some repeated values
+		byte[] data = "my string :)".getBytes();
+		h.put(data, data);
+		assertTrue(Arrays.equals(data, h.get(data)));
+		
+		// re-write the same bucket
+		byte[] data2 = "my string :) feliz".getBytes();
+		h.put(data, data2);
+		assertTrue(Arrays.equals(data2, h.get(data)));
+		
+		// re-write the same bucket
+		byte[] data3 = "my string :) feliz la la la".getBytes();
+		h.put(data, data3);
+		assertTrue(Arrays.equals(data3, h.get(data)));
+		
 		System.out.println("Creation time: " + (System.currentTimeMillis() - t1) + " msec");
 		
 		for(byte[] k : vals){
@@ -69,7 +85,7 @@ public class TestCuckooHash {
 		List<byte[]> positive = new LinkedList<byte[]>();
 		StaticBin1D put = new StaticBin1D();
 		while(i < TEST_PERF_SIZE){
-			byte [] k = ByteArrayStorageTest.generateByteArray();
+			byte [] k = ByteArrayStorageTest.generalArray();
 			if(positive.size() < TEST_QUERIES){
 				positive.add(k);
 			}

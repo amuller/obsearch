@@ -41,7 +41,7 @@ public class TestTCByteArrayStorage {
 		}				
 	}
 	
-	private void addObjects(OBStore<TupleBytes> st, HashMap<Long, Double> data,TCFactory tc ) throws OBStorageException{
+	private void addObjects(OBStore<TupleBytes> st, HashMap<Long, Double> data,TCFactory tc ) throws OBException{
 		for (Map.Entry<Long, Double> e : data.entrySet()) {
 			OperationStatus res = st.put(tc.serializeLong(e.getKey()),
 					(tc.serializeDouble(e
@@ -94,11 +94,11 @@ public class TestTCByteArrayStorage {
 		addObjects(st,data,tc);
 		
 		// make sure all the keys are there.
-		CloseIterator<byte[]> itk = st.processAllKeys();
+		CloseIterator<TupleBytes> itk = st.processAll();
 		HashSet<Long> keySet = new HashSet<Long>();
 		while(itk.hasNext()){
-			byte[] k = itk.next();
-			long key = tc.deSerializeLong(k);
+			TupleBytes k = itk.next();
+			long key = tc.deSerializeLong(k.getKey());
 			assertTrue(data.containsKey(key));
 			keySet.add(key);
 		}

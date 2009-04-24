@@ -96,7 +96,7 @@ public final class BDBFactory${Bdb} implements OBStoreFactory {
      * @throws IOException
      *                 If the given directory does not exist.
      */
-    public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException 	<#if bdb = "db">, OBException </#if> {
+    public BDBFactory${Bdb}(File directory) throws IOException, DatabaseException, OBStorageException 	<#if bdb = "db">, OBException </#if> {
 				this.directory = directory.getAbsolutePath();
 				logger.debug("Factory created on dir: " + directory);
         directory.mkdirs();

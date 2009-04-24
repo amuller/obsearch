@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import net.obsearch.exception.OBException;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleLong;
 
 /**
  * This is a dynamic byte[] array (byte[][]). You can extend it and store the
@@ -26,7 +28,7 @@ public interface ByteArray {
 	 * @throws IOException
 	 * @throws OBException
 	 */
-	public abstract void put(long id, byte[] data) throws OBException,
+	public  void put(long id, byte[] data) throws OBException,
 			IOException;
 
 	/**
@@ -35,7 +37,7 @@ public interface ByteArray {
 	 * @throws IOException
 	 * @throws OBException
 	 */
-	public abstract byte[] get(long i) throws OBException, IOException;
+	public  byte[] get(long i) throws OBException, IOException;
 
 	/**
 	 * Delete the ith entry.
@@ -44,7 +46,7 @@ public interface ByteArray {
 	 * @throws IOException
 	 * @throws OBException
 	 */
-	public abstract void delete(long i) throws OBException, IOException;
+	public  boolean delete(long i) throws OBException, IOException;
 
 	/**
 	 * Add the given object to the end of the file.
@@ -54,21 +56,21 @@ public interface ByteArray {
 	 * @throws IOException
 	 * @throws OBException
 	 */
-	public abstract long add(byte[] data) throws IOException, OBException;
+	public long add(byte[] data) throws IOException, OBException;
 
 	/**
 	 * 
 	 * @return The maximum size of the array.
 	 * @throws IOException
 	 */
-	public abstract long size() throws IOException;
+	public  long size() throws IOException;
 
 	/**
 	 * Returns an iterator of the byte array.
 	 * 
 	 * @return
 	 */
-	public abstract Iterator<Tuple> iterator();
+	public  CloseIterator<TupleLong> iterator();
 
 	/**
 	 * Return internal fragmentation if available.
@@ -76,5 +78,19 @@ public interface ByteArray {
 	 * @return
 	 */
 	public StaticBin1D fragmentationReport() throws IOException, OBException;
+	
+	/**
+	 * Close the storage device
+	 */
+	public void close()throws IOException, OBException;
+	
+	
+	/**
+	 * Delete all data in the storage device
+	 * @throws IOException 
+	 */
+	public void deleteAll() throws IOException;
+		
+	
 
 }

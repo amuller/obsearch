@@ -1,18 +1,14 @@
-package net.obsearch.storage.tc;
+package net.obsearch.storage.cuckoo;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
-
-import tokyocabinet.BDB;
-import tokyocabinet.DBM;
-import tokyocabinet.FDB;
-import tokyocabinet.HDB;
-import tokyocabinet.Util;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.index.utils.Directory;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreByte;
@@ -24,58 +20,54 @@ import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.OBStoreShort;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.OBStorageConfig.IndexType;
-import net.obsearch.storage.bdb.BDBFactoryJe;
 import net.obsearch.utils.bytes.ByteConversion;
 
-public class TCFactory implements OBStoreFactory {
-	/**
-	 * Directory where all the objects will be created.
-	 */
-	private String directory;
+/**
+ * Factory that creates MyFactory* objects.
+ * @author Arnoldo Jose Muller-Molina
+ *
+ */
+public class MyFactory implements OBStoreFactory {
+
+	private File directory;
 	
-	public TCFactory(File directory){
-		this.directory = directory.getAbsolutePath();
+	
+	
+	public MyFactory(File directory) {
+		super();
+		this.directory = directory;
 	}
 
 	@Override
 	public void close() throws OBStorageException {
+		// TODO Auto-generated method stub
 
 	}
 
-	private DBM createDB(String name, OBStorageConfig config) throws OBStorageException, OBException{
-		DBM db = null;
-		String path = directory + File.separator + name;
-		if (IndexType.HASH == config.getIndexType()  ) {
-			HDB tdb = new HDB();
-			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count") * 4), -1, 20, HDB.TLARGE ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
-			OBAsserts.chkAssertStorage(tdb.setcache(200000), "Could not enable cache size");
-			OBAsserts.chkAssertStorage(tdb.setxmsiz((long)Math.pow(1024, 2) * 500), "Could not enable mmap  size");
-			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER | HDB.ONOLCK), "Could not open database: " + tdb.errmsg());			
-			db = tdb;
-		} else if (IndexType.BTREE == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
-			BDB tdb = new BDB();
-			tdb.tune(-1, -1, OBSearchProperties.getLongProperty("tc.expected.db.count") / 128, -1, -1, BDB.TLARGE);
-			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER | BDB.ONOLCK), "Could not open database: " + tdb.errmsg() );			
-			db = tdb;
-		} else if(IndexType.FIXED_RECORD == config.getIndexType()){
-			FDB tdb = new FDB();
-			OBAsserts.chkAssert(config.getRecordSize() > 0, "Invalid record size");
-			OBAsserts.chkAssertStorage(tdb.tune(config.getRecordSize(), OBSearchProperties.getLongProperty("tc.fdb.max.file.size")), "Could not set the tuning parameters for the fixed record device");
-			OBAsserts.chkAssertStorage(tdb.open(path, FDB.OCREAT |  FDB.OWRITER | FDB.ONOLCK), "Could not open database: " + tdb.errmsg() );
-			db = tdb;
-		}else{
-			OBAsserts.fail("Fatal error, invalid index type.");
-		}
-		return db;
-	}
-	
+	/**
+	 * Create a storage device with 
+	 */
 	@Override
 	public OBStore<TupleBytes> createOBStore(String name, OBStorageConfig config)
 			throws OBStorageException, OBException {
-
-		DBM db = createDB(name, config);
-		TCOBStorageBytesArray t = new TCOBStorageBytesArray(name, db, this, config);
-		return t;
+		File location = createFile(name);
+		try{
+			HashFunction f1 = (HashFunction)Class.forName(OBSearchProperties.getStringProperty("my.hash.f1")).newInstance();
+			HashFunction f2 = (HashFunction)Class.forName(OBSearchProperties.getStringProperty("my.hash.f2")).newInstance();
+			OBAsserts.chkNotNull(f1, "F1 hash function");
+			OBAsserts.chkNotNull(f2, "F2 hash function");
+		MyStorage s = new MyStorage(null, new CuckooHash(OBSearchProperties.getLongProperty("my.expected.db.count"), location, f1, f2 ), name, this);
+		return s;
+		}catch(Exception e){
+			throw new OBStorageException(e);
+		}
+	}
+	
+	private File createFile(String name) throws OBStorageException{
+		File location = new File(directory, name);
+		location.mkdirs();
+		OBAsserts.chkFileExists(location);
+		return location;
 	}
 
 	@Override
@@ -108,10 +100,23 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public OBStoreLong createOBStoreLong(String name, OBStorageConfig config)
-			throws OBStorageException, OBException {		
-		DBM db = createDB(name, config);
-		TCOBStorageLong t = new TCOBStorageLong(name, db, this, config);
-		return t;
+			throws OBStorageException, OBException {
+		File location = createFile(name);
+		ByteArray index;
+		if(config.getIndexType() == IndexType.FIXED_RECORD){
+			index = new ByteArrayFixed(config.getRecordSize(), location );
+		}else{
+			index =  new ByteArrayFlex(location);
+		}
+		
+		try{
+						
+		MyStorageLong s = new MyStorageLong(index, null, name, this);
+		return s;
+		}catch(Exception e){
+			throw new OBStorageException(e);
+		}
+		
 	}
 
 	@Override
@@ -122,12 +127,13 @@ public class TCFactory implements OBStoreFactory {
 	}
 
 	@Override
-	public BigInteger deSerializeBigInteger(byte[] value) {		
+	public BigInteger deSerializeBigInteger(byte[] value) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public byte deSerializeByte(byte[] value) {
+	public byte deSerializeByte(byte[] value) {		
 		return ByteConversion.bytesToByte(value);
 	}
 
@@ -142,16 +148,13 @@ public class TCFactory implements OBStoreFactory {
 	}
 
 	@Override
-	public int deSerializeInt(byte[] value) {
-		//return ByteConversion.bytesToInt(value);
-		return Util.unpackint(value);
+	public int deSerializeInt(byte[] value) {		
+		return ByteConversion.bytesToInt(value);	
 	}
 
 	@Override
 	public long deSerializeLong(byte[] value) {
-		//return ByteConversion.bytesToLong(value);
-		//return BDBFactoryJe.bytesToLong(value);
-		return Long.parseLong(new String(value));
+		return ByteConversion.bytesToLong(value);	
 	}
 
 	@Override
@@ -161,13 +164,19 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public String getFactoryLocation() {
-		return this.directory;
+		return directory.getAbsolutePath();
 	}
 
 	@Override
-	public void removeOBStore(OBStore storage) throws OBStorageException, OBException {
+	public void removeOBStore(OBStore storage) throws OBStorageException,
+			OBException {
 		storage.deleteAll();
-		storage.close();
+		File dir = new File(directory, storage.getName());
+		try{
+		Directory.deleteDirectory(dir);
+		}catch(IOException e){
+			throw new OBStorageException(e);
+		}
 	}
 
 	@Override
@@ -183,25 +192,25 @@ public class TCFactory implements OBStoreFactory {
 
 	@Override
 	public byte[] serializeDouble(double value) {
+		
 		return ByteConversion.doubleToBytes(value);
 	}
 
 	@Override
 	public byte[] serializeFloat(float value) {
+
 		return ByteConversion.floatToBytes(value);
 	}
 
 	@Override
 	public byte[] serializeInt(int value) {
-		//return ByteConversion.intToBytes(value);
-		return Util.packint(value);
+
+		return ByteConversion.intToBytes(value);
 	}
 
 	@Override
 	public byte[] serializeLong(long value) {
-		//return ByteConversion.longToBytes(value);
-		//return BDBFactoryJe.longToBytes(value);
-		return String.valueOf(value).getBytes();
+		return ByteConversion.longToBytes(value);
 	}
 
 	@Override

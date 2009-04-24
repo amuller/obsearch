@@ -13,6 +13,9 @@ import java.util.NoSuchElementException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleLong;
 import net.obsearch.utils.bytes.ByteConversion;
 
 /**
@@ -46,17 +49,25 @@ public class ByteArrayFlex implements ByteArray {
 	 * 
 	 * @param in
 	 * @throws FileNotFoundException
+	 * @throws OBStorageException 
 	 */
-	public ByteArrayFlex(File in) throws FileNotFoundException {
+	public ByteArrayFlex(File in) throws  OBStorageException {
+		try{
 		RandomAccessFile mainF = new RandomAccessFile(new File(in, "main.az"),
 				"rw");
 		RandomAccessFile entriesF = new RandomAccessFile(new File(in,
 				"entries.az"), "rw");
 		RandomAccessFile holesF = new RandomAccessFile(
 				new File(in, "holes.az"), "rw");
+		
 		main = mainF.getChannel();
 		entries = new PointerTable(entriesF.getChannel());
 		holes = new PointerTable(holesF.getChannel());
+		
+		}catch(FileNotFoundException e){
+			throw new OBStorageException(e);
+		}
+		
 		
 	}
 
@@ -65,8 +76,11 @@ public class ByteArrayFlex implements ByteArray {
 	 */
 	public void put(long id, byte[] data) throws OBException, IOException {
 		OBAsserts
-				.chkAssert(id < entries.size(),
+				.chkAssert(id <= entries.size(),
 						"Cannot exceed the size of the array, extend the array by using 'add'.");
+		if(id == size()){
+			OBAsserts.chkAssert(id == add(data), "Bad id, fatal error"); // create a new element at the end.
+		}
 		Entry e = entries.get(id);
 		if (e.getLength() == data.length) { // little optimization
 			// lucky, we just put the object where it was.
@@ -123,13 +137,15 @@ public class ByteArrayFlex implements ByteArray {
 	/* (non-Javadoc)
 	 * @see net.obsearch.storage.cuckoo.ByteArray#delete(long)
 	 */
-	public void delete(long i) throws OBException, IOException {
+	public boolean delete(long i) throws OBException, IOException {
 		// get the entry to store it in the holes section
 		Entry e = entries.get(i);
+		boolean result = e.isNull();
 		addToHoleSet(e);
 		// store back the nullified entry
 		e.setNull();
 		entries.set(i, e);
+		return result;
 	}
 
 	private void addToHoleSet(Entry e) throws IOException {
@@ -148,7 +164,7 @@ public class ByteArrayFlex implements ByteArray {
 		return entries.size() - 1;
 	}
 
-	/* (non-Javadoc)
+	/* (non-Javadoc)s
 	 * @see net.obsearch.storage.cuckoo.ByteArray#size()
 	 */
 	public long size() throws IOException {
@@ -198,16 +214,22 @@ public class ByteArrayFlex implements ByteArray {
 	/* (non-Javadoc)
 	 * @see net.obsearch.storage.cuckoo.ByteArray#iterator()
 	 */
-	public Iterator<Tuple> iterator() {
+	public CloseIterator<TupleLong> iterator() {
 
 		return new ByteArrayStorageIterator(0);
 
 	}
+	
+	public void deleteAll() throws IOException{
+		this.holes.deleteAll();
+		this.entries.deleteAll();
+		this.main.truncate(0);
+	}
 
-	public class ByteArrayStorageIterator implements Iterator<Tuple> {
+	public class ByteArrayStorageIterator implements CloseIterator<TupleLong> {
 
 		private long nextPointer;
-		private Tuple next;
+		private TupleLong next;
 
 		/**
 		 * Create an iterator starting from "startPosition"
@@ -223,7 +245,7 @@ public class ByteArrayFlex implements ByteArray {
 			try {
 				byte[] obj = null;
 				long loadedPointer = -1;
-				while(obj == null && hasNext()) {
+				while(obj == null && nextPointer < size()) {
 					obj = get(nextPointer);
 					loadedPointer = nextPointer;
 					nextPointer++; // leaves the pointer ready for the next
@@ -232,7 +254,7 @@ public class ByteArrayFlex implements ByteArray {
 				if (obj == null) {
 					next = null; // end everything
 				} else {
-					next = new Tuple(loadedPointer, obj);
+					next = new TupleLong(loadedPointer, obj);
 				}
 			} catch (IOException e) {
 				throw new NoSuchElementException(e.toString());
@@ -243,17 +265,22 @@ public class ByteArrayFlex implements ByteArray {
 
 		@Override
 		public boolean hasNext() {
-			try{
-				return nextPointer < size();
-			}catch(IOException e){
-				throw new NoSuchElementException(e.toString());
-			}
+			//try{
+				return next != null;
+			//}catch(IOException e){
+			//	throw new NoSuchElementException(e.toString());
+			//}
 			
 		}
 
 		@Override
-		public Tuple next() {			
-			Tuple toReturn = next;
+		public void closeCursor() throws OBException {
+
+		}
+		
+		@Override
+		public TupleLong next() {			
+			TupleLong toReturn = next;
 			calculateNext();
 			return toReturn;
 		}

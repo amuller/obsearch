@@ -10,13 +10,13 @@ import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
 import net.obsearch.storage.OBStore;
+import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteConversion;
 
-public class CuckooEntry implements Storable{
+public class CuckooEntry extends TupleBytes implements Storable {
 	
 	
-	private byte[] key;
-	private byte[] value;
+	
 	
 	// <next, long> <key, short> <value, int> <byte[] key> <byte[] value> 
 	private static final int HEADER_SIZE = ByteConstants.Long.getSize() + ByteConstants.Short.getSize();
@@ -28,10 +28,14 @@ public class CuckooEntry implements Storable{
 	 */
 	private long id;
 	
-	public CuckooEntry(long id){
+	public CuckooEntry(long id){		
 		this.id = id;
 	}
 	
+	
+	public void setId(long id){
+		this.id = id;
+	}
 	
 			
 	public long getId() {
@@ -41,11 +45,9 @@ public class CuckooEntry implements Storable{
 
 
 	public CuckooEntry(byte[] key,  byte[] value) throws OBException {		
-		super();
+		super(key,value);
 		OBAsserts.chkAssert(key.length <= Short.MAX_VALUE, "Keys cannot be bigger than 2^16");
 		OBAsserts.chkAssert(value.length <= Integer.MAX_VALUE, "Values cannot be bigger than 2^32");
-		this.key = key;
-		this.value = value;		
 	}
 	
 	public boolean hasNext(){
@@ -100,18 +102,6 @@ public class CuckooEntry implements Storable{
 
 
 	
-	public byte[] getKey() {
-		return key;
-	}
-	public void setKey(byte[] key) {
-		this.key = key;
-	}
-	public byte[] getValue() {
-		return value;
-	}
-	public void setValue(byte[] value) {
-		this.value = value;
-	}
 	
 
 }

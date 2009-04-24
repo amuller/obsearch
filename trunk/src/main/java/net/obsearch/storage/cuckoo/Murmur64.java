@@ -4,45 +4,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public final class Murmur64 implements HashFunction {
-	public static ByteOrder order = ByteOrder.nativeOrder();
+	public final static ByteOrder order = ByteOrder.nativeOrder();
 	@Override
 	public long compute(byte[] data) {
 		return computeAux(data, data.length, 1);
 	}
 	
-	/**
-	 * Return a long from the given data array
-	 * @param key
-	 * @param offset
-	 * @return
-	 */
-	private long getLong(byte[] key, int offset){
-		long res = 0;
-		res = res | key[offset]; // 0
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 1
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 2
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 3
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 4
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 5
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 6
-		offset++;
-		res = res << 8;
-		res = res | key[offset]; // 7
-		
-		return res;
-	}
 	
 	
 	private long computeAux(byte[] key, int len, int seed){
@@ -54,12 +21,12 @@ public final class Murmur64 implements HashFunction {
 
 		//const uint64_t * data = (const uint64_t *)key;
 		//const uint64_t * end = data + (len/8);
-		
-		int i = 0;
-		int end = (len/8) * 8;
-		while(i != end)
+		ByteBuffer buf = ByteBuffer.wrap(key);
+		buf.order(order);
+		int end = len;
+		while(end >= 8)
 		{
-			long k = getLong(key, i);
+			long k = buf.getLong();///getLong(key, i);
 
 			k *= m; 
 			k ^= k >> r; 
@@ -68,12 +35,13 @@ public final class Murmur64 implements HashFunction {
 			h ^= k;
 			h *= m;
 			
-			i += 8;
+			end -= 8;
 		}
-		int pos = i;
+		int pos = buf.position();
+		
 		//const unsigned char * data2 = (const unsigned char*)data;
-
-		switch(len & 7)
+		
+		switch(end)
 		{
 		case 7: h ^= ((long)(key[pos + 6])) << 48;
 		case 6: h ^= ((long)(key[pos + 5])) << 40;

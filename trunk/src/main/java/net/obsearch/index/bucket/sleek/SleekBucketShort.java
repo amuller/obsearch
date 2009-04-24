@@ -468,7 +468,12 @@ public class SleekBucketShort<O extends OBShort> implements
 				query.getObject());
 		// now we can match the remaining of the objects.
 		for (BucketObjectShort<O> db : objects) {
-			short lowerBound = b.lInf(db);
+			short lowerBound;
+			if(pivotCount > 0){
+				lowerBound = b.lInf(db);
+			}else{
+				lowerBound = 0;
+			}
 			stats.incSmapCount();
 			if (query.isCandidate(lowerBound) && (filter == null || filter.accept(db.getObject(), query.getObject()))) {
 				short distance = query.getObject().distance(db.getObject());

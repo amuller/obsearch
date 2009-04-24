@@ -64,7 +64,7 @@ public class VectorsDemo {
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 20000000;
+	final static int DB_SIZE = 100000;
 	
 	/**
 	 * FREEZE size

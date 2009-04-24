@@ -54,7 +54,7 @@ public interface OBStoreFactory {
 		 * @param storage The storage device to remove.
 		 * @throws OBStorageException If something goes wrong with the delete operation.
 		 */
-		void removeOBStore(OBStore storage) throws OBStorageException;	
+		void removeOBStore(OBStore storage) throws OBStorageException, OBException;	
 
     
 <#list types as t>

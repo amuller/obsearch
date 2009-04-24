@@ -59,6 +59,16 @@ public class OBSearchProperties {
 	}
 	
 	
+	
+	public static String getStringProperty(String prop) throws OBException{
+		try{
+			return getProperties().getProperty(prop);
+		}catch(Exception e){
+			throw new OBException(e);
+		}
+    	
+    }
+	
 
 	public static int getIntProperty(String prop) throws OBException{
 		try{

@@ -123,12 +123,25 @@ import net.obsearch.ob.OB${Type};
         return lInf(smapVector, b.getSmapVector());
     }
 
+		private int pivotCount(){
+				if(smapVector == null){
+						return 0;
+				}else{
+						return smapVector.length;
+				}
+		}
+
 
 		public static ${type} lInf(${type}[] smapVector, ${type}[] other){
         int cx = 0;
         ${type} max = 0;
         ${type} t;
-        assert smapVector.length == other.length;
+				
+				if(smapVector == null || smapVector.length == 0){
+						assert other == null || other.length == 0;
+						return max;
+				}
+        
         while (cx < smapVector.length) {
             t = (${type}) Math.abs(smapVector[cx] - other[cx]);
             if (t > max) {

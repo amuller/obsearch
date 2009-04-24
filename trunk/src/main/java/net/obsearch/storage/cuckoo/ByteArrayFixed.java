@@ -12,6 +12,9 @@ import java.util.NoSuchElementException;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleLong;
 
 /**
  * An byte array in which each element has a fixed size.
@@ -30,11 +33,15 @@ public class ByteArrayFixed implements ByteArray{
 	 */
 	private int ID_SIZE = ByteConstants.Byte.getSize();
 	
-	public ByteArrayFixed(int tupleSize, File in) throws FileNotFoundException, OBException{
+	public ByteArrayFixed(int tupleSize, File in) throws  OBException{
 		OBAsserts.chkAssert(tupleSize > 0, "Must store objects of size > 0");
 		this.tupleSize = tupleSize + ID_SIZE;
 		this.recordSize = tupleSize;
+		try{
 		file = new RandomAccessFile(new File(in, "main.az"),"rw");
+		}catch(IOException e){
+			throw new OBStorageException(e);
+		}
 	}
 
 	@Override
@@ -45,9 +52,15 @@ public class ByteArrayFixed implements ByteArray{
 	}
 
 	@Override
-	public void delete(long i) throws OBException, IOException {
+	public boolean delete(long i) throws OBException, IOException {
+		boolean result = get(i) != null;
 		file.seek(i * tupleSize);
 		file.write(0); // erased the record.
+		return result;
+	}
+	
+	public void deleteAll() throws IOException{
+		file.setLength(0);
 	}
 
 	@Override
@@ -66,15 +79,15 @@ public class ByteArrayFixed implements ByteArray{
 	}
 
 	@Override
-	public Iterator<Tuple> iterator() {
+	public CloseIterator<TupleLong> iterator() {
 		return new ByteArrayStorageIterator(0);
 	}
 	
 	
-	public class ByteArrayStorageIterator implements Iterator<Tuple> {
+	public class ByteArrayStorageIterator implements CloseIterator<TupleLong> {
 
 		private long nextPointer;
-		private Tuple next;
+		private TupleLong next;
 
 		/**
 		 * Create an iterator starting from "startPosition"
@@ -99,7 +112,7 @@ public class ByteArrayFixed implements ByteArray{
 				if (obj == null) {
 					next = null; // end everything
 				} else {
-					next = new Tuple(loadedPointer, obj);
+					next = new TupleLong(loadedPointer, obj);
 				}
 			} catch (IOException e) {
 				throw new NoSuchElementException(e.toString());
@@ -119,8 +132,8 @@ public class ByteArrayFixed implements ByteArray{
 		}
 
 		@Override
-		public Tuple next() {			
-			Tuple toReturn = next;
+		public TupleLong next() {			
+			TupleLong toReturn = next;
 			calculateNext();
 			return toReturn;
 		}
@@ -128,6 +141,11 @@ public class ByteArrayFixed implements ByteArray{
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();			
+		}
+		@Override
+		public void closeCursor() throws OBException {
+			// TODO Auto-generated method stub
+			
 		}
 		
 		
@@ -153,6 +171,8 @@ public class ByteArrayFixed implements ByteArray{
 		return null;
 	}
 	
-	
+	public void close() throws IOException {
+		file.close();
+	}
 
 }

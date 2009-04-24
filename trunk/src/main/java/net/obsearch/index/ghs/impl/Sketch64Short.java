@@ -219,9 +219,13 @@ implements IndexShort<O> {
 			// get the query for the
 			AbstractOBQuery<O> query = getKQuery(object, userK[i]);
 			for (OBResultInvertedByte<Long> result : sortedBuckets) {
+				if(result.getObject() == 0){
+					System.out.println("STOP!");
+				}
 				SleekBucketShort<O> container = this.bucketCache.get(this
 						.convertLongToBytesAddress(result.getObject()));
 				// search the objects
+				assert container != null : "Problem while loading: " + result.getObject();
 				container.search(query, b, fne, getStats());
 				// calculate the ep of the query and the DB.
 				if (query.isFull()) { // only if the query is full of items.

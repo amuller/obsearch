@@ -12,16 +12,17 @@ import org.junit.Test;
 
 public class TestHashFunctions {
 	
-	private int TEST_SIZE = 5000000;
+	private int TEST_SIZE = 1000000;
 	static Random r = new Random();
 	public  static List<byte[]> createData(int size){
 		List<byte[]> result = new LinkedList<byte[]>();
-		HashSet<Long> exists = new HashSet<Long>();
+		HashSet<String> exists = new HashSet<String>();
 		int i = 0;
 		while(i < size){
-			long d = r.nextLong();
-			if(exists.add(d)){
-				result.add(String.valueOf(d).getBytes());
+			byte[] data = ByteArrayStorageTest.generalArray();
+			String x = new String(data);
+			if(exists.add(x)){
+				result.add(data);
 				i++;
 			}
 		}
@@ -31,8 +32,9 @@ public class TestHashFunctions {
 	@Test 
 	public void testHashFunctions() throws NoSuchAlgorithmException{
 		List<byte[]> m = createData(TEST_SIZE);
-		testHash(new Murmur64(), m);				
+						
 		testHash(new Jenkins64(), m);
+		testHash(new Murmur64(), m);
 		testHash(new MurmurOaaT(), m);
 		testHash(new JenkinsOaaT(), m);
 		testHash(new JenkinsMurmur(), m);

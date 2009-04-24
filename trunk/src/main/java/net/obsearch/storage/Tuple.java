@@ -29,7 +29,11 @@ import java.nio.ByteBuffer;
 
 public class Tuple {
 
-    private byte[] value;
+    protected byte[] value;
+    
+    public Tuple(){
+    	value = null;
+    }
 
     public Tuple(byte[] value) {
 

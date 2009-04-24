@@ -16,6 +16,8 @@ import java.util.List;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleBytes;
 import net.obsearch.utils.bytes.ByteConversion;
 
 /**
@@ -142,6 +144,7 @@ public class CuckooHash {
 			putPosition(h1, id1, position);
 			stats.incH1Inserts();
 			stats.addDepth(0);
+			
 			// done.
 		}else{
 			// we have to consider the case where the key exists in the DB.
@@ -180,6 +183,7 @@ public class CuckooHash {
 					// overwrite the previous item.
 					rec.putEntry(searchingKey.getId(), searchingKey);
 					return; // added object, job done.
+					
 				}
 				// both buckets are full and our key is not included in any of them
 				// we have to add our object to the end of the list.
@@ -190,11 +194,14 @@ public class CuckooHash {
 					rec.putEntrySequence(last.getId(), toStore);
 					stats.incH1Inserts();
 					stats.addDepth(h1Guys.size());
+					
 				}else{
+					
 					CuckooEntry last = h2Guys.get(h2Guys.size() - 1);
 					rec.putEntrySequence(last.getId(), toStore);
 					stats.incH2Inserts();
 					stats.addDepth(h2Guys.size());
+					
 				}
 			}
 		}
@@ -225,11 +232,32 @@ public class CuckooHash {
 		}
 	}
 	
+	/**
+	 * Delete the given key.
+	 * @param key
+	 * @return
+	 * @throws OBException 
+	 * @throws IOException 
+	 */
+	public boolean delete(byte[] key) throws IOException, OBException{
+		CuckooEntry e = getAux(key);
+		if(e != null){
+			rec.delete(e.getId());
+			return true;
+		}
+		return false;
+	}
+	
+	public void deleteAll() throws IOException{
+		rec.deleteAll();
+
+	}
+	
 	private CuckooEntry getAux(byte[] key) throws IOException, OBException{
-		long id1 = getH1Hash(key);
-		long id2 = getH2Hash(key);
+		long id1 = getH1Hash(key);		
 		CuckooEntry result = getFromIndex(id1, h1, key);
 		if(result == null){
+			long id2 = getH2Hash(key);
 			result = getFromIndex(id2, h2, key);
 		}
 		return result;
@@ -290,7 +318,7 @@ public class CuckooHash {
 	}
 	
 	private long getH1Hash(byte[] key){		
-		return getHashAux(key, f2);
+		return getHashAux(key, f1);
 	}
 	
 	private long getH2Hash(byte[] key){
@@ -320,8 +348,8 @@ public class CuckooHash {
 	 * Iterator of all the keys and values of the hash table.
 	 * @return
 	 */
-	public Iterator<CuckooEntry> iterator(){
-		return rec.iterator();
+	public CloseIterator<TupleBytes> iterator(){
+		return (CloseIterator)rec.iterator();
 	}
 
 }

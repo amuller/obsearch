@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.storage.CloseIterator;
+import net.obsearch.storage.TupleLong;
 
 /**
  * This array of CuckooEntries works like this:
@@ -27,7 +30,7 @@ public class CuckooRecordManager {
 	
 	private ByteArrayFlex store;
 	
-	public CuckooRecordManager(File in) throws IOException{
+	public CuckooRecordManager(File in) throws OBStorageException {
 		store = new ByteArrayFlex(in);
 	}
 
@@ -136,17 +139,21 @@ public class CuckooRecordManager {
 		return store.fragmentationReport();
 	}
 	
+	public void deleteAll() throws IOException{
+		store.deleteAll();
+	}
+	
 	
 	/**
 	 * Return an interator of all the keys i
 	 * @return
 	 */
-	public Iterator<CuckooEntry> iterator(){
+	public CloseIterator<CuckooEntry> iterator(){
 		return new CuckooRecordManagerIterator(); 		
 	}
 	
-	private class CuckooRecordManagerIterator implements Iterator<CuckooEntry>{
-		private Iterator<Tuple> it;
+	private class CuckooRecordManagerIterator implements CloseIterator<CuckooEntry>{
+		private Iterator<TupleLong> it;
 		public CuckooRecordManagerIterator(){
 			it = store.iterator();
 		}
@@ -158,8 +165,10 @@ public class CuckooRecordManager {
 		public CuckooEntry next() {
 			CuckooEntry e = new CuckooEntry(-1);	
 			try{
-				Tuple t = it.next();
-				e.load(t.getEntry());
+				TupleLong t = it.next();
+				e.load(t.getValue());
+				e.setId(t.getKey());
+				
 			}catch(IOException ex){
 				throw new NoSuchElementException(ex.toString());
 			}
@@ -168,6 +177,10 @@ public class CuckooRecordManager {
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
+			
+		}
+		
+		public void closeCursor(){
 			
 		}
 		

@@ -19,11 +19,9 @@ public class OBStorageConfig {
 	private IndexType type = IndexType.DEFAULT;
 	
 	public boolean isFixedSizeIndex() {
-		return fixedSizeIndex;
+		return type == IndexType.FIXED_RECORD;
 	}
-	public void setFixedSizeIndex(boolean fixedSizeIndex) {
-		this.fixedSizeIndex = fixedSizeIndex;
-	}
+
 	/**
 	 * Size of the records that will be stored
 	 * Some storage devices require this information or

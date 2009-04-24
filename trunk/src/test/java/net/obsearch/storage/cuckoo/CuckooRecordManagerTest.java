@@ -112,7 +112,7 @@ public class CuckooRecordManagerTest {
 	}
 	
 	public CuckooEntry generateEntry() throws OBException{
-		CuckooEntry res = new CuckooEntry(ByteArrayStorageTest.generateByteArray(), ByteArrayStorageTest.generateByteArray());
+		CuckooEntry res = new CuckooEntry(ByteArrayStorageTest.generalArray(), ByteArrayStorageTest.generalArray());
 		return res;
 	}
 

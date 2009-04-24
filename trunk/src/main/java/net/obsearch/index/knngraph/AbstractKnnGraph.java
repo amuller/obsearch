@@ -137,10 +137,10 @@ public abstract class AbstractKnnGraph<O extends OB, B extends BucketObject, Q, 
 	 * Return a node id from a gray code
 	 * @param grayCode
 	 * @return -1 if the code was not found.
-	 * @throws OBStorageException 
 	 * @throws IllegalArgumentException 
+	 * @throws OBException 
 	 */
-	protected long getNodeId(byte[] grayCode) throws IllegalArgumentException, OBStorageException{
+	protected long getNodeId(byte[] grayCode) throws IllegalArgumentException, OBException{
 		byte[] b = Buckets.getValue(grayCode);
 		if(b == null){
 			return -1;
