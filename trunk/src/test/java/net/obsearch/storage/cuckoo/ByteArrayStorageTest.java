@@ -2,7 +2,10 @@ package net.obsearch.storage.cuckoo;
 
 import static org.junit.Assert.*;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +27,25 @@ import weka.core.Debug.Random;
  */
 public class ByteArrayStorageTest {
 	
-	private static int TEST_SIZE = 100000;
+	protected static int TEST_SIZE = 100000;
 	private static Random r = new Random();
 	
-	public static byte[] generateByteArray(){
+	public byte[] generateByteArray(){
 		return String.valueOf(r.nextLong()).getBytes();
+	}
+	
+	public byte[][] generateData(){
+		byte[][] data = new byte[TEST_SIZE][];
+		int i = 0;
+		while(i < TEST_SIZE){
+			data[i] = (generateByteArray());
+			i++;
+		}
+		return data;
+	}
+	
+	public ByteArray createStorage(File file) throws FileNotFoundException, OBException{
+		return new ByteArrayFlex(file);
 	}
 	
 	@Test
@@ -38,16 +55,11 @@ public class ByteArrayStorageTest {
 		Directory.deleteDirectory(test);
 		assertTrue(test.mkdirs());
 		
-		byte[][] data = new byte[TEST_SIZE][];
+		byte[][] data = generateData();
+		
+		ByteArray store = createStorage(test);
+		
 		int i = 0;
-		while(i < TEST_SIZE){
-			data[i] = (generateByteArray());
-			i++;
-		}
-		
-		ByteArrayStorage store = new ByteArrayStorage(test);
-		
-		i = 0;
 		long time = System.currentTimeMillis();
 		while(i < TEST_SIZE){
 			assertTrue(store.add(data[i]) == i);
@@ -60,7 +72,7 @@ public class ByteArrayStorageTest {
 		// change some values and see how it goes.
 		i = 0;
 		while(i < 100){
-			byte[] newValue =  (String.valueOf(r.nextLong()).getBytes());
+			byte[] newValue =  generateByteArray();
 			int newValueIndex = r.nextInt(TEST_SIZE);
 			data[newValueIndex] = newValue;
 			store.put(newValueIndex, newValue);
@@ -82,28 +94,38 @@ public class ByteArrayStorageTest {
 		}
 		
 		// now that we have done these things, iterators should return exactly the same thing.
-		Iterator<byte[]> it = store.iterator();
+		Iterator<Tuple> it = store.iterator();
 		i = 1;
+		long cx = 0;
+		StaticBin1D nextStats = new StaticBin1D();
 		for(byte[] d : data){
 			if(d == null){
 				// skip
+				cx++;
 				i++;
 				continue;
 			}
 			assertTrue("At index: " + i , i < data.length == it.hasNext());
 			//assertTrue("At index: " + i ,it.hasNext());
-			byte[] d2 = it.next();
+			time = System.currentTimeMillis();
+			Tuple t = it.next();
+			nextStats.add(System.currentTimeMillis() - time);
+			byte[] d2 = t.getEntry();
 			assertTrue(Arrays.equals(d, d2));
+			assertTrue(cx == t.getId());
 			i++;
+			cx++;
 		}
 		assertTrue(! it.hasNext());
 		
 		System.out.println("Fragmentation:");
 		System.out.println(store.fragmentationReport());
 		
+		System.out.println("Time per next:" + nextStats.mean());
+		
 	}
 	
-	private void verifyData(byte[][] data, ByteArrayStorage store) throws IOException, OBException{
+	private void verifyData(byte[][] data, ByteArray store) throws IOException, OBException{
 		assertTrue(data.length == store.size());
 		int i = 0;
 		while(i < data.length){
