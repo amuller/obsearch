@@ -239,7 +239,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			i++;
 		}
 		it.closeCursor();*/
-		
+		// TODO create a buffer here, one by one is too heavy.
 		long i = 0;
 		long max = databaseSize();		
 		O o = type.newInstance();
@@ -259,11 +259,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 					logger.info("Converting... " + i );
 				}
 			}
-			if(i % 5000000 == 0){
-				logger.info("Optimizing... ");
-				//Buckets.optimize();
-				logger.info("Optimized! ");
-			}
+			
 			i++;
 		}
 		}catch(IOException e){
