@@ -21,7 +21,7 @@ public class TestCuckooHash {
 	
 	private int TEST_SIZE = 1000000;
 	
-	private int TEST_PERF_SIZE = 1000000;
+	private int TEST_PERF_SIZE = 100000000;
 	
 	private int TEST_QUERIES = 10000;
 	

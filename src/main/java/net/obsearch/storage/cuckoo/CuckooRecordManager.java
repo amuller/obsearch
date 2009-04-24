@@ -25,10 +25,10 @@ public class CuckooRecordManager {
 	
 	private StaticBin1D depth = new StaticBin1D();
 	
-	private ByteArrayStorage store;
+	private ByteArrayFlex store;
 	
 	public CuckooRecordManager(File in) throws IOException{
-		store = new ByteArrayStorage(in);
+		store = new ByteArrayFlex(in);
 	}
 
 	public void close() throws IOException{
@@ -146,7 +146,7 @@ public class CuckooRecordManager {
 	}
 	
 	private class CuckooRecordManagerIterator implements Iterator<CuckooEntry>{
-		private Iterator<byte[]> it;
+		private Iterator<Tuple> it;
 		public CuckooRecordManagerIterator(){
 			it = store.iterator();
 		}
@@ -158,7 +158,8 @@ public class CuckooRecordManager {
 		public CuckooEntry next() {
 			CuckooEntry e = new CuckooEntry(-1);	
 			try{
-				e.load(it.next());
+				Tuple t = it.next();
+				e.load(t.getEntry());
 			}catch(IOException ex){
 				throw new NoSuchElementException(ex.toString());
 			}
