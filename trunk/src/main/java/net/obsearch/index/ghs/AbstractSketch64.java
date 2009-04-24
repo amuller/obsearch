@@ -271,9 +271,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			keys[i] = bucketId;
 			i++;
 		}
-		if(Buckets.size() > 0){
-			logger.info("Problem: " + keys[(int)Buckets.size() - 1]);
-		}
+		
 		assert i == Buckets.size() : "i is: " + i + " but the buckets: " + Buckets.size();
 		it.closeCursor();
 		long time = System.currentTimeMillis();
