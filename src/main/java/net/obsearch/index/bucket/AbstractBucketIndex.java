@@ -254,10 +254,12 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 				//logger.info("Converting... " + i + " b_size:\n" + stats.getStats("B_SIZE"));
 				StaticBin1D s = stats.getStats("B_SIZE");
 				if(s != null){
-				logger.info("Converting... " + i + " " + s.mean() + " std: " + s.standardDeviation());
+				logger.info("Converting... " + i + " " + s.mean() + " std: " + s.standardDeviation() );
+				
 				}else{
 					logger.info("Converting... " + i );
 				}
+				logger.info("Buckets " + Buckets.getStats() );
 			}
 			
 			i++;

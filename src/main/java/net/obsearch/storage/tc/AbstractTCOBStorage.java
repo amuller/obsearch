@@ -124,6 +124,10 @@ public abstract class AbstractTCOBStorage<T extends Tuple> implements
 		}
 		this.storageConf = storageConf;
 	}
+	
+	public Object getStats() throws  OBException{
+		return null;
+	}
 
 	/**
 	 * Return the current sequence id.

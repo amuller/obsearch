@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Arrays;
@@ -34,12 +35,22 @@ public class CuckooHash {
 	/**
 	 * Hash number 1.
 	 */
-	private FileChannel h1;
+	private MappedByteBuffer h1;
 
 	/**
 	 * Hash number2.
 	 */
-	private FileChannel h2;
+	private MappedByteBuffer h2;
+	
+	/**
+	 * Hash number 1.
+	 */
+	private FileChannel h1Ch;
+
+	/**
+	 * Hash number2.
+	 */
+	private FileChannel h2Ch;
 
 	/**
 	 * Manager!
@@ -91,14 +102,18 @@ public class CuckooHash {
 		boolean create = h1F.length() == 0;
 			
 		
-		h1F.setLength(expectedNumberOfObjects * ByteConstants.Long.getSize());
-		h2F.setLength(expectedNumberOfObjects * ByteConstants.Long.getSize());
-		h1 = h1F.getChannel();
-		h2 = h2F.getChannel();
+		long size = expectedNumberOfObjects * ByteConstants.Long.getSize();
+		h1F.setLength(size);
+		h2F.setLength(size);
+		h1Ch =  h1F.getChannel();
+		h2Ch =  h2F.getChannel();
+		h1 = h1Ch.map(MapMode.READ_WRITE, 0, size);
+		h2 = h2Ch.map(MapMode.READ_WRITE, 0, size);
 		if(create){
 			init(h1);
 			init(h2);
 		}
+		
 				
 		// must initialize h1 and h2 with -1
 		this.expectedNumberOfObjects = expectedNumberOfObjects;
@@ -110,8 +125,9 @@ public class CuckooHash {
 	 * Init a channel with -1s
 	 * @param ch
 	 * @throws IOException 
+	 * @throws OBException 
 	 */
-	private void init(FileChannel ch) throws IOException{
+	private void init(MappedByteBuffer ch) throws IOException, OBException{
 		long i = 0;
 		while(i < expectedNumberOfObjects()){
 			 putPosition(ch, i, -1);
@@ -144,7 +160,6 @@ public class CuckooHash {
 			putPosition(h1, id1, position);
 			stats.incH1Inserts();
 			stats.addDepth(0);
-			
 			// done.
 		}else{
 			// we have to consider the case where the key exists in the DB.
@@ -183,7 +198,6 @@ public class CuckooHash {
 					// overwrite the previous item.
 					rec.putEntry(searchingKey.getId(), searchingKey);
 					return; // added object, job done.
-					
 				}
 				// both buckets are full and our key is not included in any of them
 				// we have to add our object to the end of the list.
@@ -194,14 +208,11 @@ public class CuckooHash {
 					rec.putEntrySequence(last.getId(), toStore);
 					stats.incH1Inserts();
 					stats.addDepth(h1Guys.size());
-					
 				}else{
-					
 					CuckooEntry last = h2Guys.get(h2Guys.size() - 1);
 					rec.putEntrySequence(last.getId(), toStore);
 					stats.incH2Inserts();
 					stats.addDepth(h2Guys.size());
-					
 				}
 			}
 		}
@@ -272,7 +283,7 @@ public class CuckooHash {
 	 * @throws OBException 
 	 * @throws IOException 
 	 */
-	private CuckooEntry getFromIndex(long id, FileChannel ch, byte[] key) throws IOException, OBException{
+	private CuckooEntry getFromIndex(long id, MappedByteBuffer ch, byte[] key) throws IOException, OBException{
 		long pos =  getPosition(ch, id);
 		if( pos == -1){
 			return null;
@@ -294,12 +305,21 @@ public class CuckooHash {
 	 * @param pos
 	 * @return
 	 * @throws IOException 
+	 * @throws OBException 
 	 */
-	private long getPosition(FileChannel ch, long id) throws IOException{
-		ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
-		ch.read(buf, id * ByteConstants.Long.getSize());
-		buf.rewind();
-		return buf.getLong();
+	private long getPosition(MappedByteBuffer ch, long id) throws IOException, OBException{
+		//ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
+		//ch.read(buf, id * ByteConstants.Long.getSize());
+		//buf.rewind();
+		int pos = convertId(id);
+		
+		return ch.getLong(pos);
+	}
+	
+	private int convertId(long id) throws OBException{
+		long pos = (id * ByteConstants.Long.getSize());
+		OBAsserts.chkAssert(pos <= Integer.MAX_VALUE, "Cannot exceed 2^32");
+		return (int)pos;
 	}
 	/**
 	 * Put the object in the given position.
@@ -308,17 +328,19 @@ public class CuckooHash {
 	 * @param position
 	 * @return
 	 * @throws IOException
+	 * @throws OBException 
 	 */
-	private void putPosition(FileChannel ch, long id, long position) throws IOException{
-		ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
-		buf.putLong(position);
-		buf.rewind();
-		ch.write(buf, id * ByteConstants.Long.getSize());
-		
+	private void putPosition(MappedByteBuffer ch, long id, long position) throws IOException, OBException{
+		//ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
+		//buf.putLong(position);
+		//buf.rewind();
+		int pos = convertId(id);;
+		ch.putLong((int) pos , position);
+
 	}
 	
 	private long getH1Hash(byte[] key){		
-		return getHashAux(key, f1);
+		return getHashAux(key, f2);
 	}
 	
 	private long getH2Hash(byte[] key){
@@ -339,8 +361,8 @@ public class CuckooHash {
 	}
 	
 	public void close() throws IOException{
-		this.h1.close();
-		this.h2.close();
+		this.h1Ch.close();
+		this.h2Ch.close();		
 		rec.close();
 	}
 	

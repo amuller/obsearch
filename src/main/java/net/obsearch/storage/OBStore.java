@@ -178,6 +178,13 @@ public interface OBStore<T extends Tuple> {
 	 * the stats info.
 	 */
 	void setReadStats(StaticBin1D stats);
+	
+	
+	/**
+	 * Return the stats of this object (to be printed for the user)
+	 * @return
+	 */
+	Object getStats() throws  OBException;
 
 	/**
 	 * Process the given range of items (from low to high), including low and

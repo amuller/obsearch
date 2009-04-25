@@ -30,7 +30,7 @@ public class ByteArrayFlex implements ByteArray {
 	/**
 	 * Where all the data is located
 	 */
-	private RandomAccessFile main;
+	private FileChannel main;
 
 	/**
 	 * We keep track of the entries here.
