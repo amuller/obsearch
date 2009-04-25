@@ -632,6 +632,10 @@ public abstract class AbstractBDBOBStore${Bdb}<T extends Tuple> implements OBSto
 		this.stats = stats;
 	}
 
+	public Object getStats(){
+			return null;
+	}
+
 	/**
 	 * Iterator used to process range results.
 	 */

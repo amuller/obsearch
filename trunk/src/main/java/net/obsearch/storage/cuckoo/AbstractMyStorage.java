@@ -156,7 +156,17 @@ public abstract class AbstractMyStorage  {
 	}
 
 	
-	
+	public Object getStats() throws  OBException{
+		Object res = null;
+		try{
+			if(hdb != null){
+				res = hdb.getStats();
+			}
+		}catch(IOException e){
+			throw new OBStorageException(e);
+		}
+		return res;
+	}
 
 	
 	
