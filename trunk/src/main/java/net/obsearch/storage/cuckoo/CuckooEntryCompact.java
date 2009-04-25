@@ -33,6 +33,7 @@ public class CuckooEntryCompact extends TupleBytes  {
 	}
 	
 	
+	
 	/**
 	 * Serialized size of the object
 	 * @return

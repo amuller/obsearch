@@ -80,6 +80,17 @@ public class DiskHeap {
 		return null;
 	}
 	/**
+	 * Read the given memory position.
+	 * @param offset
+	 * @param data
+	 * @throws IOException
+	 */
+	public void read(long offset, byte[] data) throws IOException{
+		main.seek(offset);
+		main.readFully(data);
+	}
+	
+	/**
 	 * Store the data in memory
 	 * @param data the data to store
 	 * @return the address of the data.

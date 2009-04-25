@@ -42,6 +42,10 @@ public class CuckooEntryContainer implements Storable{
 		
 	}
 	
+	public int size(){
+		return entries.size();
+	}
+	
 	/**
 	 * Search the given key in the bucket, if it is not found, returns null
 	 * @param key
