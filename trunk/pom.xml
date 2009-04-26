@@ -133,13 +133,13 @@
 <version>2.88</version>
 		 </dependency>
 
-<!--
+
 		 <dependency>
        <groupId>bdb-c</groupId>
 			 <artifactId>bdb-c</artifactId>
 			 <version>4.7</version>
 		 </dependency>
--->
+
 
 		
 

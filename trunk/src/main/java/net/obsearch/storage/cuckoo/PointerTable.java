@@ -1,5 +1,7 @@
 package net.obsearch.storage.cuckoo;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -120,5 +122,15 @@ public class PointerTable {
 	}
 	
 
+	public StaticBin1D fragmentationReport() throws IOException, OBException {
+		StaticBin1D result = new StaticBin1D();
+		long i = 0;
+		while (i < size()) {
+			Entry e = get(i);
+			result.add(e.getLength());
+			i++;
+		}
+		return result;
+	}
 
 }

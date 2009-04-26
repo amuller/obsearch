@@ -30,7 +30,7 @@ import net.obsearch.utils.bytes.ByteConversion;
  * @author Arnoldo Jose Muller-Molina
  * 
  */
-public class CuckooHash {
+public class CuckooHash implements HardDiskHash {
 
 	/**
 	 * Hash number 1.
@@ -136,17 +136,16 @@ public class CuckooHash {
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#getStats()
+	 */
 	public CuckooHashStats getStats() throws IOException, OBException{
 		stats.setFragReport(rec.fragmentationReport());
 		return stats;
 	}
 	
-	/**
-	 * Add put a key in the hash table.
-	 * @param key
-	 * @param value
-	 * @throws IOException 
-	 * @throws OBException 
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#put(byte[], byte[])
 	 */
 	public void put(byte[] key, byte[] value) throws IOException, OBException{
 				
@@ -234,6 +233,9 @@ public class CuckooHash {
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#get(byte[])
+	 */
 	public byte[] get(byte[] key) throws IOException, OBException{
 		CuckooEntry result = getAux(key);
 		if(result != null){
@@ -243,12 +245,8 @@ public class CuckooHash {
 		}
 	}
 	
-	/**
-	 * Delete the given key.
-	 * @param key
-	 * @return
-	 * @throws OBException 
-	 * @throws IOException 
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#delete(byte[])
 	 */
 	public boolean delete(byte[] key) throws IOException, OBException{
 		CuckooEntry e = getAux(key);
@@ -259,6 +257,9 @@ public class CuckooHash {
 		return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#deleteAll()
+	 */
 	public void deleteAll() throws IOException{
 		rec.deleteAll();
 
@@ -356,19 +357,24 @@ public class CuckooHash {
 		return this.expectedNumberOfObjects;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#size()
+	 */
 	public long size() throws IOException {
 		return rec.size();
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#close()
+	 */
 	public void close() throws IOException{
 		this.h1Ch.close();
 		this.h2Ch.close();		
 		rec.close();
 	}
 	
-	/**
-	 * Iterator of all the keys and values of the hash table.
-	 * @return
+	/* (non-Javadoc)
+	 * @see net.obsearch.storage.cuckoo.HardDiskHash#iterator()
 	 */
 	public CloseIterator<TupleBytes> iterator(){
 		return (CloseIterator)rec.iterator();

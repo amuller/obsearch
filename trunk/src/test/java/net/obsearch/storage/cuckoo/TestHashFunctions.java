@@ -14,8 +14,8 @@ public class TestHashFunctions {
 	
 	private int TEST_SIZE = 1000000;
 	static Random r = new Random();
-	public  static List<byte[]> createData(int size){
-		List<byte[]> result = new LinkedList<byte[]>();
+	public  static LinkedList<byte[]> createData(int size){
+		LinkedList<byte[]> result = new LinkedList<byte[]>();
 		HashSet<String> exists = new HashSet<String>();
 		int i = 0;
 		while(i < size){

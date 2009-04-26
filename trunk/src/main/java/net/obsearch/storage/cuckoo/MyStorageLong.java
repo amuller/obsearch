@@ -15,7 +15,7 @@ import net.obsearch.storage.TupleLong;
 
 public class MyStorageLong extends AbstractMyStorage implements OBStoreLong {
 	
-	public MyStorageLong(ByteArray adb,  CuckooHash hdb,
+	public MyStorageLong(ByteArray adb,  HardDiskHash hdb,
 			String name, OBStoreFactory fact) throws OBException {
 		super(adb,hdb,name,fact);
 	}
