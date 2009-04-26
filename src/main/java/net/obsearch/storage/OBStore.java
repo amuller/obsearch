@@ -252,8 +252,9 @@ public interface OBStore<T extends Tuple> {
 	 * 
 	 * @return An iterator that goes through all the data in the DB.
 	 * @throws OBStorageException
+	 * @throws OBException 
 	 */
-	CloseIterator<T> processAll() throws OBStorageException;
+	CloseIterator<T> processAll() throws OBStorageException, OBException;
 	
 	
 

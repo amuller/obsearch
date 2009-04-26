@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import net.obsearch.AbstractOBResult;
 import net.obsearch.constants.ByteConstants;
@@ -32,6 +33,9 @@ import net.obsearch.result.OBResultShort;
 public class Sketch64Short<O extends OBShort> extends AbstractSketch64<O, BucketObjectShort<O>, OBQueryShort<O>, SleekBucketShort<O>>
 implements IndexShort<O> {
 	
+	
+	private static final transient Logger logger = Logger
+	.getLogger(Sketch64Short.class.getName());
 	
 	/**
 	 * Create a new Sketch64Short with m bytes. 
@@ -201,8 +205,10 @@ implements IndexShort<O> {
 		
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
+		long time = System.currentTimeMillis();
 		List<OBResultInvertedByte<Long>> sortedBuckets = sketchSet
 				.searchFull(longAddr);
+		logger.info("Time searching: " + (System.currentTimeMillis() - time));
 
 		// now we have to calculate the EP for each k up to maxK
 		// and for each k we calculate how many buckets must be read in order

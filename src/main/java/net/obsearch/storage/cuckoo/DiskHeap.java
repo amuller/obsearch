@@ -1,5 +1,7 @@
 package net.obsearch.storage.cuckoo;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -7,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
+import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 
@@ -32,6 +35,8 @@ public class DiskHeap {
 	private PointerTable holes;
 	
 	private ArrayList<Entry> holesCached;
+	
+	
 	/**
 	 * Create a new byte array storage in the given folder
 	 * 
@@ -46,6 +51,8 @@ public class DiskHeap {
 				"rw");
 		RandomAccessFile holesF = new RandomAccessFile(
 				new File(in, "holes.az"), "rw");
+		
+		
 		
 		main = mainF;// mainF.getChannel();		
 		holes = new PointerTable(holesF.getChannel());
@@ -63,7 +70,11 @@ public class DiskHeap {
 		}
 		
 		
+		
+		
 	}
+	
+	
 	
 	
 	/**
@@ -106,10 +117,10 @@ public class DiskHeap {
 			// delete the hole
 			holesCached.remove(hole);
 		}else{
-			res = main.getFilePointer();
+			res = main.length(); // go to the end of the file.
 		}		
 		main.seek(res);		
-		main.write(data);		
+		main.write(data);
 		return res;
 	}
 	
@@ -123,11 +134,28 @@ public class DiskHeap {
 	}
 	
 	public void close() throws IOException{
-		// save the holes
+		// save the holes		
 		holes.deleteAll();
 		for(Entry e : holesCached){
 			holes.add(e);
 		}
+		
+		
+	}
+	
+	/**
+	 * Empty the heap.
+	 * @throws IOException
+	 */
+	public void deleteAll() throws IOException{
+		holes.deleteAll();
+		main.setLength(0);
+		
 	}
 
+	
+	
+	public StaticBin1D fragmentationReport() throws IOException, OBException{
+		return holes.fragmentationReport();
+	}
 }

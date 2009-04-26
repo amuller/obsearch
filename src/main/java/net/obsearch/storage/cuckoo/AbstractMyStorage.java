@@ -28,7 +28,7 @@ public abstract class AbstractMyStorage  {
 	/**
 	 * Cuckoo hash used in the most general case.
 	 */
-	protected CuckooHash hdb;
+	protected HardDiskHash hdb;
 
 	/**
 	 * byte[] array database
@@ -48,7 +48,7 @@ public abstract class AbstractMyStorage  {
 	
 	
 
-	public AbstractMyStorage(ByteArray adb,  CuckooHash hdb,
+	public AbstractMyStorage(ByteArray adb,  HardDiskHash hdb,
 			String name, OBStoreFactory fact) throws OBException {
 		super();
 		aDB = adb;

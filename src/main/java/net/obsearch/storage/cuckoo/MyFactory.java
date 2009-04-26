@@ -56,7 +56,7 @@ public class MyFactory implements OBStoreFactory {
 			HashFunction f2 = (HashFunction)Class.forName(OBSearchProperties.getStringProperty("my.hash.f2")).newInstance();
 			OBAsserts.chkNotNull(f1, "F1 hash function");
 			OBAsserts.chkNotNull(f2, "F2 hash function");
-		MyStorage s = new MyStorage(null, new CuckooHash(OBSearchProperties.getLongProperty("my.expected.db.count"), location, f1, f2 ), name, this);
+		MyStorage s = new MyStorage(null, new CuckooHash2(OBSearchProperties.getIntProperty("my.expected.db.count"), location, f1, f2 ), name, this);
 		return s;
 		}catch(Exception e){
 			throw new OBStorageException(e);

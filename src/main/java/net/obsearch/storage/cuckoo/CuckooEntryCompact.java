@@ -44,6 +44,8 @@ public class CuckooEntryCompact extends TupleBytes  {
 	
 	
 	
+	
+	
 	public boolean equals(Object other){
 		CuckooEntryCompact c = (CuckooEntryCompact)other;
 		return Arrays.equals(key, c.key) && Arrays.equals(value, c.value);

@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
@@ -30,7 +31,7 @@ import net.obsearch.utils.bytes.ByteConversion;
  * @author Arnoldo Jose Muller-Molina
  * 
  */
-public class CuckooHash2 {
+public class CuckooHash2 implements HardDiskHash{
 
 	/**
 	 * Hash number 1.
@@ -64,6 +65,11 @@ public class CuckooHash2 {
 	 * Number of buckets per hash function.
 	 */
 	private int bucketNumber;
+	
+	
+	private RandomAccessFile count;
+	
+	private long countCache;
 
 	/**
 	 * Create a new hash with the expected # of objects to be added into the
@@ -81,11 +87,16 @@ public class CuckooHash2 {
 		OBAsserts.chkAssert(bucketNumber > 0, "You must insert at least 1 object");
 		directory.mkdirs();
 		this.bucketNumber = bucketNumber;
-		rec = new DiskHeap(new File(directory, "heap.az"));
+		rec = new DiskHeap(directory);
 		h1 = new FixedPointerTable(new File(directory, "h1.az"), bucketNumber);		
 		h2 = new FixedPointerTable(new File(directory, "h2.az"), bucketNumber);		
 		this.f1 = f1;
 		this.f2 = f2;
+		
+		count = new RandomAccessFile(
+				new File(directory, "_count.az"), "rw");
+		
+		countCache = getCount();
 	}
 	
 		
@@ -93,6 +104,21 @@ public class CuckooHash2 {
 	public CuckooHashStats getStats() throws IOException, OBException{
 		stats.setFragReport(rec.fragmentationReport());
 		return stats;
+	}
+	
+	private long getCount() throws IOException{
+		if(count.length() == ByteConstants.Long.getSize()){
+			count.seek(0);
+			return count.readLong();
+			
+		}else{
+			return 0;
+		}
+	}
+	
+	private void putCount(long c) throws IOException{
+		count.seek(0);
+		count.writeLong(c);
 	}
 	
 	
@@ -131,7 +157,9 @@ public class CuckooHash2 {
 		if(e1.isNull()){
 			// lucky it is a new bucket.
 			cont1.add(toStore);
-			putAux(hash1, h1, e1, cont1);			
+			putAux(hash1, h1, e1, cont1);
+			stats.incH1Inserts();
+			countCache++;
 		}else{
 			// not null we must check if the same key is there.
 			cont1 = getContainer(e1);
@@ -139,8 +167,9 @@ public class CuckooHash2 {
 			if(sameKey1 != null){
 				// key is in the bucket, update keys.
 				sameKey1.setValue(value);				
-				putAux(hash1, h1, e1, cont1);
-				return;
+				putAux(hash1, h1, e1, cont1);	
+				stats.incH1Inserts();
+				return; // done
 			}
 			
 			// check the other hash table
@@ -151,7 +180,9 @@ public class CuckooHash2 {
 			if(e2.isNull()){
 				// lucky it is a new bucket
 				cont2.add(toStore);
-				putAux(hash2, h2, e2, cont2);				
+				putAux(hash2, h2, e2, cont2);	
+				stats.incH2Inserts();
+				countCache++;
 			}else{
 				// both buckets have data. 
 				// we have to load both containers.				
@@ -162,18 +193,22 @@ public class CuckooHash2 {
 					// key is in the bucket, update keys.
 					sameKey2.setValue(value);				
 					putAux(hash2, h2, e2, cont2);
-					return;
+					stats.incH2Inserts();
+					return; // done
 				}
 				
 				// key does not exist, add the object in the smallest
 				// container.
 				if(cont2.size() < cont1.size()){
 					cont2.add(toStore);
-					putAux(hash2, h2, e2, cont2);					
+					putAux(hash2, h2, e2, cont2);	
+					stats.incH2Inserts();
 				}else{
 					cont1.add(toStore);
 					putAux(hash1, h1, e1, cont1);
+					stats.incH1Inserts();
 				}
+				countCache++;
 			}
 		}
 		
@@ -181,6 +216,9 @@ public class CuckooHash2 {
 	}
 	
 	private CuckooEntryContainer getContainer(Entry e) throws IOException, OBException{
+		if(e.isNull()){
+			return null;
+		}
 		byte[] buf = new byte[e.getLength()];
 		rec.read(e.getOffset(), buf);
 		CuckooEntryContainer cont = new CuckooEntryContainer();
@@ -190,7 +228,7 @@ public class CuckooHash2 {
 	
 	
 	public byte[] get(byte[] key) throws IOException, OBException{
-		CuckooEntry result = getAux(key);
+		CuckooEntryCompact result = getAux(key);
 		if(result != null){
 			return result.getValue();
 		}else{
@@ -206,97 +244,75 @@ public class CuckooHash2 {
 	 * @throws IOException 
 	 */
 	public boolean delete(byte[] key) throws IOException, OBException{
-		CuckooEntry e = getAux(key);
-		if(e != null){
-			rec.delete(e.getId());
-			return true;
+		int hash1 = getH1Hash(key);
+		Entry e1 = h1.get(hash1);
+		if(! e1.isNull()){
+			CuckooEntryContainer c1  = getContainer(e1);
+			CuckooEntryCompact bucket1 = c1.search(key);
+			if(bucket1 != null){
+				c1.delete(key);
+				// save the results.
+				putAux(hash1, h1, e1, c1);
+				countCache++;
+				return true;
+			}else{
+				// we have to search the other hash
+				int hash2 = getH1Hash(key);
+				Entry e2 = h2.get(hash2);
+				if(! e2.isNull()){
+					// the container exist
+					CuckooEntryContainer c2  = getContainer(e2);
+					CuckooEntryCompact bucket2 = c2.search(key);
+					// and it has the key we want.
+					if(bucket2 != null){
+						c2.delete(key);
+						// save the results.
+						putAux(hash2, h2, e2, c2);
+						countCache++;
+						return true;
+					}
+				}
+			}
 		}
+								
 		return false;
 	}
 	
 	public void deleteAll() throws IOException{
 		rec.deleteAll();
-
+		countCache = 0;
+		putCount(0);
 	}
 	
 	private CuckooEntryCompact getAux(byte[] key) throws IOException, OBException{
-		int hash1 = getH1Hash(key);		
-		Entry e1 = h1.get(hash1);
+		int hash1 = getH1Hash(key);
 		
-		CuckooEntryCompact result = getContainer(e1).search(key); 
-		if(result == null){
+		Entry e1 = h1.get(hash1);
+		CuckooEntryCompact res = null;
+		CuckooEntryContainer result = getContainer(e1);
+		
+		if(result != null){
+			res = result.search(key);
+		}
+		
+		if(res == null){
 			int hash2 = getH2Hash(key);
 			Entry e2 = h2.get(hash2);
-			result = getContainer(e2).search(key); 
+			result = getContainer(e2);
+			if(result != null){
+				res = result.search(key);
+			}
 			
 		}
-		return result;
-	}
-	
-	/**
-	 * Return the byte value of the given index in the FileChannel
-	 * @param id
-	 * @param ch
-	 * @param key
-	 * @return null if the key is not found.
-	 * @throws OBException 
-	 * @throws IOException 
-	 */
-	private CuckooEntry getFromIndex(long id, MappedByteBuffer ch, byte[] key) throws IOException, OBException{
-		long pos =  getPosition(ch, id);
-		if( pos == -1){
-			return null;
+		if(result != null){
+			stats.addGetLength(result.size());
 		}
-		List<CuckooEntry> ent = rec.getEntrySequence(pos);
-		stats.addGetLength(ent.size());
-		for(CuckooEntry e : ent){
-			if(Arrays.equals(e.getKey(), key)){
-				// return the value if the keys match.
-				return e;
-			}
-		}
-		return null;
+		return res;
 	}
 	
-	/**
-	 * Get the cell # pos
-	 * @param ch
-	 * @param pos
-	 * @return
-	 * @throws IOException 
-	 * @throws OBException 
-	 */
-	private long getPosition(MappedByteBuffer ch, long id) throws IOException, OBException{
-		//ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
-		//ch.read(buf, id * ByteConstants.Long.getSize());
-		//buf.rewind();
-		int pos = convertId(id);
-		
-		return ch.getLong(pos);
-	}
 	
-	private int convertId(long id) throws OBException{
-		long pos = (id * ByteConstants.Long.getSize());
-		OBAsserts.chkAssert(pos <= Integer.MAX_VALUE, "Cannot exceed 2^32");
-		return (int)pos;
-	}
-	/**
-	 * Put the object in the given position.
-	 * @param ch
-	 * @param id
-	 * @param position
-	 * @return
-	 * @throws IOException
-	 * @throws OBException 
-	 */
-	private void putPosition(MappedByteBuffer ch, long id, long position) throws IOException, OBException{
-		//ByteBuffer buf = ByteConversion.createByteBuffer(ByteConstants.Long.getSize());
-		//buf.putLong(position);
-		//buf.rewind();
-		int pos = convertId(id);;
-		ch.putLong((int) pos , position);
-
-	}
+	
+	
 	
 	private int getH1Hash(byte[] key){		
 		return getHashAux(key, f2);
@@ -316,21 +332,93 @@ public class CuckooHash2 {
 	}
 
 	public long size() throws IOException {
-		return rec.size();
+		return countCache;
 	}
 	
 	public void close() throws IOException{
 		h1.close();
 		h2.close();
 		rec.close();
+		putCount(countCache);
 	}
 	
 	/**
 	 * Iterator of all the keys and values of the hash table.
 	 * @return
+	 * @throws IOException 
+	 * @throws OBException 
 	 */
-	public CloseIterator<TupleBytes> iterator(){
-		return (CloseIterator)rec.iterator();
+	public CloseIterator<TupleBytes> iterator() throws OBException, IOException{
+		return new CH2Iterator();
+	}
+	
+	private class CH2Iterator implements CloseIterator<TupleBytes>{
+		private Iterator<Entry> currentHash;
+		private Iterator<TupleBytes> currentBucketContainer;
+		private TupleBytes next;
+		private int hashNumber = 1;
+		
+		public CH2Iterator() throws OBException, IOException{
+			currentHash = h1.iterator();
+		
+			calculateNext();
+		}
+		
+		private void calculateNext() throws NoSuchElementException{
+			try{
+			next = null; 
+			if(currentBucketContainer == null || ! currentBucketContainer.hasNext() ){
+				nextBucketContainer();
+			}
+			
+			if(currentBucketContainer != null && currentBucketContainer.hasNext()){
+				next = currentBucketContainer.next();
+			}
+			}catch(Exception e){
+				throw new NoSuchElementException(e.toString());
+			}
+		}
+		
+		private void nextBucketContainer() throws OBException, IOException{
+			currentBucketContainer = null;
+			if(! currentHash.hasNext()){
+				if(hashNumber == 1){
+					hashNumber++;
+					currentHash = h2.iterator();
+				}
+			}
+			
+			if(currentHash.hasNext()){
+				Entry e = currentHash.next();
+				currentBucketContainer = getContainer(e).iterator();
+				assert currentBucketContainer.hasNext();
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			return next != null;
+		}
+
+		@Override
+		public TupleBytes next() {
+			TupleBytes res = next;
+			calculateNext();
+			return res;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+			
+		}
+
+		@Override
+		public void closeCursor() throws OBException {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 
 }

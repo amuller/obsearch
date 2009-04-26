@@ -38,9 +38,9 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		// Create a pivot selection strategy for L1 distance
 		 IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
-	 				new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
+	 				new AcceptAll<L1>(), 400, 100, (short) Short.MAX_VALUE);
 	    Sketch64Short<L1> index = new Sketch64Short<L1>(L1.class, sel, 64, 0);
-	    index.setExpectedEP(0.00001);
+	    index.setExpectedEP(0.0001);
 	    index.setSampleSize(100);
 	    index.setMaxK(new int[]{1});
 	    index.setFixedRecord(true);
@@ -104,14 +104,18 @@ public class VectorsDemoGHS extends VectorsDemo {
 		Iterator<OBPriorityQueueShort<L1>> it1 = queryResults.iterator();
 		Iterator<L1> it2 = queries.iterator();
 		StaticBin1D seqTime = new StaticBin1D();
+		i = 0;
 		while(it1.hasNext()){
 			OBPriorityQueueShort<L1> qu = it1.next();
 			L1 q = it2.next();
 			long time = System.currentTimeMillis();
 			List<OBResultShort<L1>> sortedList = index.fullMatch(q);
-			seqTime.add(System.currentTimeMillis() - time);
+			long el = System.currentTimeMillis() - time;
+			seqTime.add(el);
+			logger.info("Elapsed: " + el + " "  + i);
 			OBQueryShort<L1> queryObj = new OBQueryShort<L1>(q, Short.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep((List)sortedList));
+			i++;
 		}
 		
 		logger.info(ep.toString());

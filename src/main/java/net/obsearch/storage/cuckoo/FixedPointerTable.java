@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
@@ -50,11 +52,16 @@ public class FixedPointerTable {
 		// first time, initialize everything
 		if(create){
 			deleteAll();
+		}else{
+			OBAsserts.chkAssert((map.capacity()/ ENTRY_SIZE) == entries, "Invalid size");	
 		}
 	}
 	private int position(int position){
 		return position * ENTRY_SIZE;
 	}
+	
+	
+	
 	/**
 	 * Set the entry number id to the offset "offset" and size "size"
 	 * @param id
@@ -135,7 +142,46 @@ public class FixedPointerTable {
 	}
 	
 	
-	
+	public Iterator<Entry> iterator() throws OBException, IOException{
+		return new  FPTIterator(0);
+	}
 
+	
+	private class FPTIterator implements Iterator<Entry>{
+		private int index;
+		private Entry next;
+		public FPTIterator(int startIndex) throws OBException, IOException{
+			this.index = startIndex;
+			calculateNext();
+		}		
+		private void calculateNext() throws OBException, IOException{
+			Entry e = Entry.NULL_ENTRY;	
+			while(e.isNull() && index < size()){
+				e = get(index);
+				index++;
+			}
+			next = e;
+		}
+		@Override
+		public boolean hasNext() {
+			return ! next.isNull();
+		}
+		@Override
+		public Entry next() {
+			Entry res = next;
+			try {
+				calculateNext();
+			} catch (OBException e) {
+				throw new NoSuchElementException(e.toString());
+			} catch (IOException e) {
+				throw new NoSuchElementException(e.toString());
+			}
+			return res;
+		}
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	}
 
 }

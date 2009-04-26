@@ -16,7 +16,7 @@
 	<property name="cls" value="target/classes/"/>
 	<!-- System related properties -->
 	
-	<property name="memory" value="4500"/>
+	<property name="memory" value="2500"/>
 	<property name="pivots" value="2"/>
 		<!-- DB and QUERY datafiles -->
 		

@@ -261,13 +261,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		long[] keys = new long[(int) Buckets.size()];
 		int i = 0;
 		while (it.hasNext()) {
-			TupleBytes t = it.next();
-			CuckooEntry c = (CuckooEntry)t;
-			assert i == c.getId() : "id mismatch: " + i;
-			long bucketId = fact.deSerializeLong(t.getKey());
-			if(bucketId == 0){
-				logger.info("!!!CRAP!, we are iterating over 0");
-			}
+			TupleBytes t = it.next();			
+			long bucketId = fact.deSerializeLong(t.getKey());			
 			keys[i] = bucketId;
 			i++;
 		}
