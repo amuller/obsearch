@@ -109,12 +109,12 @@ public class VectorsDemoGHS extends VectorsDemo {
 			OBPriorityQueueShort<L1> qu = it1.next();
 			L1 q = it2.next();
 			long time = System.currentTimeMillis();
-			List<OBResultShort<L1>> sortedList = index.fullMatch(q);
+			short[] sortedList = index.fullMatchLite(q, false);
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " "  + i);
 			OBQueryShort<L1> queryObj = new OBQueryShort<L1>(q, Short.MAX_VALUE, qu, null);
-			ep.add(queryObj.ep((List)sortedList));
+			ep.add(queryObj.ep(sortedList));
 			i++;
 		}
 		

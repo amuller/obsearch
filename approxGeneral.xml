@@ -220,12 +220,12 @@
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
 <jvmarg value="-Xms${memory}M" />
 <jvmarg value="-Xmx${memory}M" />
-<!--<jvmarg value="-ea" />-->
 <jvmarg value="-Xmn2g" />
 <jvmarg value="-Xss128k" />
 <jvmarg value="-XX:+UseParallelGC"/>
 <jvmarg value="-XX:+AggressiveOpts"/>
 <jvmarg value="-XX:+UseParallelOldGC"/>
+<jvmarg value="-XX:+UseFastAccessorMethods"/>
 	</java>
 </target>
 

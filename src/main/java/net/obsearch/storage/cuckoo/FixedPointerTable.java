@@ -155,16 +155,20 @@ public class FixedPointerTable {
 			calculateNext();
 		}		
 		private void calculateNext() throws OBException, IOException{
-			Entry e = Entry.NULL_ENTRY;	
-			while(e.isNull() && index < size()){
-				e = get(index);
+			Entry e = null;
+			while(e == null && index < size()){
+				map.position(position(index));
+				long offset = map.getLong();
+				if(offset != -1){
+					e = new Entry(offset, map.getInt());
+				}								
 				index++;
 			}
 			next = e;
 		}
 		@Override
 		public boolean hasNext() {
-			return ! next.isNull();
+			return next != null;
 		}
 		@Override
 		public Entry next() {

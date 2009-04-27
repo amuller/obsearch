@@ -3,12 +3,14 @@ package net.obsearch.index.ghs.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
 import net.obsearch.AbstractOBResult;
+import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
@@ -33,6 +35,7 @@ import net.obsearch.result.OBResultShort;
 public class Sketch64Short<O extends OBShort> extends AbstractSketch64<O, BucketObjectShort<O>, OBQueryShort<O>, SleekBucketShort<O>>
 implements IndexShort<O> {
 	
+	private boolean DEBUG = true;
 	
 	private static final transient Logger logger = Logger
 	.getLogger(Sketch64Short.class.getName());
@@ -183,6 +186,38 @@ implements IndexShort<O> {
 		return sortedList;
 	}
 	
+	/**
+	 * This method returns a list of all the distances of the query against  the DB.
+	 * This helps to calculate EP values in a cheaper way. results that are equal to the original object are added
+	 * as Short.MAX_VALUE
+	 * @param query
+	 * @param filterSame if True we do not return objects o such that query.equals(o)
+	 * @return
+	 * @throws OBException 
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException 
+	 */
+	public short[] fullMatchLite(O query, boolean filterSame) throws OBException, IllegalAccessException, InstantiationException{
+		long max = databaseSize();
+		OBAsserts.chkAssert(max < Integer.MAX_VALUE, "Cannot exceed 2^32");
+		short[] result = new short[(int)max];
+		int id = 0;
+		O o = type.newInstance();
+		while(id < max){
+			loadObject(id, o);
+			short distance = o.distance(query);
+			if(distance == 0 && o.equals(query) && filterSame){
+				result[id] = Short.MAX_VALUE;				
+			}else{
+				result[id] = distance;
+			}
+			id++;
+		}
+		
+		Arrays.sort(result);
+		return result;		
+	}
+	
 	
 	/**
 	 * Get the kMax closest objects. Count how many different bucket ids are
@@ -199,15 +234,18 @@ implements IndexShort<O> {
 		BucketObjectShort<O> b = getBucket(object);
 		long longAddr = getLongAddress(b);
 		byte[] addr = convertLongToBytesAddress(longAddr);
-		AbstractOBQuery<O> dbQueue = getKQuery(object, (int) databaseSize());
+		
+		
 
-		List<OBResultShort<O>> sortedList = fullMatch( object);
+		short[] sortedList = fullMatchLite( object, true);
 		
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
 		long time = System.currentTimeMillis();
 		List<OBResultInvertedByte<Long>> sortedBuckets = sketchSet
 				.searchFull(longAddr);
+		
+		//List<OBResultShort<O>> sortedBuckets2 = fullMatch(object);
 		logger.info("Time searching: " + (System.currentTimeMillis() - time));
 
 		// now we have to calculate the EP for each k up to maxK
@@ -223,7 +261,9 @@ implements IndexShort<O> {
 			double ep = 1;
 			int goodK = 0;
 			// get the query for the
-			AbstractOBQuery<O> query = getKQuery(object, userK[i]);
+			AbstractOBQuery<O> queryAbst = getKQuery(object, userK[i]);
+			OBQueryShort<O> query = (OBQueryShort<O>) queryAbst;
+			
 			for (OBResultInvertedByte<Long> result : sortedBuckets) {
 				if(result.getObject() == 0){
 					System.out.println("STOP!");
@@ -235,7 +275,9 @@ implements IndexShort<O> {
 				container.search(query, b, fne, getStats());
 				// calculate the ep of the query and the DB.
 				if (query.isFull()) { // only if the query is full of items.
-					ep = query.ep((List)sortedList);
+					ep = query.ep(sortedList);
+					//double epOld = query.ep((List)sortedBuckets2);
+					//OBAsserts.chkAssert(Math.abs(ep - epOld)<= 1f / sortedList.length, "oops: new: " + ep + " old: " + epOld);					
 				}
 				goodK++;
 				if (ep <= this.getExpectedEP()) {
