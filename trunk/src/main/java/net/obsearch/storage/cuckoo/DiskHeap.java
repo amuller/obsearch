@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
@@ -27,7 +28,9 @@ public class DiskHeap {
 	/**
 	 * Where all the data is located
 	 */
-	private RandomAccessFile main;
+	private RandomAccessFile mainF;
+	
+	private FileChannel main;
 	
 	/**
 	 * We keep track of released space here.
@@ -54,7 +57,8 @@ public class DiskHeap {
 		
 		
 		
-		main = mainF;// mainF.getChannel();		
+		mainF = mainF;// mainF.getChannel();
+		main = mainF.getChannel();
 		holes = new PointerTable(holesF.getChannel());
 		// read all the holes and keep them in memory.
 		
@@ -97,8 +101,9 @@ public class DiskHeap {
 	 * @throws IOException
 	 */
 	public void read(long offset, byte[] data) throws IOException{
-		main.seek(offset);
-		main.readFully(data);
+		ByteBuffer buf = ByteBuffer.wrap(data);
+		main.position(offset);
+		main.read(buf);
 	}
 	
 	/**
@@ -117,10 +122,11 @@ public class DiskHeap {
 			// delete the hole
 			holesCached.remove(hole);
 		}else{
-			res = main.length(); // go to the end of the file.
+			res = main.size(); // go to the end of the file.
 		}		
-		main.seek(res);		
-		main.write(data);
+		main.position(res);
+		ByteBuffer buf = ByteBuffer.wrap(data);
+		main.write(buf);
 		return res;
 	}
 	
@@ -149,8 +155,7 @@ public class DiskHeap {
 	 */
 	public void deleteAll() throws IOException{
 		holes.deleteAll();
-		main.setLength(0);
-		
+		main.truncate(0);
 	}
 
 	

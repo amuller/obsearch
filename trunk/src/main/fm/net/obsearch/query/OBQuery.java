@@ -302,6 +302,37 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 						return res;
 				}
 		}
+
+
+		/**
+     * Calculate the EP value for a sorted list of distances.
+     */
+		public  double ep(${type}[] dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int i = 0;
+				int result = 0;
+        // hold the visited elements
+				Set<Integer> s = new HashSet<Integer>();
+				for(OBResult${Type}<O> r : query){
+						// find the position in the db. 
+						int cx = 0;
+						for(${type} cr : dbin){								
+								if(! s.contains(cx) && cr == r.getDistance()){
+										s.add(cx);
+										result += cx - i;
+										break;
+								}
+								cx++;
+						}
+						i++;
+				}
+				if(query.size() == 0){
+						return 0;
+				}else{
+						double res = ((double)result)/ ((double)(query.size() * dbin.length));
+						return res;
+				}
+		}
 }
 
 </#list>

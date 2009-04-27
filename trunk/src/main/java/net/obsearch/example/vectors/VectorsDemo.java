@@ -123,7 +123,7 @@ public class VectorsDemo {
 		
 		// Create a pivot selection strategy for L1 distance
 		IncrementalBustosNavarroChavezShort<L1> sel = new IncrementalBustosNavarroChavezShort<L1>(
-				new AcceptAll<L1>(), 5000, 1000);
+				new AcceptAll<L1>(), 4000, 1000);
 
 		// Create the iDistance method with 126 pivots
 		IDistanceIndexShort<L1> index = new IDistanceIndexShort<L1>(L1.class, sel, 64);

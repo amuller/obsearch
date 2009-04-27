@@ -265,6 +265,22 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}
 
 	}
+	
+	/**
+	 * Loads object i into the given object
+	 * @param i The object to load.
+	 * @param object Where we will upload the data.
+	 * @throws IOException 
+	 * @throws OBException 
+	 */
+	protected void loadObject(long i, O object) throws OBException {
+		try{
+		byte[] data = A.getValue(i);
+		object.load(data);
+		}catch(IOException e){
+			throw new OBStorageException(e);
+		}
+	}
 
 	/**
 	 * If we are going to check for the existence of data before freezing.

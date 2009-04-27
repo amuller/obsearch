@@ -40,6 +40,8 @@ public abstract class AbstractOBQuery<O> {
 	 */
 	public abstract double ep(List<AbstractOBResult<O>> db);
 	
+	
+	
 	/**
 	 * calculates the recall value of this query against
 	 * the "DB" (all the objects of the DB sorted by distance to this query).

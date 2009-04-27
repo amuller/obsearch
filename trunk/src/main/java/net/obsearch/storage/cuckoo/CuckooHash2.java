@@ -375,6 +375,7 @@ public class CuckooHash2 implements HardDiskHash{
 				next = currentBucketContainer.next();
 			}
 			}catch(Exception e){
+				e.printStackTrace();
 				throw new NoSuchElementException(e.toString());
 			}
 		}
