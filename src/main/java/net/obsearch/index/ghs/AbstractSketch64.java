@@ -19,6 +19,7 @@ import net.obsearch.OperationStatus;
 import net.obsearch.Status;
 import net.obsearch.cache.OBCacheByteArray;
 import net.obsearch.cache.OBCacheHandlerByteArray;
+import net.obsearch.constants.ByteConstants;
 import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.dimension.AbstractDimension;
 import net.obsearch.exception.AlreadyFrozenException;
@@ -38,7 +39,9 @@ import net.obsearch.result.OBResultInvertedByte;
 import net.obsearch.storage.CloseIterator;
 import net.obsearch.storage.OBStorageConfig;
 import net.obsearch.storage.OBStoreFactory;
+import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.TupleBytes;
+import net.obsearch.storage.TupleLong;
 import net.obsearch.storage.OBStorageConfig.IndexType;
 import net.obsearch.storage.cuckoo.CuckooEntry;
 import net.obsearch.utils.bytes.ByteConversion;
@@ -94,7 +97,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * For a query k we take the kEstimators[k] estimation and return the value
 	 * kEstimators[k].mean() + (kEstimators[k].stdDev() * kAlpha)
 	 */
-	private float kAlpha = 2f; // two standard deviations, 95% precision
+	private float kAlpha = 3f; // two standard deviations, 95% precision
 
 	/**
 	 * K configuration that will be used by the user.
@@ -142,6 +145,11 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 * Pivot count for each bucket.
 	 */
 	protected int bucketPivotCount;
+	
+	/**
+	 * We keep the sketch list here
+	 */
+	protected transient OBStoreLong sketches;
 
 	/**
 	 * Pivot selector for the masks.
@@ -223,8 +231,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	public void init(OBStoreFactory fact) throws OBStorageException,
 			OBException, InstantiationException, IllegalAccessException {
 		super.init(fact);
-		// we have to load the masks before the match begins!
-		loadMasks();
+		OBStorageConfig conf = new OBStorageConfig();
+		conf.setTemp(false);
+		conf.setDuplicates(false);
+		conf.setIndexType(IndexType.FIXED_RECORD);
+		conf.setRecordSize(ByteConstants.Long.getSize());
+		this.sketches = fact.createOBStoreLong("sketches", conf);
 	}
 
 	protected void initByteArrayBuckets() throws OBException {
@@ -232,7 +244,6 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		conf.setTemp(false);
 		conf.setDuplicates(false);
 		conf.setBulkMode(!isFrozen());
-		conf.setIndexType(IndexType.BTREE);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
@@ -253,27 +264,32 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected void loadMasks() throws OBException {
 		logger.fine("Loading masks!");
 		sketchSet = new CompressedBitSet64();
-		CloseIterator<TupleBytes> it = Buckets.processAll();
+		CloseIterator<TupleLong> it = sketches.processAll();
 		if (it == null) {
 			return;
 		}
 		// assert Buckets.size() == A.size();
-		long[] keys = new long[(int) Buckets.size()];
+		long[] keys = new long[(int) sketches.size()];
 		int i = 0;
 		while (it.hasNext()) {
-			TupleBytes t = it.next();			
-			long bucketId = fact.deSerializeLong(t.getKey());			
+			TupleLong t = it.next();			
+			long bucketId = fact.deSerializeLong(t.getValue());			
 			keys[i] = bucketId;
 			i++;
 		}
 		
-		assert i == Buckets.size() : "i is: " + i + " but the buckets: " + Buckets.size();
+		assert i == sketches.size() : "i is: " + i + " but the sketches: " + sketches.size();
 		it.closeCursor();
 		long time = System.currentTimeMillis();
 		Arrays.sort(keys);
 		logger.info("Sorted in: " + (System.currentTimeMillis() - time));
+		long prev = Long.MAX_VALUE;
 		for (long l : keys) {
-			sketchSet.add(l);
+			if(l != prev){
+				sketchSet.add(l);
+				
+			}
+			prev = l;
 		}
 		// load the sketch into memory.
 		sketchSet.commit();
@@ -395,8 +411,11 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
-
+		
+		
+		
 		byte[] bucketId = getAddress(b);
+		
 		BC bc = instantiateBucketContainer(null, bucketId);
 		OperationStatus s = bc.insert(b, object);
 		// store the data in the index.
@@ -404,7 +423,11 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		// we have to re-do everything.
 		byte[] bucketData = Buckets.getValue(bucketId);
 		bc = instantiateBucketContainer(bucketData, bucketId);
-		s = bc.insertBulk(b, object);
+		s = bc.insert(b, object);
+		if(s.getStatus() == Status.OK){
+			sketchSet = null; // make the sketch set void
+			sketches.put(b.getId(), bucketId);
+		}
 		Buckets.put(bucketId, bc.serialize());
 		
 		this.bucketCache.put(bucketId, bc);
@@ -431,6 +454,9 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			throws OBStorageException, IllegalIdException,
 			IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
+		
+		sketchSet = null; // make the sketch set void
+		
 		byte[] bucketId = getAddress(b);
 		BC bc = instantiateBucketContainer(null, bucketId);
 		OperationStatus s = bc.insertBulk(b, object);
@@ -444,6 +470,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		/*if(bucketData == null){
 			assert Buckets.size() == (prevSize + 1);
 		}*/
+		sketches.put(b.getId(), bucketId);
 		this.bucketCache.put(bucketId, bc);
 		stats.addExtraStats("B_SIZE", bc.size());
 		return s;
@@ -460,6 +487,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	public byte[] getAddress(B bucket) throws OBException {
 		return convertLongToBytesAddress(getLongAddress(bucket));
 	}
+	
+	
 
 	protected abstract long getLongAddress(B b) throws OBException;
 
@@ -558,7 +587,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		logger.info("Calculating estimators...");
 		calculateEstimators();
 		logger.info("Index stats...");
-		bucketStats();
+		//bucketStats();
 		sketchStats();
 
 	}

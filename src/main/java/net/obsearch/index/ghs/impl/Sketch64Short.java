@@ -130,6 +130,12 @@ implements IndexShort<O> {
 		return q;
 	}
 
+	private long [] searchBuckets(long query, int kEstimation, int m) throws OBException{
+		if(sketchSet == null){
+			loadMasks();
+		}
+		return sketchSet.searchBuckets(query, kEstimation, m);
+	}
 	
 
 	@Override
@@ -148,7 +154,7 @@ implements IndexShort<O> {
 		int kEstimation = estimateK(result.getK());
 		stats.addExtraStats("K-estimation", kEstimation);
 		long time = System.currentTimeMillis();
-		long [] sortedBuckets = this.sketchSet.searchBuckets(query, kEstimation, m);
+		long [] sortedBuckets = searchBuckets(query, kEstimation, m);
 		getStats().addExtraStats("Buckets_search_time", System.currentTimeMillis() - time);
 		for(long bucket: sortedBuckets){
 			SleekBucketShort<O> container = this.bucketCache.get(super.convertLongToBytesAddress(bucket));
@@ -242,6 +248,9 @@ implements IndexShort<O> {
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
 		long time = System.currentTimeMillis();
+		if(sketchSet == null){
+			loadMasks();
+		}
 		List<OBResultInvertedByte<Long>> sortedBuckets = sketchSet
 				.searchFull(longAddr);
 		

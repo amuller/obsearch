@@ -103,7 +103,7 @@ public class ByteArrayFixed implements ByteArray{
 			try {
 				byte[] obj = null;
 				long loadedPointer = -1;
-				while(obj == null && hasNext()) {
+				while(obj == null && nextPointer < size()) {
 					obj = get(nextPointer);
 					loadedPointer = nextPointer;
 					nextPointer++; // leaves the pointer ready for the next
@@ -123,11 +123,7 @@ public class ByteArrayFixed implements ByteArray{
 
 		@Override
 		public boolean hasNext() {
-			try{
-				return nextPointer < size();
-			}catch(IOException e){
-				throw new NoSuchElementException(e.toString());
-			}
+			return next != null;
 			
 		}
 

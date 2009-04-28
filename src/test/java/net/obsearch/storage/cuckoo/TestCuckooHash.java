@@ -141,7 +141,8 @@ public class TestCuckooHash {
 						+ " " + s.getH2Inserts() + " depth: "
 						+ s.getBucketDepth().mean() + " std: "
 						+ s.getBucketDepth().standardDeviation() + " max: "
-						+ s.getBucketDepth().max() + " msec: " + (elapsed));
+						+ s.getBucketDepth().max() + " msec: " + (elapsed) );
+				System.out.println("Frag" + s.getFragReport());
 				time = System.currentTimeMillis();
 			}
 			i++;
