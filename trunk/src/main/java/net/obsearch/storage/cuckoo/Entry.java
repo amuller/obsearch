@@ -14,6 +14,10 @@ public final class Entry {
 		return length;
 	}
 	
+	public int hashCode(){
+		return length;
+	}
+		
 	/**
 	 * No initialization creates a null entry.
 	 */
@@ -33,12 +37,12 @@ public final class Entry {
 	}
 
 	public boolean isNull() {
-		return offset == -1 && length == -1;
+		return offset == -1 ;
 	}
 	
 	public boolean equals(Object obj){
 		Entry other = (Entry)obj;
-		return offset == other.offset && length == other.length;
+		return length == other.length;
 	}
 	
 	public String toString(){

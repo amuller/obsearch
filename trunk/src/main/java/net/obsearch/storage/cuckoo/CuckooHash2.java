@@ -134,10 +134,15 @@ public class CuckooHash2 implements HardDiskHash{
 		if(! e.isNull()){
 			// release old address
 			rec.release(e.getOffset(), e.getLength());
+			stats.incMemReleases();
 			// if data.length and e.getLength() happened to be the same
 			// the heap will recover immediately the same space :)
 		}		
 		long offset = rec.store(data);
+		stats.incMemRequests();
+		if(offset == e.getOffset()){
+			stats.incMemRecycles();
+		}
 		Entry toStore = new Entry(offset, data.length);		
 		t.set(hashCode, toStore);
 	}
@@ -160,6 +165,7 @@ public class CuckooHash2 implements HardDiskHash{
 			putAux(hash1, h1, e1, cont1);
 			stats.incH1Inserts();
 			countCache++;
+			return;
 		}else{
 			// not null we must check if the same key is there.
 			cont1 = getContainer(e1);
@@ -183,6 +189,7 @@ public class CuckooHash2 implements HardDiskHash{
 				putAux(hash2, h2, e2, cont2);	
 				stats.incH2Inserts();
 				countCache++;
+				return;
 			}else{
 				// both buckets have data. 
 				// we have to load both containers.				
@@ -209,6 +216,7 @@ public class CuckooHash2 implements HardDiskHash{
 					stats.incH1Inserts();
 				}
 				countCache++;
+				return;
 			}
 		}
 		

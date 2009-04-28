@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
@@ -28,9 +29,8 @@ public class DiskHeap {
 	/**
 	 * Where all the data is located
 	 */
-	private RandomAccessFile mainF;
+	private RandomAccessFile main;
 	
-	private FileChannel main;
 	
 	/**
 	 * We keep track of released space here.
@@ -57,8 +57,8 @@ public class DiskHeap {
 		
 		
 		
-		mainF = mainF;// mainF.getChannel();
-		main = mainF.getChannel();
+		
+		main = mainF;
 		holes = new PointerTable(holesF.getChannel());
 		// read all the holes and keep them in memory.
 		
@@ -86,9 +86,12 @@ public class DiskHeap {
 	 * @param size
 	 * @return
 	 */
-	private Entry searchHole(int size){
-		for(Entry e : holesCached){
+	private Entry searchAndRemoveHole(int size){
+		Iterator<Entry> it = holesCached.iterator();
+		while(it.hasNext()){
+			Entry e = it.next(); 
 			if(e.getLength() == size){
+				it.remove();
 				return e;
 			}
 		}
@@ -102,8 +105,8 @@ public class DiskHeap {
 	 */
 	public void read(long offset, byte[] data) throws IOException{
 		ByteBuffer buf = ByteBuffer.wrap(data);
-		main.position(offset);
-		main.read(buf);
+		main.seek(offset);
+		main.readFully(data);
 	}
 	
 	/**
@@ -116,17 +119,15 @@ public class DiskHeap {
 		
 		long res;
 		// get a hole or use the end of the file
-		Entry hole = searchHole(data.length);
+		Entry hole = searchAndRemoveHole(data.length);
 		if(hole != null){
 			res = hole.getOffset();
-			// delete the hole
-			holesCached.remove(hole);
+			// delete the hole			
 		}else{
-			res = main.size(); // go to the end of the file.
+			res = main.length(); // go to the end of the file.
 		}		
-		main.position(res);
-		ByteBuffer buf = ByteBuffer.wrap(data);
-		main.write(buf);
+		main.seek(res);
+		main.write(data);
 		return res;
 	}
 	
@@ -155,12 +156,16 @@ public class DiskHeap {
 	 */
 	public void deleteAll() throws IOException{
 		holes.deleteAll();
-		main.truncate(0);
+		main.setLength(0);
 	}
 
 	
 	
 	public StaticBin1D fragmentationReport() throws IOException, OBException{
-		return holes.fragmentationReport();
+		StaticBin1D s = new StaticBin1D();
+		for(Entry e : holesCached){
+			s.add(e.getLength());
+		}
+		return s;
 	}
 }

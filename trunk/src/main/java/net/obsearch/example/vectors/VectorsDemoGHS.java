@@ -38,7 +38,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		// Create a pivot selection strategy for L1 distance
 		 IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
-	 				new AcceptAll<L1>(), 400, 100, (short) Short.MAX_VALUE);
+	 				new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
 	    Sketch64Short<L1> index = new Sketch64Short<L1>(L1.class, sel, 64, 0);
 	    index.setExpectedEP(0.0001);
 	    index.setSampleSize(100);

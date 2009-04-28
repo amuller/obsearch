@@ -81,14 +81,16 @@ public class ByteArrayStorageTest {
 		// let's do an interation
 		Iterator<TupleLong> it =  store.iterator();
 		i = 0;
+		int cx = 1;
 		while(it.hasNext()){
 			TupleLong t = it.next();
 			assertTrue(Arrays.equals(data[i], t.getValue()));
 			assertTrue(Arrays.equals(data[i], t.getValue()));
 			assertTrue(t.getKey() == i);
 			i++;
+			cx++;
 		}
-		
+		assertTrue("i:  " + i, i == TEST_SIZE );
 		
 		// make sure they are equal.
 		verifyData(data, store);
@@ -120,7 +122,7 @@ public class ByteArrayStorageTest {
 		// now that we have done these things, iterators should return exactly the same thing.
 		it = store.iterator();
 		i = 0;
-		long cx = 0;
+		cx = 0;
 		StaticBin1D nextStats = new StaticBin1D();
 		for(byte[] d : data){
 			if(d == null){
