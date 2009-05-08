@@ -42,8 +42,9 @@ import com.sleepycat.je.DatabaseException;
  * @author Arnoldo Jose Muller Molina
  */
 
-public abstract class AbstractIncrementalPivotSelector<O extends OB> implements
-		IncrementalPivotSelector<O> {
+public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
+	
+	protected Random r = new Random();
 
 	protected AbstractIncrementalPivotSelector(Pivotable<O> pivotable) {
 		this.pivotable = pivotable;
@@ -103,6 +104,10 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB> implements
 
 		return generatePivots(pivotsCount, null, index);
 	}
+	
+	public abstract PivotResult generatePivots(int pivotCount, LongArrayList elements,  Index<O> index) throws OBException,
+    IllegalAccessException, InstantiationException, OBStorageException,
+    PivotsUnavailableException; 
 
 	/**
 	 * Returns the max # of elements. if source != null then source.size()
@@ -167,7 +172,7 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB> implements
 			IllegalAccessException, InstantiationException,
 			OBException {
 		long[] sample = select(k, r, source, index, null);
-		O[] objs = (O[]) Array.newInstance(index.getClass(), k);
+		O[] objs = (O[]) Array.newInstance(index.getType(), k);
 		int i = 0;
 		for (long l : sample) {
 			objs[i] = this.getObject(l, source, index);

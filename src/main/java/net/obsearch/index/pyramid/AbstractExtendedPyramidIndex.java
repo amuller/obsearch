@@ -16,6 +16,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.pivot.AbstractPivotOBIndex;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.storage.CloseIterator;
@@ -240,7 +241,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     @Override
     public void freeze() throws AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            OBStorageException, OutOfRangeException, OBException {
+            OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
         super.freeze();
         // now process each object and put it in B.
         CloseIterator < TupleLong > it = A.processAll();

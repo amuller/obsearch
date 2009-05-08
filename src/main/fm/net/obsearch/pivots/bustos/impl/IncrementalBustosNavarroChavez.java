@@ -16,6 +16,7 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.pivots.bustos.AbstractIncrementalBustosNavarroChavez;
+import net.obsearch.pivots.IncrementalPivotSelector;
 
 import net.obsearch.ob.OB${Type};
 
@@ -47,7 +48,7 @@ import com.sleepycat.je.DatabaseException;
  */
 <@gen_warning filename="IncrementalBustosNavarroChavez.java "/>
 public class IncrementalBustosNavarroChavez${Type}<O extends OB${Type}>
-        extends AbstractIncrementalBustosNavarroChavez<O> {
+        extends AbstractIncrementalBustosNavarroChavez<O> implements IncrementalPivotSelector<O> {
     
     /**
      * Keeps track of the SMAP values of objects.

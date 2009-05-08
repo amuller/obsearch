@@ -9,7 +9,7 @@ import net.obsearch.exception.OBException;
 public class TestCuckooHash2 extends TestCuckooHash{
 	
 	protected HardDiskHash createHash(File location) throws IOException, OBException{
-		return new CuckooHash2(TEST_SIZE , location, new Murmur64(), new Jenkins64() );
+		return new CuckooHash2(TEST_PERF_SIZE , location, new Murmur64(), new Jenkins64() );
 	}
 
 }

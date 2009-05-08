@@ -20,6 +20,7 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
@@ -168,7 +169,7 @@ public abstract class AbstractKnnGraph<O extends OB, B extends BucketObject, Q, 
 	@Override
 	public void freeze() throws AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
-			OBStorageException, OutOfRangeException, OBException {
+			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
 
 		super.freeze();
 		CloseIterator<TupleLong> it = A.processAll();

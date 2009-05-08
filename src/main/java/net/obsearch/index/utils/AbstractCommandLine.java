@@ -18,6 +18,7 @@ import net.obsearch.ambient.Ambient;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.stats.Statistics;
 import net.obsearch.utils.Pair;
 
@@ -293,7 +294,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 
 	protected void create() throws IOException, OBStorageException,
 			OBException, DatabaseException, InstantiationException,
-			IllegalAccessException {
+			IllegalAccessException, PivotsUnavailableException {
 		// OBAsserts.chkFileNotExists(databaseFolder);
 		OBAsserts.chkFileExists(load);
 

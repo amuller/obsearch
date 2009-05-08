@@ -27,11 +27,14 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.filter.FilterNonEquals;
 import net.obsearch.index.bucket.AbstractBucketIndex;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
+import net.obsearch.pivots.IncrementalPairPivotSelector;
 import net.obsearch.pivots.IncrementalPivotSelector;
+import net.obsearch.pivots.PivotPairResult;
 import net.obsearch.pivots.PivotResult;
 import net.obsearch.query.AbstractOBQuery;
 import net.obsearch.result.OBResultInt;
@@ -44,6 +47,7 @@ import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.TupleLong;
 import net.obsearch.storage.OBStorageConfig.IndexType;
 import net.obsearch.storage.cuckoo.CuckooEntry;
+import net.obsearch.utils.Pair;
 import net.obsearch.utils.bytes.ByteConversion;
 
 /*
@@ -154,10 +158,10 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	/**
 	 * Pivot selector for the masks.
 	 */
-	protected IncrementalPivotSelector<O> maskPivotSelector;
+	protected IncrementalPairPivotSelector<O> maskPivotSelector;
 
 	public AbstractSketch64(Class<O> type,
-			IncrementalPivotSelector<O> pivotSelector, int m,
+			IncrementalPairPivotSelector<O> pivotSelector, int m,
 			int bucketPivotCount) throws OBStorageException, OBException {
 		super(type, null, 0);
 		this.m = m;
@@ -284,8 +288,10 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		Arrays.sort(keys);
 		logger.info("Sorted in: " + (System.currentTimeMillis() - time));
 		long prev = Long.MAX_VALUE;
+		long count = 0;
 		for (long l : keys) {
 			if(l != prev){
+				count++;
 				sketchSet.add(l);
 				
 			}
@@ -294,7 +300,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		// load the sketch into memory.
 		sketchSet.commit();
 
-		logger.info("Compressed Sketch size: " + sketchSet.getBytesSize());
+		logger.info("Compressed Sketch size: " + sketchSet.getBytesSize() + " loaded " + count  + " masks ");
 
 	}
 
@@ -476,11 +482,8 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		return s;
 	}
 
-	protected byte[] convertLongToBytesAddress(long bucketId) {
-		if(bucketId == 0){
-			System.out.println("HEY --> in");
-		}
-		return fact.serializeLong(bucketId);
+	protected byte[] convertLongToBytesAddress(long bucketId) {		
+		return ByteConversion.longToBytes(bucketId);
 	}
 
 	@Override
@@ -565,11 +568,11 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 	public void freeze() throws AlreadyFrozenException, IllegalIdException,
 			OutOfRangeException, IllegalAccessException,
-			InstantiationException, OBException {
+			InstantiationException, OBException, PivotsUnavailableException {
 		super.freeze();
 		int i = 0;
 
-		while (i < m) {
+		/*while (i < m) {
 			int cx = 0;
 			PivotResult r = super.selectPivots(HEIGHT, this.maskPivotSelector);
 			while (cx < HEIGHT) {
@@ -577,7 +580,19 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 				cx++;
 			}
 			i++;
+		}*/
+		
+		PivotPairResult<O> pivots = maskPivotSelector.generatePivotsPair(m,
+                null, this);
+		// fill the pivots in the grid.
+		i = 0;
+		for(Pair<O,O> p : pivots.getPairs()){
+			pivotGrid[i][0] = p.getA();
+			pivotGrid[i][1] = p.getB();
+			i++;
 		}
+		
+		
 		logger.info("Moving objects to the buckets...");
 		freezeDefault();
 		this.bucketCache.clearAll();
@@ -587,7 +602,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		logger.info("Calculating estimators...");
 		calculateEstimators();
 		logger.info("Index stats...");
-		//bucketStats();
+		bucketStats();
 		sketchStats();
 
 	}

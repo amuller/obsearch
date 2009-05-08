@@ -17,6 +17,7 @@ import net.obsearch.ambient.bdb.AmbientBDBJe;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.idistance.impl.IDistanceIndexInt;
 import net.obsearch.index.idistance.impl.IDistanceIndexShort;
 import net.obsearch.index.utils.Directory;
@@ -64,7 +65,7 @@ public class VectorsDemo {
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 20000000;
+	final static int DB_SIZE = 1000000;
 	
 	/**
 	 * FREEZE size
@@ -117,7 +118,7 @@ public class VectorsDemo {
 		PropertyConfigurator.configure(prop);
 	}
 
-	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException {
+	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
 				
 		init();
 		

@@ -10,6 +10,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.exception.UndefinedPivotsException;
 import net.obsearch.stats.Statistics;
 import net.obsearch.storage.OBStoreFactory;
@@ -71,6 +72,12 @@ public interface Index < O extends OB > {
      */
     OperationStatus insert(O object) throws OBStorageException, OBException,
             IllegalAccessException, InstantiationException;
+    
+    /**
+     * Return the type that is stored in the index.
+     * @return
+     */
+    Class<O> getType();
     
     /**
      * Inserts the given object into the index. It does not check
@@ -190,10 +197,11 @@ public interface Index < O extends OB > {
      *                 This exception is left as a Debug flag. If you receive
      *                 this exception please report the problem to:
      *                 http://code.google.com/p/obsearch/issues/list
+     * @throws PivotsUnavailableException 
      */
     void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            OBStorageException, OutOfRangeException, OBException;
+            OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException;
 
     
 
