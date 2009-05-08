@@ -18,6 +18,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.storage.OBStoreFactory;
 
 
@@ -150,7 +151,7 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
      */
     public void freeze() throws IOException, AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
-    OBStorageException, OutOfRangeException, OBException{
+    OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException{
         index.freeze();
         // serialize the stream.
         XStream xstream = new XStream();

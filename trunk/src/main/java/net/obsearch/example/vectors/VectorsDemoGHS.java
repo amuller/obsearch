@@ -16,11 +16,13 @@ import net.obsearch.ambient.tc.AmbientTC;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.ghs.impl.Sketch64Short;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.muller2.IncrementalMullerRosaShort;
+import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
@@ -28,7 +30,7 @@ import net.obsearch.result.OBResultShort;
 public class VectorsDemoGHS extends VectorsDemo {
 	
 	
-	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException {
+	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
 		
 		init();
 		
@@ -37,12 +39,15 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		
 		// Create a pivot selection strategy for L1 distance
-		 IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
-	 				new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
-	    Sketch64Short<L1> index = new Sketch64Short<L1>(L1.class, sel, 64, 0);
-	    index.setExpectedEP(0.0001);
+		 //IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
+	 	//			new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
+		
+		RF02PivotSelectorShort<L1> sel = new RF02PivotSelectorShort<L1>(new AcceptAll<L1>());
+		// make the bit set as short so that m objects can fit in the buckets.
+	    Sketch64Short<L1> index = new Sketch64Short<L1>(L1.class, sel, 16, 0);
+	    index.setExpectedEP(0.00001);
 	    index.setSampleSize(100);
-	    index.setMaxK(new int[]{1});
+	    index.setMaxK(new int[]{1});	    
 	    index.setFixedRecord(true);
     	index.setFixedRecord(VEC_SIZE*2);
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)

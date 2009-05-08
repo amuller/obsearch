@@ -37,6 +37,7 @@ import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.storage.OBStoreFactory;
 
 
@@ -57,11 +58,12 @@ public interface Ambient < O extends OB, I extends Index < O >> {
     /**
      * Freezes the index and stores the metadata of the index (the index itself)
      * in the DB.
+     * @throws PivotsUnavailableException 
      * @see net.obsearch.Index#freeze()
      */
     public abstract void freeze() throws IOException, AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            OBStorageException, OutOfRangeException, OBException;
+            OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException;
     
     /**
      * Close all the internally used resources.

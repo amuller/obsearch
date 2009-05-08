@@ -22,13 +22,13 @@ public class TestCuckooHash {
 
 	protected int TEST_SIZE = 100000;
 
-	private int TEST_PERF_SIZE = 1000000;
+	protected int TEST_PERF_SIZE = 1000000;
 
 	private int TEST_QUERIES = 10000;
 
 	protected HardDiskHash createHash(File location) throws IOException,
 			OBException {
-		return new CuckooHash(TEST_SIZE, location, new Murmur64(),
+		return new CuckooHash(TEST_PERF_SIZE, location, new Murmur64(),
 				new Jenkins64());
 	}
 

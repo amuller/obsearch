@@ -14,6 +14,7 @@ import java.util.Iterator;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
+import net.obsearch.utils.bytes.ByteConversion;
 
 /**
  * This class considers the hard disk as main memory and provides
@@ -29,7 +30,7 @@ public class DiskHeap {
 	/**
 	 * Where all the data is located
 	 */
-	private RandomAccessFile main;
+	private FileChannel main;
 	
 	
 	/**
@@ -58,7 +59,7 @@ public class DiskHeap {
 		
 		
 		
-		main = mainF;
+		main = mainF.getChannel();
 		holes = new PointerTable(holesF.getChannel());
 		// read all the holes and keep them in memory.
 		
@@ -104,9 +105,10 @@ public class DiskHeap {
 	 * @throws IOException
 	 */
 	public void read(long offset, byte[] data) throws IOException{
-		ByteBuffer buf = ByteBuffer.wrap(data);
-		main.seek(offset);
-		main.readFully(data);
+		ByteBuffer buf = ByteConversion.createByteBuffer(data);
+		main.position(offset);
+		main.read(buf);
+		
 	}
 	
 	/**
@@ -124,10 +126,11 @@ public class DiskHeap {
 			res = hole.getOffset();
 			// delete the hole			
 		}else{
-			res = main.length(); // go to the end of the file.
+			res = main.size(); // go to the end of the file.
 		}		
-		main.seek(res);
-		main.write(data);
+		main.position(res);
+		ByteBuffer buf = ByteConversion.createByteBuffer(data);
+		main.write(buf);
 		return res;
 	}
 	
@@ -156,7 +159,7 @@ public class DiskHeap {
 	 */
 	public void deleteAll() throws IOException{
 		holes.deleteAll();
-		main.setLength(0);
+		main.truncate(0);
 	}
 
 	

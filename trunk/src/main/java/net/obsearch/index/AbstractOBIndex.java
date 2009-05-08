@@ -43,6 +43,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.OutOfRangeException;
+import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.stats.Statistics;
 import net.obsearch.storage.OBStore;
 import net.obsearch.utils.bytes.ByteConversion;
@@ -156,7 +157,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * 
 	 * @return {@link #type}
 	 */
-	protected final Class<O> getType() {
+	public final Class<O> getType() {
 		return type;
 	}
 
@@ -615,12 +616,13 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			InstantiationException;
 
 	/**
+	 * @throws PivotsUnavailableException 
 	 * @see net.obsearch.Index#freeze()
 	 */
 	@Override
 	public void freeze() throws  AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
-			OBStorageException, OutOfRangeException, OBException {
+			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
 		if (isFrozen()) {
 			// TODO: allow indexes to freeze multiple times.
 			throw new AlreadyFrozenException();

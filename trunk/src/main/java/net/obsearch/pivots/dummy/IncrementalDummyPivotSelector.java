@@ -6,6 +6,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.pivots.AbstractIncrementalPivotSelector;
+import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.pivots.PivotResult;
 
 
@@ -37,7 +38,8 @@ import cern.colt.list.LongArrayList;
  */
 
 public class IncrementalDummyPivotSelector < O extends OB >
-        extends AbstractIncrementalPivotSelector < O > {
+        extends AbstractIncrementalPivotSelector < O > implements
+		IncrementalPivotSelector<O> {
     
     public IncrementalDummyPivotSelector(){
         super(null);
@@ -51,7 +53,7 @@ public class IncrementalDummyPivotSelector < O extends OB >
         return generatePivots(pivotCount, null, index);
     }
 
-    @Override
+    
     public PivotResult generatePivots(int pivotCount, LongArrayList elements,
             Index<O> index) throws OBException, IllegalAccessException,
             InstantiationException, OBStorageException,

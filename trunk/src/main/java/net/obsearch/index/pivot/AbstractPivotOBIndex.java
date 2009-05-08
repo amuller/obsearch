@@ -113,7 +113,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     @Override
     public void freeze() throws  AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
-    OBStorageException, OutOfRangeException, OBException {
+    OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
         super.freeze();
         if(pivotCount > 0){
         	pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());

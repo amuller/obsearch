@@ -24,6 +24,7 @@ import net.obsearch.index.bucket.impl.BucketObjectShort;
 import net.obsearch.index.bucket.sleek.SleekBucketShort;
 import net.obsearch.index.ghs.AbstractSketch64;
 import net.obsearch.ob.OBShort;
+import net.obsearch.pivots.IncrementalPairPivotSelector;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.query.AbstractOBQuery;
 import net.obsearch.query.OBQueryShort;
@@ -51,7 +52,7 @@ implements IndexShort<O> {
 	 * @throws IOException
 	 */
 	public Sketch64Short(Class<O> type,
-			IncrementalPivotSelector<O> pivotSelector, int m, int bucketPivotCount
+			IncrementalPairPivotSelector<O> pivotSelector, int m, int bucketPivotCount
 			)												
 			throws OBStorageException, OBException, IOException {
 		
@@ -247,15 +248,16 @@ implements IndexShort<O> {
 		
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
-		long time = System.currentTimeMillis();
+		
 		if(sketchSet == null){
 			loadMasks();
 		}
+		long time = System.currentTimeMillis();
 		List<OBResultInvertedByte<Long>> sortedBuckets = sketchSet
 				.searchFull(longAddr);
 		
 		//List<OBResultShort<O>> sortedBuckets2 = fullMatch(object);
-		logger.info("Time searching: " + (System.currentTimeMillis() - time));
+		logger.info("Time searching sketches: " + (System.currentTimeMillis() - time));
 
 		// now we have to calculate the EP for each k up to maxK
 		// and for each k we calculate how many buckets must be read in order
@@ -274,9 +276,7 @@ implements IndexShort<O> {
 			OBQueryShort<O> query = (OBQueryShort<O>) queryAbst;
 			
 			for (OBResultInvertedByte<Long> result : sortedBuckets) {
-				if(result.getObject() == 0){
-					System.out.println("STOP!");
-				}
+				
 				SleekBucketShort<O> container = this.bucketCache.get(this
 						.convertLongToBytesAddress(result.getObject()));
 				// search the objects

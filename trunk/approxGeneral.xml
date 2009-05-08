@@ -16,7 +16,7 @@
 	<property name="cls" value="target/classes/"/>
 	<!-- System related properties -->
 	
-	<property name="memory" value="4000"/>
+	<property name="memory" value="2000"/>
 	<property name="pivots" value="2"/>
 		<!-- DB and QUERY datafiles -->
 		
@@ -220,7 +220,7 @@
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
 <jvmarg value="-Xms${memory}M" />
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-Xmn2g" />
+<!--<jvmarg value="-Xmn2g" />-->
 <jvmarg value="-ea" />
 <jvmarg value="-Xss128k" />
 <jvmarg value="-XX:+UseParallelGC"/>
