@@ -112,6 +112,8 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 		
 	}
 	
+	protected abstract Class<O> obtainClass();
+	
 	
 	@Override
 	protected void searchObject(I index, O object, Statistics other) throws NotFrozenException,

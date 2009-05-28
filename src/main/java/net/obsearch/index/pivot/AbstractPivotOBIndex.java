@@ -113,7 +113,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     @Override
     public void freeze() throws  AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
-    OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
+    OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException, IOException {
         super.freeze();
         if(pivotCount > 0){
         	pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());
@@ -157,10 +157,11 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     
     /**
      * Override this method if selection must be changed
+     * @throws IOException 
      */
     protected PivotResult  selectPivots(int pivotCount, IncrementalPivotSelector < O > pivotSelector) throws  AlreadyFrozenException,
     IllegalIdException, IllegalAccessException, InstantiationException,
-    OBStorageException, OutOfRangeException, OBException{
+    OBStorageException, OutOfRangeException, OBException, IOException{
         // select pivots.
     	OBAsserts.chkAssert(A.size() <= Integer.MAX_VALUE, "Cannot accept more than " + Integer.MAX_VALUE + " on freeze");
     	/*int max = Math.min( (int)A.size(), MAX_PIVOT_SAMPLE);
