@@ -241,7 +241,7 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     @Override
     public void freeze() throws AlreadyFrozenException,
             IllegalIdException, IllegalAccessException, InstantiationException,
-            OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
+            OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException, IOException {
         super.freeze();
         // now process each object and put it in B.
         CloseIterator < TupleLong > it = A.processAll();

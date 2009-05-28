@@ -617,12 +617,13 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 
 	/**
 	 * @throws PivotsUnavailableException 
+	 * @throws IOException 
 	 * @see net.obsearch.Index#freeze()
 	 */
 	@Override
 	public void freeze() throws  AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
-			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
+			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException, IOException {
 		if (isFrozen()) {
 			// TODO: allow indexes to freeze multiple times.
 			throw new AlreadyFrozenException();

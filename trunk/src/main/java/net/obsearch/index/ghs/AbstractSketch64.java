@@ -568,7 +568,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 
 	public void freeze() throws AlreadyFrozenException, IllegalIdException,
 			OutOfRangeException, IllegalAccessException,
-			InstantiationException, OBException, PivotsUnavailableException {
+			InstantiationException, OBException, PivotsUnavailableException, IOException {
 		super.freeze();
 		int i = 0;
 

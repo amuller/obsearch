@@ -169,7 +169,7 @@ public abstract class AbstractKnnGraph<O extends OB, B extends BucketObject, Q, 
 	@Override
 	public void freeze() throws AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
-			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException {
+			OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException, IOException {
 
 		super.freeze();
 		CloseIterator<TupleLong> it = A.processAll();
