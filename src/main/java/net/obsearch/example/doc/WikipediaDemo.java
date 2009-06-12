@@ -71,7 +71,7 @@ public static void init() throws IOException{
 		File database = new File("/home/amuller/wikipedia/hope.txt.db");
 		File query = new File("/home/amuller/wikipedia/hope.txt.q");
 		BufferedReader dbData = new BufferedReader( new FileReader(database));
-		BufferedReader qData = new BufferedReader( new FileReader(database));
+		BufferedReader qData = new BufferedReader( new FileReader(query));
 		
 		init();
 		
@@ -84,8 +84,8 @@ public static void init() throws IOException{
 	 	//			new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
 		
 		RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(new AcceptAll<OBTanimoto>());
-		sel.setDataSample(100);
-		sel.setRepetitions(100);
+		sel.setDataSample(1000);
+		sel.setRepetitions(1000);
 		sel.setDesiredDistortion(1);
 		sel.setDesiredSpread(0);
 		// make the bit set as short so that m objects can fit in the buckets.
@@ -141,7 +141,7 @@ public static void init() throws IOException{
 			OBPriorityQueueFloat<OBTanimoto> queue = new OBPriorityQueueFloat<OBTanimoto>(1);			
 			// perform a query with r=3000000 and k = 1 
 			index.searchOB(q, Float.MAX_VALUE, queue);
-			logger.info("Query: " + q.getName() + " found: " + queue.getSortedElements().get(0).getObject().getName());
+			logger.info("Query: " + q.getName() + " found: " + queue.getSortedElements().get(0).getObject().getName() + " dist: " + queue.getSortedElements().get(0).getDistance());
 			queryResults.add(queue);
 			queries.add(q);
 			
