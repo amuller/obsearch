@@ -66,6 +66,7 @@ public class MultiSet<O> {
 	 */
 	public StaticBin1D getDistribution(){
 		StaticBin1D res = new StaticBin1D();
+		
 		for(Entry<O, IntegerHolder> e : entrySet()){
 			res.add(e.getValue().getValue());
 		}

@@ -259,7 +259,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 				}else{
 					logger.info("Converting... " + i );
 				}
-				logger.info("Buckets " + Buckets.getStats() );
+				//logger.info("Buckets " + Buckets.getStats() );
 			}
 			
 			i++;

@@ -277,7 +277,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		int i = 0;
 		while (it.hasNext()) {
 			TupleLong t = it.next();			
-			long bucketId = fact.deSerializeLong(t.getValue());			
+			long bucketId = ByteConversion.bytesToLong(t.getValue());			
 			keys[i] = bucketId;
 			i++;
 		}
