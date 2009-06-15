@@ -1,5 +1,7 @@
 package net.obsearch.example.doc;
 
+import java.util.Arrays;
+
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBFloat;
 /**
@@ -20,10 +22,12 @@ public class OBTanimoto extends AbstractDocument {
 
 	@Override
 	public float distance(OBFloat object) throws OBException {
+		
 		OBTanimoto other = (OBTanimoto)object;
+		
 		// calculate the dot product
 		// ids must be sorted prior doing this.
-		float dot = 0;
+		long dot = 0;
 		int i1 = 0;
 		int i2 = 0;
 		final int max1 = super.ids.length;
@@ -39,18 +43,25 @@ public class OBTanimoto extends AbstractDocument {
 				i2++;
 			}			
 		}
-		int normA = euclideanNormSquared();
-		int normB = other.euclideanNormSquared();
 		
-		float res = 1 - ((dot) / ((normA + normB) - dot));
-		assert res >= 0 : " result: " + res;
-		//assert res <= 1 : " result: " + res;
-		return res;
+		long normA = euclideanNormSquared();
+		long normB = other.euclideanNormSquared();	
+		
+		double res = 1 - ((dot) / ((normA + normB) - dot));
+		assert res >= 0 : " result: " + res + " A: " + super.getName() + " B: " + other.getName();
+		assert res <= 1 : " result: " + res;
+		
+		return (float)res;
 	}
 	
-	private int euclideanNormSquared(){
-		int res = 0;
-		for(int d : counts){
+	public boolean equals(Object o){
+		OBTanimoto other = (OBTanimoto)o;
+		return Arrays.equals(ids, other.ids) && Arrays.equals(counts, other.counts);
+	}
+	
+	private long euclideanNormSquared(){
+		long res = 0;
+		for(long d : counts){
 			res += d * d;
 		}
 		return res;
