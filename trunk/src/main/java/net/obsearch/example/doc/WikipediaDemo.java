@@ -43,7 +43,7 @@ public class WikipediaDemo  {
 	
 	final static File INDEX_FOLDER = new File("." + File.separator + "index");
 	
-	final static int DB_SIZE = 100000;
+	final static int DB_SIZE = 1000000;
 	
 	
 	/**
@@ -85,7 +85,8 @@ public static void init() throws IOException{
 		
 		RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(new AcceptAll<OBTanimoto>());
 		sel.setDataSample(1000);
-		sel.setRepetitions(1000);
+		
+		sel.setRepetitions(4000);
 		sel.setDesiredDistortion(1);
 		sel.setDesiredSpread(0);
 		// make the bit set as short so that m objects can fit in the buckets.
