@@ -47,9 +47,9 @@ public class OBTanimoto extends AbstractDocument {
 		long normA = euclideanNormSquared();
 		long normB = other.euclideanNormSquared();	
 		
-		double res = 1 - ((dot) / ((normA + normB) - dot));
+		double res = 1d - ((double) (dot) / (double)((normA + normB) - dot));
 		assert res >= 0 : " result: " + res + " A: " + super.getName() + " B: " + other.getName();
-		assert res <= 1 : " result: " + res;
+		//assert res <= 1 : " result: " + res;
 		
 		return (float)res;
 	}

@@ -85,7 +85,6 @@ public static void init() throws IOException{
 		
 		RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(new AcceptAll<OBTanimoto>());
 		sel.setDataSample(1000);
-		
 		sel.setRepetitions(4000);
 		sel.setDesiredDistortion(1);
 		sel.setDesiredSpread(0);
