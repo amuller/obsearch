@@ -298,6 +298,7 @@ implements Index${Type}<O> {
 				if (ep <= this.getExpectedEP()) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
+						logger.info("Found result after reading: " + goodK + " buckets ");
 					kEstimators[i].add(goodK);
 					break; // we are done.
 				}
@@ -308,7 +309,10 @@ implements Index${Type}<O> {
 	}
 	
 	
-	
+	protected double distance(O a, O b) throws OBException{
+		return a.distance(b);
+	}
+
 	
 }
 </#list>

@@ -19,6 +19,8 @@ package net.obsearch.index;
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import hep.aida.bin.StaticBin1D;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -28,6 +30,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Logger;
+
 
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -130,6 +137,13 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * The type used to instantiate objects of type O.
 	 */
 	protected Class<O> type;
+	
+	
+	/**
+	 * Logger.
+	 */
+	private static final transient Logger logger = Logger
+			.getLogger(AbstractOBIndex.class.getCanonicalName());
 
 	/**
 	 * Constructors of an AbstractOBIndex should receive only parameters related
@@ -281,6 +295,49 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 		}catch(IOException e){
 			throw new OBStorageException(e);
 		}
+	}
+	
+	/**
+	 * Calculate the intrinsic dimension of the underlying database 
+	 * @param sample
+	 * @return
+	 * @throws OBException 
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException 
+	 * @throws IllegalIdException 
+	 */
+	public double intrinsicDimensionality(int sampleSize) throws IllegalIdException, IllegalAccessException, InstantiationException, OBException{
+		
+		List<O> objs = new ArrayList<O>(sampleSize);
+		Random r = new Random();
+		long max = this.databaseSize();
+		
+		int i = 0;
+		while(i < sampleSize){
+			long id = Math.abs(r.nextLong() % max);
+			objs.add(getObject(id));
+			i++; 
+		}
+		i = 0;
+		StaticBin1D stats = new StaticBin1D();
+		while(i < sampleSize){
+			int i2 = 0;
+			O a = objs.get(i);
+			while(i2 < sampleSize){
+				if(i2 != i){
+					O b = objs.get(i2);
+					stats.add(distance(a,b));
+				}
+				i2++;
+			}			
+			logger.info("Doing: " + i);						
+			i++;
+		}
+		return Math.pow(stats.mean(), 2) / (2 * stats.variance());
+	}
+	
+	protected double distance(O a2, O b) throws OBException{
+		throw new UnsupportedOperationException(); 
 	}
 
 	/**

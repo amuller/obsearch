@@ -230,18 +230,53 @@
 	</java>
 </target>
 
-
-<target name="example2" depends="maven">	
+<target name="example2create" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.doc.WikipediaDemo"  failonerror="true">
 <jvmarg value="-Xms${memory}M" />
 <jvmarg value="-Xmx${memory}M" />
 <!--<jvmarg value="-Xmn2g" />-->
-<jvmarg value="-ea" />
+<!--<jvmarg value="-ea" />-->
 <jvmarg value="-Xss128k" />
 <jvmarg value="-XX:+UseParallelGC"/>
 <jvmarg value="-XX:+AggressiveOpts"/>
 <jvmarg value="-XX:+UseParallelOldGC"/>
 <jvmarg value="-XX:+UseFastAccessorMethods"/>
+<arg value="-m"/>
+<arg value="create"/>
+	</java>
+</target>
+
+
+<target name="example2intrinsic" depends="maven">	
+	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.doc.WikipediaDemo"  failonerror="true">
+<jvmarg value="-Xms${memory}M" />
+<jvmarg value="-Xmx${memory}M" />
+<!--<jvmarg value="-Xmn2g" />-->
+<!--<jvmarg value="-ea" />-->
+<jvmarg value="-Xss128k" />
+<jvmarg value="-XX:+UseParallelGC"/>
+<jvmarg value="-XX:+AggressiveOpts"/>
+<jvmarg value="-XX:+UseParallelOldGC"/>
+<jvmarg value="-XX:+UseFastAccessorMethods"/>
+<arg value="-m"/>
+<arg value="intrinsic"/>
+	</java>
+</target>
+
+
+<target name="example2search" depends="maven">	
+	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.doc.WikipediaDemo"  failonerror="true">
+<jvmarg value="-Xms${memory}M" />
+<jvmarg value="-Xmx${memory}M" />
+<!--<jvmarg value="-Xmn2g" />-->
+<!--<jvmarg value="-ea" />-->
+<jvmarg value="-Xss128k" />
+<jvmarg value="-XX:+UseParallelGC"/>
+<jvmarg value="-XX:+AggressiveOpts"/>
+<jvmarg value="-XX:+UseParallelOldGC"/>
+<jvmarg value="-XX:+UseFastAccessorMethods"/>
+<arg value="-m"/>
+<arg value="search"/>
 	</java>
 </target>
 

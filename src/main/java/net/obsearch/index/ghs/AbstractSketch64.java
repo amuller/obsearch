@@ -646,6 +646,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	@Override
 	public void close() throws OBException {
 		bucketCache.clearAll();
+		sketches.close();
 		super.close();
 	}
 
