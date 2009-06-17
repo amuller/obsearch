@@ -141,19 +141,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     	return Math.pow(stats.mean(),2) / (2 * stats.variance());
     }
     
-    /**
-     * Used for internal (statistics etc) operations,
-     * where efficiency counts we don't use this function.
-     * @param a 
-     * @param b 
-     * @return
-     * @throws OBException 
-     */
-    protected  double distance(O a, O b) throws OBException{
-    	throw new UnsupportedOperationException();
-    }
     
-   
     
     /**
      * Override this method if selection must be changed
