@@ -183,7 +183,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	}
 
 	/**
-	 * This method must be called by the sons of this class.
+	 * This method must be called by the children of this class.
 	 * 
 	 * @param thisReference
 	 *            this reference of the subclass.
