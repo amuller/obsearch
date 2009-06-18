@@ -32,7 +32,6 @@ import net.obsearch.index.ghs.impl.Sketch64Short;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
-import net.obsearch.pivots.muller2.IncrementalMullerRosaShort;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.query.OBQueryFloat;
@@ -138,12 +137,12 @@ public class WikipediaDemo {
 			sel.setDataSample(2000);
 			sel.setRepetitions(4000);
 			sel.setDesiredDistortion(1);
-			sel.setDesiredSpread(0);
+			sel.setDesiredSpread(0.10);
 			// make the bit set as short so that m objects can fit in the
 			// buckets.
 			Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(
 					OBTanimoto.class, sel, 64, 0);
-			index.setExpectedEP(0.000001);
+			index.setExpectedEP(0.0001);
 			index.setSampleSize(100);
 
 			// select the ks that the user will call.

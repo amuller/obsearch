@@ -21,7 +21,6 @@ import net.obsearch.index.ghs.impl.Sketch64Short;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
-import net.obsearch.pivots.muller2.IncrementalMullerRosaShort;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueShort;
