@@ -137,7 +137,7 @@ public class WikipediaDemo {
 			sel.setDataSample(2000);
 			sel.setRepetitions(4000);
 			sel.setDesiredDistortion(1);
-			sel.setDesiredSpread(0.10);
+			sel.setDesiredSpread(0);
 			// make the bit set as short so that m objects can fit in the
 			// buckets.
 			Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(

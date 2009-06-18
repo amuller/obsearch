@@ -713,7 +713,17 @@ Would be cool to use this.
 
 	  <!-- Additional repositories -->
 
+
+    
 	 <repositories>
+
+
+    <repository>
+      <id>ob</id>
+      <url>http://obsearch.net/repository/</url>
+    </repository>
+
+
      <repository>
       <id>codehaus</id>
       <url>http://repository.codehaus.org/org/codehaus/mojo/</url>

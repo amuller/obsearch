@@ -319,18 +319,18 @@ public abstract class AbstractIncrementalRF02<O extends OB> extends
 			// if (!another.isValid()) {
 			// return true;
 			// }
-			if (spread == another.spread) {
-					if(distortion == another.distortion){
+			if (distortion == another.distortion) {
+					if(spread == another.spread){
 							// do the hyperplane
 							if (lower(distanceToH) > lower(another.distanceToH)) {
 									return true;
 							}
 					}
-					else if (distortion < another.distortion) {
+					else if (spread > another.spread) {
 					return true;
 				}
 			} else {
-				if (spread > another.spread) {
+				if (distortion < another.distortion) {
 					// if (distortion < another.distortion) {
 					// return true;
 					// }

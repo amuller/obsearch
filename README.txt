@@ -48,8 +48,25 @@ Information for Developers
 * You need to have a recent version Maven and ANT installed and working
   (We have tested OBSearch with Maven 2.0.6 and 2.0.7 and ANT 1.7.0).
 
+
 The first time you checkout OBSearch do a:
-./install.sh 
+
+Add the following to your .m2/settings.xml
+
+<repositories>
+...
+    <repository>
+      <id>obsearch</id>
+      <url>http://obsearch.net/repository</url>
+    </repository>
+...
+  </repositories>
+
+
+For Tokyo Cabinet and Berkeley DB you may need to rebuild the jars and
+install them manually in your local respository. 
+See the file install.sh for an example on how to do this.
+
 
 This will download and install all the necessary dependencies.
 
