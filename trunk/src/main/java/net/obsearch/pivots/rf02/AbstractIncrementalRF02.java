@@ -316,28 +316,24 @@ public abstract class AbstractIncrementalRF02<O extends OB> extends
 		}
 
 		public boolean isBetter(Score another) {
-			// if (!another.isValid()) {
-			// return true;
-			// }
-			if (distortion == another.distortion) {
-					if(spread == another.spread){
+
+
+			if (spread == another.spread) {
+
+					if(distortion == another.distortion){
+
 							// do the hyperplane
 							if (lower(distanceToH) > lower(another.distanceToH)) {
 									return true;
 							}
+
 					}
-					else if (spread > another.spread) {
-					return true;
-				}
+					else if (distortion < another.distortion) {
+							return true;
+					}
 			} else {
-				if (distortion < another.distortion) {
-					// if (distortion < another.distortion) {
-					// return true;
-					// }
+				if (spread > another.spread) {					
 					return true;
-					// if (lower(distanceToH) >= lower(another.distanceToH)) {
-					// return true;
-					// }
 				}
 			}
 
