@@ -227,6 +227,7 @@
 <jvmarg value="-XX:+AggressiveOpts"/>
 <jvmarg value="-XX:+UseParallelOldGC"/>
 <jvmarg value="-XX:+UseFastAccessorMethods"/>
+<jvmarg value="-XXcompressedRefs"/>
 	</java>
 </target>
 
@@ -241,6 +242,7 @@
 <jvmarg value="-XX:+AggressiveOpts"/>
 <jvmarg value="-XX:+UseParallelOldGC"/>
 <jvmarg value="-XX:+UseFastAccessorMethods"/>
+<jvmarg value="-XXcompressedRefs"/>
 <arg value="-m"/>
 <arg value="create"/>
 	</java>
