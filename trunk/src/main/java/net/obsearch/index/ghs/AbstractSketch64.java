@@ -492,6 +492,19 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	}
 	
 	
+	protected class AddressDescriptor {
+		private long id;
+
+		public long getId() {
+			return id;
+		}
+
+		public AddressDescriptor(long id) {
+			super();
+			this.id = id;
+		}
+		
+	}
 
 	protected abstract long getLongAddress(B b) throws OBException;
 

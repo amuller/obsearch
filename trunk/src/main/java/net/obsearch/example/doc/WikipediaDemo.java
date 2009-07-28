@@ -32,6 +32,7 @@ import net.obsearch.index.ghs.impl.Sketch64Short;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.query.OBQueryFloat;
@@ -58,7 +59,7 @@ public class WikipediaDemo {
 	 * Database max size
 	 */
 	@Option(name = "-db_size", usage = "Size of the DB", aliases = { "--database_size" })
-	private int databaseSize = 1000000;
+	private int databaseSize = 10000;
 
 	/**
 	 * Query count.
@@ -134,8 +135,11 @@ public class WikipediaDemo {
 			// Create a pivot selection strategy
 			RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(
 					new AcceptAll<OBTanimoto>());
-			sel.setDataSample(2000);
-			sel.setRepetitions(4000);
+			//RF03PivotSelectorFloat<OBTanimoto> sel = new RF03PivotSelectorFloat<OBTanimoto>(
+			//		new AcceptAll<OBTanimoto>());
+
+			sel.setDataSample(100);
+			sel.setRepetitions(100);
 			sel.setDesiredDistortion(1);
 			sel.setDesiredSpread(0);
 			// make the bit set as short so that m objects can fit in the

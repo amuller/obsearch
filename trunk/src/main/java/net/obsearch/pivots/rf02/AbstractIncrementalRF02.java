@@ -132,7 +132,7 @@ public abstract class AbstractIncrementalRF02<O extends OB> extends
 				}
 				i++;
 			}
-			logger.info("Processed dimension i: " + cx);
+			logger.info("Processed dimension i: " + cx + " iterations: " + i);
 			logger.info(bestScore.toString());
 			// take the best and calculate the score again.
 			pairs.set(cx, bestPair);
@@ -317,6 +317,9 @@ public abstract class AbstractIncrementalRF02<O extends OB> extends
 
 		public boolean isBetter(Score another) {
 
+				if(this.isValid() && ! another.isValid()){
+						return true; // if the other is not valid we are done
+				}
 
 			if (spread == another.spread) {
 
@@ -339,6 +342,7 @@ public abstract class AbstractIncrementalRF02<O extends OB> extends
 
 			return false;
 		}
+
 
 		/**
 		 * Lower part of the first quantile
