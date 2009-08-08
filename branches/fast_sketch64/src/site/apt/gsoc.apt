@@ -1,0 +1,39 @@
+GSOC 2009 ideas
+~~~~~~~~
+
+
+* OBSearch Extensions
+~~~~~~~~~~~~~~~~~~~~~
+
+  The following tasks require primarily knoweledge of Java, and similarity search algorithms (just a bit, we can guide you during the program, probably  we will discuss some papers during the internship). 				
+
+ * Re-implementation of one index with Carbonado (hard). The task consists of selecting one similarity search index and implement it from scratch with Carbonado. The idea is that sometimes you need relational information to reduce the search space. For example, when you play the netflix challenge, it is sometimes useful to search only in a subset of the space (the customers who viewed a certain movie). With Carbonado we can build a medium size index that can be customized by the user. 
+	
+ * Storage devices (medium). Find 2 or 3 key value storage (scalaris, tokyo cabinet etc.), and implement the back-ends for OBSearch. The task would require to gather intelligence on the status of different key value storage. Then you should implement bindings for each of the storage devices accompanied with tests. 
+
+ * Another index (medium-hard). Perhaps the VA-file, VA+-file, the IQ-Tree, LCluster? These indexes exploit locality of reference, so the cache subsystems are fully exploited. Do you have any other suggestions? These indexes are very nice to have when all the other options (hierarchical) fail. 
+
+ * TODO lists(medium-hard): There are lots of  things that must be implemented for OBSearch. For example, templates for all the primitive data-types for different indexes, usability improvements like changing the query interface so that the API is easier to use, and more tests! This is also a very important task, and if you want to really see OBSearch from the inside, this is the best option. 
+
+  []
+
+
+
+* Applications (things that you could build on top of OBSearch to make the life of people easier/happier)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The following tasks require primarily knoweledge of Java, and a bit on nearest neighbour algorithms and distance functions (again, theoretical points can be learned during the internship).
+
+ * LevShell (medium): A shell completion server based on the levenshtein distance (or any other relevant distance). When you use unix shells and emacs, you can get previous commands by doing (usually) sub-string search. Sometimes the search allows you to commit one or two mistakes on the words you type. But wouldn't it be great if you could just type "noh exec xml" and our LevShell could pop up with the command: "nohup ant -buildfile exec.xml run"? We could use contextual information (surrounding text, current dir, time of the day, etc) to improve the prediction qualities. This tool could reduce the carpal tunnel syndrome in programmers all around the world. The idea would be to have a general server that stores strings that you type based on a context, and then we could have plug-ins that access and update the server. At first, maybe we could implement plug-ins for emacs, eclipse and a shell maybe? :) History in shells is very limited but, with OBSearch we can search 800000 strings in about 20 milli seconds! :) []
+
+ * Smooth Slideshow: (easy) Create an image similarity search engine with OBSearch. We would have to find an image distance function (phash for example), and then we can search for similar images. Such application by itself is nice to have. Given a collection of images, we could create an slideshow where the picture i and i+1 are very similar. In that way the changes between different images will not be as rough as with standard slideshows.  The slideshow itself could be implemented as a web application.
+
+ * An analogous application could be applied for music (medium). We could automatically create mp3 play-lists that where the song i and i+1 are similar.  Provided we can find a good distance function, then we could have a nice play-list sorter. Maybe we could add this as a plugin for Rhythmbox or one of those nice players.
+
+ * A k-nn plugin for Weka  (easy). In that way we could have all the power of Weka and the scalability of OBSearch together. It would be nice if we could provide plugins for other data mining toolkits too.
+
+ 
+ 
+  []
+
+[perezosoUltimateRecortadoWeb.jpg]  

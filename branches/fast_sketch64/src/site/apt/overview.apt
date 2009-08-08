@@ -1,0 +1,56 @@
+OBSearch
+~~~~~~~~~~~~~~
+
+* Synopsis
+~~~~~~~~~~~
+
+  OBSearch is a similarity search engine. 
+
+* Details
+~~~~~~~~~~
+
+ Similarity search is required in many areas. For example, music matching and binary program matching require a similarity search engine. Nowadays, it is common to hear news of projects like "photosynth" that heavily rely on similarity search. OBSearch is a similarity search engine that can help you to create an interesting and new application!
+
+
+* Features
+~~~~~~~~
+
+ * Single-computer or distributed mode. (1)
+	
+ * Designed to handle efficiently heavy objects (trees, graphs).
+
+ * Code generation for each primitive datatype (byte, short, int, long, float, double) for maximum performance.
+
+ * The API is compact and easy to understand.
+
+ * Stability and scalability: OBSearch's secondary storage backend is Oracle's Berkeley DB. An extensive test suite makes sure that data integrity is preserved.
+ 
+ * Cutting edge:  We strive to put together the latest algorithms the scientific community has to offer. For example, we use the K-means++ algorithm in one of our indexes.
+ 
+  []
+
+
+* Technicalities:
+~~~~~~~~~~~~~~~~~
+
+ Available indexes:
+ 
+ * IDistance
+
+ * Extended Pyramid Technique
+
+ * P+Tree
+
+ * D-Index (with rho=0)
+
+ * K-nn graph
+
+  []
+
+ And more to come! ;)
+
+
+  (1) The first version 0.7-GSOC supports distributed access by JXTA. We are currently evaluating 
+      alternative network frameworks.      
+ 
+	
