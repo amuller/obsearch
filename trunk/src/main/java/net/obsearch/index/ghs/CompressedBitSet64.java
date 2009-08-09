@@ -46,13 +46,13 @@ import net.obsearch.result.OBResultInvertedByte;
  * @author Arnoldo Jose Muller Molina
  */
 
-public final class CompressedBitSet64 {
+public class CompressedBitSet64 {
 
-	private byte[] data;
+	protected byte[] data;
 	private File f;
 	private OutputBitStream out;
-	private int count = 0;
-	private long first;
+	protected int count = 0;
+	protected long first;
 	private long previous;
 	private boolean commit;
 
@@ -237,7 +237,7 @@ public final class CompressedBitSet64 {
 		out.writeLongDelta(object);
 	}
 	
-	private long read(InputBitStream in) throws IOException{
+	protected long read(InputBitStream in) throws IOException{
 		return in.readLongDelta();
 	}
 

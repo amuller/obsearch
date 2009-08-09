@@ -19,8 +19,10 @@ import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.ghs.impl.Sketch64Long;
 
+import net.obsearch.index.perm.impl.DistPermLong;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
+import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezLong;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.pivots.rf03.RF03PivotSelectorLong;
@@ -31,7 +33,7 @@ import net.obsearch.result.OBPriorityQueueLong;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 
-public class VectorsDemoGHS extends VectorsDemo {
+public class VectorsDemoPer extends VectorsDemo {
 	
 	
 	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
@@ -46,13 +48,12 @@ public class VectorsDemoGHS extends VectorsDemo {
 		 //IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
 	 	//			new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
 		
-		RF03PivotSelectorLong<L1Long> sel = new RF03PivotSelectorLong<L1Long>(new AcceptAll<L1Long>());
-		sel.setDataSample(400);
-		sel.setRepetitions(400);
+		
+		IncrementalBustosNavarroChavezLong<L1Long> sel = new IncrementalBustosNavarroChavezLong<L1Long>(new AcceptAll<L1Long>(), 400, 400);
 		//sel.setDesiredDistortion(0.10);
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
-	    Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class, sel, 1024, 0);
+	    DistPermLong<L1Long> index = new DistPermLong<L1Long>(L1Long.class, sel, 128, 0);
 	    index.setExpectedEP(EP);
 	    index.setSampleSize(100);
 	    index.setKAlpha(ALPHA);
@@ -63,7 +64,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
 		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 	    //Ambient<L1, Sketch64Short<L1>> a =  new AmbientMy<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
-    	Ambient<L1Long, Sketch64Long<L1Long>> a =  new AmbientTC<L1Long, Sketch64Long<L1Long>>( index, INDEX_FOLDER );
+    	Ambient<L1Long, DistPermLong<L1Long>> a =  new AmbientTC<L1Long, DistPermLong<L1Long>>( index, INDEX_FOLDER );
 		
 		// Add some random objects to the index:	
 		logger.info("Adding " + DB_SIZE + " objects...");
