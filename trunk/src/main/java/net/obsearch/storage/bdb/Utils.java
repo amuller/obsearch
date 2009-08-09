@@ -17,11 +17,12 @@ public class Utils extends TestCase {
 		return fact;
 	}
 
-	public static BDBFactoryDb getFactoryDb() throws Exception {
+	/*public static BDBFactoryDb getFactoryDb() throws Exception {
 		
 		BDBFactoryDb fact = new BDBFactoryDb(init());
 		return fact;
-	}
+	}*/
+	
 
 	public static TCFactory getFactoryTC() throws Exception {
 		TCFactory fact = new TCFactory(init());

@@ -85,8 +85,8 @@ public class VectorsDemo {
 	 * Index folder
 	 */
 	
-	final static File INDEX_FOLDER = new File("." + File.separator + "index");
-	
+	// final static File INDEX_FOLDER = new File("." + File.separator + "index");
+	final static File INDEX_FOLDER = new File("/media/AR_LAB/index_GHS");
 	
 	final static Random r = new Random();
 	

@@ -34,6 +34,8 @@ import net.obsearch.result.OBResultShort;
 public class VectorsDemoGHS extends VectorsDemo {
 	
 	
+	
+	
 	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
 		
 		init();
@@ -52,14 +54,14 @@ public class VectorsDemoGHS extends VectorsDemo {
 		//sel.setDesiredDistortion(0.10);
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
-	    Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class, sel, 1024, 0);
+	    Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class, sel, 256, 0);
 	    index.setExpectedEP(EP);
 	    index.setSampleSize(100);
 	    index.setKAlpha(ALPHA);
 	    // select the ks that the user will call.
 	    index.setMaxK(new int[]{1});	    
 	    index.setFixedRecord(true);
-    	index.setFixedRecord(VEC_SIZE*2);
+    	index.setFixedRecord(VEC_SIZE*4);
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
 		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 	    //Ambient<L1, Sketch64Short<L1>> a =  new AmbientMy<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
