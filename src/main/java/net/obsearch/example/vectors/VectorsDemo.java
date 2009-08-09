@@ -60,12 +60,12 @@ public class VectorsDemo {
 	/**
 	 * Dimension of the vectors.
 	 */
-	final static int VEC_SIZE = 100;
+	final static int VEC_SIZE = 1000;
 	
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 1000000;
+	final static int DB_SIZE = 100000;
 	
 	/**
 	 * FREEZE size
@@ -76,6 +76,10 @@ public class VectorsDemo {
 	 * Query count.
 	 */
 	final static int QUERY_SIZE = 100;
+	
+	final static float EP = 0.0001f;
+	
+	final static float ALPHA = 1f;
 		
 	/**
 	 * Index folder
@@ -106,6 +110,19 @@ public class VectorsDemo {
 		}
 		
 		return new L1(data);
+	}
+	
+public static L1Long generateLongVector(){				
+		
+		int[] data = new int[VEC_SIZE];		
+		int i = 0;
+				
+		while(i < data.length){
+			data[i] = r.nextInt(10000);
+			i++;
+		}
+		
+		return new L1Long(data);
 	}
 	
 	public static void init() throws IOException{

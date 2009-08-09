@@ -80,6 +80,14 @@ public interface Index < O extends OB > {
     Class<O> getType();
     
     /**
+     * Load the data of object # i into the given object
+     * @param i
+     * @param object
+     * @throws OBException
+     */
+    void loadObject(long i, O object) throws OBException;
+    
+    /**
      * Inserts the given object into the index. It does not check
      * if the object to be inserted exists in the database.     
      * @param object

@@ -288,7 +288,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	 * @throws IOException 
 	 * @throws OBException 
 	 */
-	protected void loadObject(long i, O object) throws OBException {
+	public void loadObject(long i, O object) throws OBException {
 		try{
 		byte[] data = A.getValue(i);
 		object.load(data);
