@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.obsearch.index.ghs.CBitVector;
+import net.obsearch.index.Commons${Type};
 import net.obsearch.AbstractOBResult;
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
@@ -38,8 +40,9 @@ import net.obsearch.result.OBPriorityQueue${Type};
 import net.obsearch.result.OBResultInvertedByte;
 import net.obsearch.result.OBResultInverted${Type};
 import net.obsearch.result.OBResult${Type};
+import net.obsearch.index.ghs.SketchProjection;
 
-public class Sketch64${Type}<O extends OB${Type}> extends AbstractSketch64<O, BucketObject${Type}<O>, OBQuery${Type}<O>, SleekBucket${Type}<O>>
+public final class Sketch64${Type}<O extends OB${Type}> extends AbstractSketch64<O, BucketObject${Type}<O>, OBQuery${Type}<O>, SleekBucket${Type}<O>>
 implements Index${Type}<O> {
 	
 	private boolean DEBUG = true;
@@ -78,19 +81,39 @@ implements Index${Type}<O> {
 	 * Compute the sketch for the given object.
 	 */
 	@Override
-	public long getLongAddress(BucketObject${Type}<O> bucket) throws OBException {
+	public SketchProjection getProjection(BucketObject${Type}<O> bucket) throws OBException {
+			//OBAsserts.chkAssert(m <= Byte.MAX_VALUE, "Cannot address more than Byte.MAX_VALUE");
 		int i = 0;
-		long res = 0;
+		CBitVector res = new CBitVector(m);
+		double[] lowerBounds = new double[m];
 		while(i < m){
-			if(pivotGrid[i][0].distance(bucket.getObject()) > pivotGrid[i][1].distance(bucket.getObject()) ){
-				res = res | (1L << i);
+				${type} distanceA = pivotGrid[i][0].distance(bucket.getObject());
+				${type} distanceB = pivotGrid[i][1].distance(bucket.getObject());
+			if(distanceA > distanceB ){
+					res.set(i);
 				distortionStats[i][1]++;
 			}else{
 				distortionStats[i][0]++;
 			}
+			// update the lower bounds:
+			lowerBounds[i] = Math.max(((double)Math.abs(distanceA - distanceB)) / 2, 0);
 			i++;
 		}
-		return res;
+
+		// calculate distances that are farther to the hyperplane
+		double[] lowerBoundsSorted = new double[m];
+		System.arraycopy(lowerBounds,0,lowerBoundsSorted,0,m);
+		Arrays.sort(lowerBoundsSorted);
+		byte[] ordering = new byte[m];
+		i = 0;
+		while(i < m){
+				
+				ordering[i] = (byte)Arrays.binarySearch(lowerBoundsSorted, lowerBounds[i]);
+				i++;
+		}
+		
+		SketchProjection result = new SketchProjection(ordering, res, -1, lowerBounds);
+		return result;
 	}
 
 	
@@ -137,13 +160,6 @@ implements Index${Type}<O> {
 		return q;
 	}
 
-	private long [] searchBuckets(long query, int kEstimation, int m) throws OBException{
-		if(sketchSet == null){
-			loadMasks();
-		}
-		return sketchSet.searchBuckets(query, kEstimation, m);
-	}
-	
 
 	@Override
 	public void searchOB(O object, ${type} r, Filter<O> filter,
@@ -154,50 +170,22 @@ implements Index${Type}<O> {
 
 		OBQuery${Type}<O> q = new OBQuery${Type}<O>(object, r, result, b
 				.getSmapVector());
-		long query = this.getLongAddress(b);
-		byte[] addr = super.convertLongToBytesAddress(query);
+		SketchProjection query = this.getProjection(b);
 		
 		// we only use the k estimation once, at the beginning of the search process.
 		int kEstimation = estimateK(result.getK());
 		stats.addExtraStats("K-estimation", kEstimation);
 		long time = System.currentTimeMillis();
-		long [] sortedBuckets = searchBuckets(query, kEstimation, m);
+		List<SketchProjection> sortedBuckets = searchBuckets(query, kEstimation);
 		getStats().addExtraStats("Buckets_search_time", System.currentTimeMillis() - time);
-		for(long bucket: sortedBuckets){
-			SleekBucket${Type}<O> container = this.bucketCache.get(super.convertLongToBytesAddress(bucket));
+		for(SketchProjection bucket: sortedBuckets){
+				SleekBucket${Type}<O> container = this.bucketCache.get(bucket.getAddress());
 			stats.incBucketsRead();
 			container.search(q, b, filter, getStats());															
 		}
 	}
 	
-	/**
-	 * Match the given query against all the DB. (for EP calculation)
-	 * removes query from the end result.
-	 * @return the results of matching the given query against all the DB.
-	 * @throws OBException 
-	 * @throws InstantiationException 
-	 * @throws IllegalAccessException 
-	 */
-	public List<OBResult${Type}<O>> fullMatch(O query) throws OBException, IllegalAccessException, InstantiationException{
-		long max = databaseSize();
-		List<OBResult${Type}<O>> sortedList = new ArrayList<OBResult${Type}<O>>((int)(max - 1));
-		long id = 0;
-		
-		while(id < max){
-			O o = getObject(id);
-			${type} distance = o.distance(query);
-			if(distance == 0 && o.equals(query)){
-				id++;
-				continue; // do not add self.
-			}else{
-				sortedList.add(new OBResult${Type}<O>(o, id, distance));
-			}
-			id++;
-		}
-		Collections.sort(sortedList);
-		Collections.reverse(sortedList);
-		return sortedList;
-	}
+
 	
 	/**
 	 * This method returns a list of all the distances of the query against  the DB.
@@ -211,24 +199,7 @@ implements Index${Type}<O> {
 	 * @throws IllegalAccessException 
 	 */
 	public ${type}[] fullMatchLite(O query, boolean filterSame) throws OBException, IllegalAccessException, InstantiationException{
-		long max = databaseSize();
-		OBAsserts.chkAssert(max < Integer.MAX_VALUE, "Cannot exceed 2^32");
-		${type}[] result = new ${type}[(int)max];
-		int id = 0;
-		O o = type.newInstance();
-		while(id < max){
-			loadObject(id, o);
-			${type} distance = o.distance(query);
-			if(distance == 0 && o.equals(query) && filterSame){
-				result[id] = ${ClassType}.MAX_VALUE;				
-			}else{
-				result[id] = distance;
-			}
-			id++;
-		}
-		
-		Arrays.sort(result);
-		return result;		
+			return Commons${Type}.fullMatchLite((OB${Type})query, filterSame, this);
 	}
 	
 	
@@ -245,13 +216,16 @@ implements Index${Type}<O> {
 			throws OBException, InstantiationException, IllegalAccessException {
 		// we calculate first the list of elements against the DB.
 		BucketObject${Type}<O> b = getBucket(object);
-		long longAddr = getLongAddress(b);
-		byte[] addr = convertLongToBytesAddress(longAddr);
+		SketchProjection longAddr = getProjection(b);
+		byte[] addr = longAddr.getAddress();
 		
 		
 
 		${type} [] sortedList = fullMatchLite( object, true);
-		
+		//`calculate the AVG distance between the sample and the DB.
+		for(${type} t : sortedList){
+				getStats().addExtraStats("GENERAL_DISTANCE", t);
+		}
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
 		
@@ -259,8 +233,8 @@ implements Index${Type}<O> {
 			loadMasks();
 		}
 		long time = System.currentTimeMillis();
-		List<OBResultInvertedByte<Long>> sortedBuckets = sketchSet
-				.searchFull(longAddr);
+		OBAsserts.chkAssert(Buckets.size() <= Integer.MAX_VALUE, "Capacity exceeded");
+		List<SketchProjection> sortedBuckets = searchBuckets(longAddr, (int)Buckets.size());
 		
 		//List<OBResult${Type}<O>> sortedBuckets2 = fullMatch(object);
 		logger.info("Time searching sketches: " + (System.currentTimeMillis() - time));
@@ -281,12 +255,11 @@ implements Index${Type}<O> {
 			AbstractOBQuery<O> queryAbst = getKQuery(object, userK[i]);
 			OBQuery${Type}<O> query = (OBQuery${Type}<O>) queryAbst;
 			
-			for (OBResultInvertedByte<Long> result : sortedBuckets) {
+			for (SketchProjection result : sortedBuckets) {
 				
-				SleekBucket${Type}<O> container = this.bucketCache.get(this
-						.convertLongToBytesAddress(result.getObject()));
+				SleekBucket${Type}<O> container = this.bucketCache.get(result.getAddress());
 				// search the objects
-				assert container != null : "Problem while loading: " + result.getObject();
+				assert container != null : "Problem while loading: " + result.getSketch();
 				container.search(query, b, fne, getStats());
 				// calculate the ep of the query and the DB.
 				if (query.isFull()) { // only if the query is full of items.
@@ -300,6 +273,9 @@ implements Index${Type}<O> {
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets ");
 					kEstimators[i].add(goodK);
+					// store the distance of the best object and the real-best object
+					${type} difference = (${type})Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
+					getStats().addExtraStats("SEXY_DISTANCE", difference);
 					break; // we are done.
 				}
 			}
@@ -311,6 +287,25 @@ implements Index${Type}<O> {
 	
 	protected double distance(O a, O b) throws OBException{
 		return a.distance(b);
+	}
+
+
+
+	@Override
+	protected SketchProjection calculateDistance(SketchProjection query,
+			CBitVector proj) {
+		
+			return query.distance(proj);
+	}
+
+	@Override
+	protected int getCPSize() {
+			return Math.max((int)Math.ceil(m  /  ByteConstants.Byte.getBits() ), ByteConstants.Long.getSize());
+	}
+
+	@Override
+	protected Class<CBitVector> getPInstance() {
+			return CBitVector.class;
 	}
 
 	

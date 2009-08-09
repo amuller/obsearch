@@ -11,27 +11,27 @@ import net.obsearch.index.sorter.Projection;
 /**
  *   
  */
-public class SketchProjection implements Projection<SketchProjection, CBitVector> {
+public final class SketchProjection implements Projection<SketchProjection, CBitVector> {
 
 	/**
 	 * ordered pivot pair positions from greater to smaller.
 	 */
 
-	private int magnitude;
-	private byte[] ordering;
+	//private int magnitude;
+	//private byte[] ordering;
 	private int distance;
-	private double[] lowerBounds;
-	private double lowerBound;
+	//private double[] lowerBounds;
+	//private double lowerBound;
 	private CBitVector sketch;
 	
 	public String toString(){
-		return "[" + distance + "-" + lowerBound + "]";
+		return "[" + distance + "]";
 		
 	}
 
 	public SketchProjection(byte[] ordering, CBitVector sketch, int distance, double[] lowerBounds) {
 		// this.ordering = ordering;
-		magnitude = 0;
+		/*magnitude = 0;
 		for (byte b : ordering) {
 			magnitude += b;
 		}
@@ -39,19 +39,22 @@ public class SketchProjection implements Projection<SketchProjection, CBitVector
 		for(double d : lowerBounds){
 			lowerBound += d;
 		}
-		this.sketch = sketch;
+		
 		this.ordering = ordering;
-		this.distance = distance;
+		
 		this.lowerBounds = lowerBounds;
+		*/
+		this.sketch = sketch;
+		this.distance = distance;
 	}
 	
-	public double[] getLowerBounds(){
+	/*public double[] getLowerBounds(){
 		return lowerBounds;
 	}
 
 	public byte[] getOrdering() {
 		return ordering;
-	}
+	}*/
 	
 	public int getDistance(){
 		return distance;
@@ -118,7 +121,7 @@ public class SketchProjection implements Projection<SketchProjection, CBitVector
 		
 		int distance = hamming.cardinality();
 		
-		int i = 0;
+		/*int i = 0;
 		byte[] ordering = new byte[distance];
 		double[] lowerBounds = new double[b.size() - distance];
 		int cx = 0;
@@ -130,8 +133,10 @@ public class SketchProjection implements Projection<SketchProjection, CBitVector
 				cx++;
 			}
 			i++;
-		}
-		return new SketchProjection(ordering, b, distance, lowerBounds);
+		}*/
+		// return new SketchProjection(ordering, b, distance, lowerBounds);
+		
+		return new SketchProjection(null, b, distance, null);
 		
 	}
 
