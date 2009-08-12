@@ -24,10 +24,10 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
-import net.obsearch.index.ghs.impl.Sketch64Float;
-import net.obsearch.index.ghs.impl.Sketch64Short;
+import net.obsearch.index.perm.impl.DistPermFloat;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
+import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
@@ -47,18 +47,23 @@ public class WikipediaDemo extends AbstractGHSExample {
 	
 	protected void search() throws OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException{
 		BufferedReader qData = new BufferedReader(new FileReader(query));
-		Ambient<OBTanimoto, Sketch64Float<OBTanimoto>> a = new AmbientTC<OBTanimoto, Sketch64Float<OBTanimoto>>(
+		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
 				indexFolder);
-		Sketch64Float<OBTanimoto> index = a.getIndex();
+		DistPermFloat<OBTanimoto> index = a.getIndex();
 		// now we can match some objects!
 		logger.info("Querying the index...");
 		int i = 0;
-		index.resetStats(); // reset the stats counter
+
+		index.setKAlpha(1f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<OBTanimoto>> queryResults = new ArrayList<OBPriorityQueueFloat<OBTanimoto>>(
 				querySize);
 		List<OBTanimoto> queries = new ArrayList<OBTanimoto>(querySize);
 		String line = qData.readLine();
+		logger.info("Warming cache...");
+		index.bucketStats();
+		index.resetStats(); // reset the stats counter
+		logger.info("Search starts!");
 		while (line != null && i < querySize) {
 			OBTanimoto q = new OBTanimoto(line);
 			line = qData.readLine();
@@ -116,9 +121,9 @@ public class WikipediaDemo extends AbstractGHSExample {
 	}
 	
 	protected void intrinsic() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException, FileNotFoundException, IOException{
-		Ambient<OBTanimoto, Sketch64Float<OBTanimoto>> a = new AmbientTC<OBTanimoto, Sketch64Float<OBTanimoto>>(
+		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
 				indexFolder);
-		Sketch64Float<OBTanimoto> index = a.getIndex();
+		DistPermFloat<OBTanimoto> index = a.getIndex();
 
 		logger
 				.info("Intrinsic dim: "
@@ -129,28 +134,29 @@ public class WikipediaDemo extends AbstractGHSExample {
 		BufferedReader dbData = new BufferedReader(new FileReader(database));
 
 		// Create a pivot selection strategy
-		RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(
-				new AcceptAll<OBTanimoto>());
-		// RF03PivotSelectorFloat<OBTanimoto> sel = new
-		// RF03PivotSelectorFloat<OBTanimoto>(
 		// new AcceptAll<OBTanimoto>());
-
-		sel.setDataSample(100);
-		sel.setRepetitions(100);
-		sel.setDesiredDistortion(1);
+	/*	RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(
+				new AcceptAll<OBTanimoto>());
+		sel.setDataSample(400);
+		sel.setRepetitions(1000);
+		sel.setDesiredDistortion(0.30f);
 		sel.setDesiredSpread(0);
+*/
+		IncrementalBustosNavarroChavezFloat<OBTanimoto> sel = new IncrementalBustosNavarroChavezFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400,400);
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
-		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(
-				OBTanimoto.class, sel, 64, 0);
+/*		DistPermFloat<OBTanimoto> index = new DistPermFloat<OBTanimoto>(
+				OBTanimoto.class, sel, 256, 0);
+		*/
+		
+		DistPermFloat<OBTanimoto> index = new DistPermFloat<OBTanimoto>(OBTanimoto.class, sel, 128, 0);
 		index.setExpectedEP(EP);
 		index.setSampleSize(100);
-
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
 
 		// Create the ambient that will store the index's data.
-		Ambient<OBTanimoto, Sketch64Float<OBTanimoto>> a = new AmbientTC<OBTanimoto, Sketch64Float<OBTanimoto>>(
+		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:

@@ -275,7 +275,6 @@ implements Index${Type}<O> {
 					kEstimators[i].add(goodK);
 					// store the distance of the best object and the real-best object
 					${type} difference = (${type})Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
-					getStats().addExtraStats("SEXY_DISTANCE", difference);
 					break; // we are done.
 				}
 			}

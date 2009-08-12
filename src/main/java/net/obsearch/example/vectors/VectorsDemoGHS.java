@@ -44,16 +44,14 @@ public class VectorsDemoGHS extends VectorsDemo {
 		Directory.deleteDirectory(INDEX_FOLDER);
 		
 		
-		// Create a pivot selection strategy for L1 distance
-		 //IncrementalMullerRosaShort<L1> sel = new IncrementalMullerRosaShort<L1>(
-	 	//			new AcceptAll<L1>(), 4000, 1000, (short) Short.MAX_VALUE);
-		
+		// Create the pivot selection strategy
 		RF03PivotSelectorLong<L1Long> sel = new RF03PivotSelectorLong<L1Long>(new AcceptAll<L1Long>());
 		sel.setDataSample(400);
 		sel.setRepetitions(400);
 		//sel.setDesiredDistortion(0.10);
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
+		// create an index.
 	    Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class, sel, 256, 0);
 	    index.setExpectedEP(EP);
 	    index.setSampleSize(100);

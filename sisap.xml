@@ -73,9 +73,9 @@
 <arg value="-dbsrc"/>
 <arg value="${indexSource}"/>
 <arg value="-dbsize"/>
-<arg value="1000000"/>
+<arg value="100000"/>
 <arg value="-ep"/>
-<arg value="0.00001"/>
+<arg value="0.0001"/>
 	</java>
 </target>
 
@@ -147,7 +147,7 @@
 </target>
 
 <target name="vectorIntrinsic" depends="init,maven">
-  <antcall target="search">
+  <antcall target="intrinsic">
 		<param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
   </antcall>
