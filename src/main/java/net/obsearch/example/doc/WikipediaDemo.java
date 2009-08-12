@@ -93,6 +93,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 				.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
+		/*
 		logger.info("Doing EP validation");
 		StaticBin1D ep = new StaticBin1D();
 
@@ -118,6 +119,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		logger.info(ep.toString());
 		logger.info("Time per seq query: ");
 		logger.info(seqTime.toString());
+		*/
 	}
 	
 	protected void intrinsic() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException, FileNotFoundException, IOException{
