@@ -4,6 +4,8 @@ import hep.aida.bin.StaticBin1D;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -74,7 +76,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	/**
 	 * We keep here the projections.
 	 */
-	protected transient CP[] projections;
+	protected transient List<CP> projections;
 
 	/**
 	 * Cache used for storing buckets
@@ -149,19 +151,28 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		logger.info("Loading masks!");
 		OBAsserts.chkAssert(projectionStorage.size() <= Integer.MAX_VALUE,
 				"Capacity exceeded");
-		projections = (CP[]) Array.newInstance(getPInstance(),
-				(int) projectionStorage.size());
+		OBAsserts.chkAssert(projectionStorage.size() <= Integer.MAX_VALUE, "Exceeded allowed sketch set size");
+		projections = new ArrayList<CP>((int)projectionStorage.size());
 		CloseIterator<TupleLong> it = projectionStorage.processAll();
-
+		//assert projectionStorage.size() == A.size() : "Projection storage: " + projectionStorage.size() + " A: " + A.size();
 		int i = 0;
+		
+		assert projections.size() == 0;
+		HashSet<CP> viewed = new HashSet<CP>();
 		while (it.hasNext()) {
 			TupleLong t = it.next();
+			assert Buckets.getValue(t.getValue()) != null;
 			CP cp = this.bytesToCompactRepresentation(t.getValue());
-			projections[i] = cp;
+			//TODO: fix this for distance permutations.
+			if(! viewed.contains(cp)){
+				projections.add(cp);
+				viewed.add(cp);
+			}
+				
 			i++;
 		}
-		logger.info("Loaded: " + i + " masks");
-
+		logger.info("Loaded: " + projections.size() + " masks");
+		assert Buckets.size() == projections.size() : "Buckets: " + Buckets.size() + " project: " + projections.size();
 		it.closeCursor();
 	}
 

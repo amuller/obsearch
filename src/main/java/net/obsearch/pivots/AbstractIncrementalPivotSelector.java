@@ -123,7 +123,7 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 	protected int max(LongArrayList source, Index<O> index)
 			throws OBStorageException {
 		int max;
-		if (source == null) {
+		if (source == null) {	
 			max = (int) Math.min(index.databaseSize(), Integer.MAX_VALUE);
 		} else {
 			max = source.size();
@@ -152,13 +152,21 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 	 */
 	protected long[] select(int k, Random r, LongArrayList source,
 			Index<O> index, LongArrayList excludes) throws OBStorageException, IllegalIdException, OBException, IllegalAccessException, InstantiationException {
+		return selectUnique(k, r, source,index,excludes);
+	}
+	
+	
+	protected long[] selectUnique(int k, Random r, LongArrayList source,
+			Index<O> index, LongArrayList excludes) throws OBStorageException, IllegalIdException, OBException, IllegalAccessException, InstantiationException {
 		int max = max(source, index);
 		long[] res = new long[k];
 		int i = 0;
+		LongArrayList generated = new LongArrayList(k);
 		while (i < res.length) {
 			long id = mapId(r.nextInt(max), source);
-			if (excludes == null || !excludes.contains(id)) {
+			if (excludes == null || !excludes.contains(id) && ! generated.contains(id)) {
 				res[i] = id;
+				generated.add(id);
 			} else {
 				continue; // repeat step.
 			}
