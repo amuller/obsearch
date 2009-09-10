@@ -48,6 +48,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		RF03PivotSelectorLong<L1Long> sel = new RF03PivotSelectorLong<L1Long>(new AcceptAll<L1Long>());
 		sel.setDataSample(400);
 		sel.setRepetitions(400);
+		
 		//sel.setDesiredDistortion(0.10);
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.

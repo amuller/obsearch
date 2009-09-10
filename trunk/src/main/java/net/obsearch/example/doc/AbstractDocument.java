@@ -102,5 +102,9 @@ public abstract class AbstractDocument implements OBFloat {
 		}
 		return buf.array();
 	}
+	
+	public String toString(){
+		return ids.length + "";
+	}
 
 }

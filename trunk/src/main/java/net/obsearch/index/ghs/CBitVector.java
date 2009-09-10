@@ -14,6 +14,7 @@ public final class CBitVector extends BitVector{
 
 	public CBitVector(int arg0) {
 		super(arg0);		
+		
 	}
 	
 	public CBitVector(byte[] data, int count){
