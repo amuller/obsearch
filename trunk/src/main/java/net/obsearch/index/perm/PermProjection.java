@@ -6,18 +6,18 @@ import net.obsearch.constants.ByteConstants;
 import net.obsearch.index.sorter.Projection;
 import net.obsearch.utils.bytes.ByteConversion;
 
-public class PermProjection implements Projection<PermProjection, short[]> {
+public class PermProjection implements Projection<PermProjection, CompactPerm> {
 	
-	private  short[] addr;
+	private  CompactPerm addr;
 	private int distance;
 	
-	public PermProjection(short[] addr, int distance){
+	public PermProjection(CompactPerm addr, int distance){
 		this.addr = addr;
 		this.distance = distance;
 	}
 	@Override
 	public byte[] getAddress() {
-		return shortToBytes(addr);
+		return shortToBytes(addr.perm);
 	}
 	
 	public static byte[] shortToBytes(short[] addr){
@@ -29,11 +29,9 @@ public class PermProjection implements Projection<PermProjection, short[]> {
 	}
 
 	@Override
-	public short[] getCompactRepresentation() {
+	public CompactPerm getCompactRepresentation() {
 		return addr;
 	}
-
-	
 
 	@Override
 	public int compareTo(PermProjection o) {
@@ -47,11 +45,11 @@ public class PermProjection implements Projection<PermProjection, short[]> {
 	}
 
 	@Override
-	public PermProjection distance(short[] b) {
+	public PermProjection distance(CompactPerm b) {
 		int i = 0;
 		int res = 0; 
-		while(i < addr.length){
-			res += Math.abs(addr[i] - b[i]);
+		while(i < addr.perm.length){
+			res += Math.abs(addr.perm[i] - b.perm[i]);
 			i++;
 		}
 		return new PermProjection(b, res);
@@ -59,6 +57,10 @@ public class PermProjection implements Projection<PermProjection, short[]> {
 	
 	public String toString(){
 		return distance + "";
+	}
+	
+	public void set(int i, short pivot){
+		addr.set(i, pivot);
 	}
 
 }

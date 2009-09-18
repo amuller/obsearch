@@ -63,7 +63,7 @@
 </target>
 
 <target name="create" depends="maven">	
-<!--	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
 <jvmarg value="-XXcompressedRefs"/>
 <arg value="-m"/>
@@ -75,9 +75,9 @@
 <arg value="-dbsize"/>
 <arg value="100000"/>
 <arg value="-ep"/>
-<arg value="0.0001"/>
+<arg value="0.00001"/>
 	</java>
--->
+
 </target>
 
 

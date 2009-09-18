@@ -1,6 +1,7 @@
 package net.obsearch.pivots;
 
 import java.lang.reflect.Array;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -161,12 +162,24 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 		int max = max(source, index);
 		long[] res = new long[k];
 		int i = 0;
+		int excludesSize = 0;
+		if(excludes != null){
+			excludesSize = excludes.size();
+		}
+		HashSet<Long> excludesSet = new HashSet<Long>(excludesSize);
+		HashSet<Long> generatedSet = new HashSet<Long>(k);
+		int cx = 0;
+		while(cx < excludesSize){
+			excludesSet.add(excludes.get(cx));
+			cx++;
+		}
 		LongArrayList generated = new LongArrayList(k);
 		while (i < res.length) {
 			long id = mapId(r.nextInt(max), source);
-			if (excludes == null || !excludes.contains(id) && ! generated.contains(id)) {
+			if (excludes == null || !excludesSet.contains(id) && ! generatedSet.contains(id)) {
 				res[i] = id;
 				generated.add(id);
+				generatedSet.add(id);
 			} else {
 				continue; // repeat step.
 			}
