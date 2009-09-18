@@ -35,6 +35,7 @@ import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.query.AbstractOBQuery;
 import net.obsearch.query.OBQuery${Type};
 import net.obsearch.result.OBPriorityQueue${Type};
+import net.obsearch.index.perm.CompactPerm;
 
 public class DistPerm${Type}<O extends OB${Type}> extends AbstractDistPerm<O, BucketObject${Type}<O>, OBQuery${Type}<O>, SleekBucket${Type}<O>> implements Index${Type}<O> {
 
@@ -51,7 +52,7 @@ public class DistPerm${Type}<O extends OB${Type}> extends AbstractDistPerm<O, Bu
 
 	@Override
 	protected PermProjection calculateDistance(PermProjection query,
-			short[] proj) {
+			CompactPerm proj) {
 		return query.distance(proj);
 	}
 
@@ -73,71 +74,32 @@ public class DistPerm${Type}<O extends OB${Type}> extends AbstractDistPerm<O, Bu
 	}
 
 	@Override
-	protected Class<short[]> getPInstance() {
-		return (Class<short[]>) array.getClass();
+	protected Class<CompactPerm> getPInstance() {
+			return CompactPerm.class;
 	}
 	
-	private static short[] array = new short[]{};
+
 
 	@Override
 	protected PermProjection getProjection(BucketObject${Type}<O> b)
 			throws OBException {
 		short i = 0;
-		ArrayList<Per> s = new ArrayList<Per>(getPivotCount());
+		ArrayList<Per${Type}> s = new ArrayList<Per${Type}>(getPivotCount());
 		for(O o : pivots){
-			s.add(new Per(o.distance(b.getObject()) , i));
+				s.add(new Per${Type}(o.distance(b.getObject()) , i));
 			i++;
 		}
 		Collections.sort(s);
 		short[] order = new short[getPivotCount()];
 		i = 0;
-		for(Per p : s){
+		for(Per${Type} p : s){
 			order[i] = p.getId();
 			i++;
 		}
-		return new PermProjection(order, -1);
+		return new PermProjection(new CompactPerm(order), -1);
 	}
 	
-	private class Per implements Comparable<Per>{
-		private ${type} distance;
-		private short id;
-		public Per(${type} distance, short id) {
-			super();
-			this.distance = distance;
-			this.id = id;
-		}
-		@Override
-		public int compareTo(Per o) {
-			if(distance < o.distance){
-				return -1;
-			}else if(distance > o.distance){
-				return 1;
-			}else{
-				if(id < o.id){
-					return -1;
-				}else if(id > o.id){
-					return 1;
-				}else{
-					return 0;
-				}
-			}
-		}
-		public ${type} getDistance() {
-			return distance;
-		}
-		public void setDistance(${type} distance) {
-			this.distance = distance;
-		}
-		public short getId() {
-			return id;
-		}
-		public void setId(short id) {
-			this.id = id;
-		}
-		
-		
-		
-	}
+	
 	
 	
 	/**

@@ -18,7 +18,7 @@ import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.utils.bytes.ByteConversion;
 
 public abstract class AbstractDistPerm <O extends OB, B extends BucketObject<O>, Q, BC extends BucketContainer<O, B, Q>>extends
-	AbstractBucketSorter<O, B, Q, BC, PermProjection, short[]> {
+	AbstractBucketSorter<O, B, Q, BC, PermProjection, CompactPerm> {
 
 		static final transient Logger logger = Logger
 		.getLogger(AbstractDistPerm.class.getName());
@@ -30,11 +30,11 @@ public abstract class AbstractDistPerm <O extends OB, B extends BucketObject<O>,
 			
 		}
 		
-		protected  byte[] compactRepresentationToBytes(short[] cp){
-			return PermProjection.shortToBytes(cp);
+		protected  byte[] compactRepresentationToBytes(CompactPerm cp){
+			return PermProjection.shortToBytes(cp.perm);
 		}
 		
-		protected  short[] bytesToCompactRepresentation(byte[] data){
+		protected  CompactPerm bytesToCompactRepresentation(byte[] data){
 			ByteBuffer b = ByteConversion.createByteBuffer(data);
 			int i = 0;
 			short[] res = new short[getPivotCount()];
@@ -42,7 +42,7 @@ public abstract class AbstractDistPerm <O extends OB, B extends BucketObject<O>,
 				res[i] = b.getShort();
 				i++;
 			}
-			return res;
+			return new CompactPerm(res);
 		}
 
 		protected byte[] convertLongToBytesAddress(long bucketId) {
