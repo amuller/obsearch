@@ -47,14 +47,14 @@ public class TCFactory implements OBStoreFactory {
 		String path = directory + File.separator + name;
 		if (IndexType.HASH == config.getIndexType()  ) {
 			HDB tdb = new HDB();
-			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count") * 4), -1, 20, HDB.TLARGE ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
-			OBAsserts.chkAssertStorage(tdb.setcache(200000), "Could not enable cache size");
-			OBAsserts.chkAssertStorage(tdb.setxmsiz((long)Math.pow(1024, 2) * 500), "Could not enable mmap  size");
+			OBAsserts.chkAssertStorage(tdb.tune((long) (OBSearchProperties.getLongProperty("tc.expected.db.count") * 4), OBSearchProperties.getIntProperty("tc.align.bits"), -1, HDB.TLARGE ), "Could not set the tuning parameters for the hash table: " + tdb.errmsg() );
+			OBAsserts.chkAssertStorage(tdb.setcache(OBSearchProperties.getIntProperty("tc.cache.size")), "Could not enable cache size");
+			OBAsserts.chkAssertStorage(tdb.setxmsiz(OBSearchProperties.getIntProperty("tc.mmap.size")), "Could not enable mmap  size");
 			OBAsserts.chkAssertStorage(tdb.open(path, HDB.OCREAT |  HDB.OWRITER | HDB.ONOLCK), "Could not open database: " + tdb.errmsg());			
 			db = tdb;
 		} else if (IndexType.BTREE == config.getIndexType() || IndexType.DEFAULT == config.getIndexType()) {
 			BDB tdb = new BDB();
-			tdb.tune(-1, -1, OBSearchProperties.getLongProperty("tc.expected.db.count") / 128, -1, -1, BDB.TLARGE);
+			tdb.tune(-1, -1, OBSearchProperties.getLongProperty("tc.expected.db.count"), -1, -1, BDB.TLARGE);
 			OBAsserts.chkAssertStorage(tdb.open(path, BDB.OCREAT |  BDB.OWRITER | BDB.ONOLCK), "Could not open database: " + tdb.errmsg() );			
 			db = tdb;
 		} else if(IndexType.FIXED_RECORD == config.getIndexType()){

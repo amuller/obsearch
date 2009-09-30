@@ -57,7 +57,7 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 		int i = 0;
 		index.resetStats();
 		logger.info("Index stats: " + index.getStats().toString());
-		index.setKAlpha(0f);
+		index.setKAlpha(1f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<OBTanimoto>> queryResults = new ArrayList<OBPriorityQueueFloat<OBTanimoto>>(
 				querySize);
@@ -156,7 +156,7 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 		*/
 		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(OBTanimoto.class,
 				sel, 128, 0);
-		index.setKAlpha(1);
+		
 		index.setExpectedEP(EP);
 		index.setSampleSize(100);
 		// select the ks that the user will call.

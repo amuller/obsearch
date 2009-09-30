@@ -2,9 +2,11 @@ package net.obsearch.index.sorter;
 
 import hep.aida.bin.StaticBin1D;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -19,6 +21,7 @@ import net.obsearch.cache.OBCacheByteArray;
 import net.obsearch.cache.OBCacheHandlerByteArray;
 import net.obsearch.constants.OBSearchProperties;
 import net.obsearch.dimension.AbstractDimension;
+import net.obsearch.exception.AlreadyFrozenException;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
@@ -151,28 +154,31 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		logger.info("Loading masks!");
 		OBAsserts.chkAssert(projectionStorage.size() <= Integer.MAX_VALUE,
 				"Capacity exceeded");
-		OBAsserts.chkAssert(projectionStorage.size() <= Integer.MAX_VALUE, "Exceeded allowed sketch set size");
-		projections = new ArrayList<CP>((int)projectionStorage.size());
+		OBAsserts.chkAssert(projectionStorage.size() <= Integer.MAX_VALUE,
+				"Exceeded allowed sketch set size");
+		projections = new ArrayList<CP>((int) projectionStorage.size());
 		CloseIterator<TupleLong> it = projectionStorage.processAll();
-		//assert projectionStorage.size() == A.size() : "Projection storage: " + projectionStorage.size() + " A: " + A.size();
+		// assert projectionStorage.size() == A.size() : "Projection storage: "
+		// + projectionStorage.size() + " A: " + A.size();
 		int i = 0;
-		
+
 		assert projections.size() == 0;
 		HashSet<CP> viewed = new HashSet<CP>();
 		while (it.hasNext()) {
 			TupleLong t = it.next();
-			assert Buckets.getValue(t.getValue()) != null;
+			// assert Buckets.getValue(t.getValue()) != null;
 			CP cp = this.bytesToCompactRepresentation(t.getValue());
-			//TODO: fix this for distance permutations.
-			if(! viewed.contains(cp)){
+			if (!viewed.contains(cp)) {
 				projections.add(cp);
 				viewed.add(cp);
 			}
-				
+
 			i++;
 		}
 		logger.info("Loaded: " + projections.size() + " masks");
-		assert Buckets.size() == projections.size() : "Buckets: " + Buckets.size() + " project: " + projections.size();
+		// assert (Buckets.size() ) == projections.size() : "Buckets: " +
+		// Buckets.size() + " project: " + projections.size() + " viewed: " +
+		// viewed.size();
 		it.closeCursor();
 	}
 
@@ -408,7 +414,11 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		bc = instantiateBucketContainer(bucketData, bucketId);
 		s = bc.insertBulk(b, object);
 		// long prevSize = Buckets.size();
-		Buckets.put(bucketId, bc.serialize());
+		byte[] data = bc.serialize();
+		Buckets.put(bucketId, data);
+
+		// assert Arrays.equals(Buckets.getValue(bucketId), data) :
+		// " Bucket storage is not working";
 		/*
 		 * if(bucketData == null){ assert Buckets.size() == (prevSize + 1); }
 		 */
@@ -416,6 +426,107 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		this.bucketCache.put(bucketId, bc);
 		stats.addExtraStats("B_SIZE", bc.size());
 		return s;
+	}
+
+	protected void freezeDefault() throws AlreadyFrozenException,
+			IllegalIdException, IllegalAccessException, InstantiationException,
+			OutOfRangeException, OBException {
+		Buckets.deleteAll();
+		projections = null;
+		long i = 0;
+		long max = databaseSize();
+		logger.info("Creating masks...");
+		
+		OBAsserts.chkAssert(max <= Integer.MAX_VALUE, "No more than Integer.MAX_VALUE objects during freeze");
+		List<MaskHolder> masks = new ArrayList<MaskHolder>((int)max);
+
+			while (i < max) {
+				O o  = getObject(i);
+				B b = getBucket(o);
+				b.setId(i);
+				byte[] bucketId = getAddress(b);
+				projectionStorage.put(i, bucketId);
+				masks.add(new MaskHolder(bucketId, i, b));		
+				b.setObject(null);
+				i++;
+			}
+			logger.info("Sorting " + masks.size() + " masks...");
+			Collections.sort(masks);
+			logger.info("Sorted masks!");
+			// now we sort the bucket ids in memory so that we can
+			// do a bulk insert of the tree.
+			MaskHolder previous = null;
+			BC bc = null;
+			logger.info("Bulk insert");
+			i = 0;
+			int inserted = 0;
+			for(MaskHolder m : masks){
+				if(previous == null || ! previous.equals(m)){
+					if(previous != null){
+						// this means that ! previous.equals(m)
+						assert bc.size() > 0;
+						byte[] data = bc.serialize();
+						Buckets.put(previous.bucketId, data);
+						inserted++;
+					}
+					bc = instantiateBucketContainer(null, m.bucketId);
+				}
+				O o = getObject(m.id);
+				// horrible hack
+				m.bucket.setObject(o);
+				bc.insertBulk(m.bucket, o);
+				previous = m;
+				i++;
+			}
+			Buckets.put(previous.bucketId, bc.serialize());
+			inserted++;
+			assert inserted == Buckets.size();
+			logger.info("Buckets size: " + Buckets.size());
+
+
+
+
+	}
+
+	private class MaskHolder implements Comparable<MaskHolder> {
+		
+		private byte[] bucketId;
+		private long id;
+		private B bucket;
+
+		public MaskHolder(byte[] bucketId, long id, B bucket) {
+			this.bucketId = bucketId;
+			this.id = id;
+			this.bucket = bucket;
+		}
+		
+		public boolean equals(Object o){
+			MaskHolder m = (MaskHolder)o;
+			return Arrays.equals(bucketId, m.bucketId);
+		}
+
+		@Override
+		public int compareTo(MaskHolder o) {
+			if(bucketId.length < o.bucketId.length){
+				return -1;
+			}else if(bucketId.length > o.bucketId.length){
+				return 1;
+			}else{
+				int i = 0;
+				while(i < bucketId.length){
+					if(bucketId[i] < o.bucketId[i]){
+						return -1;
+					}else if(bucketId[i] > o.bucketId[i]){
+						return 1;
+					}
+					i++;
+				}
+				// finished the loop.h
+				return 0;
+			}
+		}
+		
+		
 	}
 
 	@Override
@@ -503,6 +614,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 				+ (this.kEstimators[i].standardDeviation() * kAlpha));
 		assert x <= Integer.MAX_VALUE;
 		return (int) x;
+		// return 10;
 	}
 
 	public int[] getMaxK() {
@@ -534,7 +646,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		logger.info("Bucket Stats:");
 		logger.info(s.toString());
 		it.closeCursor();
-		
+
 	}
 
 }

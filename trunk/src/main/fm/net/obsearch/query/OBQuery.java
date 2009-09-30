@@ -13,7 +13,7 @@ import net.obsearch.result.OBResult${Type};
 import net.obsearch.result.OBPriorityQueue${Type};
 import net.obsearch.exception.OBException;
 import net.obsearch.AbstractOBResult;
-
+import net.obsearch.asserts.OBAsserts;
 /*
     OBSearch: a distributed similarity search engine
     This project is to similarity search what 'bit-torrent' is to downloads.
@@ -308,6 +308,15 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
      * Calculate the EP value for a sorted list of distances.
      */
 		public  double ep(${type}[] dbin){
+				return epAux(dbin) * (1 / (double)getResult().getSize());
+		}
+
+
+		/**
+     * Calculate the EP value for a sorted list of distances.
+		 * Does not multiply by 1/k
+     */
+		private  double epAux(${type}[] dbin){
 				List<OBResult${Type}<O>> query = getResult().getSortedElements();
 				int i = 0;
 				int result = 0;
@@ -329,10 +338,92 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				if(query.size() == 0){
 						return 0;
 				}else{
-						double res = ((double)result)/ ((double)(query.size() * dbin.length));
+						double res = ((double)result)/ ((double)(dbin.length));
 						return res;
 				}
 		}
+
+
+		/**
+		 * Calculates ep without multiplying by 1/k and 
+		 */ 
+		public  double compound(${type}[] dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int i = 0;
+				
+				double res = 0;
+        // hold the visited elements
+				Set<Integer> s = new HashSet<Integer>();
+				for(OBResult${Type}<O> r : query){
+
+						double ep = 1 - (((double)rank(r.getDistance(), dbin) - (i+1))/(double)(dbin.length));
+						// fix rounding error
+						res += ((double)dbin[i] / (double)r.getDistance()) * ep;
+						i++;
+				}
+				return res / (double) query.size();
+		}
+
+		/*
+		 * Calculates the relative distance error.
+		 */
+    public double rde(${type}[] dbin){
+				return rdeAux(dbin) / (double) getResult().getSize();
+		}
+
+		/*
+		 * Calculates the relative distance error without dividing by 1/k
+		 */
+		private  double rdeAux(${type}[] dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int i = 0;
+				double result = 0;
+        // hold the visited elements
+				for(OBResult${Type}<O> r : query){
+						// find the position in the db. 
+						result +=  ( (double) r.getDistance() / (double)dbin[i]) - 1; 
+						i++;
+				}
+				return result;
+		}
+
+		/** 
+     * Calculates the precision
+		 */
+		public double precision(${type}[] dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int count = 0;
+        // hold the visited elements
+				for(OBResult${Type}<O> r : query){
+						if(rank(r.getDistance(), dbin) <= query.size()) {
+								count++;
+						}
+				}
+				return (double) count / (double) query.size();
+		}
+
+		/**
+		 * find the position of distance in the given dbin list
+		 */ 
+		private int rank(${type} distance, ${type}[] dbin){
+				int i = 0;
+				while(i < dbin.length){
+						if(distance == dbin[i]){
+								break;
+						}
+						i++;
+				}
+				return i + 1;
+		}
+
+		/**
+		 * peek to the largest value if the queue is full.
+		 */
+		public ${type} peek() throws OBException{
+				OBAsserts.chkAssert(isFull(), "Queue is not full");
+				return result.peek().getDistance();
+		}
+		
 }
 
 </#list>

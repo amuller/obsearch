@@ -48,8 +48,15 @@ public class PermProjection implements Projection<PermProjection, CompactPerm> {
 	public PermProjection distance(CompactPerm b) {
 		int i = 0;
 		int res = 0; 
-		while(i < addr.perm.length){
-			res += Math.abs(addr.perm[i] - b.perm[i]);
+		while(i < addr.perm.length){			
+			int cx = 0;
+			while(cx < b.perm.length){
+				if(addr.perm[i] == b.perm[cx]){
+					break;
+				}
+				cx++;
+			}
+			res += Math.abs(i - cx);
 			i++;
 		}
 		return new PermProjection(b, res);
