@@ -24,12 +24,13 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
-import net.obsearch.index.perm.impl.DistPermFloat;
+import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.perm.impl.IncrementalPermFloat;
+import net.obsearch.pivots.random.RandomPivotSelector;
 import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
@@ -41,28 +42,32 @@ import net.obsearch.result.OBResultShort;
 
 public class WikipediaDemo extends AbstractGHSExample {
 
-	public WikipediaDemo(String args[]) throws IOException, OBStorageException, OBException, IllegalAccessException, InstantiationException, PivotsUnavailableException {
+	public WikipediaDemo(String args[]) throws IOException, OBStorageException,
+			OBException, IllegalAccessException, InstantiationException,
+			PivotsUnavailableException {
 		super(args);
 
 	}
-	
-	protected void search() throws OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException{
+
+	protected void search() throws OBStorageException, NotFrozenException,
+			IllegalAccessException, InstantiationException, OBException,
+			IOException {
 		BufferedReader qData = new BufferedReader(new FileReader(query));
-		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
+		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
 				indexFolder);
-		DistPermFloat<OBTanimoto> index = a.getIndex();
+		DistPermPrefixFloat<OBTanimoto> index = a.getIndex();
 		// now we can match some objects!
 		logger.info("Querying the index...");
 		int i = 0;
 
-		index.setKAlpha(1f);
+		index.setKAlpha(0f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<OBTanimoto>> queryResults = new ArrayList<OBPriorityQueueFloat<OBTanimoto>>(
 				querySize);
 		List<OBTanimoto> queries = new ArrayList<OBTanimoto>(querySize);
 		String line = qData.readLine();
-		logger.info("Warming cache...");
-		index.bucketStats();
+		//logger.info("Warming cache...");
+		//index.bucketStats();
 		index.resetStats(); // reset the stats counter
 		logger.info("Search starts!");
 		while (line != null && i < querySize) {
@@ -73,11 +78,9 @@ public class WikipediaDemo extends AbstractGHSExample {
 					1);
 			// perform a query with r=3000000 and k = 1
 			index.searchOB(q, Float.MAX_VALUE, queue);
-			logger.info("Query: "
-					+ q.getName()
-					+ " found: "
-					+ queue.getSortedElements().get(0).getObject()
-							.getName() + " dist: "
+			logger.info("Query: " + q.getName() + " found: "
+					+ queue.getSortedElements().get(0).getObject().getName()
+					+ " dist: "
 					+ queue.getSortedElements().get(0).getDistance());
 			queryResults.add(queue);
 			queries.add(q);
@@ -86,17 +89,17 @@ public class WikipediaDemo extends AbstractGHSExample {
 		}
 		// print the results of the set of queries.
 		long elapsed = System.currentTimeMillis() - start;
-		logger
-				.info("Time per query: " + elapsed / querySize
-						+ " millisec.");
+		logger.info("Time per query: " + elapsed / querySize + " millisec.");
 
 		logger
 				.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
-	
 		logger.info("Doing EP validation");
 		StaticBin1D ep = new StaticBin1D();
+		StaticBin1D rde = new StaticBin1D();
+		StaticBin1D precision = new StaticBin1D();
+		StaticBin1D compound = new StaticBin1D();
 
 		Iterator<OBPriorityQueueFloat<OBTanimoto>> it1 = queryResults
 				.iterator();
@@ -111,57 +114,79 @@ public class WikipediaDemo extends AbstractGHSExample {
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " " + i);
-			OBQueryFloat<OBTanimoto> queryObj = new OBQueryFloat<OBTanimoto>(
-					q, Float.MAX_VALUE, qu, null);
+			OBQueryFloat<OBTanimoto> queryObj = new OBQueryFloat<OBTanimoto>(q,
+					Float.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep(sortedList));
+			rde.add(queryObj.rde(sortedList));
+			precision.add(queryObj.precision(sortedList));
+			double comp = queryObj.compound(sortedList);
+			if(comp > 1){
+				 comp = queryObj.compound(sortedList);
+			}
+			compound.add(comp);
 			i++;
 		}
-
+		logger.info("EP");
 		logger.info(ep.toString());
+		logger.info("RDE");
+		logger.info(rde.toString());
+		logger.info("Precision: " + precision.mean());
 		logger.info("Time per seq query: ");
 		logger.info(seqTime.toString());
 		
-		
+		logger.info("EP: "  + ep.mean());
+		logger.info("RDE: " + rde.mean());
+		logger.info("Precision: " + precision.mean());
+		logger.info("Compound: " + compound.mean());
 	}
-	
-	protected void intrinsic() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException, FileNotFoundException, IOException{
-		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
-				indexFolder);
-		DistPermFloat<OBTanimoto> index = a.getIndex();
 
-		logger
-				.info("Intrinsic dim: "
-						+ index.intrinsicDimensionality(1000));
+	protected void intrinsic() throws IllegalIdException,
+			IllegalAccessException, InstantiationException, OBException,
+			FileNotFoundException, IOException {
+		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
+				indexFolder);
+		DistPermPrefixFloat<OBTanimoto> index = a.getIndex();
+
+		logger.info("Intrinsic dim: " + index.intrinsicDimensionality(1000));
 	}
-	
-	protected void create() throws OBStorageException, OBException, IOException, IllegalAccessException, InstantiationException, PivotsUnavailableException{
+
+	protected void create() throws OBStorageException, OBException,
+			IOException, IllegalAccessException, InstantiationException,
+			PivotsUnavailableException {
 		BufferedReader dbData = new BufferedReader(new FileReader(database));
 
 		// Create a pivot selection strategy
 		// new AcceptAll<OBTanimoto>());
-	/*	RF02PivotSelectorFloat<OBTanimoto> sel = new RF02PivotSelectorFloat<OBTanimoto>(
+		/*
+		 * RF02PivotSelectorFloat<OBTanimoto> sel = new
+		 * RF02PivotSelectorFloat<OBTanimoto>( new AcceptAll<OBTanimoto>());
+		 * sel.setDataSample(400); sel.setRepetitions(1000);
+		 * sel.setDesiredDistortion(0.30f); sel.setDesiredSpread(0);
+		 */
+		// IncrementalBustosNavarroChavezFloat<OBTanimoto> sel = new
+		// IncrementalBustosNavarroChavezFloat<OBTanimoto>(new
+		// AcceptAll<OBTanimoto>(), 400,400);
+		// IncrementalPermFloat<OBTanimoto> sel = new
+		// IncrementalPermFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400,
+		// 400);
+		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
 				new AcceptAll<OBTanimoto>());
-		sel.setDataSample(400);
-		sel.setRepetitions(1000);
-		sel.setDesiredDistortion(0.30f);
-		sel.setDesiredSpread(0);
-*/
-//		IncrementalBustosNavarroChavezFloat<OBTanimoto> sel = new IncrementalBustosNavarroChavezFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400,400);
-		IncrementalPermFloat<OBTanimoto> sel = new IncrementalPermFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400, 400);
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
-/*		DistPermFloat<OBTanimoto> index = new DistPermFloat<OBTanimoto>(
-				OBTanimoto.class, sel, 256, 0);
-		*/
-		
-		DistPermFloat<OBTanimoto> index = new DistPermFloat<OBTanimoto>(OBTanimoto.class, sel, 16, 0);
-		index.setExpectedEP(EP);
+		/*
+		 * DistPermPrefixFloat<OBTanimoto> index = new
+		 * DistPermPrefixFloat<OBTanimoto>( OBTanimoto.class, sel, 256, 0);
+		 */
+
+		DistPermPrefixFloat<OBTanimoto> index = new DistPermPrefixFloat<OBTanimoto>(
+				OBTanimoto.class, sel, 1000, 0, 4);
+		index.setExpectedEP(0.99f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
 
 		// Create the ambient that will store the index's data.
-		Ambient<OBTanimoto, DistPermFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermFloat<OBTanimoto>>(
+		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:
@@ -169,7 +194,18 @@ public class WikipediaDemo extends AbstractGHSExample {
 		int i = 0;
 		String line = dbData.readLine();
 		while (line != null && i < databaseSize) {
-			index.insert(new OBTanimoto(line));
+			OBTanimoto o;
+			try {
+				o = new OBTanimoto(line);
+				index.insert(o);
+			} catch (OBException e) {
+				logger.info("Skipping " + e.toString());
+				line = dbData.readLine();
+				
+				i++;
+				continue;
+			}
+		
 			line = dbData.readLine();
 			if (i % 100000 == 0) {
 				logger.info("Loading: " + i);
@@ -182,7 +218,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		a.freeze();
 		// close the index (very important!)
 		a.close();
-	}	
+	}
 
 	public static void main(String args[]) throws FileNotFoundException,
 			OBStorageException, NotFrozenException, IllegalAccessException,

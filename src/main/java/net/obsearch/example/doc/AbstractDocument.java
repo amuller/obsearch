@@ -47,11 +47,15 @@ public abstract class AbstractDocument implements OBFloat {
 	 * @param data
 	 * @throws OBException 
 	 */
-	public AbstractDocument(String data) throws OBException{
+	public AbstractDocument(String data) throws OBException {
+		
 		String[] tokens = data.split("\\t");
 		name = tokens[0];
 		ids = new int[tokens.length - 1];
 		counts = new int[tokens.length - 1];
+		OBAsserts.chkAssert(counts.length > 0, "Must be greater than 0!");
+		OBAsserts.chkAssert(name.length() > 0, "Title must be larger than 0!");
+		OBAsserts.chkAssert(name.length() <= 1000, "Title is too long: " + name.length() );
 		int i = 1;
 		int prev = Integer.MIN_VALUE;
 		while(i < tokens.length){
@@ -64,6 +68,7 @@ public abstract class AbstractDocument implements OBFloat {
 			counts[i-1] = count;
 			i++;
 		}
+		
 	}
 	
 	
@@ -71,8 +76,14 @@ public abstract class AbstractDocument implements OBFloat {
 	@Override
 	public void load(byte[] input) throws OBException, IOException {
 		ByteBuffer buf = ByteConversion.createByteBuffer(input);
-		byte[] stringBytes = new byte[buf.getInt()];
-		buf.get(stringBytes);
+		int size = buf.getInt();
+		byte[] stringBytes = new byte[size];
+		try{
+			buf.get(stringBytes);
+		}catch(Exception e){
+			
+			throw new OBException("Size: " + size + " bytes remaining: " + buf.remaining());
+		}
 		name = new String(stringBytes);
 		int total = buf.getInt();
 		int i = 0;

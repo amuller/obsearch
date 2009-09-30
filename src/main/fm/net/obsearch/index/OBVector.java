@@ -50,6 +50,19 @@ public class OBVector${Type} implements OB${Type} {
 		this.data = data;
 	}
 
+		/**
+	 * Creates a new vector with dim dimensions created by Random.next${Type}()
+	 */
+	public OBVector${Type}(Random r, int dim){
+			int i = 0;
+			data = new ${type}[dim];
+			while(i < dim){
+					data[i] = r.next${Type}();
+					i++;
+			}
+	}
+
+
 	@Override
 	public ${type} distance(OB${Type} object) throws OBException {
 		// TODO Auto-generated method stub

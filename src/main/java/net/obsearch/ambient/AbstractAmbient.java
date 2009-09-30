@@ -23,6 +23,9 @@ import net.obsearch.storage.OBStoreFactory;
 
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
+import com.thoughtworks.xstream.io.xml.XppDriver;
+import com.thoughtworks.xstream.io.xml.xppdom.Xpp3Dom;
 
 /*
  OBSearch: a distributed similarity search engine This project is to
@@ -106,7 +109,7 @@ public abstract class AbstractAmbient<O extends OB,  I extends Index<O>> impleme
     protected AbstractAmbient(File directory) throws FileNotFoundException, OBStorageException,
     NotFrozenException, IllegalAccessException, InstantiationException,
     OBException, IOException{
-        XStream xstream = new XStream();
+        XStream xstream = new XStream(new XppDriver());
         FileInputStream fs = new FileInputStream(metadataFile(directory));
         BufferedInputStream bf = new BufferedInputStream(fs);
         logger.debug("Reading seed");

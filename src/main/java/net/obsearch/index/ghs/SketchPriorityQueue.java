@@ -3,6 +3,8 @@ package net.obsearch.index.ghs;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import cern.colt.bitvector.BitVector;
+
 /**
  * This data structure simulates a priority queue of objects sorted by their
  * distance to some other object. It assumes several things for performance
@@ -82,9 +84,9 @@ public final class SketchPriorityQueue implements Iterable<SketchProjection>{
 	 * 
 	 * @return the closest long objects
 	 */
-	public long[] get() {
+	public CBitVector[] get() {
 		ArrayList<SketchProjection> r = getResults();
-		long[] result = new long[r.size()];
+		CBitVector[] result = new CBitVector[r.size()];
 		int cx = 0;
 		for(SketchProjection s : r){
 			result[cx] = s.getSketch();

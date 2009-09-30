@@ -581,8 +581,9 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 	 * @param object object data
 	 * @param buf the buffer in which we will write everything
 	 */
-	private void putObject(BucketObject${Type}<O> b, byte[] object, ByteBuffer buf){
+	private void putObject(BucketObject${Type}<O> b, byte[] object, ByteBuffer buf) throws OBException{
 		// write the bucket
+		OBAsserts.chkAssert(object.length > 0, "Cannot store empty objects");
 		b.write(buf);
 		// now we can write the object
 		putNextObjectChunk(buf, object);

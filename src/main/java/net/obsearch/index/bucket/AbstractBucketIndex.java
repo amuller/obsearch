@@ -57,6 +57,7 @@ import net.obsearch.storage.OBStore;
 import net.obsearch.storage.OBStoreFactory;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.TupleLong;
+import net.obsearch.storage.OBStorageConfig.IndexType;
 
 public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, Q, BC extends BucketContainer<O, B, Q>>
 		extends AbstractPivotOBIndex<O> {
@@ -127,6 +128,7 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		conf.setDuplicates(true);
 		conf.setBulkMode(!isFrozen());
 		conf.setRecordSize(primitiveDataTypeSize());
+		//conf.setIndexType(IndexType.HASH);
 		this.Buckets = fact.createOBStore("Buckets_byte_array", conf);
 
 	}
@@ -239,14 +241,16 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			i++;
 		}
 		it.closeCursor();*/
-		// TODO create a buffer here, one by one is too heavy.
 		long i = 0;
-		long max = databaseSize();		
+		long max = databaseSize();
+		logger.info("Database Size" + max);
 		O o = type.newInstance();
 		try{
 		while(i < max){
-			//O o = getObject(i);			
-			o.load(A.getValue(i));
+			//O o = getObject(i);
+			byte[] val = A.getValue(i);
+			OBAsserts.chkAssert(val != null, "Object loaded from: " + i + " is null!");
+			o.load(val);
 			B b = getBucket(o);
 			b.setId(i);
 			this.insertBucketBulk(b, o);
