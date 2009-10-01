@@ -28,6 +28,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.ob.OB${Type};
 import java.nio.ByteBuffer;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
+import java.util.Random;
 /**
  * L1 distance implementation for ${type}s.
  * @author Arnoldo Jose Muller Molina
