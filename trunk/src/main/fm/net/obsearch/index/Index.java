@@ -113,7 +113,19 @@ public interface Index${Type}<O extends OB${Type}> extends Index<O> {
             throws NotFrozenException,
             InstantiationException, IllegalIdException, IllegalAccessException, OutOfRangeException, OBException;
 
-
+		    
+/**
+	 * This method returns a list of all the distances of the query against  the DB.
+	 * This helps to calculate EP values in a cheaper way. results that are equal to the original object are added or skipped based on "filterSame"
+	 * as Float.MAX_VALUE
+	 * @param query
+	 * @param filterSame if True we do not return objects o such that query.equals(o)
+	 * @return
+	 * @throws OBException 
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException 
+	 */
+		public ${type}[] fullMatchLite(O query, boolean filterSame) throws OBException, IllegalAccessException, InstantiationException;
 		
 }
 
