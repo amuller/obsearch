@@ -20,7 +20,7 @@ public abstract class AbstractGHSExample extends AbstractExampleGeneral {
 	
 	
 	@Option(name = "-ep", usage = "Target error", aliases = { "--error_position" })
-	protected float EP = 0.001f;
+	protected float CompoundError = 0.001f;
 	
 	
 	

@@ -72,7 +72,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		// make the bit set as short so that m objects can fit in the buckets.
 		
 		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
-				new AcceptAll<OBTanimoto>());index.setExpectedEP(EP);
+				new AcceptAll<OBTanimoto>());index.setExpectedEP(CompoundError);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
@@ -161,7 +161,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		logger.info(index.getStats().toString());
 
 		
-		logger.info("Doing EP validation");
+		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 		
 		/*

@@ -97,7 +97,7 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 		logger.info(index.getStats().toString());
 
 		
-		logger.info("Doing EP validation");
+		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 
 		Iterator<OBPriorityQueueFloat<OBTanimoto>> it1 = queryResults
@@ -157,7 +157,7 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(OBTanimoto.class,
 				sel, 128, 0);
 		
-		index.setExpectedEP(EP);
+		index.setExpectedEP(CompoundError);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });

@@ -161,9 +161,9 @@ public class IndexSmokeTUtilApprox<O extends OBShort> extends IndexSmokeTUtil<O>
 		}
 		
 		r.close();
-		logger.info("Finished  EP calculation: ");
+		logger.info("Finished  CompoundError calculation: ");
 		logger.info("Returned size" + st);
-		logger.info(StatsUtil.prettyPrintStats("EP", stats));
+		logger.info(StatsUtil.prettyPrintStats("CompoundError", stats));
 		assertFalse(it.hasNext());
 		logger.info("Recall: " + recall.toString());
 		logger.info("Zero queries: " + emptyResults);

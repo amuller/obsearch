@@ -66,7 +66,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 */
 	protected int[] userK = new int[] { 1, 3, 10, 50 };
 	/**
-	 * The target EP value used in the estimation.
+	 * The target CompoundError value used in the estimation.
 	 */
 	private double expectedEP = 0.0;
 	private Random r = new Random();
@@ -163,7 +163,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		int i = 0;
 
 		assert projections.size() == 0;
-		HashSet<CP> viewed = new HashSet<CP>();
+		HashSet<CP> viewed = new HashSet<CP>(projections.size());
 		while (it.hasNext()) {
 			TupleLong t = it.next();
 			// assert Buckets.getValue(t.getValue()) != null;
@@ -256,7 +256,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 * query.
 	 * 
 	 * @param ep
-	 *            EP value.
+	 *            CompoundError value.
 	 * 
 	 */
 	public void setExpectedEP(double ep) {
@@ -277,7 +277,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	}
 
 	/**
-	 * Sort all masks, and then start the search until the EP is less than some
+	 * Sort all masks, and then start the search until the CompoundError is less than some
 	 * threshold. Do this for each k.
 	 * 
 	 * @throws IllegalIdException
@@ -468,6 +468,9 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 						byte[] data = bc.serialize();
 						Buckets.put(previous.bucketId, data);
 						inserted++;
+						if(inserted % 100000 == 0){
+							logger.info("Inserted: " + inserted + " buckets, " + i + " objects");
+						}
 					}
 					bc = instantiateBucketContainer(null, m.bucketId);
 				}

@@ -139,7 +139,7 @@ public abstract class AbstractNewLineCommandLineShort<O extends OBShort, I exten
 			if(t.isApproxZero(result, x2, range)){
 				other.incExtra("ZEROS");
 			}else{
-				other.addExtraStats("EP", ep);			
+				other.addExtraStats("CompoundError", ep);			
 			}
 			if(! t.ok(result, x2, range)){
 				other.incExtra("BAD");

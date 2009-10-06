@@ -116,7 +116,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		logger.info(index.getStats().toString());
 
 		
-		logger.info("Doing EP validation");
+		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 		
 
