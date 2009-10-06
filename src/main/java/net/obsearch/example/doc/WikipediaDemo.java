@@ -95,7 +95,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 				.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
-		logger.info("Doing EP validation");
+		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 		StaticBin1D rde = new StaticBin1D();
 		StaticBin1D precision = new StaticBin1D();
@@ -126,7 +126,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 			compound.add(comp);
 			i++;
 		}
-		logger.info("EP");
+		logger.info("CompoundError");
 		logger.info(ep.toString());
 		logger.info("RDE");
 		logger.info(rde.toString());
@@ -134,7 +134,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		logger.info("Time per seq query: ");
 		logger.info(seqTime.toString());
 		
-		logger.info("EP: "  + ep.mean());
+		logger.info("CompoundError: "  + ep.mean());
 		logger.info("RDE: " + rde.mean());
 		logger.info("Precision: " + precision.mean());
 		logger.info("Compound: " + compound.mean());

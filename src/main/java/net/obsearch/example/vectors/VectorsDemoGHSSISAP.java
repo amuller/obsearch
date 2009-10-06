@@ -65,7 +65,7 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// make the bit set as short so that m objects can fit in the buckets.
 		Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class,
 				sel, 128, 0);
-		index.setExpectedEP(EP);
+		index.setExpectedEP(CompoundError);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
@@ -154,7 +154,7 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		logger.info(index.getStats().toString());
 
 		
-		logger.info("Doing EP validation");
+		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 		
 		/*

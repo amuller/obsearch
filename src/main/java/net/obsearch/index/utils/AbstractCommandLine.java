@@ -469,7 +469,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 	Objective zeros = new Objective("zeros", Sign.MIN);
 
 	/**
-	 * EP result
+	 * CompoundError result
 	 */
 	Objective ep = new Objective("ep", Sign.MIN);
 
@@ -521,7 +521,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 			for (Pair<Statistics, Statistics> s : stats) {
 				totalQueries += s.getB().getQueryCount();
 				failed += s.getB().getExtra("BAD");
-				ep += s.getB().getStats("EP").mean();
+				ep += s.getB().getStats("CompoundError").mean();
 				distances += s.getA().getDistanceCount();
 				recall += s.getB().getStats("RECALL").mean();
 				smap += s.getA().getSmapCount();
@@ -637,7 +637,7 @@ public abstract class AbstractCommandLine<O extends OB, I extends Index<O>, A ex
 		writeLine(w, new String[] { expName(), expDetails(),
 				String.valueOf(stats.getDistanceCount()),
 				String.valueOf(stats.getSmapCount()),
-				String.valueOf(otherStats.getStats("EP").mean()),
+				String.valueOf(otherStats.getStats("CompoundError").mean()),
 				String.valueOf(otherStats.getStats("RECALL").mean()),
 				String.valueOf(otherStats.getExtra("ZEROS")),
 				String.valueOf(stats.getBucketsRead()), });

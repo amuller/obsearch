@@ -3,6 +3,7 @@ package net.obsearch.index.ghs;
 import hep.aida.bin.StaticBin1D;
 import it.unimi.dsi.io.InputBitStream;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import cern.colt.bitvector.BitVector;
@@ -175,6 +177,23 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		bucketStats();
 		sketchStats();
 
+	}
+	
+	public void debugDist() throws IllegalIdException, OBStorageException, IllegalAccessException, InstantiationException, OBException, IOException{
+		int i = 0;
+		Random r = new Random();
+		FileWriter f = new FileWriter("my" + this.getPivotCount() + ".csv");
+		while(i < 30000){
+			O a = getObject(r.nextInt((int)databaseSize()));
+			O b = getObject(r.nextInt((int)databaseSize()));
+			SketchProjection sa = getProjection(getBucket(a));
+			SketchProjection sb = getProjection(getBucket(b));
+			double d = distance(a,b);
+			int s = sa.distance(sb.getSketch()).getDistance();
+			f.write(s +"," + d + "\n");
+			i++;
+		}
+		f.close();
 	}
 
 	private void sketchStats() throws OBStorageException {

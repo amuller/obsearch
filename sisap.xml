@@ -18,7 +18,7 @@
 	<property name="memory" value="3000"/>
 
 	<!--<property name="databaseSource" value="/media/AR_LAB_/DB_SOURCE/"/>-->
-	<property name="databaseSource" value="/home/amuller/DB_SOURCE/"/>
+	<property name="databaseSource" value="/home/amuller/shogi_db/"/>
 </target>
 
 <!-- check if maven tasks have been downloaded -->
@@ -109,19 +109,19 @@
 </target>
 
 
-<target name="wikiCreate" depends="init,maven">
+<target name="shogiCreate" depends="init,maven">
   <antcall target="create">
-    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
-    <param name="indexFolder" value="${databaseSource}/wiki/"/>
-		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+    <param name="className" value="shogi.ShogiDemo"/>
+    <param name="indexFolder" value="${databaseSource}/shogi/"/>
+		<param name="indexSource" value="/home/amuller/shogi/banmen_newline.data"/>
   </antcall>
 </target>
 
-<target name="wikiSearch" depends="init,maven">
+<target name="shogiSearch" depends="init,maven">
   <antcall target="search">
-    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
-    <param name="indexFolder" value="${databaseSource}/wiki/"/>
-		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+    <param name="className" value="shogi.ShogiDemo"/>
+    <param name="indexFolder" value="${databaseSource}/shogi/"/>
+		<param name="querySource" value="/home/amuller/shogi/queries.txt"/>
   </antcall>
 </target>
 

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -21,6 +22,8 @@ import net.obsearch.index.utils.Directory;
 import org.apache.log4j.PropertyConfigurator;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import cern.colt.Arrays;
 
 public abstract class AbstractExampleGeneral {
 
@@ -139,5 +142,31 @@ public abstract class AbstractExampleGeneral {
 			
 			intrinsic();
 		}
+	}
+	
+	
+	protected int read(byte[] buffer, InputStreamReader r) throws IOException {
+		int i = 0;
+		while (i < buffer.length) {
+			int b = r.read();
+			if (b == -1 && i != 0) {
+				throw new IOException(
+						"Reached end of file before we could complete one read");
+			} else if (b == -1) {
+				return b; // we are done.
+			}
+			assert b >= 0;
+			assert b <= Byte.MAX_VALUE;
+			buffer[i] = (byte) b;
+			i++;
+		}
+		// we should have a newline here
+		int b = r.read();
+		if (b == -1) {
+			return b;
+		} else if (b != '\n') {
+			throw new IOException("Format is incorrect: " + b + " line read:" + Arrays.toString(buffer) + " buffer size: " + buffer.length);
+		}
+		return b;
 	}
 }

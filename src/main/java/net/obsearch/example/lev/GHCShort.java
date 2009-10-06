@@ -27,7 +27,7 @@ public abstract class GHCShort<O extends OBShort>
 	 * Logging provided by Java
 	 */
 	
-	@Option(name = "-ep", usage = "EP value")
+	@Option(name = "-ep", usage = "CompoundError value")
 	protected double ep = 0.00001;
 	
 	static Logger logger = Logger.getLogger(GHCShort.class.getName());
