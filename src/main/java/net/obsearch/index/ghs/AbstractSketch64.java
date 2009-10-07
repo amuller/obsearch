@@ -183,6 +183,12 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		int i = 0;
 		Random r = new Random();
 		FileWriter f = new FileWriter("my" + this.getPivotCount() + ".csv");
+		StaticBin1D[] stats = new StaticBin1D[m + 1];
+		while(i < stats.length){
+			stats[i] = new StaticBin1D();
+			i++;
+		}
+		i = 0;
 		while(i < 30000){
 			O a = getObject(r.nextInt((int)databaseSize()));
 			O b = getObject(r.nextInt((int)databaseSize()));
@@ -190,7 +196,15 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			SketchProjection sb = getProjection(getBucket(b));
 			double d = distance(a,b);
 			int s = sa.distance(sb.getSketch()).getDistance();
-			f.write(s +"," + d + "\n");
+			stats[s].add(d);
+			i++;
+		}
+		i = 0;
+		f.write("#ds distance	avg	error	max	dmin\n");
+		for(StaticBin1D s : stats){
+			if(s.size() > 0){
+				f.write(i + "\t" + s.mean() + "\t" + + s.standardDeviation() + "\t"  + s.min() + "\t" + s.max() + "\n");
+			}
 			i++;
 		}
 		f.close();
