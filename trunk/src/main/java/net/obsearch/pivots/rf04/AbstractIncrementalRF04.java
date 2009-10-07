@@ -45,6 +45,7 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 	
 	private int dataSample = 500;
 
+	private double max_distance = 0;
 	
 
 	protected AbstractIncrementalRF04(Pivotable<O> pivotable) {
@@ -83,11 +84,15 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 		logger.info("Populating matrix...");
 		while(x < theMatrix.length){
 			y = x;
+			if(x % 100 == 0){
+				logger.info("Doing: " + x);
+			}
 			while(y < theMatrix[x].length){
 				if(x == y){
 					theMatrix[x][y] = 0;
 				}else{
 					double dist = this.distance(data.get(x), data.get(y));
+					max_distance = Math.max(dist, max_distance);
 					theMatrix[x][y]  = dist;
 					theMatrix[y][x] = dist;
 				}
@@ -95,6 +100,9 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 			}
 			x++;
 		}
+	}
+	private double normalizeDistance(double d){
+		return d / max_distance;
 	}
 	
 	// fill the sketch set with the given list of pivots
@@ -257,7 +265,7 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 		}
 		double spread  = (double)count.size()/ Math.min(Math.pow(2, (double)(sketchI + 1)), (double)sketches.size());
 		
-		return new Score((double)Math.abs(cx - cy) / (double)matrix.length, matrix[x][y], x, y ,spread);
+		return new Score(this.normalizeDistance(matrix[x][y]), (double)Math.abs(cx - cy) / (double)sketches.size(),  x, y ,spread);
 	}
 
 	private double[] sequentialSearch(O query, O[] data) throws OBException {
@@ -334,7 +342,10 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 		}
 
 		private double val(){
-			return (1 - distortion) + (10 * spread);
+			//return (1 - distortion) + (10 * spread);
+			// this gave really good results
+			// return (- distance) + (10 * spread); L456
+			return (1 - distance) + (10 * spread);
 			//return spread;
 		}
 
