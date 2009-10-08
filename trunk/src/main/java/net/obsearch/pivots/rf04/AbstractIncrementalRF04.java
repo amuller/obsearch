@@ -168,6 +168,9 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 			calculateSketches(pairs,data, sketches);
 			while(x < theMatrix.length){
 				int y = x + 1;
+				if(x % 100 == 0){
+					logger.info("Doing: " + x);
+				}
 				while(y < theMatrix.length){
 					assert x != y;
 					assert i == pairs.size() : " size of i:" + i + " pairs size: " + pairs.size();

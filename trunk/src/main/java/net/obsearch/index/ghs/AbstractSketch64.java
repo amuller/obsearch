@@ -189,7 +189,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 			i++;
 		}
 		i = 0;
-		while(i < 30000){
+		while(i < databaseSize()){
 			O a = getObject(r.nextInt((int)databaseSize()));
 			O b = getObject(r.nextInt((int)databaseSize()));
 			SketchProjection sa = getProjection(getBucket(a));
