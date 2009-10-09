@@ -356,7 +356,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				Set<Integer> s = new HashSet<Integer>();
 				for(OBResult${Type}<O> r : query){
 
-						double ep = 1 - (((double)rank(r.getDistance(), dbin) - (i+1))/(double)(dbin.length));
+						double ep = 1 - (((double)rank(r.getDistance(), dbin) - (i))/(double)(dbin.length));
 						// fix rounding error
 						res += ((double)dbin[i] / (double)r.getDistance()) * ep;
 						i++;
@@ -395,7 +395,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				int count = 0;
         // hold the visited elements
 				for(OBResult${Type}<O> r : query){
-						if(rank(r.getDistance(), dbin) <= query.size()) {
+						if(rank(r.getDistance(), dbin) < query.size()) {
 								count++;
 						}
 				}
@@ -413,7 +413,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 						}
 						i++;
 				}
-				return i + 1;
+				return i;
 		}
 
 		/**
