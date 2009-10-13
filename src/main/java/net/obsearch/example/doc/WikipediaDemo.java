@@ -25,6 +25,7 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
+import net.obsearch.index.permprefixhamming.impl.DistPermPrefixHammingFloat;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
@@ -60,7 +61,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		logger.info("Querying the index...");
 		int i = 0;
 
-		index.setKAlpha(0f);
+		index.setKAlpha(1f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<OBTanimoto>> queryResults = new ArrayList<OBPriorityQueueFloat<OBTanimoto>>(
 				querySize);
@@ -95,7 +96,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 				.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
-		logger.info("Doing CompoundError validation");
+		logger.info("Doing EP validation");
 		StaticBin1D ep = new StaticBin1D();
 		StaticBin1D rde = new StaticBin1D();
 		StaticBin1D precision = new StaticBin1D();
@@ -126,7 +127,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 			compound.add(comp);
 			i++;
 		}
-		logger.info("CompoundError");
+		logger.info("EP");
 		logger.info(ep.toString());
 		logger.info("RDE");
 		logger.info(rde.toString());
@@ -134,7 +135,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		logger.info("Time per seq query: ");
 		logger.info(seqTime.toString());
 		
-		logger.info("CompoundError: "  + ep.mean());
+		logger.info("EP: "  + ep.mean());
 		logger.info("RDE: " + rde.mean());
 		logger.info("Precision: " + precision.mean());
 		logger.info("Compound: " + compound.mean());
@@ -179,8 +180,8 @@ public class WikipediaDemo extends AbstractGHSExample {
 		 */
 
 		DistPermPrefixFloat<OBTanimoto> index = new DistPermPrefixFloat<OBTanimoto>(
-				OBTanimoto.class, sel, 1000, 0, 4);
-		index.setExpectedEP(0.99f);
+				OBTanimoto.class, sel, 2000, 0, 8);
+		index.setExpectedEP(1f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
@@ -214,7 +215,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		}
 
 		// prepare the index
-		logger.info("Preparing the index...");
+		logger.info("Preparing the index... size: " + index.databaseSize());
 		a.freeze();
 		// close the index (very important!)
 		a.close();

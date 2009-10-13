@@ -249,7 +249,7 @@ implements Index${Type}<O> {
 		// data.
 		FilterNonEquals<O> fne = new FilterNonEquals<O>();
 		while (i < getMaxK().length) {
-			double ep = 1;
+			double ep = 0;
 			int goodK = 0;
 			// get the query for the
 			AbstractOBQuery<O> queryAbst = getKQuery(object, userK[i]);
@@ -263,12 +263,12 @@ implements Index${Type}<O> {
 				container.search(query, b, fne, getStats());
 				// calculate the ep of the query and the DB.
 				if (query.isFull()) { // only if the query is full of items.
-					ep = query.ep(sortedList);
+					ep = query.compound(sortedList);
 					//double epOld = query.ep((List)sortedBuckets2);
 					//OBAsserts.chkAssert(Math.abs(ep - epOld)<= 1f / sortedList.length, "oops: new: " + ep + " old: " + epOld);					
 				}
 				goodK++;
-				if (ep <= this.getExpectedEP()) {
+				if (ep >= this.getExpectedEP()) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets ");

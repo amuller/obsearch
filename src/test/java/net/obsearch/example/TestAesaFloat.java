@@ -21,8 +21,8 @@ public class TestAesaFloat {
 			.getName());
 	
 
-	private int DIM = 5;
-	private int DB_SIZE = 2000;
+	private int DIM = 100;
+	private int DB_SIZE = 1000;
 	private int QUERY_SIZE = 100;
 	@Test
 	public void testAesa() throws OBException, IllegalAccessException, InstantiationException{
@@ -30,7 +30,7 @@ public class TestAesaFloat {
 		List<OBVectorFloat> db = create(DB_SIZE);
 		List<OBVectorFloat> query = create(QUERY_SIZE);
 		
-		AesaFloat<OBVectorFloat> a = new AesaFloat<OBVectorFloat>(DB_SIZE);
+		AesaFloat<OBVectorFloat> a = new AesaFloat<OBVectorFloat>(OBVectorFloat.class, DB_SIZE);
 		for(OBVectorFloat d : db){
 			a.insert(d);
 		}
@@ -41,7 +41,7 @@ public class TestAesaFloat {
 			OBQueryFloat<OBVectorFloat> search = new OBQueryFloat<OBVectorFloat>(q, Float.MAX_VALUE, new OBPriorityQueueFloat<OBVectorFloat>(1));
 			queries.add(search);
 			a.searchOB(search);		
-			break;
+		
 		}
 		logger.info("Dist: " + a.getStatistics().getDistanceCount());
 		logger.info(a.getStatistics().toString());

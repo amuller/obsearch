@@ -17,8 +17,13 @@
 	
 	<property name="memory" value="3000"/>
 
-	<!--<property name="databaseSource" value="/media/AR_LAB_/DB_SOURCE/"/>-->
+
+
+<!-- 	<property name="databaseSource" value="/home/amuller/DB_SOURCE/"/> -->
+
+<!-- 	<property name="databaseSource" value="/media/AR_LAB_/DB_SOURCE/"/> -->
 	<property name="databaseSource" value="/home/amuller/shogi_db/"/>
+
 </target>
 
 <!-- check if maven tasks have been downloaded -->
@@ -133,7 +138,25 @@
 </target>
 
 
+<target name="wikiCreateGHS" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoRF04"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+
 <target name="vectorCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.vectors.VectorsDemoPrefix"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+<target name="vectorCreateGHS" depends="init,maven">
   <antcall target="create">
     <param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
@@ -141,13 +164,24 @@
   </antcall>
 </target>
 
+
 <target name="vectorSearch" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoPrefix"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+<target name="vectorSearchGHS" depends="init,maven">
   <antcall target="search">
 		<param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
 		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
   </antcall>
 </target>
+
+
 
 <target name="vectorIntrinsic" depends="init,maven">
   <antcall target="intrinsic">
