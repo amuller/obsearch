@@ -20,19 +20,25 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.IndexUtilsFloat;
+import net.obsearch.index.OBVectorFloat;
 import net.obsearch.index.ghs.impl.Sketch64Long;
 import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
 import net.obsearch.pivots.AcceptAll;
+import net.obsearch.pivots.perm.impl.IncrementalPermFloat;
 import net.obsearch.pivots.random.RandomPivotSelector;
 import net.obsearch.pivots.rf03.RF03PivotSelectorLong;
+import net.obsearch.query.OBQueryFloat;
+import net.obsearch.query.OBQueryFloat;
 import net.obsearch.query.OBQueryLong;
+import net.obsearch.result.OBPriorityQueueFloat;
 import net.obsearch.result.OBPriorityQueueLong;
 
 public class VectorsDemoPrefix extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 100;
+	final static int VEC_SIZE = 1000;
 
 	public VectorsDemoPrefix (String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -41,18 +47,6 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		
 	}
 
-	public static L1Long generateLongVector() {
-
-		int[] data = new int[VEC_SIZE];
-		int i = 0;
-
-		while (i < data.length) {
-			data[i] = r.nextInt(1000000);
-			i++;
-		}
-
-		return new L1Long(data);
-	}
 
 	@Override
 	protected void create() throws FileNotFoundException, OBStorageException,
@@ -60,39 +54,38 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 			InstantiationException, PivotsUnavailableException {
 		// TODO Auto-generated method stub
 		
-		
-		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
-				new AcceptAll<OBTanimoto>());
-		
-		DistPermPrefixLong<OBTanimoto> index = new DistPermPrefixLong<OBTanimoto>(
-				OBTanimoto.class, sel, 1024, 0, 32);
+		logger.info("Creating dataset :)");
+		//RandomPivotSelector<OBVectorFloat> sel = new RandomPivotSelector<OBVectorFloat>(
+		//		new AcceptAll<OBVectorFloat>());
+		IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
+		DistPermPrefixFloat<OBVectorFloat> index = new DistPermPrefixFloat<OBVectorFloat>(
+				OBVectorFloat.class, sel, 256, 0, 256);
 		
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		
-		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
-				new AcceptAll<OBTanimoto>());index.setExpectedEP(CompoundError);
+		index.setExpectedEP(.97f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
-		index.setFixedRecord(true);
-		index.setFixedRecord(VEC_SIZE * 4);
+		//index.setFixedRecord(true);
+		//index.setFixedRecord(VEC_SIZE * 4);
 		// Create the ambient that will store the index's data. (NOTE: folder
 		// name is hardcoded)
 		// Ambient<L1, Sketch64Short<L1>> a = new AmbientBDBDb<L1,
 		// Sketch64Short<L1>>( index, INDEX_FOLDER );
 		// Ambient<L1, Sketch64Short<L1>> a = new AmbientMy<L1,
 		// Sketch64Short<L1>>( index, INDEX_FOLDER );
-		Ambient<L1Long, Sketch64Long<L1Long>> a = new AmbientTC<L1Long, Sketch64Long<L1Long>>(
+		Ambient<OBVectorFloat, DistPermPrefixFloat<OBVectorFloat>> a = new AmbientTC<OBVectorFloat, DistPermPrefixFloat<OBVectorFloat>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:
 		logger.info("Adding " + super.databaseSize + " objects...");
 		int i = 0;
 		while (i < super.databaseSize) {
-			index.insert(generateLongVector());
+			index.insert(new OBVectorFloat(r, VEC_SIZE));
 			if (i % 100000 == 0) {
 				logger.info("Loading: " + i);
 			}
@@ -130,12 +123,13 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 			OBException, IOException {
 		// TODO Auto-generated method stub
 		
-		Ambient<L1Long, Sketch64Long<L1Long>> a =  new AmbientTC<L1Long, Sketch64Long<L1Long>>(super.indexFolder);
-		Sketch64Long<L1Long> index = a.getIndex();
+		Ambient<OBVectorFloat, DistPermPrefixFloat<OBVectorFloat>> a =  new AmbientTC<OBVectorFloat, DistPermPrefixFloat<OBVectorFloat>>(super.indexFolder);
+		DistPermPrefixFloat<OBVectorFloat> index = a.getIndex();
 		index.resetStats(); // reset the stats counter
 		long start = System.currentTimeMillis();
-		List<OBPriorityQueueLong<L1Long>> queryResults = new ArrayList<OBPriorityQueueLong<L1Long>>(querySize);
-		List<L1Long> queries = new ArrayList<L1Long>(super.querySize);
+		index.setKAlpha(1);
+		List<OBQueryFloat> queryResults = new ArrayList<OBQueryFloat>(querySize);
+		List<OBVectorFloat> queries = new ArrayList<OBVectorFloat>(super.querySize);
 		int i = 0;
 		
 		logger.info("Warming cache...");
@@ -143,12 +137,12 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		logger.info("Starting search!");
 		index.resetStats();
 		while(i < querySize){
-			L1Long q = 	generateLongVector();	
+			OBVectorFloat q = 	new OBVectorFloat(r, VEC_SIZE);
 			// query the index with k=1			
-			OBPriorityQueueLong<L1Long> queue = new OBPriorityQueueLong<L1Long>(1);			
+			OBPriorityQueueFloat<OBVectorFloat> queue = new OBPriorityQueueFloat<OBVectorFloat>(1);			
 			// perform a query with r=3000000 and k = 1 
-			index.searchOB(q, Long.MAX_VALUE, queue);
-			queryResults.add(queue);
+			index.searchOB(q, Float.MAX_VALUE, queue);
+			queryResults.add(new OBQueryFloat(q, queue.peek().getDistance(), queue));
 			queries.add(q);
 			logger.info("Doing query: " + i );
 			i++;
@@ -164,29 +158,12 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
 		
-		/*
-		Iterator<OBPriorityQueueLong<L1Long>> it1 = queryResults.iterator();
-		Iterator<L1Long> it2 = queries.iterator();
-		StaticBin1D seqTime = new StaticBin1D();
-		i = 0;
-		while(it1.hasNext()){
-			OBPriorityQueueLong<L1Long> qu = it1.next();
-			L1Long q = it2.next();
-			long time = System.currentTimeMillis();
-			long[] sortedList = index.fullMatchLite(q, false);
-			long el = System.currentTimeMillis() - time;
-			seqTime.add(el);
-			logger.info("Elapsed: " + el + " "  + i);
-			OBQueryLong<L1Long> queryObj = new OBQueryLong<L1Long	>(q, Long.MAX_VALUE, qu, null);
-			ep.add(queryObj.ep(sortedList));
-			i++;
-		}
+		IndexUtilsFloat.validateResults(queryResults, index);
 		
-		logger.info(ep.toString());
-		logger.info("Time per seq query: ");
-		logger.info(seqTime.toString());
-		*/
+		
 	}
+	
+
 	
 	
 	public static void main(String args[]) throws FileNotFoundException,
@@ -194,7 +171,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 	InstantiationException, OBException, IOException,
 	PivotsUnavailableException {
 
-		VectorsDemoGHSSISAP s = new VectorsDemoGHSSISAP(args);
+		VectorsDemoPrefix s = new VectorsDemoPrefix(args);
 
 }
 

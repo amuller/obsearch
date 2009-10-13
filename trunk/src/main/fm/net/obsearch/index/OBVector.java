@@ -29,6 +29,7 @@ import net.obsearch.ob.OB${Type};
 import java.nio.ByteBuffer;
 import net.obsearch.utils.bytes.ByteBufferFactoryConversion;
 import java.util.Random;
+import java.util.Arrays;
 /**
  * L1 distance implementation for ${type}s.
  * @author Arnoldo Jose Muller Molina
@@ -61,6 +62,11 @@ public class OBVector${Type} implements OB${Type} {
 					data[i] = r.next${Type}();
 					i++;
 			}
+	}
+
+	public boolean equals(Object o){
+			OBVector${Type} other = (	OBVector${Type}) o;
+			return Arrays.equals(data, other.data);
 	}
 
 

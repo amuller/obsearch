@@ -4,9 +4,11 @@ import java.lang.reflect.Array;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
+import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
@@ -46,6 +48,8 @@ import com.sleepycat.je.DatabaseException;
 public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 	
 	protected Random r = new Random();
+	
+	private static Logger logger = Logger.getLogger(AbstractIncrementalPivotSelector.class.toString());
 
 	protected AbstractIncrementalPivotSelector(Pivotable<O> pivotable) {
 		this.pivotable = pivotable;
@@ -129,6 +133,7 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 		} else {
 			max = source.size();
 		}
+		assert max >= 0 : "src: " + source + " index: " + index.databaseSize();
 		return max;
 	}
 
@@ -175,6 +180,7 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 		}
 		LongArrayList generated = new LongArrayList(k);
 		while (i < res.length) {
+			
 			long id = mapId(r.nextInt(max), source);
 			if (excludes == null || !excludesSet.contains(id) && ! generatedSet.contains(id)) {
 				res[i] = id;

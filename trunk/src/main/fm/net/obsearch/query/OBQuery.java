@@ -387,6 +387,25 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				return result;
 		}
 
+
+		/**
+		 * Total distance ratio
+		 */
+		public  double tDR(${type}[] dbin){
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+				int i = 0;
+				double up = 0;
+				double down = 0;
+        // hold the visited elements
+				for(OBResult${Type}<O> r : query){
+						// find the position in the db. 
+						up += (double)dbin[i];
+						down += (double) r.getDistance();
+						i++;
+				}
+				return up / down;
+		}
+
 		/** 
      * Calculates the precision
 		 */

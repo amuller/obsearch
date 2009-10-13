@@ -19,17 +19,20 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
-import net.obsearch.index.ghs.impl.Sketch64Long;
+import net.obsearch.index.IndexUtilsFloat;
+import net.obsearch.index.OBVectorFloat;
+import net.obsearch.index.ghs.impl.Sketch64Float;
 import net.obsearch.pivots.AcceptAll;
-import net.obsearch.pivots.rf03.RF03PivotSelectorLong;
-import net.obsearch.query.OBQueryLong;
-import net.obsearch.result.OBPriorityQueueLong;
+import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
+import net.obsearch.pivots.rf04.RF04PivotSelectorFloat;
+import net.obsearch.query.OBQueryFloat;
+import net.obsearch.result.OBPriorityQueueFloat;
 
 public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 100;
+	final static int VEC_SIZE = 1000;
 
 	public VectorsDemoGHSSISAP(String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -38,17 +41,9 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		
 	}
 
-	public static L1Long generateLongVector() {
+	public static OBVectorFloat generateFloatVector() {
 
-		int[] data = new int[VEC_SIZE];
-		int i = 0;
-
-		while (i < data.length) {
-			data[i] = r.nextInt(1000000);
-			i++;
-		}
-
-		return new L1Long(data);
+		return new OBVectorFloat(r, VEC_SIZE);
 	}
 
 	@Override
@@ -56,16 +51,16 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 			OBException, IOException, IllegalAccessException,
 			InstantiationException, PivotsUnavailableException {
 		// TODO Auto-generated method stub
-		RF03PivotSelectorLong<L1Long> sel = new RF03PivotSelectorLong<L1Long>(
-				new AcceptAll<L1Long>());
+		RF04PivotSelectorFloat<OBVectorFloat> sel = new RF04PivotSelectorFloat<OBVectorFloat>(
+				new AcceptAll<OBVectorFloat>());
 		sel.setDataSample(400);
-		sel.setRepetitions(400);
+		//sel.setRepetitions(400);
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
-		Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class,
-				sel, 128, 0);
-		index.setExpectedEP(CompoundError);
+		Sketch64Float<OBVectorFloat> index = new Sketch64Float<OBVectorFloat>(OBVectorFloat.class,
+				sel, 64, 0);
+		index.setExpectedEP(.97f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
@@ -78,14 +73,14 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// Sketch64Short<L1>>( index, INDEX_FOLDER );
 		// Ambient<L1, Sketch64Short<L1>> a = new AmbientMy<L1,
 		// Sketch64Short<L1>>( index, INDEX_FOLDER );
-		Ambient<L1Long, Sketch64Long<L1Long>> a = new AmbientTC<L1Long, Sketch64Long<L1Long>>(
+		Ambient<OBVectorFloat, Sketch64Float<OBVectorFloat>> a = new AmbientTC<OBVectorFloat, Sketch64Float<OBVectorFloat>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:
 		logger.info("Adding " + super.databaseSize + " objects...");
 		int i = 0;
 		while (i < super.databaseSize) {
-			index.insert(generateLongVector());
+			index.insert(generateFloatVector());
 			if (i % 100000 == 0) {
 				logger.info("Loading: " + i);
 			}
@@ -109,8 +104,8 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 	protected void intrinsic() throws IllegalIdException, IllegalAccessException, InstantiationException, OBException, FileNotFoundException, IOException{
 		
 
-		Ambient<L1Long, Sketch64Long<L1Long>> a =  new AmbientTC<L1Long, Sketch64Long<L1Long>>(super.indexFolder);
-		Sketch64Long<L1Long> index = a.getIndex();
+		Ambient<OBVectorFloat, Sketch64Float<OBVectorFloat>> a =  new AmbientTC<OBVectorFloat, Sketch64Float<OBVectorFloat>>(super.indexFolder);
+		Sketch64Float<OBVectorFloat> index = a.getIndex();
 		logger
 				.info("Intrinsic dim: "
 						+ index.intrinsicDimensionality(1000));
@@ -123,25 +118,29 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 			OBException, IOException {
 		// TODO Auto-generated method stub
 		
-		Ambient<L1Long, Sketch64Long<L1Long>> a =  new AmbientTC<L1Long, Sketch64Long<L1Long>>(super.indexFolder);
-		Sketch64Long<L1Long> index = a.getIndex();
+		Ambient<OBVectorFloat, Sketch64Float<OBVectorFloat>> a =  new AmbientTC<OBVectorFloat, Sketch64Float<OBVectorFloat>>(super.indexFolder);
+		Sketch64Float<OBVectorFloat> index = a.getIndex();
 		index.resetStats(); // reset the stats counter
 		long start = System.currentTimeMillis();
-		List<OBPriorityQueueLong<L1Long>> queryResults = new ArrayList<OBPriorityQueueLong<L1Long>>(querySize);
-		List<L1Long> queries = new ArrayList<L1Long>(super.querySize);
+		
+		List<OBQueryFloat> queryResults = new ArrayList<OBQueryFloat>(querySize);
+		List<OBVectorFloat> queries = new ArrayList<OBVectorFloat>(super.querySize);
 		int i = 0;
 		
 		logger.info("Warming cache...");
 		index.bucketStats();	
 		logger.info("Starting search!");
 		index.resetStats();
+		index.setKAlpha(1f);
 		while(i < querySize){
-			L1Long q = 	generateLongVector();	
+			OBVectorFloat q = 	generateFloatVector();	
 			// query the index with k=1			
-			OBPriorityQueueLong<L1Long> queue = new OBPriorityQueueLong<L1Long>(1);			
+			OBPriorityQueueFloat<OBVectorFloat> queue = new OBPriorityQueueFloat<OBVectorFloat>(1);			
 			// perform a query with r=3000000 and k = 1 
-			index.searchOB(q, Long.MAX_VALUE, queue);
-			queryResults.add(queue);
+			index.searchOB(q, Float.MAX_VALUE, queue);
+			
+			queryResults.add(new OBQueryFloat(q, queue.peek().getDistance(), queue));
+			
 			queries.add(q);
 			logger.info("Doing query: " + i );
 			i++;
@@ -156,21 +155,23 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		
 		logger.info("Doing CompoundError validation");
 		StaticBin1D ep = new StaticBin1D();
+		IndexUtilsFloat.validateResults(queryResults, index);
+		
 		
 		/*
-		Iterator<OBPriorityQueueLong<L1Long>> it1 = queryResults.iterator();
-		Iterator<L1Long> it2 = queries.iterator();
+		Iterator<OBPriorityQueueFloat<OBVectorFloat>> it1 = queryResults.iterator();
+		Iterator<OBVectorFloat> it2 = queries.iterator();
 		StaticBin1D seqTime = new StaticBin1D();
 		i = 0;
 		while(it1.hasNext()){
-			OBPriorityQueueLong<L1Long> qu = it1.next();
-			L1Long q = it2.next();
-			long time = System.currentTimeMillis();
-			long[] sortedList = index.fullMatchLite(q, false);
-			long el = System.currentTimeMillis() - time;
+			OBPriorityQueueFloat<OBVectorFloat> qu = it1.next();
+			OBVectorFloat q = it2.next();
+			Float time = System.currentTimeMillis();
+			Float[] sortedList = index.fullMatchLite(q, false);
+			Float el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " "  + i);
-			OBQueryLong<L1Long> queryObj = new OBQueryLong<L1Long	>(q, Long.MAX_VALUE, qu, null);
+			OBQueryFloat<OBVectorFloat> queryObj = new OBQueryFloat<OBVectorFloat	>(q, Float.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep(sortedList));
 			i++;
 		}

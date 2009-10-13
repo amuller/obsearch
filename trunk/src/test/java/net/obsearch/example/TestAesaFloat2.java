@@ -54,7 +54,7 @@ public class TestAesaFloat2 {
 			a.insert(d);
 		}
 		a.freeze();
-		
+		logger.info("matching!");
 		List<OBQueryFloat> queries = new ArrayList<OBQueryFloat>(QUERY_SIZE);
 		for(OBTanimoto q : query){
 			OBQueryFloat<OBTanimoto> search = new OBQueryFloat<OBTanimoto>(q, Float.MAX_VALUE, new OBPriorityQueueFloat<OBTanimoto>(1));
