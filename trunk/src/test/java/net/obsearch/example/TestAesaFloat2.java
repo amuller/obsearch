@@ -26,7 +26,7 @@ public class TestAesaFloat2 {
 	
 
 	private int DIM = 5;
-	private int DB_SIZE = 2000;
+	private int DB_SIZE = 4000;
 	private int QUERY_SIZE = 100;
 	
 	public List<OBTanimoto> create2(File f, int size) throws IOException, OBException{
@@ -57,7 +57,7 @@ public class TestAesaFloat2 {
 		logger.info("matching!");
 		List<OBQueryFloat> queries = new ArrayList<OBQueryFloat>(QUERY_SIZE);
 		for(OBTanimoto q : query){
-			OBQueryFloat<OBTanimoto> search = new OBQueryFloat<OBTanimoto>(q, Float.MAX_VALUE, new OBPriorityQueueFloat<OBTanimoto>(1));
+			OBQueryFloat<OBTanimoto> search = new OBQueryFloat<OBTanimoto>(q, Float.MAX_VALUE, new OBPriorityQueueFloat<OBTanimoto>(4));
 			queries.add(search);
 			a.searchOB(search);		
 			
