@@ -138,6 +138,23 @@
 </target>
 
 
+<target name="wikiCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+<target name="wikiSearch" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+
 <target name="wikiCreateGHS" depends="init,maven">
   <antcall target="create">
     <param name="className" value="net.obsearch.example.doc.WikipediaDemoRF04"/>

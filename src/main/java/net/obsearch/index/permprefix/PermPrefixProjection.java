@@ -75,20 +75,19 @@ public class PermPrefixProjection implements
 			max = Math.max(max, diff);
 			res += diff;
 			cx++;
-		}/*
-		while (cx < b.perm.length) {
-			int i = 0;
-			while(i < addr.perm.length){
-				if(addr.perm[i] == b.perm[cx]){
-					break;
-				}
-				res+= i;
-				i++;
+		}
+		// hamming
+		/*while (cx < b.perm.length) {
+			int obj = b.perm[cx];
+			int herePos = cache[obj];
+			if(herePos >= b.perm.length){
+				res++;
 			}
 			cx++;
 		}*/
 		return new PermPrefixProjection(b, res, cache, max);
 	}
+	
 	
 	public int getMaxDiff(){
 		return maxMovement;
