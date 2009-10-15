@@ -38,7 +38,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 1000;
+	final static int VEC_SIZE = 30;
 
 	public VectorsDemoPrefix (String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -55,11 +55,11 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		// TODO Auto-generated method stub
 		
 		logger.info("Creating dataset :)");
-		//RandomPivotSelector<OBVectorFloat> sel = new RandomPivotSelector<OBVectorFloat>(
-		//		new AcceptAll<OBVectorFloat>());
-		IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
+		RandomPivotSelector<OBVectorFloat> sel = new RandomPivotSelector<OBVectorFloat>(
+				new AcceptAll<OBVectorFloat>());
+		//IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
 		DistPermPrefixFloat<OBVectorFloat> index = new DistPermPrefixFloat<OBVectorFloat>(
-				OBVectorFloat.class, sel, 256, 0, 256);
+				OBVectorFloat.class, sel, 10000, 0, 4);
 		
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
@@ -70,8 +70,8 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
-		//index.setFixedRecord(true);
-		//index.setFixedRecord(VEC_SIZE * 4);
+		index.setFixedRecord(true);
+		index.setFixedRecord(VEC_SIZE * 4);
 		// Create the ambient that will store the index's data. (NOTE: folder
 		// name is hardcoded)
 		// Ambient<L1, Sketch64Short<L1>> a = new AmbientBDBDb<L1,

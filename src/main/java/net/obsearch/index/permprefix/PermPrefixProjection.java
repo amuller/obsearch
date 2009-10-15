@@ -8,26 +8,28 @@ import net.obsearch.utils.bytes.ByteConversion;
 
 public class PermPrefixProjection implements
 		Projection<PermPrefixProjection, CompactPermPrefix> {
-	
+
 	private static final int subPrefix = 256;
-	
+
 	private CompactPermPrefix addr;
 	private int distance;
 	private int[] cache;
 	private int maxMovement;
-	
-	public PermPrefixProjection(CompactPermPrefix addr, int distance, int[] cache) {
+
+	public PermPrefixProjection(CompactPermPrefix addr, int distance,
+			int[] cache) {
 		this(addr, distance, cache, -1);
 	}
-	
-	public PermPrefixProjection(CompactPermPrefix addr, int distance, int[] cache, int maxMovement) {
+
+	public PermPrefixProjection(CompactPermPrefix addr, int distance,
+			int[] cache, int maxMovement) {
 		this.addr = addr;
 		this.distance = distance;
 		this.cache = cache;
 		this.maxMovement = maxMovement;
 	}
-	
-	public int getDistance(){
+
+	public int getDistance() {
 		return distance;
 	}
 
@@ -66,34 +68,32 @@ public class PermPrefixProjection implements
 		int res = 0;
 		int cx = 0;
 		int max = 0;
-		while (cx < b.perm.length) {	
+		// normal
+
+		while (cx < b.perm.length) {
 			int obj = b.perm[cx];
 			int herePos = cache[obj];
-			//int herePos = Math.min(cache[obj], subPrefix); // not induced
-			//int diff = Math.min(Math.abs( herePos - cx), b.perm.length);
-			int diff = Math.abs( herePos - cx);
+			//int herePos = Math.min(cache[obj], subPrefix); // not
+			//int diff = Math.min(Math.abs( herePos - cx), b.perm.length); // not marionette
+			int diff = Math.abs(herePos - cx);// marionette
 			max = Math.max(max, diff);
 			res += diff;
 			cx++;
 		}
+
 		// hamming
-		/*while (cx < b.perm.length) {
-			int obj = b.perm[cx];
-			int herePos = cache[obj];
-			if(herePos >= b.perm.length){
-				res++;
-			}
-			cx++;
-		}*/
+
+		/*
+		 * while (cx < b.perm.length) { int obj = b.perm[cx]; int herePos =
+		 * cache[obj]; if (herePos >= b.perm.length) { res++; } cx++; }
+		 */
+
 		return new PermPrefixProjection(b, res, cache, max);
 	}
-	
-	
-	public int getMaxDiff(){
+
+	public int getMaxDiff() {
 		return maxMovement;
 	}
-	
-	
 
 	public String toString() {
 		return "Found at dist: " + distance;
