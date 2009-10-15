@@ -71,8 +71,9 @@
 <target name="create" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-XXcompressedRefs"/>
+<!--<jvmarg value="-XXcompressedRefs"/>-->
 <jvmarg value="-ea"/>
+<jvmarg value="-server"/>
 <arg value="-m"/>
 <arg value="create"/>
 <arg value="-db"/>
@@ -103,7 +104,7 @@
 <target name="search" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-XXcompressedRefs"/>
+<!-- <jvmarg value="-XXcompressedRefs"/> -->
 <arg value="-m"/>
 <arg value="search"/>
 <arg value="-db"/>
@@ -138,6 +139,27 @@
 </target>
 
 
+
+
+
+<target name="wikiSearch" depends="init,maven">
+  <antcall target="search">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+<target name="wikiSearchGHS" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.vectors.WikipediaDemoRF04"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+
+
 <target name="wikiCreate" depends="init,maven">
   <antcall target="create">
     <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
@@ -146,13 +168,8 @@
   </antcall>
 </target>
 
-<target name="wikiSearch" depends="init,maven">
-  <antcall target="search">
-		<param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
-  </antcall>
-</target>
+
+
 
 
 <target name="wikiCreateGHS" depends="init,maven">

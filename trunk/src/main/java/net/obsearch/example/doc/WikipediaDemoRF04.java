@@ -148,14 +148,14 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 		sel.setDesiredDistortion(0.30f);
 		sel.setDesiredSpread(0);
 */
-		sel.setDataSample(400);
+		sel.setDataSample(2000);
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
 /*		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(
 				OBTanimoto.class, sel, 256, 0);
 		*/
 		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(OBTanimoto.class,
-				sel, 1024, 0);
+				sel, 256, 0);
 		
 		index.setExpectedEP(.97f);
 		index.setSampleSize(100);

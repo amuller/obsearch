@@ -59,7 +59,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 				new AcceptAll<OBVectorFloat>());
 		//IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
 		DistPermPrefixFloat<OBVectorFloat> index = new DistPermPrefixFloat<OBVectorFloat>(
-				OBVectorFloat.class, sel, 10000, 0, 4);
+				OBVectorFloat.class, sel, 10000, 0, 8);
 		
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);

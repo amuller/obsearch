@@ -32,7 +32,7 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 1000;
+	final static int VEC_SIZE = 30;
 
 	public VectorsDemoGHSSISAP(String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -53,14 +53,14 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// TODO Auto-generated method stub
 		RF04PivotSelectorFloat<OBVectorFloat> sel = new RF04PivotSelectorFloat<OBVectorFloat>(
 				new AcceptAll<OBVectorFloat>());
-		sel.setDataSample(100);
+		sel.setDataSample(500);
 		//sel.setRepetitions(400);
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		Sketch64Float<OBVectorFloat> index = new Sketch64Float<OBVectorFloat>(OBVectorFloat.class,
-				sel, 256, 0);
-		index.setExpectedEP(.97f);
+				sel, 64, 0);
+		index.setExpectedEP(.95f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.
