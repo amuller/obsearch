@@ -24,8 +24,9 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.OBVectorFloat;
 import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
-import net.obsearch.index.permprefixhamming.impl.DistPermPrefixHammingFloat;
+
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
@@ -170,6 +171,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 		// IncrementalPermFloat<OBTanimoto> sel = new
 		// IncrementalPermFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400,
 		// 400);
+		//IncrementalPermFloat<OBTanimoto> sel = new IncrementalPermFloat<OBTanimoto>(new AcceptAll(), 400, 400);
 		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
 				new AcceptAll<OBTanimoto>());
 		// make the bit set as short so that m objects can fit in the
