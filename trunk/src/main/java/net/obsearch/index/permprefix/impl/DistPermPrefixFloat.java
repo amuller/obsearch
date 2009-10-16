@@ -6,7 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import net.obsearch.OB;
@@ -155,7 +159,31 @@ public class DistPermPrefixFloat<O extends OBFloat> extends AbstractDistPermPref
 		OBAsserts.chkAssert(Buckets.size() <= Integer.MAX_VALUE, "Capacity exceeded");
 		
 		List<PermPrefixProjection> sortedBuckets = searchBuckets(floatAddr, this.projections.size());
+		StringBuilder bu = new StringBuilder();
+		SortedMap<Integer, Integer> m = new TreeMap<Integer, Integer>();
+		int cx = 0;
+		for(PermPrefixProjection p : sortedBuckets){
+			Integer f = m.get(p.getDistance());
+			if(f == null){
+				f = 0;
+			}
+			m.put(p.getDistance(), f+1);
+			if(cx + 1 < sortedBuckets.size()){
+				stats.addExtraStats("LOL", p.distance(sortedBuckets.get(cx + 1).getCompactRepresentation()).getDistance());
+			}
+			cx++;
+		}
 		
+		for(Map.Entry<Integer,Integer> e : m.entrySet()){
+			bu.append(e.getKey());
+			bu.append(", ");
+			bu.append(e.getValue());
+			stats.addExtraStats("LARGO_EXTRA", e.getValue());
+			bu.append(" | ");
+		}
+		//logger.info(bu.toString());
+		
+		stats.addExtraStats("LARGO", m.size());
 		//List<OBResultFloat<O>> sortedBuckets2 = fullMatch(object);
 		logger.info("Time searching projections " + sortedBuckets.size() +  " : " + (System.currentTimeMillis() - time));
 
@@ -192,11 +220,10 @@ public class DistPermPrefixFloat<O extends OBFloat> extends AbstractDistPermPref
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets " + " dist: " + result.getDistance());
-					diffStats.add(result.getMaxDiff());
+					stats.addExtraStats("DIFF", result.getMaxDiff());
 					kEstimators[i].add(goodK);
 					// store the distance of the best object and the real-best object
 					//float difference = (float)Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
-
 					break; // we are done.
 				}
 			}
