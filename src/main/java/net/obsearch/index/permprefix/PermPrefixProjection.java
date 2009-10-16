@@ -1,5 +1,7 @@
 package net.obsearch.index.permprefix;
 
+import hep.aida.bin.StaticBin1D;
+
 import java.nio.ByteBuffer;
 
 import net.obsearch.constants.ByteConstants;
@@ -67,7 +69,8 @@ public class PermPrefixProjection implements
 	public PermPrefixProjection distance(CompactPermPrefix b) {
 		int res = 0;
 		int cx = 0;
-		int max = 0;
+		//int max = 0;
+		StaticBin1D max = new StaticBin1D();
 		// normal
 
 		while (cx < b.perm.length) {
@@ -76,7 +79,7 @@ public class PermPrefixProjection implements
 			//int herePos = Math.min(cache[obj], subPrefix); // not
 			//int diff = Math.min(Math.abs( herePos - cx), b.perm.length); // not marionette
 			int diff = Math.abs(herePos - cx);// marionette
-			max = Math.max(max, diff);
+			max.add(diff);
 			res += diff;
 			cx++;
 		}
@@ -88,7 +91,7 @@ public class PermPrefixProjection implements
 		 * cache[obj]; if (herePos >= b.perm.length) { res++; } cx++; }
 		 */
 
-		return new PermPrefixProjection(b, res, cache, max);
+		return new PermPrefixProjection(b, res, cache, (int)max.mean());
 	}
 
 	public int getMaxDiff() {

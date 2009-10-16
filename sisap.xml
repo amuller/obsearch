@@ -71,7 +71,7 @@
 <target name="create" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<!--<jvmarg value="-XXcompressedRefs"/>-->
+<jvmarg value="-XXcompressedRefs"/>
 <jvmarg value="-ea"/>
 <jvmarg value="-server"/>
 <arg value="-m"/>
@@ -193,6 +193,15 @@
 <target name="vectorCreateGHS" depends="init,maven">
   <antcall target="create">
     <param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+<target name="vectorCreateRinRin" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.vectors.VectorsDemoRinRin"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
 		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
   </antcall>

@@ -29,7 +29,7 @@ public abstract class AbstractDistPermPrefix <O extends OB, B extends BucketObje
 	
 		private int prefixSize;
 		
-		protected StaticBin1D diffStats;
+		
 		
 		public AbstractDistPermPrefix(Class<O> type,
 				IncrementalPivotSelector<O> pivotSelector, int pivotCount,
@@ -71,7 +71,6 @@ public abstract class AbstractDistPermPrefix <O extends OB, B extends BucketObje
 		OutOfRangeException, IllegalAccessException,
 		InstantiationException, OBException, PivotsUnavailableException,
 		IOException {
-			this.diffStats = new StaticBin1D();
 			super.freeze();
 			freezeDefault();
 			loadMasks();
@@ -79,7 +78,6 @@ public abstract class AbstractDistPermPrefix <O extends OB, B extends BucketObje
 			calculateEstimators();
 			logger.info("Index stats...");
 			bucketStats();
-			logger.info("DIFF stats" + diffStats);
 			
 		}
 		

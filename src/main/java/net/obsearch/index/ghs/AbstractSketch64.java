@@ -95,10 +95,7 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 */
 	protected int m;
 
-	/**
-	 * A compressed bit set for 64 bits.
-	 */
-	protected transient CompressedBitSet64Asym sketchSet;
+	
 
 	/**
 	 * Only two values per dimension (1, 0)
