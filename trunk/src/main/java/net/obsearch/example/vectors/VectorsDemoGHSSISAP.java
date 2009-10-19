@@ -53,13 +53,13 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// TODO Auto-generated method stub
 		RF04PivotSelectorFloat<OBVectorFloat> sel = new RF04PivotSelectorFloat<OBVectorFloat>(
 				new AcceptAll<OBVectorFloat>());
-		sel.setDataSample(500);
+		sel.setDataSample(400);
 		//sel.setRepetitions(400);
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		Sketch64Float<OBVectorFloat> index = new Sketch64Float<OBVectorFloat>(OBVectorFloat.class,
-				sel, 64, 0);
+				sel, 128, 0);
 		index.setExpectedEP(.95f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);

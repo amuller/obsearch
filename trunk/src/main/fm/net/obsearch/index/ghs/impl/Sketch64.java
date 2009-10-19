@@ -229,9 +229,8 @@ implements Index${Type}<O> {
 		// we now calculate the buckets and we sort them
 		// according to the distance of the query.
 		
-		if(sketchSet == null){
 			loadMasks();
-		}
+
 		long time = System.currentTimeMillis();
 		OBAsserts.chkAssert(Buckets.size() <= Integer.MAX_VALUE, "Capacity exceeded");
 		List<SketchProjection> sortedBuckets = searchBuckets(longAddr, (int)Buckets.size());
@@ -272,6 +271,7 @@ implements Index${Type}<O> {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets ");
+						logger.info("CARD" + result.getCompactRepresentation().cardinality() + " CARD_Q: " + longAddr.getCompactRepresentation().cardinality());
 					kEstimators[i].add(goodK);
 					// store the distance of the best object and the real-best object
 					${type} difference = (${type})Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
