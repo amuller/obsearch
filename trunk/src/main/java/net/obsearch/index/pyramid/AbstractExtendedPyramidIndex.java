@@ -354,13 +354,13 @@ public abstract class AbstractExtendedPyramidIndex < O extends OB >
     }
 
     /**
-     * For the given point and the pyramid number we return the height of that
+     * For the given point and the pyramid number we return the kHeight of that
      * point.
      * @param tuple
      *                tuple to be processed
      * @param pyramidNumber
      *                which pyramid number will be processed.
-     * @return height of the point
+     * @return kHeight of the point
      */
     protected final double heightOfPoint(final double[] tuple,
             final int pyramidNumber) {

@@ -28,6 +28,7 @@ public abstract class AbstractGHSExample extends AbstractExampleGeneral {
 	protected float alpha = 1.0f;
 	
 	
+	
 
 	public AbstractGHSExample(String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,

@@ -177,8 +177,8 @@ public class WikipediaDemo extends AbstractGHSExample {
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
 		/*
-		 * RinRinFloat<OBTanimoto> index = new
-		 * RinRinFloat<OBTanimoto>( OBTanimoto.class, sel, 256, 0);
+		 * Ky0Float<OBTanimoto> index = new
+		 * Ky0Float<OBTanimoto>( OBTanimoto.class, sel, 256, 0);
 		 */
 
 		DistPermPrefixFloat<OBTanimoto> index = new DistPermPrefixFloat<OBTanimoto>(
