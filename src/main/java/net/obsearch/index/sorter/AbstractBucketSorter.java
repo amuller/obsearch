@@ -52,6 +52,8 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 * should read for a given k query to match a certain value of error.
 	 */
 	protected StaticBin1D[] kEstimators;
+	
+	
 	/**
 	 * Number of samples employed to generate the k estimators.
 	 */
@@ -285,7 +287,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 */
-	private void maxKEstimation() throws IllegalIdException, OBException,
+	protected void maxKEstimation() throws IllegalIdException, OBException,
 			IllegalAccessException, InstantiationException {
 		kEstimators = new StaticBin1D[getMaxK().length];
 		logger.fine("Max k estimation");
@@ -308,10 +310,17 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		i = 0;
 		for (StaticBin1D s : kEstimators) {
 			logger.info(" k" + userK[i]);
+			if(printEstimation(i) != null){
+				logger.info(printEstimation(i));
+			}
 			logger.info(s.toString());
 			i++;
 		}
 
+	}
+	
+	protected String printEstimation(int i){
+		return null;
 	}
 
 	private class BucketsLoader implements OBCacheHandlerByteArray<BC> {
