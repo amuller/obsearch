@@ -333,6 +333,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 			logger.info("Doing: " + i);						
 			i++;
 		}
+		logger.info("Distance Stats: " + stats.toString());
 		return Math.pow(stats.mean(), 2) / (2 * stats.variance());
 	}
 	

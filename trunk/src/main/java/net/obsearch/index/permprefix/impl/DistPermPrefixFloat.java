@@ -106,6 +106,7 @@ public class DistPermPrefixFloat<O extends OBFloat> extends AbstractDistPermPref
 			order[i] = s.get(i).getId();
 			i++;
 		}
+		Arrays.sort(order);
 		return new PermPrefixProjection(new CompactPermPrefix(order), -1, cache);
 	}
 	
@@ -222,6 +223,10 @@ public class DistPermPrefixFloat<O extends OBFloat> extends AbstractDistPermPref
 						logger.info("Found result after reading: " + goodK + " buckets " + " dist: " + result.getDistance());
 					stats.addExtraStats("DIFF", result.getMaxDiff());
 					kEstimators[i].add(goodK);
+					// add dists:
+					for(int j : result.getDistances()){
+						stats.addExtraStats("FULL_DIFF", j);
+					}
 					// store the distance of the best object and the real-best object
 					//float difference = (float)Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
 					break; // we are done.
