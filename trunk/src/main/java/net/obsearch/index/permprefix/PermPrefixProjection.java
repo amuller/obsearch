@@ -63,12 +63,12 @@ public class PermPrefixProjection implements
 	@Override
 	public int compareTo(PermPrefixProjection o) {
 
-/*
+
 		  if (distance < o.distance) { return -1; } else if (distance >
 		  o.distance) { return 1; } else { return 0; }
-		  */
 
 
+/*
 		int i = 0;
 		while (i < o.newDistance.length) {
 			int dist = newDistance[i];
@@ -82,7 +82,7 @@ public class PermPrefixProjection implements
 		}
 		
 		return 0;
-
+*/
 	}
 
 	@Override

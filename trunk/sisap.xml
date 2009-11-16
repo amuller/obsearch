@@ -169,6 +169,39 @@
 </target>
 
 
+<target name="proteinCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+		<param name="indexSource" value="/home/amuller/swiss/data.fasta.randomized.db"/>
+  </antcall>
+</target>
+
+
+<target name="wikiCreateKy0" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoKy0"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+<target name="wikiCreateSmap" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoSmap"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+<target name="wikiCreateRinRin" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoRinRin"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
 
 
 
@@ -207,6 +240,27 @@
   </antcall>
 </target>
 
+<target name="vectorIntrinsicKy0" depends="init,maven">
+  <antcall target="intrinsic">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoKy0"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+  </antcall>
+</target>
+
+<target name="proteinIntrinsic" depends="init,maven">
+  <antcall target="intrinsic">
+		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+  </antcall>
+</target>
+
+<target name="vectorIntrinsicRinRin" depends="init,maven">
+  <antcall target="intrinsic">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoRinRin"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+  </antcall>
+</target>
+
 
 <target name="vectorCreateKy0" depends="init,maven">
   <antcall target="create">
@@ -220,6 +274,14 @@
 <target name="vectorSearch" depends="init,maven">
   <antcall target="search">
 		<param name="className" value="net.obsearch.example.vectors.VectorsDemoPrefix"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+<target name="vectorSearchKy0" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoKy0"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
 		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
   </antcall>
