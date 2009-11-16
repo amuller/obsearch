@@ -32,7 +32,7 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 30;
+	final static int VEC_SIZE = 100;
 
 	public VectorsDemoGHSSISAP(String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -59,7 +59,7 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		Sketch64Float<OBVectorFloat> index = new Sketch64Float<OBVectorFloat>(OBVectorFloat.class,
-				sel, 128, 0);
+				sel, 48, 0);
 		index.setExpectedEP(.95f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);

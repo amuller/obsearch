@@ -38,7 +38,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 	
 	final static Random r = new Random();
 	
-	final static int VEC_SIZE = 1000;
+	final static int VEC_SIZE = 100;
 
 	public VectorsDemoPrefix (String[] args) throws IOException,
 			OBStorageException, OBException, IllegalAccessException,
@@ -59,7 +59,7 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 				new AcceptAll<OBVectorFloat>());
 		//IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
 		DistPermPrefixFloat<OBVectorFloat> index = new DistPermPrefixFloat<OBVectorFloat>(
-				OBVectorFloat.class, sel, 1024, 0, 32);
+				OBVectorFloat.class, sel, 1000, 0, 3);
 		
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
