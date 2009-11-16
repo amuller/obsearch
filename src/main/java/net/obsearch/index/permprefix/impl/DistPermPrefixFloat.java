@@ -106,7 +106,7 @@ public class DistPermPrefixFloat<O extends OBFloat> extends AbstractDistPermPref
 			order[i] = s.get(i).getId();
 			i++;
 		}
-		Arrays.sort(order);
+		//Arrays.sort(order);
 		return new PermPrefixProjection(new CompactPermPrefix(order), -1, cache);
 	}
 	

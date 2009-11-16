@@ -163,7 +163,7 @@ public class AesaFloat<O extends OBFloat> extends AbstractAESA<O> implements Ind
 		//	}3
 			if(currentPivot != -1){
 			dist = distance(query,  currentPivot, active, computed);
-			//logger.info("selected pivot: " + currentPivot + " active: "  + active.cardinality() + " computed: " + computed.cardinality() + " dist: " + query.getDistance());
+			//logger.ivnfo("selected pivot: " + currentPivot + " active: "  + active.cardinality() + " computed: " + computed.cardinality() + " dist: " + query.getDistance());
 			}else{
 				assert active.cardinality() == 0;
 			}

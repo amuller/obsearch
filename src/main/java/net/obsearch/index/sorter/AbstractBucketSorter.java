@@ -457,6 +457,9 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 				projectionStorage.put(i, bucketId);
 				masks.add(new MaskHolder(bucketId, i, b));		
 				b.setObject(null);
+				if(i % 100 == 0){
+					logger.info("Doing: " + i);
+				}
 				i++;
 			}
 			logger.info("Sorting " + masks.size() + " masks...");

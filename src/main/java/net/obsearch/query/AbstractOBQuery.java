@@ -51,5 +51,7 @@ public abstract class AbstractOBQuery<O> {
 	public abstract double recall(List<AbstractOBResult<O>> db);
 	
 	public abstract boolean isFull();
+	
+	
 
 }
