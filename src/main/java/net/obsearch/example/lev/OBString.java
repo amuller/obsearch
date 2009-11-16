@@ -6,9 +6,9 @@ import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBShort;
 
-public final class OBString implements OBShort {
+public  class OBString implements OBShort {
 	
-	private String str;
+	protected String str;
 	
 	public OBString(){
 		

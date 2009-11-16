@@ -1,4 +1,4 @@
-package net.obsearch.example.doc;
+package net.obsearch.example.protein;
 
 import hep.aida.bin.StaticBin1D;
 
@@ -42,46 +42,54 @@ import net.obsearch.result.OBPriorityQueueFloat;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 
-public class WikipediaDemo extends AbstractGHSExample {
+public class SwissProtDemo extends AbstractGHSExample {
 
-	public WikipediaDemo(String args[]) throws IOException, OBStorageException,
+	public SwissProtDemo(String args[]) throws IOException, OBStorageException,
 			OBException, IllegalAccessException, InstantiationException,
 			PivotsUnavailableException {
 		super(args);
 
+	}
+	
+	protected Protein read(BufferedReader qData) throws IOException, OBException{
+		String id = qData.readLine();
+		if(id == null){return null;}
+		String protein = qData.readLine();
+		if(protein == null){return null;}		
+		return new Protein(id, protein);
 	}
 
 	protected void search() throws OBStorageException, NotFrozenException,
 			IllegalAccessException, InstantiationException, OBException,
 			IOException {
 		BufferedReader qData = new BufferedReader(new FileReader(query));
-		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
+		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
 				indexFolder);
-		DistPermPrefixFloat<OBTanimoto> index = a.getIndex();
+		DistPermPrefixFloat<Protein> index = a.getIndex();
 		// now we can match some objects!
 		logger.info("Querying the index...");
 		int i = 0;
 
 		index.setKAlpha(1f);
 		long start = System.currentTimeMillis();
-		List<OBPriorityQueueFloat<OBTanimoto>> queryResults = new ArrayList<OBPriorityQueueFloat<OBTanimoto>>(
+		List<OBPriorityQueueFloat<Protein>> queryResults = new ArrayList<OBPriorityQueueFloat<Protein>>(
 				querySize);
-		List<OBTanimoto> queries = new ArrayList<OBTanimoto>(querySize);
-		String line = qData.readLine();
+		List<Protein> queries = new ArrayList<Protein>(querySize);
+		Protein line = read(qData);
 		//logger.info("Warming cache...");
 		//index.bucketStats();
 		index.resetStats(); // reset the stats counter
 		logger.info("Search starts!");
-		while (line != null && i < querySize) {
-			OBTanimoto q = new OBTanimoto(line);
-			line = qData.readLine();
+		while (line != null && i < querySize) {			
+			Protein q = line;
+			line = read(qData);
 			// query the index with k=1
-			OBPriorityQueueFloat<OBTanimoto> queue = new OBPriorityQueueFloat<OBTanimoto>(
+			OBPriorityQueueFloat<Protein> queue = new OBPriorityQueueFloat<Protein>(
 					1);
 			// perform a query with r=3000000 and k = 1
 			index.searchOB(q, Float.MAX_VALUE, queue);
-			logger.info("Query: " + q.getName() + " found: "
-					+ queue.getSortedElements().get(0).getObject().getName()
+			logger.info("Query: " + q.getId() + " found: "
+					+ queue.getSortedElements().get(0).getObject().getId()
 					+ " dist: "
 					+ queue.getSortedElements().get(0).getDistance());
 			queryResults.add(queue);
@@ -103,20 +111,20 @@ public class WikipediaDemo extends AbstractGHSExample {
 		StaticBin1D precision = new StaticBin1D();
 		StaticBin1D compound = new StaticBin1D();
 
-		Iterator<OBPriorityQueueFloat<OBTanimoto>> it1 = queryResults
+		Iterator<OBPriorityQueueFloat<Protein>> it1 = queryResults
 				.iterator();
-		Iterator<OBTanimoto> it2 = queries.iterator();
+		Iterator<Protein> it2 = queries.iterator();
 		StaticBin1D seqTime = new StaticBin1D();
 		i = 0;
 		while (it1.hasNext()) {
-			OBPriorityQueueFloat<OBTanimoto> qu = it1.next();
-			OBTanimoto q = it2.next();
+			OBPriorityQueueFloat<Protein> qu = it1.next();
+			Protein q = it2.next();
 			long time = System.currentTimeMillis();
 			float[] sortedList = index.fullMatchLite(q, false);
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " " + i);
-			OBQueryFloat<OBTanimoto> queryObj = new OBQueryFloat<OBTanimoto>(q,
+			OBQueryFloat<Protein> queryObj = new OBQueryFloat<Protein>(q,
 					Float.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep(sortedList));
 			rde.add(queryObj.rde(sortedList));
@@ -145,9 +153,9 @@ public class WikipediaDemo extends AbstractGHSExample {
 	protected void intrinsic() throws IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException,
 			FileNotFoundException, IOException {
-		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
+		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
 				indexFolder);
-		DistPermPrefixFloat<OBTanimoto> index = a.getIndex();
+		DistPermPrefixFloat<Protein> index = a.getIndex();
 
 		logger.info("Intrinsic dim: " + index.intrinsicDimensionality(1000));
 	}
@@ -158,58 +166,47 @@ public class WikipediaDemo extends AbstractGHSExample {
 		BufferedReader dbData = new BufferedReader(new FileReader(database));
 
 		// Create a pivot selection strategy
-		// new AcceptAll<OBTanimoto>());
+		// new AcceptAll<Protein>());
 		/*
-		 * RF02PivotSelectorFloat<OBTanimoto> sel = new
-		 * RF02PivotSelectorFloat<OBTanimoto>( new AcceptAll<OBTanimoto>());
+		 * RF02PivotSelectorFloat<Protein> sel = new
+		 * RF02PivotSelectorFloat<Protein>( new AcceptAll<Protein>());
 		 * sel.setDataSample(400); sel.setRepetitions(1000);
 		 * sel.setDesiredDistortion(0.30f); sel.setDesiredSpread(0);
 		 */
-		// IncrementalBustosNavarroChavezFloat<OBTanimoto> sel = new
-		// IncrementalBustosNavarroChavezFloat<OBTanimoto>(new
-		// AcceptAll<OBTanimoto>(), 400,400);
-		// IncrementalPermFloat<OBTanimoto> sel = new
-		// IncrementalPermFloat<OBTanimoto>(new AcceptAll<OBTanimoto>(), 400,
+		// IncrementalBustosNavarroChavezFloat<Protein> sel = new
+		// IncrementalBustosNavarroChavezFloat<Protein>(new
+		// AcceptAll<Protein>(), 400,400);
+		// IncrementalPermFloat<Protein> sel = new
+		// IncrementalPermFloat<Protein>(new AcceptAll<Protein>(), 400,
 		// 400);
-		//IncrementalPermFloat<OBTanimoto> sel = new IncrementalPermFloat<OBTanimoto>(new AcceptAll(), 400, 400);
-		RandomPivotSelector<OBTanimoto> sel = new RandomPivotSelector<OBTanimoto>(
-				new AcceptAll<OBTanimoto>());
+		IncrementalPermFloat<Protein> sel = new IncrementalPermFloat<Protein>(new AcceptAll(), 100, 100);
+		//RandomPivotSelector<Protein> sel = new RandomPivotSelector<Protein>(
+		//		new AcceptAll<Protein>());
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
 		/*
-		 * Ky0Float<OBTanimoto> index = new
-		 * Ky0Float<OBTanimoto>( OBTanimoto.class, sel, 256, 0);
+		 * Ky0Float<Protein> index = new
+		 * Ky0Float<Protein>( Protein.class, sel, 256, 0);
 		 */
 
-		DistPermPrefixFloat<OBTanimoto> index = new DistPermPrefixFloat<OBTanimoto>(
-				OBTanimoto.class, sel, 256, 0, 4);
-		index.setExpectedEP(.95f);
+		DistPermPrefixFloat<Protein> index = new DistPermPrefixFloat<Protein>(
+				Protein.class, sel, 1000, 0, 100);
+		index.setExpectedEP(.99f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
 
 		// Create the ambient that will store the index's data.
-		Ambient<OBTanimoto, DistPermPrefixFloat<OBTanimoto>> a = new AmbientTC<OBTanimoto, DistPermPrefixFloat<OBTanimoto>>(
+		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:
 		logger.info("Adding " + databaseSize + " objects...");
 		int i = 0;
-		String line = dbData.readLine();
-		while (line != null && i < databaseSize) {
-			OBTanimoto o;
-			try {
-				o = new OBTanimoto(line);
-				index.insert(o);
-			} catch (OBException e) {
-				logger.info("Skipping " + e.toString());
-				line = dbData.readLine();
-				
-				i++;
-				continue;
-			}
-		
-			line = dbData.readLine();
+		Protein line = read(dbData);
+		while (line != null && i < databaseSize) {			
+			index.insert(line);			
+			line = read(dbData);
 			if (i % 100000 == 0) {
 				logger.info("Loading: " + i);
 			}
@@ -229,7 +226,7 @@ public class WikipediaDemo extends AbstractGHSExample {
 			InstantiationException, OBException, IOException,
 			PivotsUnavailableException {
 
-		WikipediaDemo g = new WikipediaDemo(args);
+		SwissProtDemo g = new SwissProtDemo(args);
 
 	}
 
