@@ -59,13 +59,17 @@ public class VectorsDemoPrefix extends AbstractGHSExample {
 				new AcceptAll<OBVectorFloat>());
 		//IncrementalPermFloat<OBVectorFloat> sel = new IncrementalPermFloat<OBVectorFloat>(new AcceptAll(), 400, 400);
 		DistPermPrefixFloat<OBVectorFloat> index = new DistPermPrefixFloat<OBVectorFloat>(
+<<<<<<< .mine
+				OBVectorFloat.class, sel, 5000, 0, 1);
+=======
 				OBVectorFloat.class, sel, 1000, 0, 3);
+>>>>>>> .r579
 		
 		// sel.setDesiredDistortion(0.10);
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		
-		index.setExpectedEP(.95f);
+		index.setExpectedEP(.97f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.

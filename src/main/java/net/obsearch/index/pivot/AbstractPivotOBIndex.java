@@ -116,7 +116,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
     OBStorageException, OutOfRangeException, OBException, PivotsUnavailableException, IOException {
         super.freeze();
         if(pivotCount > 0){
-        	pivots = getObjects(selectPivots(getPivotCount(), pivotSelector).getPivotIds());
+        	pivots = getObjects(selectPivots(pivotCount, pivotSelector).getPivotIds());
         }
     }
     
@@ -227,7 +227,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * @return The number of pivots used in this index.
      */
     public int getPivotCount(){
-        return pivotCount;
+        return pivots.length;
     }
     
     

@@ -182,8 +182,13 @@ public class WikipediaDemo extends AbstractGHSExample {
 		 */
 
 		DistPermPrefixFloat<OBTanimoto> index = new DistPermPrefixFloat<OBTanimoto>(
+<<<<<<< .mine
+				OBTanimoto.class, sel, 3000, 0, 32);
+		index.setExpectedEP(.95f);
+=======
 				OBTanimoto.class, sel, 256, 0, 4);
 		index.setExpectedEP(.95f);
+>>>>>>> .r579
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });

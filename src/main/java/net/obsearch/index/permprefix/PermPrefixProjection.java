@@ -36,8 +36,8 @@ public class PermPrefixProjection implements
 	public int getDistance() {
 		return distance;
 	}
-	
-	public int[] getDistances(){
+
+	public int[] getDistances() {
 		return newDistance;
 	}
 
@@ -63,26 +63,30 @@ public class PermPrefixProjection implements
 	@Override
 	public int compareTo(PermPrefixProjection o) {
 
-
-		  if (distance < o.distance) { return -1; } else if (distance >
-		  o.distance) { return 1; } else { return 0; }
-
-
-/*
-		int i = 0;
-		while (i < o.newDistance.length) {
-			int dist = newDistance[i];
-			int dist2 = o.newDistance[i];
-			if (dist < dist2) {
-				return -1;
-			} else if (dist > dist2) {
-				return 1;
-			}
-			i++;
+		if (distance < o.distance) {
+			return -1;
+		} else if (distance > o.distance) {
+			return 1;
+		} else {
+			return 0;
 		}
-		
-		return 0;
-*/
+
+		/*
+		 * =======
+		 * 
+		 * >>>>>>> .r579 <<<<<<< .mine ======= if (distance < o.distance) {
+		 * return -1; } else if (distance > o.distance) { return 1; } else {
+		 * return 0; }
+		 * 
+		 * 
+		 * >>>>>>> .r579 / int i = 0; while (i < o.newDistance.length) { int
+		 * dist = newDistance[i]; int dist2 = o.newDistance[i]; if (dist <
+		 * dist2) { return -1; } else if (dist > dist2) { return 1; } i++;
+		 * 
+		 * }
+		 * 
+		 * return 0;
+		 */
 	}
 
 	@Override

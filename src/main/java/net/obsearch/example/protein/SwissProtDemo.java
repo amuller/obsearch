@@ -36,6 +36,7 @@ import net.obsearch.pivots.random.RandomPivotSelector;
 import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
+import net.obsearch.pivots.sss.impl.SSSFloat;
 import net.obsearch.query.OBQueryFloat;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueFloat;
@@ -70,7 +71,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		logger.info("Querying the index...");
 		int i = 0;
 
-		index.setKAlpha(1f);
+		index.setKAlpha(0f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<Protein>> queryResults = new ArrayList<OBPriorityQueueFloat<Protein>>(
 				querySize);
@@ -88,7 +89,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 					1);
 			// perform a query with r=3000000 and k = 1
 			index.searchOB(q, Float.MAX_VALUE, queue);
-			logger.info("Query: " + q.getId() + " found: "
+			logger.info("Query: " + q.getId() + " found: \n"
 					+ queue.getSortedElements().get(0).getObject().getId()
 					+ " dist: "
 					+ queue.getSortedElements().get(0).getDistance());
@@ -177,20 +178,24 @@ public class SwissProtDemo extends AbstractGHSExample {
 		// IncrementalBustosNavarroChavezFloat<Protein>(new
 		// AcceptAll<Protein>(), 400,400);
 		// IncrementalPermFloat<Protein> sel = new
-		// IncrementalPermFloat<Protein>(new AcceptAll<Protein>(), 400,
-		// 400);
-		IncrementalPermFloat<Protein> sel = new IncrementalPermFloat<Protein>(new AcceptAll(), 100, 100);
+		// IncrementalPermFloat<Protein>(new AcceptAll<Protein>(), 50,
+		// 50);
+		//IncrementalPermFloat<Protein> sel = new IncrementalPermFloat<Protein>(new AcceptAll(), 100, 100);
 		//RandomPivotSelector<Protein> sel = new RandomPivotSelector<Protein>(
 		//		new AcceptAll<Protein>());
+		
+		SSSFloat<Protein> sel = new SSSFloat<Protein>(
+				new AcceptAll<Protein>());
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
 		/*
 		 * Ky0Float<Protein> index = new
 		 * Ky0Float<Protein>( Protein.class, sel, 256, 0);
 		 */
-
+		sel.setAlpha(-2);
+		//sel.setMaxDistance(9436);
 		DistPermPrefixFloat<Protein> index = new DistPermPrefixFloat<Protein>(
-				Protein.class, sel, 1000, 0, 100);
+				Protein.class, sel, 256, 0, 256);
 		index.setExpectedEP(.99f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.

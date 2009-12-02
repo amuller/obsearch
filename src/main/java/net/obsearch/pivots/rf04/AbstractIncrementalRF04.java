@@ -349,7 +349,7 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 			// this gave really good results
 			// return (- distance) + (10 * spread); L456
 			return (1 - distance) + (10 * spread); // This is RF04
-			//return (1 - distortion) + (1 - distance) + (10 * spread); //RF04.1 This is RF04 with distortion included
+			//return (1 - distortion) + (5 * (1 - distance)) + (10 * spread); //RF04.1 This is RF04 with distortion included
 			//return spread;
 		}
 
