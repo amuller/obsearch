@@ -1,5 +1,10 @@
 package net.obsearch.pivots;
 
+import java.util.List;
+
+import net.obsearch.OB;
+import net.obsearch.utils.Pair;
+
 /*
  OBSearch: a distributed similarity search engine This project is to
  similarity search what 'bit-torrent' is to downloads. 
@@ -40,6 +45,15 @@ public class PivotResult {
 	public PivotResult(long[] pivotIds) {
 		super();
 		this.pivotIds = pivotIds;
+	}
+	
+	public PivotResult(List<Pair<Long,OB>> pivotIds) {
+		this.pivotIds = new long[pivotIds.size()];
+		int i = 0;
+		for(Pair<Long,OB> p : pivotIds){
+			this.pivotIds[i] = p.getA();
+			i++;
+		}
 	}
 	
 	/**

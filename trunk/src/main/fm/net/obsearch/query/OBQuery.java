@@ -358,7 +358,12 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 
 						double ep = 1 - (((double)rank(r.getDistance(), dbin) - (i))/(double)(dbin.length));
 						// fix rounding error
-						res += ((double)dbin[i] / (double)r.getDistance()) * ep;
+						if(r.getDistance() == 0){
+								assert dbin[i] == 0;
+								res += 1;
+						}else{
+								res += ((double)dbin[i] / (double)r.getDistance()) * ep;
+						}
 						i++;
 				}
 				return res / (double) query.size();
@@ -381,7 +386,9 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
         // hold the visited elements
 				for(OBResult${Type}<O> r : query){
 						// find the position in the db. 
-						result +=  ( (double) r.getDistance() / (double)dbin[i]) - 1; 
+						if(dbin[i] != 0){
+								result +=  ( (double) r.getDistance() / (double)dbin[i]) - 1; 
+						}
 						i++;
 				}
 				return result;

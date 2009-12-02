@@ -71,7 +71,7 @@
 <target name="create" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-XXcompressedRefs"/>
+<!--<jvmarg value="-XXcompressedRefs"/>-->
 <jvmarg value="-ea"/>
 <jvmarg value="-server"/>
 <arg value="-m"/>
@@ -81,11 +81,10 @@
 <arg value="-dbsrc"/>
 <arg value="${indexSource}"/>
 <arg value="-dbsize"/>
-<arg value="10000"/>
+<arg value="100000"/>
 <arg value="-ep"/>
 <arg value="0.0001"/>
 	</java>
-
 </target>
 
 
@@ -152,7 +151,7 @@
 
 <target name="wikiSearchGHS" depends="init,maven">
   <antcall target="search">
-		<param name="className" value="net.obsearch.example.vectors.WikipediaDemoRF04"/>
+		<param name="className" value="net.obsearch.example.doc.WikipediaDemoRF04"/>
     <param name="indexFolder" value="${databaseSource}/vector/"/>
 		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
   </antcall>
@@ -270,6 +269,14 @@
   </antcall>
 </target>
 
+
+<target name="proteinSearch" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+		<param name="querySource" value="/home/amuller/swiss/data.fasta.randomized.q"/>
+  </antcall>
+</target>
 
 <target name="vectorSearch" depends="init,maven">
   <antcall target="search">

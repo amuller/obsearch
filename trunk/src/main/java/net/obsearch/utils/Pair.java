@@ -31,5 +31,8 @@ public class Pair<A,B> {
 		this.b = b;
 	}
 	
-	
+	public boolean equals(Object o){
+		Pair<A,B> po =(Pair<A,B>)o;
+		return po.getA().equals(a) && po.getB().equals(b);
+	}
 }
