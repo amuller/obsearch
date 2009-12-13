@@ -38,6 +38,9 @@ public class PivotResult {
 	 */
 	private long [] pivotIds;
 	
+	public PivotResult(){
+		
+	}
 	/**
 	 * Construct a pivotResult form a set of pivotIds.
 	 * @param pivotIds

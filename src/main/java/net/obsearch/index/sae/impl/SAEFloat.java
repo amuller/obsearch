@@ -126,6 +126,8 @@ public class SAEFloat<O extends OBFloat> extends AbstractSAE<O> implements Index
 			for(Computation c : matrix[currentPivot]){
 				
 			}
+			assert false;
+			return null;
 		}else{
 			return new LinkedList<Integer>();
 		}

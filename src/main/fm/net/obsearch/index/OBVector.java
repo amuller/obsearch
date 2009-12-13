@@ -59,7 +59,16 @@ public class OBVector${Type} implements OB${Type} {
 			int i = 0;
 			data = new ${type}[dim];
 			while(i < dim){
-					data[i] = r.next${Type}();
+					<#if type = "byte">
+								data[i] = (byte)r.nextInt();
+				  <#else>
+							 	<#if type = "short">
+								data[i] = (short)r.nextInt();								
+								<#else>																
+								data[i] = r.next${Type}();
+			          </#if>
+          </#if>
+
 					i++;
 			}
 	}

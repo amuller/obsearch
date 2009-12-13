@@ -357,6 +357,13 @@ public class IDistanceIndex${Type}<O extends OB${Type}>
 			
 	}
 
+	@Override
+			public ${type}[] fullMatchLite(O query, boolean filterSame)
+			throws OBException, IllegalAccessException, InstantiationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
 
 </#list>

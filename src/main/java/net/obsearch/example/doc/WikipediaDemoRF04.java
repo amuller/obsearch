@@ -155,11 +155,8 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 				OBTanimoto.class, sel, 256, 0);
 		*/
 		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(OBTanimoto.class,
-<<<<<<< .mine
 				sel, 64, 0);
-=======
-				sel, 128, 0);
->>>>>>> .r579
+
 		
 		index.setExpectedEP(.95f);
 		index.setSampleSize(100);

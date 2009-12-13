@@ -736,4 +736,11 @@ public class PPTreeShort<O extends OBShort> extends AbstractPPTree<O> implements
 		return normalizeFirstPassAux(result);
 	}
 
+	@Override
+	public short[] fullMatchLite(O query, boolean filterSame)
+			throws OBException, IllegalAccessException, InstantiationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
