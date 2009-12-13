@@ -13,7 +13,7 @@ import java.util.List;
 import org.kohsuke.args4j.CmdLineParser;
 
 import net.obsearch.ambient.Ambient;
-import net.obsearch.ambient.bdb.AmbientBDBDb;
+
 import net.obsearch.ambient.bdb.AmbientBDBJe;
 import net.obsearch.ambient.my.AmbientMy;
 import net.obsearch.ambient.tc.AmbientTC;
