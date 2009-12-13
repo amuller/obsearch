@@ -532,4 +532,11 @@ public class ExtendedPyramidIndexShort < O extends OBShort >
         return normalize(result);
     }
 
+	@Override
+	public short[] fullMatchLite(O query, boolean filterSame)
+			throws OBException, IllegalAccessException, InstantiationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

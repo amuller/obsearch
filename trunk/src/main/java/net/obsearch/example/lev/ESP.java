@@ -46,8 +46,9 @@ public class ESP implements OBLong {
 	 * 
 	 * @param string
 	 * @return
+	 * @throws OBException 
 	 */
-	private List<Long> reduce(List<Long> string) {
+	private List<Long> reduce(List<Long> string) throws OBException {
 		List<Long> res = new ArrayList<Long>(string.size() / 2);
 		int alpha = countAlphabet(string);
 		List<Long> metablock = new ArrayList<Long>(string.size() / 2);
@@ -147,8 +148,9 @@ public class ESP implements OBLong {
 		int alpha = countAlphabet(metablock);
 		int logAsterisk = logAsterisk(alpha);
 		OBAsserts.chkAssert(logAsterisk < metablock.size(), "wrong size");
-		
-	}
+		assert false;
+		return null;
+	}		
 	
 	private boolean isMaximumLandmark(int index, List<Long> list){
 		Long left = get(list, index -1);
@@ -266,7 +268,8 @@ public class ESP implements OBLong {
 	}
 
 	private List<Long> outputSame(List<Long> metablock) {
-
+		assert false;
+		return null;
 	}
 
 	private boolean isRepeated(List<Long> metablock, Long symbol) {

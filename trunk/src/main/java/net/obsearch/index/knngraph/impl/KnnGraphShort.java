@@ -170,7 +170,7 @@ public class KnnGraphShort<O extends OBShort>
 	}
 
 	@Override
-	protected void fillNodeAux(Node n, BucketObjectShort bucket)
+	/*protected void fillNodeAux(Node n, BucketObjectShort bucket)
 			throws OBException {
 		// add the smap tuple if there is none
 		if (n.hasProperty(PROP_SMAP)) {
@@ -182,7 +182,7 @@ public class KnnGraphShort<O extends OBShort>
 			n.setProperty(PROP_SMAP, bucket.getSmapVector());
 		}
 
-	}
+	}*/
 
 	/**
 	 * Convert value into a binary string with 0's padded to the left.
@@ -785,6 +785,26 @@ public class KnnGraphShort<O extends OBShort>
 			OutOfRangeException, OBException {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected void fillNodeAux(Node n, BucketObjectShort<O> Bucket)
+			throws OBException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public byte[] getAddress(BucketObjectShort<O> bucket) throws OBException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public short[] fullMatchLite(O query, boolean filterSame)
+			throws OBException, IllegalAccessException, InstantiationException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	
