@@ -51,7 +51,7 @@ DatabaseConfig dbConfig = createDefaultDatabaseConfig();
 								if(bulkMode){
 										dbConfig.setDeferredWrite(bulkMode);										
 								}else{
-										dbConfig.setTemporary(temp);
+//										dbConfig.setTemporary(temp);
 								}
 								
 								<#else>
