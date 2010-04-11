@@ -69,7 +69,7 @@ public abstract class AbstractMySSS < O extends OB >
     /**
      * Sample to get a hitogram of distances
      */
-    private int sample = 1000;
+    private int sample = 100;
 
     private StaticBin1D maxDistance = new StaticBin1D();
     /**

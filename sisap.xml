@@ -64,7 +64,6 @@
 <target name="exampleGHSFull" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-XXcompressedRefs"/>
 	</java>
 </target>
 
@@ -91,7 +90,6 @@
 <target name="intrinsic" depends="maven">	
 	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
-<jvmarg value="-XXcompressedRefs"/>
 <arg value="-m"/>
 <arg value="intrinsic"/>
 <arg value="-db"/>
