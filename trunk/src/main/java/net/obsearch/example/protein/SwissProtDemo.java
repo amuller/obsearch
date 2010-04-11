@@ -25,8 +25,13 @@ import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.OBVectorFloat;
-import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
 
+
+
+
+
+
+import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
@@ -181,9 +186,9 @@ public class SwissProtDemo extends AbstractGHSExample {
 		// IncrementalPermFloat<Protein>(new AcceptAll<Protein>(), 50,
 		// 50);
 		//IncrementalPermFloat<Protein> sel = new IncrementalPermFloat<Protein>(new AcceptAll(), 100, 100);
-		//RandomPivotSelector<Protein> sel = new RandomPivotSelector<Protein>(
-		//		new AcceptAll<Protein>());
-		
+		/*RandomPivotSelector<Protein> sel = new RandomPivotSelector<Protein>(
+				new AcceptAll<Protein>());
+		*/
 		SSSFloat<Protein> sel = new SSSFloat<Protein>(
 				new AcceptAll<Protein>());
 		// make the bit set as short so that m objects can fit in the
@@ -192,11 +197,11 @@ public class SwissProtDemo extends AbstractGHSExample {
 		 * Ky0Float<Protein> index = new
 		 * Ky0Float<Protein>( Protein.class, sel, 256, 0);
 		 */
-		sel.setAlpha(-2);
+		sel.setAlpha(-1);
 		//sel.setMaxDistance(9436);
 		DistPermPrefixFloat<Protein> index = new DistPermPrefixFloat<Protein>(
-				Protein.class, sel, 256, 0, 256);
-		index.setExpectedEP(.99f);
+				Protein.class, sel,256, 0, 10);
+		index.setExpectedEP(.95f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });

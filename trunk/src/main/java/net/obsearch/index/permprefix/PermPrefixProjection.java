@@ -70,23 +70,21 @@ public class PermPrefixProjection implements
 		} else {
 			return 0;
 		}
+/*
+		int i = 0;
+		while (i < o.newDistance.length) {
+			int dist = newDistance[i];
+			int dist2 = o.newDistance[i];
+			if (dist < dist2) {
+				return -1;
+			} else if (dist > dist2) {
+				return 1;
+			}
+			i++;
 
-		/*
-		 * =======
-		 * 
-		 * >>>>>>> .r579 <<<<<<< .mine ======= if (distance < o.distance) {
-		 * return -1; } else if (distance > o.distance) { return 1; } else {
-		 * return 0; }
-		 * 
-		 * 
-		 * >>>>>>> .r579 / int i = 0; while (i < o.newDistance.length) { int
-		 * dist = newDistance[i]; int dist2 = o.newDistance[i]; if (dist <
-		 * dist2) { return -1; } else if (dist > dist2) { return 1; } i++;
-		 * 
-		 * }
-		 * 
-		 * return 0;
-		 */
+		}
+		return 0;
+*/
 	}
 
 	@Override
@@ -117,7 +115,7 @@ public class PermPrefixProjection implements
 		 * cache[obj]; if (herePos >= b.perm.length) { res++; } cx++; }
 		 */
 
-		return new PermPrefixProjection(b, res, cache, (int) max.mean(),
+		return new PermPrefixProjection(b, res, cache, (int) max.sum(),
 				newDistance);
 	}
 

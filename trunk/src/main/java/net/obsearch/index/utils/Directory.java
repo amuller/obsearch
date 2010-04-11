@@ -50,6 +50,9 @@ public final class Directory {
             if (f.isDirectory()) {
                 deleteDirectory(f);
             } else {
+            	if(f.toString().endsWith(".java")){
+            		throw new IOException("Cannot delete .java files!!!");
+            	}
                 if (!f.delete()) {
                     throw new IOException("Could not delete: " + f);
                 }

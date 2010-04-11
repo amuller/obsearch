@@ -36,7 +36,7 @@ public abstract class AbstractDistPermPrefix <O extends OB, B extends BucketObje
 				int bucketPivotCount, int prefixSize) throws OBStorageException, OBException {
 			super(type, pivotSelector, pivotCount, bucketPivotCount);
 			OBAsserts.chkAssert(prefixSize <= pivotCount, "prefix size cannot exceed the number of pivots");
-			this.prefixSize = prefixSize;
+			this.prefixSize = prefixSize;			
 		}
 		
 		protected  byte[] compactRepresentationToBytes(CompactPermPrefix cp){
