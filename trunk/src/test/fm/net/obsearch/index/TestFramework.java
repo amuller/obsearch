@@ -238,7 +238,7 @@ private String debug( OBPriorityQueue${Type} < O > q, Index${Type}<O> index) thr
 
 	private void init() throws AlreadyFrozenException, IllegalIdException,
 			OutOfRangeException, IOException, IllegalAccessException,
-			InstantiationException, OBException {
+			InstantiationException, OBException, PivotsUnavailableException {
 		// initialize data.
 		initQueries();
 		initData();

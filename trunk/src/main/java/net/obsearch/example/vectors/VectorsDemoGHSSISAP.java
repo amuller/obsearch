@@ -42,8 +42,13 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 	}
 
 	public static OBVectorFloat generateFloatVector() {
-
-		return new OBVectorFloat(r, VEC_SIZE);
+		float [] vect = new float[VEC_SIZE];
+		int i = 0;
+		while(i < VEC_SIZE){
+			vect[i] = r.nextFloat();
+			i++;
+		}
+		return new OBVectorFloat(vect);
 	}
 
 	@Override
