@@ -52,8 +52,14 @@ public class TestAesaFloat {
 		Random r = new Random();
 		List<OBVectorFloat> result = new ArrayList<OBVectorFloat>(size);
 		int i = 0;
+		float[] data = new float[DIM];
+		while(i < DIM){
+			data[i] = r.nextFloat();
+			i++;
+		}
+		i = 0;
 		while (i < size) {
-			result.add(new OBVectorFloat(r, DIM));
+			result.add(new OBVectorFloat(data));
 			i++;
 		}
 		return result;
