@@ -31,7 +31,7 @@ import net.obsearch.index.OBVectorFloat;
 
 
 
-import net.obsearch.index.permprefix.impl.DistPermPrefixFloat;
+
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
