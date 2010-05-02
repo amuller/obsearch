@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import net.obsearch.asserts.OBAsserts;
-import net.obsearch.example.doc.WikipediaDemo;
+
 import net.obsearch.exception.IllegalIdException;
 import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
@@ -75,12 +75,12 @@ public abstract class AbstractExampleGeneral {
 	/**
 	 * Logging provided by Java
 	 */
-	protected static Logger logger = Logger.getLogger(WikipediaDemo.class
+	protected static Logger logger = Logger.getLogger(AbstractExampleGeneral.class
 			.getName());
 
 	public void init() throws IOException {
 
-		InputStream is = WikipediaDemo.class.getResourceAsStream(File.separator
+		InputStream is = AbstractExampleGeneral.class.getResourceAsStream(File.separator
 				+ "obsearch.properties");
 		Properties props = new Properties();
 		props.load(is);
