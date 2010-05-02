@@ -613,7 +613,7 @@ Would be cool to use this.
 	      <value>/usr/local/BerkeleyDB.4.7/lib/:</value>
 	    </property>
 					 </systemProperties>
-					<classesDirectory>${project.build.directory}/classes/</classesDirectory>
+					<classesDirectory>target/classes/</classesDirectory>
 					<forkMode>pertest</forkMode>
 					<argLine>-enableassertions</argLine>
 						<argLine>-Djava.library.path=/usr/local/BerkeleyDB.4.7/lib/</argLine>

@@ -8,15 +8,16 @@
 <project name="OBSearchExample" xmlns:artifact="urn:maven-artifact-ant">
 
 <target name="init">
-	<property name="anttask" value="maven-ant-tasks-2.0.6.jar"/>
-	<property name="jardownloadlocation" value="http://ftp.kddilabs.jp/infosystems/apache/maven/binaries/"/>
+	<property name="anttask" value="maven-ant-tasks-2.1.0.jar"/>
+	<property name="jardownloadlocation" value="http://mirror.netcologne.de/apache.org/maven/binaries/"/>
 	<property name="destlocation" value="${ant.home}/lib/"/>
 	
 	<property name="cls" value="target/classes/"/>
 	<!-- System related properties -->
 	
 	<property name="memory" value="3000"/>
-
+   
+  <property name="project.build.directory" value="target"/>
 
 
 <!-- 	<property name="databaseSource" value="/home/amuller/DB_SOURCE/"/> -->
