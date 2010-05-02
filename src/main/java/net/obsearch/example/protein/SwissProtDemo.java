@@ -32,6 +32,7 @@ import net.obsearch.index.OBVectorFloat;
 
 
 
+import net.obsearch.index.ghs.impl.Sketch64Float;
 import net.obsearch.index.utils.Directory;
 import net.obsearch.pivots.AcceptAll;
 import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezFloat;
@@ -39,6 +40,7 @@ import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.perm.impl.IncrementalPermFloat;
 import net.obsearch.pivots.random.RandomPivotSelector;
 import net.obsearch.pivots.rf03.RF03PivotSelectorFloat;
+import net.obsearch.pivots.rf04.RF04PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorFloat;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.pivots.sss.impl.SSSFloat;
@@ -69,9 +71,9 @@ public class SwissProtDemo extends AbstractGHSExample {
 			IllegalAccessException, InstantiationException, OBException,
 			IOException {
 		BufferedReader qData = new BufferedReader(new FileReader(query));
-		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
+		Ambient<Protein, Sketch64Float<Protein>> a = new AmbientTC<Protein, Sketch64Float<Protein>>(
 				indexFolder);
-		DistPermPrefixFloat<Protein> index = a.getIndex();
+		Sketch64Float<Protein> index = a.getIndex();
 		// now we can match some objects!
 		logger.info("Querying the index...");
 		int i = 0;
@@ -159,9 +161,9 @@ public class SwissProtDemo extends AbstractGHSExample {
 	protected void intrinsic() throws IllegalIdException,
 			IllegalAccessException, InstantiationException, OBException,
 			FileNotFoundException, IOException {
-		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
+		Ambient<Protein, Sketch64Float<Protein>> a = new AmbientTC<Protein, Sketch64Float<Protein>>(
 				indexFolder);
-		DistPermPrefixFloat<Protein> index = a.getIndex();
+		Sketch64Float<Protein> index = a.getIndex();
 
 		logger.info("Intrinsic dim: " + index.intrinsicDimensionality(1000));
 	}
@@ -189,25 +191,28 @@ public class SwissProtDemo extends AbstractGHSExample {
 		/*RandomPivotSelector<Protein> sel = new RandomPivotSelector<Protein>(
 				new AcceptAll<Protein>());
 		*/
-		SSSFloat<Protein> sel = new SSSFloat<Protein>(
-				new AcceptAll<Protein>());
+
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
 		/*
 		 * Ky0Float<Protein> index = new
 		 * Ky0Float<Protein>( Protein.class, sel, 256, 0);
 		 */
-		sel.setAlpha(-1);
+		
 		//sel.setMaxDistance(9436);
-		DistPermPrefixFloat<Protein> index = new DistPermPrefixFloat<Protein>(
-				Protein.class, sel,256, 0, 10);
+		RF04PivotSelectorFloat<Protein> sel = new RF04PivotSelectorFloat<Protein>(
+				new AcceptAll<Protein>());
+		sel.setDataSample(400);
+		
+		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
+				sel, 48, 0);
 		index.setExpectedEP(.95f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
 
 		// Create the ambient that will store the index's data.
-		Ambient<Protein, DistPermPrefixFloat<Protein>> a = new AmbientTC<Protein, DistPermPrefixFloat<Protein>>(
+		Ambient<Protein, Sketch64Float<Protein>> a = new AmbientTC<Protein, Sketch64Float<Protein>>(
 				index, indexFolder);
 
 		// Add some random objects to the index:
