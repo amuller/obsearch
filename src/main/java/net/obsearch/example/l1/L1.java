@@ -54,9 +54,9 @@ public class L1 implements OBShort {
 	@Override
 	public void load(byte[] input) throws OBException, IOException {
 		ShortBuffer s = ByteConversion.createByteBuffer(input).asShortBuffer();
-		if(vector == null){
-			vector = new short[input.length / ByteConstants.Short.getSize()];
-		}
+
+		vector = new short[input.length / ByteConstants.Short.getSize()];
+
 		s.get(vector);
 	}
 
