@@ -227,7 +227,7 @@ public abstract class AbstractPivotOBIndex < O extends OB >
      * @return The number of pivots used in this index.
      */
     public int getPivotCount(){
-        return pivots.length;
+        return pivotCount;
     }
     
     

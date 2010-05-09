@@ -38,6 +38,7 @@ import net.obsearch.ob.OB${Type};
 import net.obsearch.result.OBPriorityQueue${Type};
 import net.obsearch.result.OBResult${Type};
 import net.obsearch.index.utils.StatsUtil;
+import net.obsearch.exception.PivotsUnavailableException;
 
 import java.util.HashSet;
 import java.util.Iterator;

@@ -74,7 +74,7 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 	/**
 	 * Number of pivotCount in the bucket.
 	 */
-	private int pivotCount;
+	private final static int pivotCount = 0;
 
 	/**
 	 * The list of pivot objects;
@@ -110,7 +110,7 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 	 *            number of pivotCount to use.
 	 */
 	public SleekBucket${Type}(Class<O> type, int pivots) {
-		this.pivotCount = pivots;
+		//this.pivotCount = pivots;
 		this.type = type;
 		this.pivots = new ArrayList<BucketObject${Type}<O>>(pivotCount);
 		objects = new ArrayList<BucketObject${Type}<O>>(count);
@@ -602,7 +602,7 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 
 	@Override
 	public void setPivots(int pivots) {
-		this.pivotCount = pivots;
+			//this.pivotCount = pivots;
 	}
 
 	@Override
