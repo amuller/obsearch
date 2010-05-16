@@ -194,19 +194,17 @@ public class SwissProtDemo extends AbstractGHSExample {
 
 		// make the bit set as short so that m objects can fit in the
 		// buckets.
-		/*
-		 * Ky0Float<Protein> index = new
-		 * Ky0Float<Protein>( Protein.class, sel, 256, 0);
-		 */
-		
+	
+			
 		//sel.setMaxDistance(9436);
 		RF04PivotSelectorFloat<Protein> sel = new RF04PivotSelectorFloat<Protein>(
 				new AcceptAll<Protein>());
-		sel.setDataSample(400);
+		sel.setDataSample(100);
+		//sel.setRepetitions(100);
 		
 		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
-				sel, 48, 0);
-		index.setExpectedEP(.95f);
+				sel, 64, 0);
+		index.setExpectedEP(1.50f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });

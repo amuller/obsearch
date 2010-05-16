@@ -256,7 +256,6 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				return result.isFull();
 		}
 
-		
 
 		public  double recall(List<AbstractOBResult<O>> perfectQuery){
 				int hits = 0;
@@ -311,6 +310,25 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				return epAux(dbin) * (1 / (double)getResult().getSize());
 		}
 
+		
+				/**
+	 * Calculate the 1 + E  or (c for Adonis et al) for approx. nearest neighbor
+	 * This is the approximation and "real" is the real result.
+	 * @param q
+	 * @return
+	 * @throws RAException
+	 */
+		public double approx(${type}[] dbin) throws OBException {
+
+				List<OBResult${Type}<O>> query = getResult().getSortedElements();
+		// get the last guys
+		if(! this.isFull()){
+			return Double.MAX_VALUE;
+		}
+		
+		int last = query.size() - 1;
+		return (query.get(last).getDistance()) / dbin[last];
+	}
 
 		/**
      * Calculate the EP value for a sorted list of distances.

@@ -62,14 +62,14 @@
 	</echo>
 
 </target>
-<target name="exampleGHSFull" depends="maven">	
-	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
+<target name="exampleVectors" depends="maven">	
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
 	</java>
 </target>
 
 <target name="create" depends="maven">	
-	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
 <!--<jvmarg value="-XXcompressedRefs"/>-->
 <jvmarg value="-ea"/>
@@ -81,9 +81,9 @@
 <arg value="-dbsrc"/>
 <arg value="${indexSource}"/>
 <arg value="-dbsize"/>
-<arg value="100000"/>
+<arg value="1000"/>
 <arg value="-ep"/>
-<arg value="0.0001"/>
+<arg value="1.5"/>
 	</java>
 </target>
 
@@ -100,7 +100,7 @@
 
 
 <target name="search" depends="maven">	
-	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
 <!-- <jvmarg value="-XXcompressedRefs"/> -->
 <arg value="-m"/>
@@ -176,14 +176,6 @@
 </target>
 
 
-<target name="wikiCreateKy0" depends="init,maven">
-  <antcall target="create">
-    <param name="className" value="net.obsearch.example.doc.WikipediaDemoKy0"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
-  </antcall>
-</target>
-
 <target name="wikiCreateSmap" depends="init,maven">
   <antcall target="create">
     <param name="className" value="net.obsearch.example.doc.WikipediaDemoSmap"/>
@@ -193,13 +185,7 @@
 </target>
 
 
-<target name="wikiCreateRinRin" depends="init,maven">
-  <antcall target="create">
-    <param name="className" value="net.obsearch.example.doc.WikipediaDemoRinRin"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
-  </antcall>
-</target>
+
 
 
 
@@ -230,20 +216,6 @@
 </target>
 
 
-<target name="vectorCreateRinRin" depends="init,maven">
-  <antcall target="create">
-    <param name="className" value="net.obsearch.example.vectors.VectorsDemoRinRin"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
-  </antcall>
-</target>
-
-<target name="vectorIntrinsicKy0" depends="init,maven">
-  <antcall target="intrinsic">
-		<param name="className" value="net.obsearch.example.vectors.VectorsDemoKy0"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-  </antcall>
-</target>
 
 <target name="proteinIntrinsic" depends="init,maven">
   <antcall target="intrinsic">
@@ -252,21 +224,6 @@
   </antcall>
 </target>
 
-<target name="vectorIntrinsicRinRin" depends="init,maven">
-  <antcall target="intrinsic">
-		<param name="className" value="net.obsearch.example.vectors.VectorsDemoRinRin"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-  </antcall>
-</target>
-
-
-<target name="vectorCreateKy0" depends="init,maven">
-  <antcall target="create">
-    <param name="className" value="net.obsearch.example.vectors.VectorsDemoKy0"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
-  </antcall>
-</target>
 
 
 <target name="proteinSearch" depends="init,maven">
@@ -285,13 +242,7 @@
   </antcall>
 </target>
 
-<target name="vectorSearchKy0" depends="init,maven">
-  <antcall target="search">
-		<param name="className" value="net.obsearch.example.vectors.VectorsDemoKy0"/>
-    <param name="indexFolder" value="${databaseSource}/vector/"/>
-		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
-  </antcall>
-</target>
+
 
 <target name="vectorSearchGHS" depends="init,maven">
   <antcall target="search">

@@ -120,9 +120,7 @@ public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > 
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof AbstractOBPriorityQueue)) {
-            return false;
-        }
+
         final AbstractOBPriorityQueue < O > o = (AbstractOBPriorityQueue < O >) obj;
 
         if (this.getSize() != o.getSize()) {
