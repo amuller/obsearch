@@ -50,7 +50,16 @@ public final class CBitVector extends BitVector{
 		return res;
 	}
 	
-	
+	// perform an xor with the other bit vector
+	public int xorOther(CBitVector other){
+		final long[] theBits = this.bits; // cached for speed.
+		final long[] otherBits = other.bits; //cached for speed.
+		int res = 0;
+		for(int i=theBits.length; --i >= 0;) {
+			res += Long.bitCount(theBits[i] ^ otherBits[i]);
+		}		
+		return res;
+	}
 	
 	public byte[] store(){
 		ByteBuffer b = ByteConversion.createByteBuffer(ByteConstants.Long.getSize() * bits.length);

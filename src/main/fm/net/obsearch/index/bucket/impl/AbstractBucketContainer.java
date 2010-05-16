@@ -186,7 +186,8 @@ import net.obsearch.constants.ByteConstants;
 										while(pr.hasNext()){
 												TupleBytes t = pr.next();
 												cmp.read(ByteConversion.createByteBuffer(t.getValue()), getPivots());
-												if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){
+												// bucket.compareTo(cmp) == 0 && 
+												if(index.getObject(cmp.getId()).distance(object) == 0){
 														res.setStatus(Status.OK);
 														res.setId(cmp.getId());
 														pr.remove();
@@ -276,7 +277,8 @@ import net.obsearch.constants.ByteConstants;
 						while(pr.hasNext()){
 								TupleBytes t = pr.next();
 								cmp.read(ByteConversion.createByteBuffer(t.getValue()), getPivots());
-								if(bucket.compareTo(cmp) == 0 && index.getObject(cmp.getId()).distance(object) == 0){						
+								//bucket.compareTo(cmp) == 0 && 
+								if(index.getObject(cmp.getId()).distance(object) == 0){						
 										res.setStatus(Status.EXISTS);							
 										res.setId(cmp.getId());
 										break;

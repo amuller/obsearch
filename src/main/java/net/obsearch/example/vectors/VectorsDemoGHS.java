@@ -17,6 +17,7 @@ import net.obsearch.exception.NotFrozenException;
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.ghs.impl.Sketch64Float;
 import net.obsearch.index.ghs.impl.Sketch64Long;
 
 import net.obsearch.index.utils.Directory;
@@ -25,8 +26,11 @@ import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
 import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
 import net.obsearch.pivots.rf03.RF03PivotSelectorLong;
 import net.obsearch.pivots.rf03.RF03PivotSelectorShort;
+import net.obsearch.pivots.rf04.RF04PivotSelectorFloat;
+import net.obsearch.query.OBQueryFloat;
 import net.obsearch.query.OBQueryLong;
 
+import net.obsearch.result.OBPriorityQueueFloat;
 import net.obsearch.result.OBPriorityQueueLong;
 import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
@@ -45,16 +49,17 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		
 		// Create the pivot selection strategy
-		RF03PivotSelectorLong<L1Long> sel = new RF03PivotSelectorLong<L1Long>(new AcceptAll<L1Long>());
+		RF04PivotSelectorFloat<L1Float> sel = new RF04PivotSelectorFloat<L1Float>(new AcceptAll<L1Float>());
 		sel.setDataSample(400);
-		sel.setRepetitions(400);
+		
 		
 		//sel.setDesiredDistortion(0.10);
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		// create an index.
-	    Sketch64Long<L1Long> index = new Sketch64Long<L1Long>(L1Long.class, sel, 256, 0);
-	    index.setExpectedEP(EP);
+		// Choose pivot sizes that are multiples of 64 to optimize the space
+	    Sketch64Float<L1Float> index = new Sketch64Float<L1Float>(L1Float.class, sel, 256, 0);
+	    index.setExpectedEP(1.40);
 	    index.setSampleSize(100);
 	    index.setKAlpha(ALPHA);
 	    // select the ks that the user will call.
@@ -64,13 +69,13 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
 		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
 	    //Ambient<L1, Sketch64Short<L1>> a =  new AmbientMy<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
-    	Ambient<L1Long, Sketch64Long<L1Long>> a =  new AmbientTC<L1Long, Sketch64Long<L1Long>>( index, INDEX_FOLDER );
+    	Ambient<L1Float, Sketch64Float<L1Float>> a =  new AmbientTC<L1Float, Sketch64Float<L1Float>>( index, INDEX_FOLDER );
 		
 		// Add some random objects to the index:	
 		logger.info("Adding " + DB_SIZE + " objects...");
 		int i = 0;		
 		while(i < DB_SIZE){
-			index.insert(generateLongVector());
+			index.insert(generateFloatVector());
 			if(i % 100000 == 0){
 				logger.info("Loading: " + i);
 			}
@@ -95,14 +100,14 @@ public class VectorsDemoGHS extends VectorsDemo {
 		i = 0;
 		index.resetStats(); // reset the stats counter
 		long start = System.currentTimeMillis();
-		List<OBPriorityQueueLong<L1Long>> queryResults = new ArrayList<OBPriorityQueueLong<L1Long>>(QUERY_SIZE);
-		List<L1Long> queries = new ArrayList<L1Long>(QUERY_SIZE);
+		List<OBPriorityQueueFloat<L1Float>> queryResults = new ArrayList<OBPriorityQueueFloat<L1Float>>(QUERY_SIZE);
+		List<L1Float> queries = new ArrayList<L1Float>(QUERY_SIZE);
 		while(i < QUERY_SIZE){
-			L1Long q = 	generateLongVector();	
+			L1Float q = 	generateFloatVector();	
 			// query the index with k=1			
-			OBPriorityQueueLong<L1Long> queue = new OBPriorityQueueLong<L1Long>(1);			
+			OBPriorityQueueFloat<L1Float> queue = new OBPriorityQueueFloat<L1Float>(1);			
 			// perform a query with r=3000000 and k = 1 
-			index.searchOB(q, Long.MAX_VALUE, queue);
+			index.searchOB(q, Float.MAX_VALUE, queue);
 			queryResults.add(queue);
 			queries.add(q);
 			
@@ -120,20 +125,20 @@ public class VectorsDemoGHS extends VectorsDemo {
 		StaticBin1D ep = new StaticBin1D();
 		
 
-		Iterator<OBPriorityQueueLong<L1Long>> it1 = queryResults.iterator();
-		Iterator<L1Long> it2 = queries.iterator();
+		Iterator<OBPriorityQueueFloat<L1Float>> it1 = queryResults.iterator();
+		Iterator<L1Float> it2 = queries.iterator();
 		StaticBin1D seqTime = new StaticBin1D();
 		i = 0;
 		while(it1.hasNext()){
-			OBPriorityQueueLong<L1Long> qu = it1.next();
-			L1Long q = it2.next();
+			OBPriorityQueueFloat<L1Float> qu = it1.next();
+			L1Float q = it2.next();
 			long time = System.currentTimeMillis();
-			long[] sortedList = index.fullMatchLite(q, false);
+			float[] sortedList = index.fullMatchLite(q, false);
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " "  + i);
-			OBQueryLong<L1Long> queryObj = new OBQueryLong<L1Long	>(q, Long.MAX_VALUE, qu, null);
-			ep.add(queryObj.ep(sortedList));
+			OBQueryFloat<L1Float> queryObj = new OBQueryFloat<L1Float	>(q, Float.MAX_VALUE, qu, null);
+			ep.add(queryObj.approx(sortedList));
 			i++;
 		}
 		

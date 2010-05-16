@@ -60,12 +60,12 @@ public class VectorsDemo {
 	/**
 	 * Dimension of the vectors.
 	 */
-	final static int VEC_SIZE = 1000;
+	final static int VEC_SIZE = 20;
 	
 	/**
 	 * Database size.
 	 */
-	final static int DB_SIZE = 100000;
+	final static int DB_SIZE = 1000000;
 	
 	/**
 	 * FREEZE size
@@ -85,8 +85,8 @@ public class VectorsDemo {
 	 * Index folder
 	 */
 	
-	// final static File INDEX_FOLDER = new File("." + File.separator + "index");
-	final static File INDEX_FOLDER = new File("/media/AR_LAB/index_GHS");
+	final static File INDEX_FOLDER = new File("." + File.separator + "index");
+	//final static File INDEX_FOLDER = new File("target/");
 	
 	final static Random r = new Random();
 	
@@ -124,6 +124,18 @@ public static L1Long generateLongVector(){
 		
 		return new L1Long(data);
 	}
+
+public static L1Float generateFloatVector(){				
+	
+	float[] data = new float[VEC_SIZE];		
+	int i = 0;			
+	while(i < data.length){
+		data[i] = r.nextFloat();
+		i++;
+	}
+	
+	return new L1Float(data);
+}
 	
 	public static void init() throws IOException{
 		
@@ -131,8 +143,7 @@ public static L1Long generateLongVector(){
 				File.separator + "obsearch.properties");
 		Properties props = new Properties();
 		props.load(is);
-		String prop = props.getProperty("log4j.file");
-		PropertyConfigurator.configure(prop);
+		
 	}
 
 	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
