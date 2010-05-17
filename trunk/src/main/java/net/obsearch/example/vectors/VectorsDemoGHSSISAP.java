@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Random;
 
 import net.obsearch.ambient.Ambient;
-import net.obsearch.ambient.my.AmbientMy;
+
 import net.obsearch.ambient.tc.AmbientTC;
 import net.obsearch.example.AbstractExampleGeneral;
 import net.obsearch.example.AbstractGHSExample;

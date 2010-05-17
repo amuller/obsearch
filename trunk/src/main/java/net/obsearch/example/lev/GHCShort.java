@@ -7,9 +7,9 @@ import java.util.logging.Logger;
 
 import org.kohsuke.args4j.Option;
 
-import net.obsearch.ambient.my.AmbientMy;
+
 import net.obsearch.ambient.tc.AmbientTC;
-import net.obsearch.example.vectors.VectorsDemo;
+
 import net.obsearch.exception.OBException;
 import net.obsearch.exception.OBStorageException;
 import net.obsearch.exception.PivotsUnavailableException;

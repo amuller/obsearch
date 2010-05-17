@@ -50,7 +50,7 @@ import net.obsearch.storage.OBStoreLong;
 import net.obsearch.storage.TupleBytes;
 import net.obsearch.storage.TupleLong;
 import net.obsearch.storage.OBStorageConfig.IndexType;
-import net.obsearch.storage.cuckoo.CuckooEntry;
+
 import net.obsearch.utils.Pair;
 import net.obsearch.utils.bytes.ByteConversion;
 
