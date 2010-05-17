@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 
 import net.obsearch.index.utils.Directory;
 import net.obsearch.index.utils.TUtils;
-import net.obsearch.storage.cuckoo.MyFactory;
+
 import net.obsearch.storage.tc.TCFactory;
 
 public class Utils extends TestCase {
@@ -29,10 +29,7 @@ public class Utils extends TestCase {
 		return fact;
 	}
 
-	public static MyFactory getFactoryMy() throws Exception {
-		MyFactory fact = new MyFactory(init());
-		return fact;
-	}
+	
 
 	private static File init() throws IOException {
 		File dbFolder = new File(TUtils.getTestProperties().getProperty(

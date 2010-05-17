@@ -15,7 +15,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import net.obsearch.ambient.Ambient;
 
 import net.obsearch.ambient.bdb.AmbientBDBJe;
-import net.obsearch.ambient.my.AmbientMy;
+
 import net.obsearch.ambient.tc.AmbientTC;
 import net.obsearch.example.AbstractExampleGeneral;
 import net.obsearch.example.AbstractGHSExample;
