@@ -61,11 +61,11 @@ implements Index${Type}<O> {
 	 * @throws IOException
 	 */
 	public Sketch64${Type}(Class<O> type,
-			IncrementalPairPivotSelector<O> pivotSelector, int m, int bucketPivotCount
+			IncrementalPairPivotSelector<O> pivotSelector, int m
 			)												
 			throws OBStorageException, OBException, IOException {
 		
-		super(type, pivotSelector,  m, bucketPivotCount);
+		super(type, pivotSelector,  m, 0);
 		
 	}
 	

@@ -54,7 +54,7 @@ public class VectorsDemoPer extends VectorsDemo {
 		//sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 	    DistPermLong<L1Long> index = new DistPermLong<L1Long>(L1Long.class, sel, 128, 0);
-	    index.setExpectedEP(EP);
+	    index.setExpectedError(EP);
 	    index.setSampleSize(100);
 	    index.setKAlpha(ALPHA);
 	    // select the ks that the user will call.

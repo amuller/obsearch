@@ -203,8 +203,8 @@ public class SwissProtDemo extends AbstractGHSExample {
 		//sel.setRepetitions(100);
 		
 		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
-				sel, 64, 0);
-		index.setExpectedEP(1.50f);
+				sel, 64);
+		index.setExpectedError(1.50f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });

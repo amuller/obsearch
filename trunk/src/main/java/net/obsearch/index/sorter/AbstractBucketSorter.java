@@ -253,15 +253,13 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	protected abstract int getCPSize();
 
 	/**
-	 * Set the expected ep for the k estimation process. We will search for the
-	 * number of buckets required to satisfy a value less than ep for a k-nn
-	 * query.
+	 * Set the expected NN error
 	 * 
 	 * @param ep
 	 *            CompoundError value.
 	 * 
 	 */
-	public void setExpectedEP(double ep) {
+	public void setExpectedError(double ep) {
 		this.expectedEP = ep;
 	}
 

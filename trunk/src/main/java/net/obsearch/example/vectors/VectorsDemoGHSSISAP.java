@@ -64,8 +64,8 @@ public class VectorsDemoGHSSISAP extends AbstractGHSExample {
 		// sel.setDesiredSpread(.70);
 		// make the bit set as short so that m objects can fit in the buckets.
 		Sketch64Float<OBVectorFloat> index = new Sketch64Float<OBVectorFloat>(OBVectorFloat.class,
-				sel, 48, 0);
-		index.setExpectedEP(.95f);
+				sel, 48);
+		index.setExpectedError(.95f);
 		index.setSampleSize(100);
 		index.setKAlpha(alpha);
 		// select the ks that the user will call.

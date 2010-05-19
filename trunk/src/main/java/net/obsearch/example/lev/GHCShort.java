@@ -45,8 +45,8 @@ public abstract class GHCShort<O extends OBShort>
 		RF02PivotSelectorShort<O> sel = new RF02PivotSelectorShort<O>(
 				new AcceptAll<O>());
 		// make the bit set as short so that m objects can fit in the buckets.
-		Sketch64Short<O> index = new Sketch64Short<O>(obtainClass(), sel, 16, 0);
-		index.setExpectedEP(ep);
+		Sketch64Short<O> index = new Sketch64Short<O>(obtainClass(), sel, 16);
+		index.setExpectedError(ep);
 		index.setSampleSize(100);
 		index.setMaxK(new int[] { 1, 3, 10, 50 });
 
