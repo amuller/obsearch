@@ -174,7 +174,6 @@ public class IndexSmokeTUtil<O extends OBShort> {
 
     /**
      * Test method for
-     * {@link net.obsearch.result.index.AbstractPivotIndex#insertObjectInDatabase(net.obsearch.result.OB, int, com.sleepycat.je.Database)}.
      * Creates a database, fills it with data. Performs several queries and
      * compares the result with the sequential search.
      * @param index

@@ -325,16 +325,20 @@
           <range>120</range>
         </configuration>
       </plugin>
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+
+<!--
 
 
 			<plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<excludePackageNames>index.rosa:net.obsearch.pivots.muller2*:net.obsearch.example.*:shogi:netflix:netflixob:net.obsearch.index.rosa*</excludePackageNames>
-				</configuration>
+        <artifactId>maven-javadoc-plugin</artifactId>			
       </plugin>
-
+-->
 <!--
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -372,6 +376,7 @@
       </plugin>
 -->
 
+<!--
 			<plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>taglist-maven-plugin</artifactId>
@@ -381,6 +386,7 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>jdepend-maven-plugin</artifactId>
        </plugin>
+-->
 
 <!--			  
 Would be cool to use this.
