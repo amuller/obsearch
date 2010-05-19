@@ -51,24 +51,26 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// Create the pivot selection strategy
 		RF04PivotSelectorFloat<L1Float> sel = new RF04PivotSelectorFloat<L1Float>(new AcceptAll<L1Float>());
 		sel.setDataSample(400);
-		
-		
-		//sel.setDesiredDistortion(0.10);
-		//sel.setDesiredSpread(.70);
+						
 		// make the bit set as short so that m objects can fit in the buckets.
 		// create an index.
 		// Choose pivot sizes that are multiples of 64 to optimize the space
-	    Sketch64Float<L1Float> index = new Sketch64Float<L1Float>(L1Float.class, sel, 256, 0);
-	    index.setExpectedEP(1.40);
-	    index.setSampleSize(100);
+	    Sketch64Float<L1Float> index = new Sketch64Float<L1Float>(L1Float.class, sel, 256);
+	    // error expected 
+	    index.setExpectedError(1.40);
+	    // small if you are planning to insert a lot of objects!
+	    index.setSampleSize(100); 
+	    // Probability of returning an error within 1.40 times the real distance
+	    // (measured in standard deviations) (3 means a prob. of 0.99)
 	    index.setKAlpha(ALPHA);
-	    // select the ks that the user will call.
-	    index.setMaxK(new int[]{1});	    
+	    
+	    // select the ks that the user will call. 
+	    // This example will only be called with k=1
+	    index.setMaxK(new int[]{1});	  
+	    // little optimization that can help if your objects are of the same size.
 	    index.setFixedRecord(true);
     	index.setFixedRecord(VEC_SIZE*4);
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-		//Ambient<L1, Sketch64Short<L1>> a =  new AmbientBDBDb<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
-	    //Ambient<L1, Sketch64Short<L1>> a =  new AmbientMy<L1, Sketch64Short<L1>>( index, INDEX_FOLDER );
     	Ambient<L1Float, Sketch64Float<L1Float>> a =  new AmbientTC<L1Float, Sketch64Float<L1Float>>( index, INDEX_FOLDER );
 		
 		// Add some random objects to the index:	
@@ -86,14 +88,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		logger.info("Preparing the index...");
 		a.freeze();
 		logger.info("YAY! stats: " + index.getStats());
-		// add the rest of the objects
-		/*while(i < DB_SIZE){
-			index.insert(generateVector());
-			if(i % 100000 == 0){
-				logger.info("Loading: " + i);
-			}
-			i++;
-		}*/
+		
 		
 		// now we can match some objects!		
 		logger.info("Querying the index...");
@@ -106,7 +101,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 			L1Float q = 	generateFloatVector();	
 			// query the index with k=1			
 			OBPriorityQueueFloat<L1Float> queue = new OBPriorityQueueFloat<L1Float>(1);			
-			// perform a query with r=3000000 and k = 1 
+			// perform a query with a large range and k = 1 
 			index.searchOB(q, Float.MAX_VALUE, queue);
 			queryResults.add(queue);
 			queries.add(q);
@@ -120,8 +115,8 @@ public class VectorsDemoGHS extends VectorsDemo {
 		logger.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
 		logger.info(index.getStats().toString());
 
-		
-		logger.info("Doing CompoundError validation");
+		// now we validate the result of the search
+		logger.info("Doing Error validation");
 		StaticBin1D ep = new StaticBin1D();
 		
 

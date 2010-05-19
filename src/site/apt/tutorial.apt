@@ -1,229 +1,279 @@
 A 20 minute tutorial
 ~~~~~~~~~~~~~~~~~~~~
 
-	This quick tutorial will show how to use OBSearch on a single computer.
+	This quick tutorial will show how to use OBSearch.
 
 	What you need first is to know the object you want to store.
-You also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This function d compares objects and tells you how "far" or "close" they are from each other. 
+You may also need a distance function d that satisfies the {{{http://en.wikipedia.org/wiki/Triangle_inequality}triangle inequality}}. This is not a requirement for the GHS index. This function d compares objects and tells you how "far" or "close" they are from each other. 
 
 	So we will store vectors of 100 dimensions, and we will calculate the
 {{{http://en.wikipedia.org/wiki/Distance}1-norm}} distance on them!
 
-	The following code shows 6 things that OBSearch needs in order to be able to retrieve and compare objects. 
+	The following code shows how to create an OB object. 
 
 ----------------------------------------
 
+package net.obsearch.example.vectors;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+
+
+
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.constants.ByteConstants;
 import net.obsearch.exception.OBException;
+import net.obsearch.ob.OBFloat;
 import net.obsearch.ob.OBInt;
-// our class implements OBInt because our distance returns ints.
-public class L1 implements OBInt {
-  
- /**
-  * 1) Actual data.
-  */
-  private short[] vector;
-  
- /**
-  * 2) Default constructor is required by OBSearch.
-  */
-  public L1(){
-     // required by OBSearch
-  }
-  
-
- /**
-  * Additional constructors can be created to make your life easier.
-  * (OBSearch does not use them)
-  */
-  public L1(short[] vector){
-    this.vector = vector;
-  }
+import net.obsearch.ob.OBLong;
+import net.obsearch.ob.OBShort;
+import net.obsearch.utils.bytes.ByteConversion;
 
 
-
- /**
-  * 3) 1-norm distance function. A casting error can happen here, but we
-  * don't check it for efficiency reasons.
-  * @param object
-  *            The object to compare.
-  * @return The distance between this and object.
-  * @throws OBException
-  *             if something goes wrong. But nothing should be wrong in this
-  *             function.
-  */
-  @Override
-  public int distance(OBInt object) throws OBException {
-    L1 other = (L1)object;
-    int i = 0;
-    int res = 0;
-    OBAsserts.chkAssert(vector.length == other.vector.length, "Vector size mismatch");
-    while(i < vector.length){
-      res += Math.abs(vector[i] - other.vector[i]);
-      i++;
-    }
-    OBAsserts.chkAssert(res <= Integer.MAX_VALUE, "max value exceeded");
-    return res; 
-  }
-
- /**
-  * 4) Load method. Loads the data into this object. This is analogous to
-  * object de-serialization.
-  * @param in
-  *            Byte array with all the data that has to be loaded into this
-  *            object.
-  */
-  @Override
-  public void load(byte[] input) throws OBException, IOException {
-    ShortBuffer s = ByteBuffer.wrap(input).asShortBuffer();
-    vector = new short[input.length / ByteConstants.Short.getSize()];
-    s.get(vector);
-  }
-
- /**
-  * 5) Store method. Write the contents of the object into a byte array
-  * Think of it as Java's object serialization but done manually for performance reasons.
-  * @param out
-  *            Stream where we will store this object.
-  */
-  @Override
-  public byte[] store() throws OBException, IOException {
-    ByteBuffer b = ByteBuffer.allocate(ByteConstants.Short.getSize() * vector.length);
-    ShortBuffer s = b.asShortBuffer();
-    s.put(vector);
-    return b.array();
-  }
-
-  /**
-  * 6) Equals method, just as java's collections require it, OBSearch also uses it
-  *    when doing maintenance operations (inserts, deletes)
-  * @param out
-  *            Stream where we will store this object.
-  */ 
-  public boolean equals(Object o){
-		L1 another = (L1)o;
+public class L1Float implements OBFloat {
+	
+	private float[] vector;
+	
+	public L1Float(){
+		// required by OBSearch
+	}
+	
+	/**
+	 * Construct an object from an array.
+	 * @param vector
+	 */
+	public L1Float(float[] vector){
+		this.vector = vector;
+	}
+	/**
+	 * Parses a string with numbers separated by spaces
+	 * @param data
+	 */
+	public L1Float(String data)throws OBException{
+		String[] split = data.split("[ |,]");
+		vector = new float[split.length];
+		//OBAsserts.chkAssert(vector.length == 64, "Size wrong for vector: " + vector.length);
+		
 		int i = 0;
-		if(this.vector.length != another.vector.length){
-			return false;
-		}
-		while(i < vector.length){
-			if(vector[i] != another.vector[i]){
-				return false;
-			}
+		for(String s : split){
+			vector[i] = Float.parseFloat(s);
 			i++;
 		}
-		return true;
+	}
+
+	@Override
+	public float distance(OBFloat object) throws OBException {
+		L1Float other = (L1Float)object;
+		int i = 0;
+		float res = 0;
+		OBAsserts.chkAssert(vector.length == other.vector.length, "Vector size mismatch");
+		while(i < vector.length){
+			res += Math.abs(vector[i] - other.vector[i]);
+			i++;
+		}
+		OBAsserts.chkAssert(res <= Long.MAX_VALUE, "max value exceeded");
+		return res; 
+	}
+
+	@Override
+	public void load(byte[] input) throws OBException, IOException {
+		FloatBuffer s = ByteConversion.createByteBuffer(input).asFloatBuffer();
+		vector = new float[input.length / ByteConstants.Float.getSize()];
+		s.get(vector);		
+	}
+	
+	/**
+     * 6) Equals method. Implementation of the equals method is required. A
+     * casting error can happen here, but we don't check it for efficiency
+     * reasons.
+     * @param object
+     *            The object to compare.
+     * @return true if this and object are equal.
+     */
+    public final boolean equals(final Object object) {
+        L1Float o = (L1Float) object;
+        return Arrays.equals(vector, o.vector);
+    }
+
+
+
+	@Override
+	public byte[] store() throws OBException, IOException {
+		ByteBuffer b = ByteConversion.createByteBuffer(ByteConstants.Float.getSize() * vector.length);
+		FloatBuffer s = b.asFloatBuffer();
+		s.put(vector);
+		return b.array();		
 	}
 
 }
+
 ----------------------------------------
 
-	Now you have an object that OBSearch can use for matching.
-
-* To create a new index:
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-	OBSearch uses properties of the triangle inequality to speed up the searching process. First, we have to select a set of n pivots from the database.
-There are several selection strategies, please see the Javadocs for more information. The following strategy is very popular:
+	Now you can insert objects in an index and retrieve them.
 
 ---
 
-IncrementalBustosNavarroChavezInt<L1> sel = new IncrementalBustosNavarroChavezInt<L1>(new AcceptAll<L1>(), 5000, 1000);
-				
----
+package net.obsearch.example.vectors;
 
-  Now that we have a pivot selector, we can create the index:
+import hep.aida.bin.StaticBin1D;
 
----
-// Create an instance of the IDistance method
-IDistanceIndexInt<L1> index = new IDistanceIndexInt<L1>(L1.class, sel, 126);
----
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-  We must create an "ambient" that encapsulates the storage devices of the index. We will use
-  Berkeley DB Java edition for this example:
+import net.obsearch.ambient.Ambient;
 
----
-// Create the ambient that will store the index's data. (NOTE: folder name is hard-coded)
-// We bind the index to the ambient with the following constructor:
-Ambient<L1, IDistanceIndexInt<L1>> a =  new AmbientBDBJe<L1, IDistanceIndexInt<L1>>( index, INDEX_FOLDER );
----
+import net.obsearch.ambient.bdb.AmbientBDBJe;
 
-* To insert an object:
-~~~~~~~~~~~~~~~~~~~~~~
+import net.obsearch.ambient.tc.AmbientTC;
+import net.obsearch.exception.NotFrozenException;
+import net.obsearch.exception.OBException;
+import net.obsearch.exception.OBStorageException;
+import net.obsearch.exception.PivotsUnavailableException;
+import net.obsearch.index.ghs.impl.Sketch64Float;
+import net.obsearch.index.ghs.impl.Sketch64Long;
 
-   You will have to give OBSearch a bunch of objects. OBSearch will analyze these objects and optimize its index when enough data has been added.	You decide when you have given OBSearch "enough" objects.
+import net.obsearch.index.utils.Directory;
+import net.obsearch.pivots.AcceptAll;
+import net.obsearch.pivots.bustos.impl.IncrementalBustosNavarroChavezShort;
+import net.obsearch.pivots.rf02.RF02PivotSelectorShort;
+import net.obsearch.pivots.rf03.RF03PivotSelectorLong;
+import net.obsearch.pivots.rf03.RF03PivotSelectorShort;
+import net.obsearch.pivots.rf04.RF04PivotSelectorFloat;
+import net.obsearch.query.OBQueryFloat;
+import net.obsearch.query.OBQueryLong;
 
----
-// Create your object (load it from a file)
-// using your constructor
-L1 o = new L1(data);
-// insert the object
-OperationStatus result = index.insert(o);
----
+import net.obsearch.result.OBPriorityQueueFloat;
+import net.obsearch.result.OBPriorityQueueLong;
+import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultShort;
 
-
-* To freeze an index:
-~~~~~~~~~~~~~~~~~~~~~
+public class VectorsDemoGHS extends VectorsDemo {
 	
-	OBSearch has to get some sample data before it can efficiently
-retrieve objects. This process is called "freezing".  Note that after a freeze you can still insert and 
-delete items. After a freeze you can start searching the index and not before.
-Note that we freeze the Ambient because we need to store the meta-data of the index somewhere
-and only the Ambient knows how to do this.
+	
+	
+	
+	public static void main(String args[]) throws FileNotFoundException, OBStorageException, NotFrozenException, IllegalAccessException, InstantiationException, OBException, IOException, PivotsUnavailableException {
+		
+		init();
+		
+		// Delete the directory of the index just in case.
+		Directory.deleteDirectory(INDEX_FOLDER);
+		
+		
+		// Create the pivot selection strategy
+		RF04PivotSelectorFloat<L1Float> sel = new RF04PivotSelectorFloat<L1Float>(new AcceptAll<L1Float>());
+		sel.setDataSample(400);
+						
+		// make the bit set as short so that m objects can fit in the buckets.
+		// create an index.
+		// Choose pivot sizes that are multiples of 64 to optimize the space
+	    Sketch64Float<L1Float> index = new Sketch64Float<L1Float>(L1Float.class, sel, 256);
+	    // error expected 
+	    index.setExpectedError(1.40);
+	    // small if you are planning to insert a lot of objects!
+	    index.setSampleSize(100); 
+	    // Probability of returning an error within 1.40 times the real distance
+	    // (measured in standard deviations) (3 means a prob. of 0.99)
+	    index.setKAlpha(ALPHA);
+	    
+	    // select the ks that the user will call. 
+	    // This example will only be called with k=1
+	    index.setMaxK(new int[]{1});	  
+	    // little optimization that can help if your objects are of the same size.
+	    index.setFixedRecord(true);
+    	index.setFixedRecord(VEC_SIZE*4);
+		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
+    	Ambient<L1Float, Sketch64Float<L1Float>> a =  new AmbientTC<L1Float, Sketch64Float<L1Float>>( index, INDEX_FOLDER );
+		
+		// Add some random objects to the index:	
+		logger.info("Adding " + DB_SIZE + " objects...");
+		int i = 0;		
+		while(i < DB_SIZE){
+			index.insert(generateFloatVector());
+			if(i % 100000 == 0){
+				logger.info("Loading: " + i);
+			}
+			i++;
+		}
+		
+		// prepare the index
+		logger.info("Preparing the index...");
+		a.freeze();
+		logger.info("YAY! stats: " + index.getStats());
+		
+		
+		// now we can match some objects!		
+		logger.info("Querying the index...");
+		i = 0;
+		index.resetStats(); // reset the stats counter
+		long start = System.currentTimeMillis();
+		List<OBPriorityQueueFloat<L1Float>> queryResults = new ArrayList<OBPriorityQueueFloat<L1Float>>(QUERY_SIZE);
+		List<L1Float> queries = new ArrayList<L1Float>(QUERY_SIZE);
+		while(i < QUERY_SIZE){
+			L1Float q = 	generateFloatVector();	
+			// query the index with k=1			
+			OBPriorityQueueFloat<L1Float> queue = new OBPriorityQueueFloat<L1Float>(1);			
+			// perform a query with a large range and k = 1 
+			index.searchOB(q, Float.MAX_VALUE, queue);
+			queryResults.add(queue);
+			queries.add(q);
+			
+			i++;
+		}
+		// print the results of the set of queries. 
+		long elapsed = System.currentTimeMillis() - start;
+		logger.info("Time per query: " + elapsed / QUERY_SIZE + " millisec.");
+		
+		logger.info("Stats follow: (total distances / pivot vectors computed during the experiment)");
+		logger.info(index.getStats().toString());
 
----
-a.freeze();
----
+		// now we validate the result of the search
+		logger.info("Doing Error validation");
+		StaticBin1D ep = new StaticBin1D();
+		
 
-* To delete an object:
-~~~~~~~~~~~~~~~~~~~~~~
+		Iterator<OBPriorityQueueFloat<L1Float>> it1 = queryResults.iterator();
+		Iterator<L1Float> it2 = queries.iterator();
+		StaticBin1D seqTime = new StaticBin1D();
+		i = 0;
+		while(it1.hasNext()){
+			OBPriorityQueueFloat<L1Float> qu = it1.next();
+			L1Float q = it2.next();
+			long time = System.currentTimeMillis();
+			float[] sortedList = index.fullMatchLite(q, false);
+			long el = System.currentTimeMillis() - time;
+			seqTime.add(el);
+			logger.info("Elapsed: " + el + " "  + i);
+			OBQueryFloat<L1Float> queryObj = new OBQueryFloat<L1Float	>(q, Float.MAX_VALUE, qu, null);
+			ep.add(queryObj.approx(sortedList));
+			i++;
+		}
+		
+		logger.info(ep.toString());
+		logger.info("Time per seq query: ");
+		logger.info(seqTime.toString());
+		
+	}
 
----
-// Create your object (load it from a file)
-// using your constructor
-L1 o = new L1(data);
-OperationStatus result = index.delete(o);
----
-
-* Search for similar objects:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	You just need to decide the amount of items you want (k) and a range (r).
-
----
-
-// query the index with k=1			
-OBPriorityQueueInt<L1> queue = new OBPriorityQueueInt<L1>(1);			
-// perform a query with r=3000000 and k = 1 
-index.searchOB(q, 3000000, queue);
-// You can iterate "result".
-Iterator<OBResultInt<L1>> it =  queue.iterator();
-while(it.hasNext()){
-  OBResultInt<L1> res = it.next(); 
-  L1 answerObject = res.getObject(); // get the answer object
-  long id = res.getId(); // the id of the answer object
-  int distance = res.getDistance(); // the distance of the object to the query
 }
----
 
-
-* Running the Example
-~~~~~~~~~~~~~
-
-  You can download the L1 class from {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/net/obsearch/example/vectors/L1.java}here}}. A class that initializes and queries the index can be downloaded from {{{http://obsearch.googlecode.com/svn/trunk/src/main/java/net/obsearch/example/vectors/VectorsDemo.java}here}}.
-  To run the example, {{{download.html}download}} the latest version of OBSearch. If you are a <<SISAP 2009 reviewer>>, you can download the jar from {{{http://obsearch.net/download}here}}.
-
+				
   To run the previous demo simply do:
 
 ---
 
-java -classpath obsearch-with-dependencies.jar net.obsearch.example.vectors.VectorsDemo
+java -classpath obsearch-with-dependencies.jar net.obsearch.example.vectors.VectorsDemoGHS
 
 ---
 

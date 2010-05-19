@@ -155,10 +155,10 @@ public class WikipediaDemoRF04 extends AbstractGHSExample {
 				OBTanimoto.class, sel, 256, 0);
 		*/
 		Sketch64Float<OBTanimoto> index = new Sketch64Float<OBTanimoto>(OBTanimoto.class,
-				sel, 64, 0);
+				sel, 64);
 
 		
-		index.setExpectedEP(.95f);
+		index.setExpectedError(.95f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
 		index.setMaxK(new int[] { 1 });
