@@ -1,3 +1,4 @@
+package net.obsearch.index.perm;
 import java.io.IOException;
 
 import net.obsearch.OB;
