@@ -84,6 +84,7 @@ print "svn copy https://obsearch.googlecode.com/svn/trunk/ https://obsearch.goog
 
 sub uploadFileToGoogleCode {
 		my($file) = @_;
+		print "Uploading file: $file \n";
 		my $comment;
 		if($file =~ /bin/){
 				$comment = "binary";
@@ -98,14 +99,14 @@ sub uploadFileToGoogleCode {
 				$comment = "source";
 		}
     
-		my $md5 = sum($file,"md5");
-		my $sha1 = sum($file,"sha1");
+		my $md5 = sum($file,"md5sum");
+		my $sha1 = sum($file,"sha1sum");
 		$sfile = $file;
 		#file without the prefix dir
 		$sfile =~ s/[.]\/target\///g;
     print "$sfile $md5 $sha1\n";
 		$fileMsg =  "$fileMsg\n$md5 $sha1 $sfile";
-		my $cmd = "python googlecode_upload.py  --summary=$comment -p obsearch -l $md5,$sha1  --config-dir=./.svn -u $user -w $password $file";
+		my $cmd = "python googlecode_upload.py  --summary=$comment -p obsearch -l $md5,$sha1  -u $user -w $password $file";
 		shell($cmd);
     
 }
