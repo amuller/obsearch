@@ -149,6 +149,7 @@ svn copy https://obsearch.googlecode.com/svn/trunk/ \
  mvn assembly:assembly
 
 
+
  Berlios notes
  ----------
  help on berlios can be found here:
