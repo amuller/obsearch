@@ -78,7 +78,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		logger.info("Querying the index...");
 		int i = 0;
 
-		index.setKAlpha(0f);
+		index.setKAlpha(3f);
 		long start = System.currentTimeMillis();
 		List<OBPriorityQueueFloat<Protein>> queryResults = new ArrayList<OBPriorityQueueFloat<Protein>>(
 				querySize);
@@ -206,7 +206,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		//sel.setRepetitions(100);
 		
 		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
-				sel, 64);
+				sel, 256);
 		index.setExpectedError(1.50f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
