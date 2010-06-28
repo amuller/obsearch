@@ -171,7 +171,7 @@
   <antcall target="create">
     <param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
     <param name="indexFolder" value="${databaseSource}/protein/"/>
-		<param name="indexSource" value="/home/amuller/swiss2/data.fasta.randomized.db"/>
+		<param name="indexSource" value="/home/amuller/swiss2/uniprot_sprot.fasta.db"/>
   </antcall>
 </target>
 
@@ -230,7 +230,7 @@
   <antcall target="search">
 		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
     <param name="indexFolder" value="${databaseSource}/protein/"/>
-		<param name="querySource" value="/home/amuller/swiss2/data.fasta.randomized.q"/>
+		<param name="querySource" value="/home/amuller/swiss2/uniprot_sprot.fasta.q"/>
   </antcall>
 </target>
 
