@@ -15,7 +15,7 @@ public  class OBString implements OBShort {
 	}
 	
 	public OBString(String x) throws OBException{
-		OBAsserts.chkAssert(x.length() < Short.MAX_VALUE, "Cannot exceed: " + Short.MAX_VALUE);
+		//OBAsserts.chkAssert(x.length() < Short.MAX_VALUE, "Cannot exceed: " + Short.MAX_VALUE);
 		this.str = x;
 	}
 	
