@@ -118,6 +118,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		StaticBin1D rde = new StaticBin1D();
 		StaticBin1D precision = new StaticBin1D();
 		StaticBin1D compound = new StaticBin1D();
+		StaticBin1D adonis = new StaticBin1D();
 
 		Iterator<OBPriorityQueueFloat<Protein>> it1 = queryResults
 				.iterator();
@@ -137,6 +138,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 			ep.add(queryObj.ep(sortedList));
 			rde.add(queryObj.rde(sortedList));
 			precision.add(queryObj.precision(sortedList));
+			adonis.add(queryObj.approx(sortedList));
 			double comp = queryObj.compound(sortedList);
 			if(comp > 1){
 				 comp = queryObj.compound(sortedList);
@@ -156,6 +158,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		logger.info("RDE: " + rde.mean());
 		logger.info("Precision: " + precision.mean());
 		logger.info("Compound: " + compound.mean());
+		logger.info("Adonis: " + adonis);
 	}
 
 	protected void intrinsic() throws IllegalIdException,
@@ -217,7 +220,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		logger.info("Adding " + databaseSize + " objects...");
 		int i = 0;
 		Protein line = read(dbData);
-		while (line != null && i < databaseSize) {			
+		while (line != null ) {			
 			index.insert(line);			
 			line = read(dbData);
 			if (i % 100000 == 0) {

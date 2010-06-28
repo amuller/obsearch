@@ -10,7 +10,7 @@
 <target name="init">
 	<property name="anttask" value="maven-ant-tasks-2.1.0.jar"/>
 	<property name="jardownloadlocation" value="http://mirror.netcologne.de/apache.org/maven/binaries/"/>
-	<property name="destlocation" value="${ant.home}/lib/"/>
+	<property name="destlocation" value="."/>
 	
 	<property name="cls" value="target/classes/"/>
 	<!-- System related properties -->
