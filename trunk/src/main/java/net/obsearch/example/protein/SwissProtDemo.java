@@ -49,6 +49,7 @@ import net.obsearch.query.OBQueryFloat;
 import net.obsearch.query.OBQueryShort;
 import net.obsearch.result.OBPriorityQueueFloat;
 import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultFloat;
 import net.obsearch.result.OBResultShort;
 
 public class SwissProtDemo extends AbstractGHSExample {
@@ -67,9 +68,11 @@ public class SwissProtDemo extends AbstractGHSExample {
 	protected Protein read(BufferedReader qData) throws IOException, OBException{
 		String id = qData.readLine();
 		if(id == null){return null;}
-		String protein = qData.readLine();
-		if(protein == null){return null;}		
-		return new Protein(id, protein);
+		String[] parse = id.split("<<:\\)>>");
+		return new Protein(parse[0], parse[1]);
+		//String protein = qData.readLine();
+		//if(protein == null){return null;}		
+		//return new Protein(id, protein);
 	}
 
 	protected void search() throws OBStorageException, NotFrozenException,
@@ -98,13 +101,16 @@ public class SwissProtDemo extends AbstractGHSExample {
 			line = read(qData);
 			// query the index with k=1
 			OBPriorityQueueFloat<Protein> queue = new OBPriorityQueueFloat<Protein>(
-					1);
+					k);
 			// perform a query with r=3000000 and k = 1
 			index.searchOB(q, Float.MAX_VALUE, queue);
-			logger.info("Query: " + q.getId() + " found: \n"
-					+ queue.getSortedElements().get(0).getObject().getId()
-					+ " dist: "
-					+ queue.getSortedElements().get(0).getDistance());
+			logger.info("**** Query: " + q.getId() + " found: \n");
+			StringBuilder b = new StringBuilder();
+			for(OBResultFloat<Protein> p : queue.getSortedElements()){
+				b.append(p.getObject().getId());
+				b.append("\n");
+			}
+			logger.info(b.toString());
 			queryResults.add(queue);
 			queries.add(q);
 
@@ -207,11 +213,11 @@ public class SwissProtDemo extends AbstractGHSExample {
 		//sel.setMaxDistance(9436);
 		RF04PivotSelectorFloat<Protein> sel = new RF04PivotSelectorFloat<Protein>(
 				new AcceptAll<Protein>());
-		sel.setDataSample(400);
+		sel.setDataSample(100);
 		//sel.setRepetitions(100);
 		
 		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
-				sel, 1024);
+				sel, 64);
 		index.setExpectedError(2f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
