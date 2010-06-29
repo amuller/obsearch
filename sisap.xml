@@ -81,7 +81,7 @@
 <arg value="-dbsrc"/>
 <arg value="${indexSource}"/>
 <arg value="-dbsize"/>
-<arg value="10000"/>
+<arg value="600000"/>
 <arg value="-ep"/>
 <arg value="1.5"/>
 	</java>
