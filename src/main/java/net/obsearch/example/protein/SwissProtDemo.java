@@ -213,11 +213,11 @@ public class SwissProtDemo extends AbstractGHSExample {
 		//sel.setMaxDistance(9436);
 		RF04PivotSelectorFloat<Protein> sel = new RF04PivotSelectorFloat<Protein>(
 				new AcceptAll<Protein>());
-		sel.setDataSample(100);
+		sel.setDataSample(400);
 		//sel.setRepetitions(100);
 		
 		Sketch64Float<Protein> index = new Sketch64Float<Protein>(Protein.class,
-				sel, 64);
+				sel, 1024);
 		index.setExpectedError(2f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
