@@ -109,6 +109,8 @@
 <arg value="${indexFolder}"/>
 <arg value="-qsrc"/>
 <arg value="${querySource}"/>
+<arg value="-k"/>
+<arg value="${k}"/>
 	</java>
 </target>
 
@@ -171,7 +173,7 @@
   <antcall target="create">
     <param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
     <param name="indexFolder" value="${databaseSource}/protein/"/>
-		<param name="indexSource" value="/home/amuller/swiss2/uniprot_sprot.fasta.db"/>
+		<param name="indexSource" value="/home/amuller/swiss3/data.fasta.db/"/>
   </antcall>
 </target>
 
@@ -230,7 +232,7 @@
   <antcall target="search">
 		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
     <param name="indexFolder" value="${databaseSource}/protein/"/>
-		<param name="querySource" value="/home/amuller/swiss2/uniprot_sprot.fasta.q"/>
+		<param name="querySource" value="/home/amuller/swiss3/data.fasta.q"/>
   </antcall>
 </target>
 

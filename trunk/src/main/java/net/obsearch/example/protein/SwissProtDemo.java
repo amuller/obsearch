@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 import net.obsearch.ambient.Ambient;
 
@@ -51,6 +52,10 @@ import net.obsearch.result.OBPriorityQueueShort;
 import net.obsearch.result.OBResultShort;
 
 public class SwissProtDemo extends AbstractGHSExample {
+	
+	
+	@Option(name = "-k", usage = "Alpha used during search time", aliases = { "--k_nn" })
+	protected int k = 1;
 
 	public SwissProtDemo(String args[]) throws IOException, OBStorageException,
 			OBException, IllegalAccessException, InstantiationException,
@@ -210,7 +215,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		index.setExpectedError(2f);
 		index.setSampleSize(100);
 		// select the ks that the user will call.
-		index.setMaxK(new int[] { 1 });
+		index.setMaxK(new int[] { 1, 20 });
 
 		// Create the ambient that will store the index's data.
 		Ambient<Protein, Sketch64Float<Protein>> a = new AmbientTC<Protein, Sketch64Float<Protein>>(
@@ -220,7 +225,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 		logger.info("Adding " + databaseSize + " objects...");
 		int i = 0;
 		Protein line = read(dbData);
-		while (line != null ) {			
+		while (line != null && i <= databaseSize ) {			
 			index.insert(line);			
 			line = read(dbData);
 			if (i % 100000 == 0) {

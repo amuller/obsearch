@@ -40,12 +40,12 @@ public abstract class AbstractExampleGeneral {
 	 * Database max size
 	 */
 	@Option(name = "-dbsize", usage = "Size of the DB", aliases = { "--database_size" })
-	protected int databaseSize = 10000;
+	protected int databaseSize = 10000000;
 	/**
 	 * Query count.
 	 */
 	@Option(name = "-query_size", usage = "Number of queries to execute", aliases = { "--query_size" })
-	protected int querySize = 100;
+	protected int querySize = 2000;
 	/**
 	 * Help message
 	 */
