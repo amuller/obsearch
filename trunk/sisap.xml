@@ -15,7 +15,7 @@
 	<property name="cls" value="target/classes/"/>
 	<!-- System related properties -->
 	
-	<property name="memory" value="3000"/>
+	<property name="memory" value="5000"/>
    
   <property name="project.build.directory" value="target"/>
 
