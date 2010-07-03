@@ -145,13 +145,15 @@ public class SwissProtDemo extends AbstractGHSExample {
 			float[] sortedList = index.fullMatchLite(q, false);
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
-			logger.info("Elapsed: " + el + " " + i + " " + adonis );	
+			
 			OBQueryFloat<Protein> queryObj = new OBQueryFloat<Protein>(q,
 					Float.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep(sortedList));
 			rde.add(queryObj.rde(sortedList));
 			precision.add(queryObj.precision(sortedList));
-			adonis.add(queryObj.approx(sortedList));
+			double app = queryObj.approx(sortedList);
+			adonis.add(app);
+			logger.info("Elapsed: " + el + " " + i + " " + adonis + " \n app: "+ app);	
 			double comp = queryObj.compound(sortedList);
 			if(comp > 1){
 				 comp = queryObj.compound(sortedList);
