@@ -45,7 +45,7 @@ public abstract class AbstractExampleGeneral {
 	 * Query count.
 	 */
 	@Option(name = "-query_size", usage = "Number of queries to execute", aliases = { "--query_size" })
-	protected int querySize = 10;
+	protected int querySize = 2000;
 	/**
 	 * Help message
 	 */
