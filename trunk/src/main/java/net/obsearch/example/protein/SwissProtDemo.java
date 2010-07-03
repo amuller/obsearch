@@ -145,7 +145,7 @@ public class SwissProtDemo extends AbstractGHSExample {
 			float[] sortedList = index.fullMatchLite(q, false);
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
-			logger.info("Elapsed: " + el + " " + i);
+			logger.info("Elapsed: " + el + " " + i + " " + adonis );	
 			OBQueryFloat<Protein> queryObj = new OBQueryFloat<Protein>(q,
 					Float.MAX_VALUE, qu, null);
 			ep.add(queryObj.ep(sortedList));
