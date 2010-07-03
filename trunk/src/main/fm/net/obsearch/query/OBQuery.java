@@ -327,7 +327,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 		}
 		
 		int last = query.size() - 1;
-		return (query.get(last).getDistance()) / dbin[last];
+		return Math.abs((query.get(last).getDistance()) / dbin[last]);
 	}
 
 		/**
