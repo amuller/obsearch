@@ -108,6 +108,8 @@ public class SwissProtDemo extends AbstractGHSExample {
 			StringBuilder b = new StringBuilder();
 			for(OBResultFloat<Protein> p : queue.getSortedElements()){
 				b.append(p.getObject().getId());
+				b.append("Dist: ");
+				b.append(p.getDistance());
 				b.append("\n");
 			}
 			logger.info(b.toString());
