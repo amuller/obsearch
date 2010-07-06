@@ -4,9 +4,10 @@ import java.io.IOException;
 
 import net.obsearch.asserts.OBAsserts;
 import net.obsearch.exception.OBException;
+import net.obsearch.ob.OBInt;
 import net.obsearch.ob.OBShort;
 
-public  class OBString implements OBShort {
+public  class OBString implements OBInt {
 	
 	protected String str;
 	
@@ -24,7 +25,7 @@ public  class OBString implements OBShort {
 	}
 
 	@Override
-	public short distance(OBShort object) throws OBException {
+	public int distance(OBInt object) throws OBException {
 		OBString o = (OBString) object;
 		int d[][];
 	    int n; 
@@ -81,7 +82,7 @@ public  class OBString implements OBShort {
 	      }
 
 
-	      return (short)d[n][m];
+	      return d[n][m];
 	}
 	
 	private int min (int a, int b, int c) {

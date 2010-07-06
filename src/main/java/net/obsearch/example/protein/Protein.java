@@ -7,6 +7,7 @@ import net.obsearch.constants.ByteConstants;
 import net.obsearch.example.lev.OBString;
 import net.obsearch.exception.OBException;
 import net.obsearch.ob.OBFloat;
+import net.obsearch.ob.OBInt;
 import net.obsearch.ob.OBShort;
 import net.obsearch.utils.bytes.ByteConversion;
 
@@ -24,7 +25,7 @@ public class Protein extends OBString  implements OBFloat{
 	}
 	@Override
 	public float distance(OBFloat object) throws OBException {
-		return (float) super.distance((OBShort) object);
+		return (float) super.distance((OBInt) object);
 	}
 	@Override
 	public void load(byte[] input) throws OBException, IOException {
