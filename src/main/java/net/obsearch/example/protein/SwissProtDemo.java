@@ -234,15 +234,18 @@ public class SwissProtDemo extends AbstractGHSExample {
 		// Add some random objects to the index:
 		logger.info("Adding " + databaseSize + " objects...");
 		int i = 0;
+		StaticBin1D proteinSizes = new StaticBin1D();
 		Protein line = read(dbData);
 		while (line != null && i <= databaseSize ) {			
-			index.insert(line);			
+			index.insert(line);		
+			proteinSizes.add(line.length());
 			line = read(dbData);
 			if (i % 100000 == 0) {
 				logger.info("Loading: " + i);
 			}
 			i++;
 		}
+		logger.info("Protein size stats: " + proteinSizes);
 
 		// prepare the index
 		logger.info("Preparing the index... size: " + index.databaseSize());
