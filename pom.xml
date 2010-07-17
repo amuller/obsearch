@@ -4,7 +4,7 @@
   <groupId>org.ajmm.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9.9</version>
+  <version>0.9.9a</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description> OBSearch is a similarity search engine.
