@@ -33,6 +33,7 @@ import net.obsearch.query.OBQueryLong;
 import net.obsearch.result.OBPriorityQueueFloat;
 import net.obsearch.result.OBPriorityQueueLong;
 import net.obsearch.result.OBPriorityQueueShort;
+import net.obsearch.result.OBResultFloat;
 import net.obsearch.result.OBResultShort;
 
 public class VectorsDemoGHS extends VectorsDemo {
@@ -50,7 +51,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		
 		// Create the pivot selection strategy
 		RF04PivotSelectorFloat<L1Float> sel = new RF04PivotSelectorFloat<L1Float>(new AcceptAll<L1Float>());
-		sel.setDataSample(400);
+		sel.setDataSample(100);
 						
 		// make the bit set as short so that m objects can fit in the buckets.
 		// create an index.
@@ -104,6 +105,11 @@ public class VectorsDemoGHS extends VectorsDemo {
 			// perform a query with a large range and k = 1 
 			index.searchOB(q, Float.MAX_VALUE, queue);
 			queryResults.add(queue);
+			for(OBResultFloat<L1Float> f : queue.getSortedElements()){
+				// check that the id makes sense
+				assert index.getObject(f.getId()).equals(f.getObject());
+				logger.info("Distance: " + f.getId() + " " + f.getDistance());
+			}
 			queries.add(q);
 			
 			i++;

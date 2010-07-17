@@ -484,7 +484,7 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 			if (query.isCandidate(lowerBound) && (filter == null || filter.accept(db.getObject(), query.getObject()))) {
 				${type} distance = query.getObject().distance(db.getObject());
 				stats.incDistanceCount();
-				query.add(-1, db.getObject(), distance);
+				query.add(db.getId(), db.getObject(), distance);
 			}
 		}
 	}

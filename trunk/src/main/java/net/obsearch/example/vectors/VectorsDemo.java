@@ -78,7 +78,7 @@ public class VectorsDemo {
 
 	final static float EP = 0.0001f;
 
-	final static float ALPHA = 1f;
+	final static float ALPHA = 3f;
 
 	/**
 	 * Index folder
