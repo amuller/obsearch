@@ -95,6 +95,8 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				this(object, ${ClassType}.MAX_VALUE, result);
 		}
 
+		
+
 		/**
 		 * Returns true if the given rectangle collides
      * with this query.
@@ -223,6 +225,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
     *             If there is a problem when instantiating objects O
     */
     public boolean add(long id, O obj, ${type} d) throws InstantiationException, IllegalAccessException {
+				if(d <= currentRange()){
 				boolean res = result.add(id,obj,d);
 				${type} temp = result.updateRange(query.getDistance());
 				if(temp != query.getDistance()){
@@ -239,6 +242,18 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 						updateRectangle();
         }
 				return res;
+				}else{
+						return false;
+				}
+		}
+
+		private ${type} currentRange(){
+				if(result.getSize() == result.getK()){
+						assert result.peek().getDistance() <= query.getDistance();
+						return (${type})Math.min(query.getDistance(), result.peek().getDistance());
+				}else{
+						return query.getDistance();
+				}
 		}
 
 		/**
@@ -323,7 +338,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 				List<OBResult${Type}<O>> query = getResult().getSortedElements();
 		// get the last guys
 		if(! this.isFull()){
-			return Double.MAX_VALUE;
+				return 1;
 		}
 		
 		int last = query.size() - 1;

@@ -88,9 +88,9 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// prepare the index
 		logger.info("Preparing the index...");
 		a.freeze();
-		logger.info("YAY! stats: " + index.getStats());
+		logger.info("Index stats: " + index.getStats());
 		
-		
+		float range = 2.5f;
 		// now we can match some objects!		
 		logger.info("Querying the index...");
 		i = 0;
@@ -103,12 +103,13 @@ public class VectorsDemoGHS extends VectorsDemo {
 			// query the index with k=1			
 			OBPriorityQueueFloat<L1Float> queue = new OBPriorityQueueFloat<L1Float>(1);			
 			// perform a query with a large range and k = 1 
-			index.searchOB(q, Float.MAX_VALUE, queue);
+			index.searchOB(q, range , queue);
 			queryResults.add(queue);
 			for(OBResultFloat<L1Float> f : queue.getSortedElements()){
 				// check that the id makes sense
 				assert index.getObject(f.getId()).equals(f.getObject());
 				logger.info("Distance: " + f.getId() + " " + f.getDistance());
+				assert f.getDistance() <= range;
 			}
 			queries.add(q);
 			
@@ -138,7 +139,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 			long el = System.currentTimeMillis() - time;
 			seqTime.add(el);
 			logger.info("Elapsed: " + el + " "  + i);
-			OBQueryFloat<L1Float> queryObj = new OBQueryFloat<L1Float	>(q, Float.MAX_VALUE, qu, null);
+			OBQueryFloat<L1Float> queryObj = new OBQueryFloat<L1Float	>(q, range, qu, null);
 			ep.add(queryObj.approx(sortedList));
 			i++;
 		}

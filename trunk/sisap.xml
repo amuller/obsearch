@@ -65,6 +65,7 @@
 <target name="exampleVectors" depends="maven">	
 	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
 <jvmarg value="-Xmx${memory}M" />
+<jvmarg value="-ea" />
 	</java>
 </target>
 
