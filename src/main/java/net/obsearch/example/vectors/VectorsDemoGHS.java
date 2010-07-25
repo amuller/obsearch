@@ -58,12 +58,12 @@ public class VectorsDemoGHS extends VectorsDemo {
 		// Choose pivot sizes that are multiples of 64 to optimize the space
 	    Sketch64Float<L1Float> index = new Sketch64Float<L1Float>(L1Float.class, sel, 256);
 	    // error expected 
-	    index.setExpectedError(1.40);
+	    index.setExpectedError(1);
 	    // small if you are planning to insert a lot of objects!
 	    index.setSampleSize(100); 
 	    // Probability of returning an error within 1.40 times the real distance
 	    // (measured in standard deviations) (3 means a prob. of 0.99)
-	    index.setKAlpha(ALPHA);
+	    index.setKAlpha(4);
 	    
 	    // select the ks that the user will call. 
 	    // This example will only be called with k=1
@@ -90,7 +90,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 		a.freeze();
 		logger.info("Index stats: " + index.getStats());
 		
-		float range = 2.5f;
+		float range = 100f;
 		// now we can match some objects!		
 		logger.info("Querying the index...");
 		i = 0;

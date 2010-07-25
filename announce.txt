@@ -9,12 +9,12 @@ You can download it from:
 http://code.google.com/p/obsearch/downloads/list
 
 
-md5sum:ac21268a535492fcbf4ab178ee56b834 sha1sum:68341149664546bf552877210b0893906e711599 obsearch-0.9.9-bin.tar.gz
-md5sum:7105aa4973d2b38914acfe90a45f0cc6 sha1sum:1bf1af576ce072c6d29bf1cc2c393cc2e7f924bf obsearch-0.9.9-bin.zip
-md5sum:8115bd901298641afd4fc15f9aec6fdf sha1sum:60697564559cc50be6667e7b500b211fc3f263cd obsearch-0.9.9.jar
-md5sum:2bf5ce1bb6eb53a2ba4041bbc3a61cde sha1sum:08d40fea477914cf14db085c0410696266b99dd9 obsearch-0.9.9-jar-with-dependencies.jar
-md5sum:2017e2848db85a1b2b7585707e50d7fa sha1sum:795fd5323586cd9a25adf51a37e32f6913ba5d9e obsearch-0.9.9-src.tar.gz
-md5sum:ee5e0b0b5e75e91301196429e2fd1918 sha1sum:b6c32ac5e337c699a09f93c7e698e91bfdb77f64 obsearch-0.9.9-src.zip
+md5sum:4c28ad4a6fde500cc46687c5f4775f4a sha1sum:cffb7423c115720785809af90a95764a82f34c3e obsearch-0.9.9b-bin.tar.gz
+md5sum:24748818e65bc6086448d2df1d7acf0e sha1sum:036fd7e9c130bd20091007dee767713c691ffe2f obsearch-0.9.9b-bin.zip
+md5sum:5d956ed22a075ae85f09d5ee04bc2465 sha1sum:69b39c630e3ace75fe19a0e64fdf8399cf6e1784 obsearch-0.9.9b.jar
+md5sum:4d0a8c111957cefc793634a4769d3f0f sha1sum:af83bde7b4381b2a9443b9b86f6ec6bcb163d197 obsearch-0.9.9b-jar-with-dependencies.jar
+md5sum:9da6428dfe425bb784454eb6d5143b33 sha1sum:6038ef83e766f223f825830aa78ac710959fa5fd obsearch-0.9.9b-src.tar.gz
+md5sum:33714d5cfb21ad86ae4e9983f02e85d9 sha1sum:d1c906e382eb5fb9fa9af2631c885d24eec5c967 obsearch-0.9.9b-src.zip
 
 Please send any bug reports to:
 http://code.google.com/p/obsearch/issues/list
