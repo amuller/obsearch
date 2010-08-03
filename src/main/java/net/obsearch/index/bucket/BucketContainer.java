@@ -95,7 +95,11 @@ public interface BucketContainer<O extends OB, B extends BucketObject, Q> {
 			) throws OBException, IllegalIdException,
 			IllegalAccessException, InstantiationException;
 
-	
+	/**
+	 * Return the object list!
+	 * @return
+	 */
+	List<B> getObjects();
 
 	/**
 	 * Returns true if the object and its bucket definition exist in this

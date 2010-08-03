@@ -30,6 +30,7 @@ import hep.aida.bin.StaticBin1D;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -104,7 +105,54 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 		return getObject(idMap(id, elementSource));
 
 	}
+	
+	/**
+	 * Useful iterator for buckets.
+	 * @return
+	 * @throws OBException 
+	 * @throws OBStorageException 
+	 */
+	public Iterator<BC> iterateBuckets() throws OBStorageException, OBException{
+		return new BucketIterator(Buckets.processAll());
+	}
+	
+	
+	protected class BucketIterator implements Iterator<BC>{
+		
+		private CloseIterator<TupleBytes> iter;
+		
+		public BucketIterator(CloseIterator<TupleBytes> iter){
+			this.iter = iter;
+		}
 
+		@Override
+		public boolean hasNext() {
+			return iter.hasNext();
+		}
+
+		@Override
+		public BC next() {
+			TupleBytes t = iter.next();
+			try{
+				BC bc = instantiateBucketContainer(t.getValue(), t.getKey());
+				if(! iter.hasNext()){ // close the cursor.
+					iter.closeCursor();
+				}
+				return bc;
+			}catch(Exception e){
+				throw new IllegalArgumentException(e);
+			}
+			
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
 	/**
 	 * Returns the bucket information for the given object.
 	 * 

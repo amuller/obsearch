@@ -249,7 +249,7 @@ public final class OBQuery${Type}<O extends OB${Type}> extends AbstractOBQuery<O
 
 		private ${type} currentRange(){
 				if(result.getSize() == result.getK()){
-						assert result.peek().getDistance() <= query.getDistance();
+						//						assert result.peek().getDistance() <= query.getDistance();
 						return (${type})Math.min(query.getDistance(), result.peek().getDistance());
 				}else{
 						return query.getDistance();

@@ -132,6 +132,14 @@ import net.obsearch.constants.ByteConstants;
 						}
 
 						/**
+	 * Return the object list!
+	 * @return
+	 */
+	public List<B> getObjects(){
+		return null;
+	}
+
+						/**
 						 * Appends value to the end of the given key.
 						 */
 						private byte[] buildKey(byte[] key, B bucket){
