@@ -116,6 +116,11 @@ public class SleekBucket${Type}<O extends OB${Type}> implements
 		objects = new ArrayList<BucketObject${Type}<O>>(count);
 	}
 
+
+	public List<BucketObject${Type}<O>> getObjects(){
+			return objects;
+	}
+
 	/**
 	 * Create a new SleekBucket based on the given data.
 	 * 

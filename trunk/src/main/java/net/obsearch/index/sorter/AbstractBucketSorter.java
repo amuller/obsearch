@@ -287,6 +287,9 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 */
 	protected void maxKEstimation() throws IllegalIdException, OBException,
 			IllegalAccessException, InstantiationException {
+		if(userK.length == 0){
+			return;
+		}
 		kEstimators = new StaticBin1D[getMaxK().length];
 		logger.fine("Max k estimation");
 		int i = 0;
@@ -455,9 +458,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 				projectionStorage.put(i, bucketId);
 				masks.add(new MaskHolder(bucketId, i, b));		
 				b.setObject(null);
-				if(i % 100 == 0){
-					logger.info("Doing: " + i);
-				}
+
 				i++;
 			}
 			logger.info("Sorting " + masks.size() + " masks...");
