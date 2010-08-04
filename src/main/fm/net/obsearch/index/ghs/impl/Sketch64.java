@@ -180,6 +180,7 @@ implements Index${Type}<O> {
 		getStats().addExtraStats("Buckets_search_time", System.currentTimeMillis() - time);
 		for(SketchProjection bucket: sortedBuckets){
 				SleekBucket${Type}<O> container = this.bucketCache.get(bucket.getAddress());
+        //SleekBucket${Type}<O> container = this.instantiateBucketContainer(this.Buckets.getValue(bucket.getAddress()), bucket.getAddress());
 			stats.incBucketsRead();
 			container.search(q, b, filter, getStats());															
 		}
@@ -256,7 +257,8 @@ implements Index${Type}<O> {
 			
 			for (SketchProjection result : sortedBuckets) {
 				
-				SleekBucket${Type}<O> container = this.bucketCache.get(result.getAddress());
+					SleekBucket${Type}<O> container = this.bucketCache.get(result.getAddress());
+					//SleekBucket${Type}<O> container = this.instantiateBucketContainer(this.Buckets.getValue(result.getAddress()), result.getAddress());
 				// search the objects
 				assert container != null : "Problem while loading: " + result.getSketch();
 				container.search(query, b, fne, getStats());
