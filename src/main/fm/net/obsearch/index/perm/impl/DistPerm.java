@@ -50,11 +50,7 @@ public class DistPerm${Type}<O extends OB${Type}> extends AbstractDistPerm<O, Bu
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	protected PermProjection calculateDistance(PermProjection query,
-			CompactPerm proj) {
-		return query.distance(proj);
-	}
+
 
 	@Override
 	protected int getCPSize() {

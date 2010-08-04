@@ -26,7 +26,7 @@ public class FixedPriorityQueue<O extends Comparable<O>> implements Comparator<O
 	
 	
 	public void add(O e) {
-		if(q.size() == k){
+		if(isFull()){
 			if(q.peek().compareTo(e) > 0){
 				// greatest element bigger than our element
 				q.poll();
@@ -38,6 +38,9 @@ public class FixedPriorityQueue<O extends Comparable<O>> implements Comparator<O
 		
 	}
 
+	public boolean isFull(){
+		return q.size() == k;
+	}
 
 
 	public boolean offer(O e) {

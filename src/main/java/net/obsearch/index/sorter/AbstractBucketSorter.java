@@ -190,7 +190,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	 * @param query
 	 * @return
 	 */
-	protected abstract P calculateDistance(P query, CP proj);
+	protected abstract void updateDistance(P query, CP proj,FixedPriorityQueue<P> queue );
 
 	/**
 	 * Search the f closest buckets to the given query. We drop the distance
@@ -211,8 +211,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		loadMasks();
 		FixedPriorityQueue<P> queue = new FixedPriorityQueue<P>(maxF);
 		for (CP p : this.projections) {
-			P result = calculateDistance(query, p);
-			queue.add(result);
+			updateDistance(query, p, queue);			
 		}
 		return queue.getSortedData();
 	}

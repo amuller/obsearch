@@ -51,7 +51,7 @@ public final class CBitVector extends BitVector{
 	}
 	
 	// perform an xor with the other bit vector
-	public int xorOther(CBitVector other){
+	public int hamming(CBitVector other){
 		final long[] theBits = this.bits; // cached for speed.
 		final long[] otherBits = other.bits; //cached for speed.
 		int res = 0;

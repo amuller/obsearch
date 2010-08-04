@@ -206,6 +206,15 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 		}
 		f.close();
 	}
+	
+	@Override
+	protected void updateDistance(SketchProjection query,
+			CBitVector proj, FixedPriorityQueue<SketchProjection> queue) {
+			int distance = query.hamming(proj);
+			if(! queue.isFull() || distance < queue.peek().getDistance() ){								
+				queue.add(new SketchProjection(null, proj, distance, null));
+			}			
+	}
 
 	private void sketchStats() throws OBStorageException {
 		if (HEIGHT == 2) {

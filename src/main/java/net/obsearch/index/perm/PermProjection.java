@@ -43,9 +43,18 @@ public class PermProjection implements Projection<PermProjection, CompactPerm> {
 			return 0;
 		}
 	}
+	
+	public int getDistance(){
+		return distance;
+	}
 
 	@Override
 	public PermProjection distance(CompactPerm b) {
+		
+		return new PermProjection(b, sfrDistance(b));
+	}
+	
+	public int sfrDistance(CompactPerm b){
 		int i = 0;
 		int res = 0; 
 		while(i < addr.perm.length){			
@@ -59,7 +68,7 @@ public class PermProjection implements Projection<PermProjection, CompactPerm> {
 			res += Math.abs(i - cx);
 			i++;
 		}
-		return new PermProjection(b, res);
+		return res;
 	}
 	
 	public String toString(){

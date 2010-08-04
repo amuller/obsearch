@@ -63,7 +63,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 	    index.setSampleSize(100); 
 	    // Probability of returning an error within 1.40 times the real distance
 	    // (measured in standard deviations) (3 means a prob. of 0.99)
-	    index.setKAlpha(4);
+	    index.setKAlpha(3);
 	    
 	    // select the ks that the user will call. 
 	    // This example will only be called with k=1
