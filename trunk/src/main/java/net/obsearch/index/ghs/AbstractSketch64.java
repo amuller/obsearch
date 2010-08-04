@@ -211,8 +211,16 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	protected void updateDistance(SketchProjection query,
 			CBitVector proj, FixedPriorityQueue<SketchProjection> queue) {
 			int distance = query.hamming(proj);
-			if(! queue.isFull() || distance < queue.peek().getDistance() ){								
-				queue.add(new SketchProjection(null, proj, distance, null));
+			if(! queue.isFull() || distance < queue.peek().getDistance() ){		
+				if(queue.isFull()){
+					SketchProjection p = queue.poll();
+					p.setSketch(proj);
+					p.setDistance(distance);
+					queue.offer(p);
+				}else{
+					queue.add(new SketchProjection(null, proj, distance, null));
+				}
+				
 			}			
 	}
 

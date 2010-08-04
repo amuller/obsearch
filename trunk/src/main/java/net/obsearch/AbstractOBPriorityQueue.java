@@ -35,7 +35,7 @@ import java.util.PriorityQueue;
  * @since 0.7
  */
 
-public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> > {
+public abstract class AbstractOBPriorityQueue < O extends AbstractOBResult<?> >  implements Iterable<O>{
 	
 	
 

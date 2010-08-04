@@ -48,6 +48,8 @@ public final class SketchProjection implements Projection<SketchProjection, CBit
 		this.distance = distance;
 	}
 	
+	
+	
 	/*public double[] getLowerBounds(){
 		return lowerBounds;
 	}
@@ -56,6 +58,14 @@ public final class SketchProjection implements Projection<SketchProjection, CBit
 		return ordering;
 	}*/
 	
+	public void setDistance(int distance) {
+		this.distance = distance;
+	}
+
+	public void setSketch(CBitVector sketch) {
+		this.sketch = sketch;
+	}
+
 	public int getDistance(){
 		return distance;
 	}
