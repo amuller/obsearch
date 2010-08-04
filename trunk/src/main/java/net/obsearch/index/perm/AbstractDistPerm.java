@@ -13,6 +13,7 @@ import net.obsearch.exception.OutOfRangeException;
 import net.obsearch.exception.PivotsUnavailableException;
 import net.obsearch.index.bucket.BucketContainer;
 import net.obsearch.index.bucket.BucketObject;
+import net.obsearch.index.ghs.FixedPriorityQueue;
 import net.obsearch.index.sorter.AbstractBucketSorter;
 import net.obsearch.pivots.IncrementalPivotSelector;
 import net.obsearch.utils.bytes.ByteConversion;
@@ -43,6 +44,16 @@ public abstract class AbstractDistPerm <O extends OB, B extends BucketObject<O>,
 				i++;
 			}
 			return new CompactPerm(res);
+		}
+		
+		
+		@Override
+		protected void updateDistance(PermProjection query,
+				CompactPerm proj, FixedPriorityQueue<PermProjection> queue) {
+				int distance = query.sfrDistance(proj);
+				if(! queue.isFull() ||  distance < queue.peek().getDistance() ){								
+					queue.add(new PermProjection(proj, distance));
+				}			
 		}
 
 		protected byte[] convertLongToBytesAddress(long bucketId) {

@@ -290,12 +290,7 @@ implements Index${Type}<O> {
 
 
 
-	@Override
-	protected SketchProjection calculateDistance(SketchProjection query,
-			CBitVector proj) {
-		
-			return query.distance(proj);
-	}
+
 
 	@Override
 	protected int getCPSize() {

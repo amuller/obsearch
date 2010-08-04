@@ -116,11 +116,12 @@ public final class SketchProjection implements Projection<SketchProjection, CBit
 	public SketchProjection distance(CBitVector b){
 		
 		assert b.size() == sketch.size();
-		CBitVector hamming = b.copy();
+/*		CBitVector hamming = b.copy();
 		hamming.xor(sketch);
 		
-		int distance = hamming.cardinality();
+		int distance = hamming.cardinality();*/
 		
+		int distance = b.hamming(sketch);
 		/*int i = 0;
 		byte[] ordering = new byte[distance];
 		double[] lowerBounds = new double[b.size() - distance];
@@ -138,6 +139,10 @@ public final class SketchProjection implements Projection<SketchProjection, CBit
 		
 		return new SketchProjection(null, b, distance, null);
 		
+	}
+	
+	public int hamming(CBitVector b){
+		return b.hamming(sketch);
 	}
 
 }
