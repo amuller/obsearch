@@ -1,0 +1,14 @@
+Features
+~~~~~~~~
+
+ * Designed to handle efficiently heavy objects (trees, graphs).
+
+ * The API is compact and easy to understand.
+
+ * Stability and scalability: OBSearch's secondary storage backend is Oracle's Berkeley DB, or Tokyo Cabinet. An extensive test suite makes sure that data integrity is preserved.
+ 
+ * Cutting edge:  We strive to put together the latest algorithms the similarity search community has to offer. 
+ 
+  []
+
+[perezosoUltimateRecortadoWeb.jpg]  

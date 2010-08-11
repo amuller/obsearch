@@ -1,0 +1,30 @@
+
+OBSearch  released.
+
+OBSearch  has been released.
+
+Release highlights:
+
+You can download it from:
+http://code.google.com/p/obsearch/downloads/list
+
+
+md5sum:c86db521c2e162c12938d8c43f4d7b59 sha1sum:e65bca1b354cefe30f5808730354f777f4d1d16a obsearch-0.9.9c-bin.tar.gz
+md5sum:7ef7cb5e2cbead7e3fde95e7a057a984 sha1sum:43a93f38a97ad444914d9c4cc8670f1902d05bf1 obsearch-0.9.9c-bin.zip
+md5sum:c98fe6cac8930cf0b34d44f465e5e4d9 sha1sum:2b033839c3eb5223e0a9c4b418fb3559542c02b0 obsearch-0.9.9c.jar
+md5sum:8ddf03522b4257cf712ecd5dae545a8c sha1sum:3a1c1609799bf1fcc1be2375de0acad45f282f55 obsearch-0.9.9c-jar-with-dependencies.jar
+md5sum:b91ba67855679fd0c95ef01849c71dbf sha1sum:ab027b2951af2d7e855f512c84e8ff756ef89fd8 obsearch-0.9.9c-src.tar.gz
+md5sum:307063117ab10c982c9c481e4979677e sha1sum:747625af45c2441f2c6ef73cebd8c5f67f580d12 obsearch-0.9.9c-src.zip
+
+Please send any bug reports to:
+http://code.google.com/p/obsearch/issues/list
+
+Homepage:
+http://code.google.com/p/obsearch/
+
+Website:
+http://obsearch.berlios.de/
+
+
+Arnoldo Muller
+

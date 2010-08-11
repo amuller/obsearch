@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<!-- This is a convenience script used to run OB's examples 
+     This allows the programmer to control exactly what parameters
+		 are being passed to OB. Using unit tests is not a good idea, as
+		 assertions are always enabled.
+-->
+
+<project name="OBSearchExample" xmlns:artifact="urn:maven-artifact-ant">
+
+<target name="init">
+	<property name="anttask" value="maven-ant-tasks-2.1.0.jar"/>
+	<property name="jardownloadlocation" value="http://mirror.netcologne.de/apache.org/maven/binaries/"/>
+	<property name="destlocation" value="."/>
+	
+	<property name="cls" value="target/classes/"/>
+	<!-- System related properties -->
+	
+	<property name="memory" value="5000"/>
+   
+  <property name="project.build.directory" value="target"/>
+
+
+<!-- 	<property name="databaseSource" value="/home/amuller/DB_SOURCE/"/> -->
+
+<!-- 	<property name="databaseSource" value="/media/AR_LAB_/DB_SOURCE/"/> -->
+	<property name="databaseSource" value="/home/amuller/shogi_db/"/>
+
+</target>
+
+<!-- check if maven tasks have been downloaded -->
+<target name="checkprerequisites">
+<condition property="mavenanttaskavailable">
+      <available file="${destlocation}/${anttask}"/>
+</condition>
+</target>
+
+<!-- download maven tasks -->
+<target name="downloadprerequisites" unless="mavenanttaskavailable" depends="checkprerequisites, init">
+
+	<get src="${jardownloadlocation}/${anttask}" dest="${destlocation}/${anttask}"/>
+	
+</target>
+
+<!-- initialize maven tasks-->
+<target name="maven" depends="init, downloadprerequisites">
+	
+	<path id="maven-ant-tasks.classpath" path="${destlocation}/${anttask}" />
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+           classpathref="maven-ant-tasks.classpath" />
+	<!-- access maven project -->
+	<artifact:pom id="project" file="pom.xml" />
+	<!-- define the classpath -->
+
+	
+	<!-- generate the classpath -->
+	<artifact:dependencies pathId="dependency.classpath">
+      <pom refid="project"/>
+  </artifact:dependencies>
+	
+	<echo>
+		Local class path ${project.build.outputDirectory}
+	</echo>
+
+</target>
+<target name="exampleVectors" depends="maven">	
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="net.obsearch.example.vectors.VectorsDemoGHS"  failonerror="true">
+<jvmarg value="-Xmx${memory}M" />
+<jvmarg value="-ea" />
+	</java>
+</target>
+
+<target name="create" depends="maven">	
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+<jvmarg value="-Xmx${memory}M" />
+<!--<jvmarg value="-XXcompressedRefs"/>-->
+<jvmarg value="-ea"/>
+<jvmarg value="-server"/>
+<arg value="-m"/>
+<arg value="create"/>
+<arg value="-db"/>
+<arg value="${indexFolder}"/>
+<arg value="-dbsrc"/>
+<arg value="${indexSource}"/>
+<arg value="-dbsize"/>
+<arg value="600000"/>
+<arg value="-ep"/>
+<arg value="1.5"/>
+	</java>
+</target>
+
+
+<target name="intrinsic" depends="maven">	
+	<java dir="${project.build.outputDirectory}" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+<jvmarg value="-Xmx${memory}M" />
+<arg value="-m"/>
+<arg value="intrinsic"/>
+<arg value="-db"/>
+<arg value="${indexFolder}"/>
+	</java>
+</target>
+
+
+<target name="search" depends="maven">	
+	<java dir="target" fork="yes"  classpath="${cls}" classpathref="dependency.classpath"   classname="${className}"  failonerror="true">
+<jvmarg value="-Xmx${memory}M" />
+<!-- <jvmarg value="-XXcompressedRefs"/> -->
+<arg value="-m"/>
+<arg value="search"/>
+<arg value="-db"/>
+<arg value="${indexFolder}"/>
+<arg value="-qsrc"/>
+<arg value="${querySource}"/>
+<arg value="-k"/>
+<arg value="${k}"/>
+	</java>
+</target>
+
+
+<target name="shogiCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="shogi.ShogiDemo"/>
+    <param name="indexFolder" value="${databaseSource}/shogi/"/>
+		<param name="indexSource" value="/home/amuller/shogi/banmen_newline.data"/>
+  </antcall>
+</target>
+
+<target name="shogiSearch" depends="init,maven">
+  <antcall target="search">
+    <param name="className" value="shogi.ShogiDemo"/>
+    <param name="indexFolder" value="${databaseSource}/shogi/"/>
+		<param name="querySource" value="/home/amuller/shogi/queries.txt"/>
+  </antcall>
+</target>
+
+<target name="wikiIntrinsic" depends="init,maven">
+  <antcall target="intrinsic">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/wiki/"/>
+  </antcall>
+</target>
+
+
+
+
+
+<target name="wikiSearch" depends="init,maven">
+  <antcall target="search">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+<target name="wikiSearchGHS" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.doc.WikipediaDemoRF04"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+
+
+<target name="wikiCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemo"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+<target name="proteinCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+		<param name="indexSource" value="/home/amuller/swiss3/data.fasta.db/"/>
+  </antcall>
+</target>
+
+
+<target name="wikiCreateSmap" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoSmap"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+
+
+
+
+<target name="wikiCreateGHS" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.doc.WikipediaDemoRF04"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+
+<target name="vectorCreate" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.vectors.VectorsDemoPrefix"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+<target name="vectorCreateGHS" depends="init,maven">
+  <antcall target="create">
+    <param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="indexSource" value="/home/amuller/wikipedia/hope.txt.db"/>
+  </antcall>
+</target>
+
+
+
+<target name="proteinIntrinsic" depends="init,maven">
+  <antcall target="intrinsic">
+		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+  </antcall>
+</target>
+
+
+
+<target name="proteinSearch" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.protein.SwissProtDemo"/>
+    <param name="indexFolder" value="${databaseSource}/protein/"/>
+		<param name="querySource" value="/home/amuller/swiss3/data.fasta.q"/>
+  </antcall>
+</target>
+
+<target name="vectorSearch" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoPrefix"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+
+
+<target name="vectorSearchGHS" depends="init,maven">
+  <antcall target="search">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+		<param name="querySource" value="/home/amuller/wikipedia/hope.txt.q"/>
+  </antcall>
+</target>
+
+
+
+<target name="vectorIntrinsic" depends="init,maven">
+  <antcall target="intrinsic">
+		<param name="className" value="net.obsearch.example.vectors.VectorsDemoGHSSISAP"/>
+    <param name="indexFolder" value="${databaseSource}/vector/"/>
+  </antcall>
+</target>
+
+
+
+</project>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<faqs id="General FAQ">
+  <part id="General">
+		<faq id="when">
+      <question>When should I use OBSearch?</question>
+      <answer>
+        <p>
+       	When you need to approximately match objects and you have a distance
+				function that satisfies the triangle inequality.
+        </p>
+      </answer>			
+    </faq>  
+		
+
+  </part>
+</faqs>
