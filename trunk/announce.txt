@@ -9,12 +9,12 @@ You can download it from:
 http://code.google.com/p/obsearch/downloads/list
 
 
-md5sum:69815b55384dff4bdfc135ef76a41f15 sha1sum:c7681623cccaf75e590fc841eb7e7fbe79c58667 obsearch-0.9.9f-bin.tar.gz
-md5sum:df716f8c06c2eb8a359ae0e31e07761f sha1sum:48b4b9c5b01a7a900879e5a67b24577c89556d26 obsearch-0.9.9f-bin.zip
-md5sum:3e736042d38fb584b904e5e0e3b1eed8 sha1sum:87e9fe11ee31f1a2a2d61566c3924a614cfcd086 obsearch-0.9.9f.jar
-md5sum:7c2ebadac6e58e73ef52ac906713031a sha1sum:0f93644da864857a1c6ee835d0310b70b2b7c37e obsearch-0.9.9f-jar-with-dependencies.jar
-md5sum:d8db77b8ce63d2b3d9bfdeb60516c7cb sha1sum:2143f09e7c65b4e5ff0611a0dae960c35283dd61 obsearch-0.9.9f-src.tar.gz
-md5sum:4eca81e541e518ec536992db1d6bd809 sha1sum:d8327c5d2175666684c409449c53bc9639868ef7 obsearch-0.9.9f-src.zip
+md5sum:99144115f8133967b7d42baf64ee405c sha1sum:feaca94ef5500c6e85871b797a6db74c4014cdb3 obsearch-0.9.9g-bin.tar.gz
+md5sum:ff179e9532d2d850842b7c400a851472 sha1sum:ed1a69411f3c77728d3bfdea79573e76d178231a obsearch-0.9.9g-bin.zip
+md5sum:9a1e0f9c0f60d899b0090e578c373d4a sha1sum:21f511d0af084204d5c1604c435de7da386c239f obsearch-0.9.9g.jar
+md5sum:bbbea11721346c7ed7a346a6e5555c93 sha1sum:889b4d0619abaf0c0116abad4124c60e473b4c0b obsearch-0.9.9g-jar-with-dependencies.jar
+md5sum:ac522bba1e875c763c702e134948afa3 sha1sum:d31f71518b2be5cbb48256f9e5b3afdaf0d812ac obsearch-0.9.9g-src.tar.gz
+md5sum:c898b79d2b58c1277de9f6e4e85f5962 sha1sum:4fd4f4ade66a43bc940ee4d4edc8cc4369bb88a5 obsearch-0.9.9g-src.zip
 
 Please send any bug reports to:
 http://code.google.com/p/obsearch/issues/list

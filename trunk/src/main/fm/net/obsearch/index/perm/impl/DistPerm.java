@@ -172,7 +172,7 @@ public class DistPerm${Type}<O extends OB${Type}> extends AbstractDistPerm<O, Bu
 					//OBAsserts.chkAssert(Math.abs(ep - epOld)<= 1f / sortedList.length, "oops: new: " + ep + " old: " + epOld);					
 				}
 				goodK++;
-				if (ep <= this.getExpectedEP()) {
+				if (query.isFull() && ep <= this.getExpectedEP()) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets ");

@@ -269,12 +269,16 @@ implements Index${Type}<O> {
 					//OBAsserts.chkAssert(Math.abs(ep - epOld)<= 1f / sortedList.length, "oops: new: " + ep + " old: " + epOld);					
 				}
 				goodK++;
-				if (ep <= this.getExpectedEP() && query.isFull()) {
+				if (query.isFull() && ep <= this.getExpectedEP() ) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets ");
 						logger.info("CARD" + result.getCompactRepresentation().cardinality() + " CARD_Q: " + longAddr.getCompactRepresentation().cardinality());
 					kEstimators[i].add(goodK);
+           logger.info("Distance best found: " + query.getResult().getSortedElements().get(0).getDistance());
+           logger.info("Distance real: " + sortedList[0]);
+					 logger.info("Query: " + object);
+					 logger.info("Best found: " + query.getResult().getSortedElements().get(0).getObject());
 					// store the distance of the best object and the real-best object
 					${type} difference = (${type})Math.abs(sortedList[0] - query.getResult().getSortedElements().get(0).getDistance());
 					break; // we are done.
