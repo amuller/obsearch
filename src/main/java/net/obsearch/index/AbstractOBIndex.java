@@ -624,7 +624,7 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 					res.setId(id);
 				}
 				OBAsserts.chkAssert(A.getValue(id) == null,
-						"id already used, fatal error");
+						"id already used, fatal error: " + id);
 				this.A.put(res.getId(), objectToByteBuffer(object));
 			}
 
