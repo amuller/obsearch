@@ -121,11 +121,13 @@
 		 </dependency>
 
 
-		 	 <dependency>
-       <groupId>opt4j</groupId>
-			 <artifactId>opt4j</artifactId>
-			 <version>1.51</version>
-		 </dependency>
+	<dependency>
+    <groupId>opt4j</groupId>
+    <artifactId>opt4j</artifactId>
+    <version>2.2</version>
+</dependency>
+
+
 
 		 <dependency>
 			 <groupId>jfreechart</groupId>
@@ -247,28 +249,12 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>google</groupId>
-			<artifactId>guava</artifactId>
-			<version>r06</version>
-			<scope>compile</scope>
-		</dependency>
 
-
-		<dependency>
-			<groupId>google</groupId>
-			<artifactId>uzaygezen</artifactId>
-			<version>0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>google</groupId>
-			<artifactId>google-collect</artifactId>
-			<version>20080820</version>
-			<scope>compile</scope>
-		</dependency>
-
+	<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>r07</version>
+</dependency>
 
 				<dependency>
 			<groupId>apache</groupId>
