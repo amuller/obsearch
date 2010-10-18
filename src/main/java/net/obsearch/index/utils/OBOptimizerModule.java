@@ -56,5 +56,10 @@ public class OBOptimizerModule extends ProblemModule {
 		bind(Evaluator.class).toInstance(eval);
 
 	}
+	@Override
+	protected void config() {
+		configure();
+		
+	}
 
 }

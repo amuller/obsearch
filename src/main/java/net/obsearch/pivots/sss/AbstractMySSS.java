@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import net.obsearch.Index;
 import net.obsearch.OB;
@@ -20,7 +21,7 @@ import net.obsearch.pivots.PivotResult;
 import net.obsearch.pivots.Pivotable;
 import net.obsearch.utils.Pair;
 
-import org.apache.log4j.Logger;
+
 
 import com.sleepycat.je.DatabaseException;
 
@@ -60,7 +61,7 @@ public abstract class AbstractMySSS < O extends OB >
      * Logger.
      */
     private static final transient Logger logger = Logger
-            .getLogger(AbstractMySSS.class);
+            .getLogger(AbstractMySSS.class.getName());
 
     /**
      * Alpha is the number of positive or negative STDS that we will add.
