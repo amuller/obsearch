@@ -440,7 +440,7 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 	protected void freezeDefault() throws AlreadyFrozenException,
 			IllegalIdException, IllegalAccessException, InstantiationException,
 			OutOfRangeException, OBException {
-		Buckets.deleteAll();
+		//Buckets.deleteAll();
 		projections = null;
 		long i = 0;
 		long max = databaseSize();
