@@ -76,6 +76,10 @@ public abstract class AbstractBucketIndex<O extends OB, B extends BucketObject, 
 			throws OBStorageException, OBException {
 		super(type, pivotSelector, pivotCount);
 	}
+	
+	public AbstractBucketIndex (){
+		super();
+	}
 
 	/**
 	 * If elementSource == null returns id, otherwise it returns

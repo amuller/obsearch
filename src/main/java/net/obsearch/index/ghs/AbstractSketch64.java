@@ -117,6 +117,9 @@ public abstract class AbstractSketch64<O extends OB, B extends BucketObject<O>, 
 	 */
 	protected IncrementalPairPivotSelector<O> maskPivotSelector;
 
+	public AbstractSketch64(){
+		super();
+	}
 	public AbstractSketch64(Class<O> type,
 			IncrementalPairPivotSelector<O> pivotSelector, int m,
 			int bucketPivotCount) throws OBStorageException, OBException {

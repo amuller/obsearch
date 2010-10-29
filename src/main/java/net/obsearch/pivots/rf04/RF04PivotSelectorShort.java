@@ -15,6 +15,10 @@ public class RF04PivotSelectorShort<O extends OBShort> extends AbstractIncrement
 	public RF04PivotSelectorShort(Pivotable<O> pivotable) {
 		super(pivotable);		
 	}
+	
+	public RF04PivotSelectorShort(){
+		super();
+	}
 
 	@Override
 	protected double distance(O a, O b) throws OBException {

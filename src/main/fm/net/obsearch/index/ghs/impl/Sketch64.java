@@ -68,6 +68,10 @@ implements Index${Type}<O> {
 		super(type, pivotSelector,  m, 0);
 		
 	}
+
+	public Sketch64${Type}(){
+			super();
+	}
 	
 	@Override
 	public BucketObject${Type}<O> getBucket(O object) throws OBException,

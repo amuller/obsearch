@@ -54,6 +54,10 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 	protected AbstractIncrementalPivotSelector(Pivotable<O> pivotable) {
 		this.pivotable = pivotable;
 	}
+	
+	protected AbstractIncrementalPivotSelector(){
+		
+	}
 
 	/**
 	 * Pivotable objects determine if a given object is suitable. For example,
