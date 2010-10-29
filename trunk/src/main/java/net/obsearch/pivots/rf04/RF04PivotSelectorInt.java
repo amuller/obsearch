@@ -15,6 +15,10 @@ public class RF04PivotSelectorInt<O extends OBInt> extends AbstractIncrementalRF
 	public RF04PivotSelectorInt(Pivotable<O> pivotable) {
 		super(pivotable);		
 	}
+	
+	public RF04PivotSelectorInt(){
+		super();
+	}
 
 	@Override
 	protected double distance(O a, O b) throws OBException {

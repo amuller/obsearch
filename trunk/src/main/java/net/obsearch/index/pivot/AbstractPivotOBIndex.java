@@ -109,6 +109,10 @@ public abstract class AbstractPivotOBIndex < O extends OB >
         this.pivotCount = pivotCount;
         this.pivotSelector = pivotSelector;       
     }
+    
+    protected AbstractPivotOBIndex(){
+    	super();
+    }
 
     @Override
     public void freeze() throws  AlreadyFrozenException,

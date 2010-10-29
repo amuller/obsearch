@@ -118,6 +118,10 @@ public abstract class AbstractOBIndex<O extends OB> implements Index<O> {
 	public boolean isPreFreezeCheck() {
 		return preFreezeCheck;
 	}
+	
+	public AbstractOBIndex(){
+		
+	}
 
 	public void setPreFreezeCheck(boolean preFreezeCheck) {
 		this.preFreezeCheck = preFreezeCheck;

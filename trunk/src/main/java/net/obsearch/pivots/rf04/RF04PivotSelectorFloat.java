@@ -15,6 +15,10 @@ public class RF04PivotSelectorFloat<O extends OBFloat> extends AbstractIncrement
 	public RF04PivotSelectorFloat(Pivotable<O> pivotable) {
 		super(pivotable);		
 	}
+	
+	public RF04PivotSelectorFloat(){
+		super();
+	}
 
 	@Override
 	protected double distance(O a, O b) throws OBException {

@@ -99,6 +99,11 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		super(type, pivotSelector, pivotCount);
 		this.bucketPivotCount = bucketPivotCount;
 	}
+	
+	public AbstractBucketSorter(){
+		super();
+	}
+	
 
 	/**
 	 * For a query k we take the kEstimators[k] estimation and return the value

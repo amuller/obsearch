@@ -47,6 +47,9 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 
 	private double max_distance = 0;
 	
+	public AbstractIncrementalRF04(){
+		
+	}
 
 	protected AbstractIncrementalRF04(Pivotable<O> pivotable) {
 		super(pivotable);
