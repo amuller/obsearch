@@ -628,8 +628,8 @@ public abstract class AbstractBucketSorter<O extends OB, B extends BucketObject<
 		if (i == this.userK.length) {
 			throw new OBException("Wrong k value");
 		}
-		if(kEstimators[i].size() == 1){
-			return (int)Math.round(kEstimators[i].mean()); //hack to avoid NaNs in very small DBs
+		if(kEstimators[i].size() == 0){
+			return 1; //hack to avoid NaNs in very small DBs
 		}
 		long x = Math.round(this.kEstimators[i].mean()
 				+ (this.kEstimators[i].standardDeviation() * kAlpha));
