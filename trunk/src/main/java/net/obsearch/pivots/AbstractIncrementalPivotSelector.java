@@ -48,12 +48,13 @@ import com.sleepycat.je.DatabaseException;
 public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 	
 	protected Random r = new Random();
-	
+	private boolean acceptRepeated = false;
 	private static Logger logger = Logger.getLogger(AbstractIncrementalPivotSelector.class.toString());
 
 	protected AbstractIncrementalPivotSelector(Pivotable<O> pivotable) {
 		this.pivotable = pivotable;
 	}
+	
 	
 	protected AbstractIncrementalPivotSelector(){
 		
@@ -99,6 +100,10 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 		} else {
 			return i;
 		}
+	}
+	
+	public void enableAcceptRepeated(){
+		acceptRepeated = true;
 	}
 
 	/*
@@ -183,14 +188,18 @@ public abstract class AbstractIncrementalPivotSelector<O extends OB>  {
 			cx++;
 		}
 		LongArrayList generated = new LongArrayList(k);
+		int repeats = 0;
 		while (i < res.length) {
-			
+			if(repeats == 10000){
+				throw new OBException("Too few elements in the db: " + max + " consider calling: enableAcceptRepeated()");
+			}
 			long id = mapId(r.nextInt(max), source);
-			if (excludes == null || !excludesSet.contains(id) && ! generatedSet.contains(id)) {
+			if (acceptRepeated || excludes == null || !excludesSet.contains(id) && ! generatedSet.contains(id)) {
 				res[i] = id;
 				generated.add(id);
 				generatedSet.add(id);
 			} else {
+				repeats++;
 				continue; // repeat step.
 			}
 			i++;
