@@ -189,6 +189,84 @@ implements Index${Type}<O> {
 			container.search(q, b, filter, getStats());															
 		}
 	}
+
+
+	/**
+	 * Performs a knn graph search
+	 */ 
+	public Iterator<List<OBQuery${Type}<O>>> knnGraph(int k, ${type} r){
+			return new KnnIterator(k, r);
+	}
+
+	/**
+	 * Implements a knn graph iteration over all the dataset
+	 */ 
+	protected class KnnIterator implements Iterator<List<OBQuery${Type}<O>>> {
+
+			private Iterator<SleekBucket${Type}<O>> bucketsIt;
+			private List<OBQuery${Type}<O>> next;
+			private int kEstimation;
+			private ${type} range;
+			public KnnIterator(int k, ${type} range) {
+					try{
+					bucketsIt = iterateBuckets();
+					kEstimation = estimateK(k);
+					this.range = range;
+					getNext();
+					}catch(Exception e){
+							throw new IllegalArgumentException(e);
+					}
+
+			}
+
+			private void getNext(){
+					try{
+					if(bucketsIt.hasNext()){
+							// get the bucket id.
+							SleekBucket${Type}<O> sl = bucketsIt.next();
+							BucketObject${Type}<O> b = getBucket(sl.getObjects().get(0).getObject());
+							SketchProjection query = getProjection(b);
+							List<SketchProjection> sortedBuckets = searchBuckets(query, kEstimation);
+							List<SleekBucket${Type}<O>> buckets = new ArrayList<SleekBucket${Type}<O>>(sortedBuckets.size());
+							buckets.add(sl); // add also our current bucket!
+							for(SketchProjection sp : sortedBuckets){
+									SleekBucket${Type}<O> container = bucketCache.get(sp.getAddress());
+									buckets.add(container);
+							}							
+							// process the result.
+						  next = new ArrayList<OBQuery${Type}<O>>(sl.getObjects().size());
+							for (BucketObject${Type}<O> o : sl.getObjects()) {
+									OBPriorityQueue${Type}<O> result = new OBPriorityQueue${Type}<O>(kEstimation);
+									OBQuery${Type}<O> q = new OBQuery${Type}<O>(o.getObject(), range, result, null);
+									// search all the buckets!
+									for(SleekBucket${Type}<O> cont : buckets){
+											cont.search(q, b,  new FilterNonEquals(), getStats());		
+									}
+									next.add(q);
+							}
+					}else{
+							next = null;
+					}
+					}catch(Exception e){
+							throw new IllegalArgumentException(e);
+					}
+			}
+
+			public boolean hasNext(){
+					return next != null;
+			}
+			
+
+			public List<OBQuery${Type}<O>> next(){
+					List<OBQuery${Type}<O>> toReturn  = next;
+					getNext();
+					return toReturn;
+			}
+
+			public void remove(){
+					throw new UnsupportedOperationException();
+			}
+	}
 	
 
 	
