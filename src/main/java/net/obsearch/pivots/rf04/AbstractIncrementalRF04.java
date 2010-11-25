@@ -47,6 +47,8 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 
 	private double max_distance = 0;
 	
+	
+	
 	public AbstractIncrementalRF04(){
 		
 	}
@@ -54,6 +56,7 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 	protected AbstractIncrementalRF04(Pivotable<O> pivotable) {
 		super(pivotable);
 	}
+	
 
 	@Override
 	public PivotPairResult<O> generatePivotsPair(int pairCount, Index<O> index)
@@ -62,6 +65,7 @@ public abstract class AbstractIncrementalRF04<O extends OB> extends
 		return generatePivotsPair(pairCount, null, index);
 	}
 
+	
 	
 
 	public int getDataSample() {
