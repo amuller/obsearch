@@ -206,13 +206,15 @@ implements Index${Type}<O> {
 			private Iterator<SleekBucket${Type}<O>> bucketsIt;
 			private List<OBQuery${Type}<O>> next;
 			private int kEstimation;
+			private int k;
 			private ${type} range;
 			public KnnIterator(int k, ${type} range) {
 					try{
-					bucketsIt = iterateBuckets();
-					kEstimation = estimateK(k);
-					this.range = range;
-					getNext();
+							this.k = k;
+							bucketsIt = iterateBuckets();
+							kEstimation = estimateK(k);
+							this.range = range;
+							getNext();
 					}catch(Exception e){
 							throw new IllegalArgumentException(e);
 					}
@@ -236,7 +238,7 @@ implements Index${Type}<O> {
 							// process the result.
 						  next = new ArrayList<OBQuery${Type}<O>>(sl.getObjects().size());
 							for (BucketObject${Type}<O> o : sl.getObjects()) {
-									OBPriorityQueue${Type}<O> result = new OBPriorityQueue${Type}<O>(kEstimation);
+									OBPriorityQueue${Type}<O> result = new OBPriorityQueue${Type}<O>(k);
 									OBQuery${Type}<O> q = new OBQuery${Type}<O>(o.getObject(), range, result, null);
 									// search all the buckets!
 									for(SleekBucket${Type}<O> cont : buckets){
