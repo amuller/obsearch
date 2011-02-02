@@ -356,7 +356,7 @@ implements Index${Type}<O> {
 				if (query.isFull() && ep <= this.getExpectedEP() ) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
-						logger.info("Found result after reading: " + goodK + " buckets ");
+						logger.info("Found result after reading: " + goodK + " buckets " + " current error: " + ep + " <= expected error: " + this.getExpectedEP());
 						logger.info("CARD" + result.getCompactRepresentation().cardinality() + " CARD_Q: " + longAddr.getCompactRepresentation().cardinality());
 					kEstimators[i].add(goodK);
            logger.info("Distance best found: " + query.getResult().getSortedElements().get(0).getDistance());
