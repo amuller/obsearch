@@ -32,7 +32,7 @@
 		
 		
 		<menu name="Get OBSearch">
-			<item name="Downloads" href="download.html"/>
+			<item name="Downloads" href="http://code.google.com/p/obsearch/downloads/list"/>
 		</menu>
 
 		<menu ref="reports"/>
