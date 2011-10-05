@@ -4,7 +4,7 @@
   <groupId>net.obsearch</groupId>
   <artifactId>obsearch</artifactId>
   <!--<packaging>jar</packaging>-->
-  <version>0.9.9g</version>
+  <version>1.0</version>
   <name>OBSearch</name>
 	<inceptionYear>2007</inceptionYear>
 	<description> OBSearch is a similarity search engine.

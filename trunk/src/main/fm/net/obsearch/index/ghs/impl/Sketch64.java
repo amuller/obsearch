@@ -347,13 +347,13 @@ implements Index${Type}<O> {
 				assert container != null : "Problem while loading: " + result.getSketch();
 				container.search(query, b, fne, getStats());
 				// calculate the ep of the query and the DB.
-				if (query.isFull()) { // only if the query is full of items.
+				if (query.isFull() ||  (query.getResult().getSize() >= (databaseSize() -1)) ) { // only if the query is full of items.
 					ep = query.approx(sortedList);
 					//double epOld = query.ep((List)sortedBuckets2);
 					//OBAsserts.chkAssert(Math.abs(ep - epOld)<= 1f / sortedList.length, "oops: new: " + ep + " old: " + epOld);					
 				}
 				goodK++;
-				if (query.isFull() && ep <= this.getExpectedEP() ) {
+				if (query.isFull() || (query.getResult().getSize() >= (databaseSize() -1))  && ep <= this.getExpectedEP() ) {
 					// add the information to the stats:
 					// goodK buckets required to retrieve with k==i.
 						logger.info("Found result after reading: " + goodK + " buckets " + " current error: " + ep + " <= expected error: " + this.getExpectedEP());
