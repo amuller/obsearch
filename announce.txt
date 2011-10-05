@@ -1,29 +1,31 @@
 
-OBSearch  released.
+OBSearch 1.0 released.
 
-OBSearch  has been released.
+OBSearch 1.0  has been released.
 
 Release highlights:
+
+* Fixed errors when the DB is very small 20-30 items. 
+* Knn graph method has been implemented. Check the method: knnGraph in
+  any of the Sketch64* classes. 
 
 You can download it from:
 http://code.google.com/p/obsearch/downloads/list
 
 
-md5sum:99144115f8133967b7d42baf64ee405c sha1sum:feaca94ef5500c6e85871b797a6db74c4014cdb3 obsearch-0.9.9g-bin.tar.gz
-md5sum:ff179e9532d2d850842b7c400a851472 sha1sum:ed1a69411f3c77728d3bfdea79573e76d178231a obsearch-0.9.9g-bin.zip
-md5sum:9a1e0f9c0f60d899b0090e578c373d4a sha1sum:21f511d0af084204d5c1604c435de7da386c239f obsearch-0.9.9g.jar
-md5sum:bbbea11721346c7ed7a346a6e5555c93 sha1sum:889b4d0619abaf0c0116abad4124c60e473b4c0b obsearch-0.9.9g-jar-with-dependencies.jar
-md5sum:ac522bba1e875c763c702e134948afa3 sha1sum:d31f71518b2be5cbb48256f9e5b3afdaf0d812ac obsearch-0.9.9g-src.tar.gz
-md5sum:c898b79d2b58c1277de9f6e4e85f5962 sha1sum:4fd4f4ade66a43bc940ee4d4edc8cc4369bb88a5 obsearch-0.9.9g-src.zip
+md5sum:9dccb98ced1d7b44ee1799f62e0cf480 sha1sum:2ffdf5422b005ba6e882ef9d188d391752c0a267 obsearch-1.0-bin.tar.gz
+md5sum:067d2a2e3162f03e81e71b66925a94eb sha1sum:ad22162d40f21b2b3e1e22f548b251f077ea5759 obsearch-1.0-bin.zip
+md5sum:6bfe14b44912416258eccda637f915b4 sha1sum:f614b1f6c1b4cf131807d8ec47d6ccf68f1b847a obsearch-1.0.jar
+md5sum:733ed7c480e7a7d040e23c099fd691f8 sha1sum:d3639476a01118612293024fd938613e7e94391d obsearch-1.0-jar-with-dependencies.jar
+md5sum:877ecc5fd44718d1bf6c4b7035aacad7 sha1sum:4986ec5565fbb9757cd1eeaf8c592d2c9c202c50 obsearch-1.0-src.tar.gz
+md5sum:265cd24b8b6c54f222cd9b57c7a744d1 sha1sum:be83f68aa4e92509c9aa016a15f1e3b43bedc746 obsearch-1.0-src.zip
 
 Please send any bug reports to:
 http://code.google.com/p/obsearch/issues/list
 
-Homepage:
-http://code.google.com/p/obsearch/
 
 Website:
-http://obsearch.berlios.de/
+http://obsearch.net
 
 
 Arnoldo Muller
