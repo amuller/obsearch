@@ -72,7 +72,7 @@ public class VectorsDemoGHS extends VectorsDemo {
 	    index.setFixedRecord(true);
     	index.setFixedRecord(VEC_SIZE*4);
 		// Create the ambient that will store the index's data. (NOTE: folder name is hardcoded)
-    	Ambient<L1Float, Sketch64Float<L1Float>> a =  new AmbientTC<L1Float, Sketch64Float<L1Float>>( index, INDEX_FOLDER );
+    	Ambient<L1Float, Sketch64Float<L1Float>> a =  new AmbientBDBJe<L1Float, Sketch64Float<L1Float>>( index, INDEX_FOLDER );
 		
 		// Add some random objects to the index:	
 		logger.info("Adding " + DB_SIZE + " objects...");
